@@ -1340,7 +1340,13 @@ export default function EventsUserPortal({
                   evt.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                   evt.description?.toLowerCase().includes(searchQuery.toLowerCase())
                 )
-              );
+              ).sort((a, b) => {
+                if (!a.deadline) return 1;
+                if (!b.deadline) return -1;
+                const timeA = new Date(a.deadline).getTime();
+                const timeB = new Date(b.deadline).getTime();
+                return timeA - timeB;
+              });
               
               if (filtered.length === 0) {
                 return (
