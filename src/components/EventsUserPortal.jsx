@@ -247,6 +247,8 @@ const fetchJSONP = (url, params = {}) => {
 export default function EventsUserPortal({
   currentUser,
   onLoginClick,
+  onLogout,
+  onCreateEventRedirect,
   events,
   eventParticipants,
   setEventParticipants,
@@ -256,6 +258,7 @@ export default function EventsUserPortal({
   setUsers
 }) {
   const [registeringEvent, setRegisteringEvent] = useState(null); // Event model open for register
+  const [showRoleWarning, setShowRoleWarning] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [contact, setContact] = useState('');
@@ -656,6 +659,20 @@ export default function EventsUserPortal({
       return sum + payout;
     }, 0);
     return Math.max(0, initialBudget - totalPayout);
+  };
+
+  const handleCreateEventClick = () => {
+    if (!currentUser) {
+      onLoginClick('register', 'panitia');
+    } else if (
+      currentUser.role === 'panitia' ||
+      currentUser.role === 'staf' ||
+      currentUser.role === 'superadmin'
+    ) {
+      onCreateEventRedirect();
+    } else {
+      setShowRoleWarning(true);
+    }
   };
 
   const getEventStatusLabel = (evt) => {
@@ -1198,9 +1215,9 @@ export default function EventsUserPortal({
             </p>
           </div>
 
-          {/* Search Bar */}
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', width: '100%', maxWidth: '400px' }}>
-            <div style={{ position: 'relative', flex: 1 }}>
+          {/* Search Bar & Action Buttons */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap', width: '100%' }}>
+            <div style={{ position: 'relative', flex: '1 1 300px', maxWidth: '400px' }}>
               <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input
                 type="text"
@@ -1237,6 +1254,38 @@ export default function EventsUserPortal({
                 </button>
               )}
             </div>
+
+            {/* Buat Event Button */}
+            <button 
+              onClick={handleCreateEventClick}
+              className="btn btn-primary"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
+                border: 'none',
+                padding: '10px 24px',
+                borderRadius: '30px',
+                fontWeight: 'bold',
+                color: 'white',
+                boxShadow: '0 4px 15px rgba(124, 58, 237, 0.2)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontSize: '0.88rem'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(124, 58, 237, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(124, 58, 237, 0.2)';
+              }}
+            >
+              <Calendar size={16} />
+              <span>Buat Event Baru</span>
+            </button>
           </div>
 
           {/* List Layout: Row Cards */}
@@ -1772,6 +1821,109 @@ export default function EventsUserPortal({
                 </button>
               </div>
             </form>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Role Warning Modal Overlay */}
+      {showRoleWarning && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(5, 7, 15, 0.85)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 10300,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }} className="animate-fade-in">
+          <div style={{
+            width: '100%',
+            maxWidth: '460px',
+            background: 'linear-gradient(135deg, rgba(30, 27, 75, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%)',
+            border: '1px solid rgba(167, 139, 250, 0.25)',
+            borderRadius: '20px',
+            padding: '32px',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(124, 58, 237, 0.15)',
+            color: 'white',
+            textAlign: 'center'
+          }}>
+            {/* Warning Icon with circular pulse background */}
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: 'rgba(124, 58, 237, 0.15)',
+              border: '1px solid rgba(167, 139, 250, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px auto'
+            }}>
+              <AlertTriangle size={32} style={{ color: '#c084fc' }} />
+            </div>
+
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '12px', color: 'white' }}>
+              Memerlukan Akun Panitia
+            </h3>
+            
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '28px' }}>
+              Saat ini Anda masuk sebagai <strong style={{ color: '#c084fc' }}>{currentUser?.role === 'member' ? 'Member' : 'User'}</strong>. 
+              Untuk dapat membuat & mengelola event baru, Anda harus terdaftar menggunakan akun dengan peran <strong style={{ color: '#a78bfa' }}>Panitia</strong>.
+            </p>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button
+                onClick={async () => {
+                  setShowRoleWarning(false);
+                  if (onLogout) {
+                    await onLogout();
+                  }
+                  onLoginClick('register', 'panitia');
+                }}
+                className="btn btn-primary"
+                style={{
+                  width: '100%',
+                  justifyContent: 'center',
+                  background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '30px',
+                  fontWeight: 'bold',
+                  fontSize: '0.9rem',
+                  boxShadow: '0 4px 15px rgba(124, 58, 237, 0.25)',
+                  cursor: 'pointer'
+                }}
+              >
+                Log Out & Daftar sebagai Panitia
+              </button>
+              
+              <button
+                onClick={() => setShowRoleWarning(false)}
+                style={{
+                  width: '100%',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  padding: '12px 24px',
+                  borderRadius: '30px',
+                  color: 'rgba(255,255,255,0.7)',
+                  fontWeight: '600',
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
+              >
+                Batal
+              </button>
+            </div>
           </div>
         </div>,
         document.body

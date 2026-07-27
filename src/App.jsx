@@ -297,13 +297,16 @@ export default function App() {
   const usernameInputRef = useRef(null);
 
   // Open login/register modal
-  const handleOpenLoginModal = (mode = 'login') => {
+  const handleOpenLoginModal = (mode = 'login', role = 'user') => {
     setLoginModalMode(mode);
     setIsLoginModalOpen(true);
     setLoginError('');
     setLoginUsername('');
     setLoginPassword('');
     setRegisterConfirmPassword('');
+    if (mode === 'register') {
+      setRegisterRole(role);
+    }
   };
 
   // Autofocus username input when login modal opens
@@ -1535,7 +1538,12 @@ export default function App() {
           ) : activeTab === 'events' ? (
             <EventsUserPortal 
               currentUser={currentUser}
-              onLoginClick={() => handleOpenLoginModal('login')}
+              onLoginClick={(mode, role) => handleOpenLoginModal(mode, role)}
+              onLogout={handleLogout}
+              onCreateEventRedirect={() => {
+                setActiveTab('admin');
+                setAdminSubTab('event-manage');
+              }}
               events={events}
               eventParticipants={eventParticipants}
               setEventParticipants={handleSetEventParticipants}
