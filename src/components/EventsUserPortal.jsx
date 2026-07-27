@@ -1189,7 +1189,7 @@ export default function EventsUserPortal({
               </div>
             </div>
           );
-        })
+        })()
       ) : (
         // ================= ROW LIST VIEW =================
         <React.Fragment>
