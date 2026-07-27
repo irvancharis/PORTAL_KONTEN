@@ -719,6 +719,10 @@ export default function EventsUserPortal({
             ? eventSubmissions.find(s => s.eventId === evt.id && s.username.toLowerCase() === currentUser.username.toLowerCase())
             : null;
 
+          const organizerUser = users.find(u => u.username.toLowerCase() === (evt.creator || '').toLowerCase());
+          const orgName = organizerUser?.organizerName || evt.organizerName || 'Panitia Portal';
+          const orgAvatar = organizerUser?.organizerAvatar || evt.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}`;
+
           return (
             <div className="animate-fade-in" style={{
               background: 'linear-gradient(135deg, rgba(17, 24, 39, 0.6) 0%, rgba(10, 15, 30, 0.8) 100%)', 
@@ -840,11 +844,29 @@ export default function EventsUserPortal({
                       <Users size={18} style={{ color: '#a78bfa' }} />
                       <span>Detail Penyelenggara</span>
                     </strong>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.88rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px', paddingBottom: '14px', borderBottom: '1px dashed rgba(255,255,255,0.06)' }}>
+                      <img 
+                        src={orgAvatar} 
+                        alt={orgName} 
+                        style={{
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          border: '2px solid rgba(167, 139, 250, 0.3)',
+                          background: 'rgba(255, 255, 255, 0.02)',
+                          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}`;
+                        }}
+                      />
                       <div>
                         <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem', marginBottom: '2px' }}>Nama Penyelenggara / Komunitas</span>
-                        <span style={{ color: 'white', fontWeight: '700' }}>{evt.organizerName || 'Panitia Portal'}</span>
+                        <span style={{ color: 'white', fontSize: '1.05rem', fontWeight: '700' }}>{orgName}</span>
                       </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.88rem' }}>
                       {evt.organizerPhone && (
                         <div>
                           <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem', marginBottom: '2px' }}>Kontak WhatsApp / Telepon</span>
