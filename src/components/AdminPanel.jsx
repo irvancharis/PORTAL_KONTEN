@@ -108,6 +108,7 @@ export default function AdminPanel({
   // Local state
   const [zoomedReceipt, setZoomedReceipt] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [visibleActivitiesCount, setVisibleActivitiesCount] = useState(6);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null); // null means adding a new movie
   const [editingUser, setEditingUser] = useState(null); // null means not editing any user
@@ -1082,113 +1083,148 @@ export default function AdminPanel({
                     <p style={{ margin: 0, fontSize: '0.88rem' }}>Belum ada aktivitas terbaru saat ini.</p>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    {sortedActivities.slice(0, 20).map(act => {
-                      return (
-                        <div 
-                          key={act.id}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.01)',
-                            border: '1px solid rgba(255, 255, 255, 0.05)',
-                            borderRadius: '12px',
-                            padding: '16px 20px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '16px',
-                            transition: 'all 0.2s',
-                            cursor: 'default'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                            e.currentTarget.style.transform = 'translateX(4px)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.01)';
-                            e.currentTarget.style.transform = 'translateX(0)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                            <div style={{
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '50%',
-                              background: act.type === 'participant' ? 'rgba(34, 197, 94, 0.1)' :
-                                          act.type === 'submission' ? 'rgba(167, 139, 250, 0.1)' :
-                                          act.type === 'withdrawal' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(56, 189, 248, 0.1)',
-                              color: act.type === 'participant' ? '#4ade80' :
-                                     act.type === 'submission' ? '#c084fc' :
-                                     act.type === 'withdrawal' ? '#f87171' : '#38bdf8',
+                  <div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      {sortedActivities.slice(0, visibleActivitiesCount).map(act => {
+                        return (
+                          <div 
+                            key={act.id}
+                            style={{
+                              background: 'rgba(255, 255, 255, 0.01)',
+                              border: '1px solid rgba(255, 255, 255, 0.05)',
+                              borderRadius: '12px',
+                              padding: '16px 20px',
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center',
-                              flexShrink: 0
-                            }}>
-                              {act.type === 'participant' ? <Users size={18} /> :
-                               act.type === 'submission' ? <FileVideo size={18} /> :
-                               act.type === 'withdrawal' ? <Wallet size={18} /> : <Award size={18} />}
-                            </div>
-                            <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                                <h4 style={{ margin: 0, fontSize: '0.9rem', color: 'white', fontWeight: '700' }}>{act.title}</h4>
-                                <span style={{
-                                  fontSize: '0.65rem',
-                                  padding: '2px 8px',
-                                  borderRadius: '10px',
-                                  fontWeight: 'bold',
-                                  color: act.badgeColor,
-                                  background: act.badgeBg
-                                }}>{act.badge}</span>
+                              justifyContent: 'space-between',
+                              gap: '16px',
+                              transition: 'all 0.2s',
+                              cursor: 'default'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                              e.currentTarget.style.transform = 'translateX(4px)';
+                              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.01)';
+                              e.currentTarget.style.transform = 'translateX(0)';
+                              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                              <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                background: act.type === 'participant' ? 'rgba(34, 197, 94, 0.1)' :
+                                            act.type === 'submission' ? 'rgba(167, 139, 250, 0.1)' :
+                                            act.type === 'withdrawal' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(56, 189, 248, 0.1)',
+                                color: act.type === 'participant' ? '#4ade80' :
+                                       act.type === 'submission' ? '#c084fc' :
+                                       act.type === 'withdrawal' ? '#f87171' : '#38bdf8',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
+                              }}>
+                                {act.type === 'participant' ? <Users size={18} /> :
+                                 act.type === 'submission' ? <FileVideo size={18} /> :
+                                 act.type === 'withdrawal' ? <Wallet size={18} /> : <Award size={18} />}
                               </div>
-                              <p style={{ margin: '4px 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{act.desc}</p>
-                              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', gap: '12px' }}>
-                                <span>{formatIndonesianDate(act.timestamp)}</span>
-                                <span>•</span>
-                                <span>{act.meta}</span>
+                              <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                  <h4 style={{ margin: 0, fontSize: '0.9rem', color: 'white', fontWeight: '700' }}>{act.title}</h4>
+                                  <span style={{
+                                    fontSize: '0.65rem',
+                                    padding: '2px 8px',
+                                    borderRadius: '10px',
+                                    fontWeight: 'bold',
+                                    color: act.badgeColor,
+                                    background: act.badgeBg
+                                  }}>{act.badge}</span>
+                                </div>
+                                <p style={{ margin: '4px 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{act.desc}</p>
+                                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', gap: '12px' }}>
+                                  <span>{formatIndonesianDate(act.timestamp)}</span>
+                                  <span>•</span>
+                                  <span>{act.meta}</span>
+                                </div>
                               </div>
                             </div>
+                            
+                            {/* Quick Actions redirection */}
+                            {isSuperadmin && (act.type === 'event_payment' || act.type === 'membership_payment') && (
+                              <button
+                                onClick={() => setAdminSubTab('confirmations')}
+                                style={{
+                                  background: 'rgba(56, 189, 248, 0.1)',
+                                  border: '1px solid rgba(56, 189, 248, 0.2)',
+                                  color: '#38bdf8',
+                                  padding: '6px 12px',
+                                  borderRadius: '8px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '600',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Verifikasi
+                              </button>
+                            )}
+                            {isSuperadmin && act.type === 'withdrawal' && (
+                              <button
+                                onClick={() => setAdminSubTab('withdrawals')}
+                                style={{
+                                  background: 'rgba(239, 68, 68, 0.1)',
+                                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                                  color: '#f87171',
+                                  padding: '6px 12px',
+                                  borderRadius: '8px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '600',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Kelola
+                              </button>
+                            )}
                           </div>
-                          
-                          {/* Quick Actions redirection */}
-                          {isSuperadmin && (act.type === 'event_payment' || act.type === 'membership_payment') && (
-                            <button
-                              onClick={() => setAdminSubTab('confirmations')}
-                              style={{
-                                background: 'rgba(56, 189, 248, 0.1)',
-                                border: '1px solid rgba(56, 189, 248, 0.2)',
-                                color: '#38bdf8',
-                                padding: '6px 12px',
-                                borderRadius: '8px',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              Verifikasi
-                            </button>
-                          )}
-                          {isSuperadmin && act.type === 'withdrawal' && (
-                            <button
-                              onClick={() => setAdminSubTab('withdrawals')}
-                              style={{
-                                background: 'rgba(239, 68, 68, 0.1)',
-                                border: '1px solid rgba(239, 68, 68, 0.2)',
-                                color: '#f87171',
-                                padding: '6px 12px',
-                                borderRadius: '8px',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              Kelola
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+
+                    {sortedActivities.length > visibleActivitiesCount && (
+                      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                        <button
+                          onClick={() => setVisibleActivitiesCount(prev => prev + 6)}
+                          className="btn"
+                          style={{
+                            padding: '10px 24px',
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            color: 'white',
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            fontSize: '0.88rem',
+                            fontWeight: '600',
+                            transition: 'all 0.2s',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                          }}
+                        >
+                          <span>Muat Lebih Banyak</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
