@@ -500,7 +500,7 @@ export default function App() {
     }
   };
 
-  // Fetch initial data from Firestore if configured & register real-time snapshot listeners
+  // Fetch initial data from Firestore if configured
   useEffect(() => {
     const initFirestore = async () => {
       if (isFirebaseConfigured()) {
@@ -575,8 +575,50 @@ export default function App() {
               setEventAdminFee(dbSettings.eventAdminFee);
             }
           }
+
+          // Fetch all other collections once to populate state initially (heavy optimization)
+          console.log("Fetching one-time Firestore snapshot for collections...");
+          const [
+            dbMovies,
+            dbUsers,
+            dbConfirmations,
+            dbEvents,
+            dbParticipants,
+            dbSubmissions,
+            dbWithdrawals
+          ] = await Promise.all([
+            getFirestoreMovies(),
+            getFirestoreUsers(),
+            getFirestoreConfirmations(),
+            getFirestoreEvents(),
+            getFirestoreEventParticipants(),
+            getFirestoreEventSubmissions(),
+            getFirestoreWithdrawals()
+          ]);
+
+          if (dbMovies) setMovies(dbMovies);
+          if (dbUsers) {
+            setUsers(dbUsers);
+            if (currentUser) {
+              const updatedMe = dbUsers.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
+              if (updatedMe) {
+                setCurrentUser(prev => {
+                  if (prev && JSON.stringify(prev) !== JSON.stringify(updatedMe)) {
+                    return updatedMe;
+                  }
+                  return prev;
+                });
+              }
+            }
+          }
+          if (dbConfirmations) setConfirmations(dbConfirmations);
+          if (dbEvents) setEvents(dbEvents);
+          if (dbParticipants) setEventParticipants(dbParticipants);
+          if (dbSubmissions) setEventSubmissions(dbSubmissions);
+          if (dbWithdrawals) setWithdrawals(dbWithdrawals);
+
         } catch (err) {
-          console.error("Firestore settings load/seeding failed:", err);
+          console.error("Firestore initialization failed:", err);
         } finally {
           setIsLoadingDB(false);
         }
@@ -586,90 +628,6 @@ export default function App() {
     };
 
     initFirestore();
-
-    // Set up real-time snapshot listeners for database collection lists
-    if (isFirebaseConfigured() && db) {
-      console.log("Registering real-time Firestore listeners...");
-
-      const unsubMovies = onSnapshot(collection(db, "movies"), (snapshot) => {
-        const list = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() });
-        });
-        setMovies(list);
-      });
-
-      const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
-        const list = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() });
-        });
-        setUsers(list);
-
-        // Keep currentUser object synced if roles or walletBalances change on Firestore
-        if (currentUser) {
-          const updatedMe = list.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
-          if (updatedMe) {
-            setCurrentUser(prev => {
-              if (prev && JSON.stringify(prev) !== JSON.stringify(updatedMe)) {
-                return updatedMe;
-              }
-              return prev;
-            });
-          }
-        }
-      });
-
-      const unsubConfirmations = onSnapshot(collection(db, "confirmations"), (snapshot) => {
-        const list = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() });
-        });
-        setConfirmations(list);
-      });
-
-      const unsubEvents = onSnapshot(collection(db, "events"), (snapshot) => {
-        const list = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() });
-        });
-        setEvents(list);
-      });
-
-      const unsubParticipants = onSnapshot(collection(db, "eventParticipants"), (snapshot) => {
-        const list = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() });
-        });
-        setEventParticipants(list);
-      });
-
-      const unsubSubmissions = onSnapshot(collection(db, "eventSubmissions"), (snapshot) => {
-        const list = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() });
-        });
-        setEventSubmissions(list);
-      });
-
-      const unsubWithdrawals = onSnapshot(collection(db, "withdrawals"), (snapshot) => {
-        const list = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() });
-        });
-        setWithdrawals(list);
-      });
-
-      return () => {
-        unsubMovies();
-        unsubUsers();
-        unsubConfirmations();
-        unsubEvents();
-        unsubParticipants();
-        unsubSubmissions();
-        unsubWithdrawals();
-      };
-    }
   }, [currentUser]);
 
   // Listen to Firebase Auth state changes
@@ -1146,6 +1104,13 @@ export default function App() {
   const [filterYear, setFilterYear] = useState('Semua');
   const [filterCountry, setFilterCountry] = useState('Semua');
   const [filterSemi, setFilterSemi] = useState('Sembunyikan'); // 'Sembunyikan', 'Tampilkan', 'Hanya'
+
+  // Lazyload pagination states
+  const [visibleMoviesCount, setVisibleMoviesCount] = useState(12);
+
+  useEffect(() => {
+    setVisibleMoviesCount(12);
+  }, [searchQuery, selectedGenre, activeTab, filterYear, filterCountry, filterSemi]);
 
   // Auto-collapse sidebar on smaller screens
   useEffect(() => {
@@ -1874,16 +1839,47 @@ export default function App() {
                   <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Memuat data dari Firestore...</span>
                 </div>
               ) : filteredMovies.length > 0 ? (
-                <div className="movie-grid youtube-grid">
-                  {filteredMovies.map(movie => (
-                    <MovieCard 
-                      key={movie.id} 
-                      movie={movie} 
-                      currentUser={currentUser}
-                      onSelect={handleMovieSelect}
-                    />
-                  ))}
-                </div>
+                <React.Fragment>
+                  <div className="movie-grid youtube-grid">
+                    {filteredMovies.slice(0, visibleMoviesCount).map(movie => (
+                      <MovieCard 
+                        key={movie.id} 
+                        movie={movie} 
+                        currentUser={currentUser}
+                        onSelect={handleMovieSelect}
+                      />
+                    ))}
+                  </div>
+                  {filteredMovies.length > visibleMoviesCount && (
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '32px', marginBottom: '16px' }}>
+                      <button 
+                        onClick={() => setVisibleMoviesCount(prev => prev + 12)}
+                        className="btn"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          padding: '12px 32px',
+                          borderRadius: '30px',
+                          color: 'var(--text-primary)',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          fontSize: '0.9rem'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                      >
+                        Muat Lebih Banyak
+                      </button>
+                    </div>
+                  )}
+                </React.Fragment>
               ) : (
                 /* Empty States */
                 <div className="empty-state glass-panel">

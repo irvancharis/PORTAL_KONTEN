@@ -260,6 +260,11 @@ export default function EventsUserPortal({
 }) {
   const [registeringEvent, setRegisteringEvent] = useState(null); // Event model open for register
   const [showRoleWarning, setShowRoleWarning] = useState(false);
+  const [visibleEventsCount, setVisibleEventsCount] = useState(12);
+
+  useEffect(() => {
+    setVisibleEventsCount(12);
+  }, [searchQuery]);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [contact, setContact] = useState('');
@@ -1355,13 +1360,15 @@ export default function EventsUserPortal({
               
               if (filtered.length === 0) {
                 return (
-                  <div className="glass-panel" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', gridColumn: '1 / -1' }}>
+                  <div className="glass-panel" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', gridColumn: '1 / -1', width: '100%', boxSizing: 'border-box' }}>
                     Tidak ada event kompetisi yang cocok dengan pencarian Anda.
                   </div>
                 );
               }
+
+              const displayed = filtered.slice(0, visibleEventsCount);
               
-              return filtered.map(evt => {
+              return displayed.map(evt => {
                 const userReg = currentUser 
                   ? eventParticipants.find(p => p.eventId === evt.id && p.username.toLowerCase() === currentUser.username.toLowerCase())
                   : null;
@@ -1505,6 +1512,50 @@ export default function EventsUserPortal({
               });
             })()}
           </div>
+
+          {(() => {
+            const filteredCount = events.filter(evt =>
+              evt.paymentStatus === 'paid' && 
+              !isEventHiddenFromPublic(evt) && (
+                evt.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                evt.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                evt.description?.toLowerCase().includes(searchQuery.toLowerCase())
+              )
+            ).length;
+
+            if (filteredCount > visibleEventsCount) {
+              return (
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px', marginBottom: '16px' }}>
+                  <button 
+                    onClick={() => setVisibleEventsCount(prev => prev + 12)}
+                    className="btn"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      padding: '12px 32px',
+                      borderRadius: '30px',
+                      color: 'var(--text-primary)',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      fontSize: '0.9rem'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    Muat Lebih Banyak
+                  </button>
+                </div>
+              );
+            }
+            return null;
+          })()}
         </React.Fragment>
       )}{/* Registration Full Page Overlay */}
       {registeringEvent && createPortal(
