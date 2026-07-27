@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>business_plan.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="rencana-bisnis-strategis-strategic-business-plan">Rencana Bisnis Strategis (Strategic Business Plan)</h1>
+<p><strong>JAMKOSONG: Ekosistem Terbuka Marketplace Event, Ekonomi Kreator Film, &amp; Platform Iklan Viral (Creator Ad Pool)</strong></p>
+<hr>
+<h2 id="%F0%9F%93%8C-1-ringkasan-eksekutif--visi-platform-executive-summary">📌 1. Ringkasan Eksekutif &amp; Visi Platform (Executive Summary)</h2>
+<p>Jamkosong bertransformasi dari sekadar portal streaming menjadi sebuah <strong>ekosistem platform terbuka hibrida</strong> yang mempertemukan:</p>
+<ol>
+<li><strong>Penyelenggara Event (EO, Komunitas, Brand)</strong>: Dapat membuat event kompetisi/kampanye promosi mereka sendiri dengan sistem otomasi verifikasi akun.</li>
+<li><strong>Kreator Konten &amp; Peserta</strong>: Mengikuti event, memposting karya di sosial media mereka yang terverifikasi, dan mendapatkan bayaran dari akumulasi tayangan (<em>views</em>).</li>
+<li><strong>Sineas &amp; Pemilik Film</strong>: Mendistribusikan film indie/lokal mereka dan mendapatkan bagi hasil pendapatan (<em>profit sharing</em>) langsung dari penonton premium.</li>
+<li><strong>Brand / Pengiklan</strong>: Memasang kampanye bersponsor murah dengan model kumpulan anggaran iklan (<em>Ad Pool</em>) yang dibayarkan berdasarkan performa tayangan nyata peserta.</li>
+</ol>
+<hr>
+<h2 id="%F0%9F%93%88-2-arsitektur-model-bisnis--3-pilar-utama-the-three-pillars">📈 2. Arsitektur Model Bisnis &amp; 3 Pilar Utama (The Three Pillars)</h2>
+<pre class="hljs"><code><div>                            ┌───────────────────────────────┐
+                            │    JAMKOSONG PLATFORM PILLARS │
+                            └───────────────┬───────────────┘
+         ┌──────────────────────────────────┼──────────────────────────────────┐
+         ▼                                  ▼                                  ▼
+┌───────────────────────────┐      ┌───────────────────────────┐      ┌───────────────────────────┐
+│  1. OPEN EVENT PLATFORM   │      │ 2. FILM CREATOR ECONOMY   │      │   3. CREATOR AD POOL      │
+│ * Pembuatan event terbuka │      │ * Unggah film indie/lokal │      │ * Brand menaruh budget    │
+│ * Biaya Admin flat        │      │ * Bagi hasil dari tayangan│      │   (contoh: Rp 5.000.000)  │
+│   (Contoh: Rp 250.000)    │      │   pengguna premium        │      │ * Pembayaran per 1K views │
+└───────────────────────────┘      └───────────────────────────┘      └───────────────────────────┘
+</div></code></pre>
+<h3 id="pilar-1-marketplace-event-terbuka-c2c--b2b"><strong>Pilar 1: Marketplace Event Terbuka (C2C &amp; B2B)</strong></h3>
+<ul>
+<li><strong>Siapa Saja Bisa Membuat Event</strong>: Event Organizer, komunitas kampus, organisasi daerah, hingga brand besar dapat mendaftarkan dan meluncurkan event kompetisi mereka secara mandiri.</li>
+<li><strong>Biaya Administrasi Flat</strong>: Platform menarik biaya admin yang sangat terjangkau sebesar <strong>Rp 250.000 per event</strong> yang dibuat di sistem.</li>
+<li><strong>Keamanan Akun Terkunci</strong>: Menggunakan verifikasi bio otomatis sekali pakai untuk mengunci akun sosial media peserta guna mencegah manipulasi pendaftaran.</li>
+</ul>
+<h3 id="pilar-2-bagi-hasil-sineas-film-revenue-share"><strong>Pilar 2: Bagi Hasil Sineas Film (Revenue Share)</strong></h3>
+<ul>
+<li><strong>Distribusi Mandiri (Self-Distribution)</strong>: Pembuat film dapat mendaftarkan dan mengunggah film mereka ke dalam katalog premium Jamkosong.</li>
+<li><strong>Sistem Bagi Hasil</strong>: Dari biaya langganan bulanan pengguna premium (<strong>Rp 10.000 / Bulan</strong>), platform membagikan keuntungan kepada pemilik film berdasarkan metrik persentase durasi tonton (<em>watch-time share</em>) pengguna premium terhadap film mereka.</li>
+</ul>
+<h3 id="pilar-3-platform-iklan-kreator-termurah-creator-ad-pool"><strong>Pilar 3: Platform Iklan Kreator Termurah (Creator Ad Pool)</strong></h3>
+<ul>
+<li><strong>Masalah Iklan Konvensional</strong>: Menyewa influencer secara langsung sangat mahal di muka, tanpa jaminan views yang stabil.</li>
+<li><strong>Solusi Ad Pool Jamkosong</strong>: Brand dapat membuat kampanye iklan terpusat dengan mengalokasikan anggaran tetap (misalnya <strong>Share Budget Rp 5.000.000</strong>).</li>
+<li>
+<ul>
+<li>Seluruh konten kreator yang mengikuti event tersebut akan memposting karya promosi di akun sosial media mereka yang telah terkunci di awal.</li>
+<li>Anggaran Rp 5.000.000 tersebut akan dibagikan secara adil kepada seluruh peserta berdasarkan kinerja jangkauan nyata mereka, dibayar dengan <strong>sistem CPM (misal: Rp X.XXX per 1.000 views)</strong> dari postingan mereka.</li>
+<li><strong>Keuntungan Brand</strong>: Mendapatkan ratusan konten promosi organik sekaligus dan hanya membayar hasil penayangan nyata secara terukur (Cost-per-view).</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="%F0%9F%92%B8-3-aliran-pendapatan-platform-revenue-streams">💸 3. Aliran Pendapatan Platform (Revenue Streams)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Aliran Pendapatan</th>
+<th style="text-align:left">Cara Kerja</th>
+<th style="text-align:left">Target Pengguna</th>
+<th style="text-align:left">Potensi Pendapatan</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>1. Event Admin Fee</strong></td>
+<td style="text-align:left">Biaya registrasi pembuatan event terbuka baru di platform.</td>
+<td style="text-align:left">Komunitas, EO, Brand</td>
+<td style="text-align:left"><strong>Rp 250.000 per event</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>2. Premium Subscription</strong></td>
+<td style="text-align:left">Langganan bebas batas nonton film.</td>
+<td style="text-align:left">Penonton Film Umum</td>
+<td style="text-align:left"><strong>Rp 10.000 / bulan</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>3. Ad Pool Service Fee</strong></td>
+<td style="text-align:left">Potongan komisi jasa admin platform sebesar 10% - 15% dari total budget kampanye yang ditaruh oleh Brand.</td>
+<td style="text-align:left">Brand/Pengiklan</td>
+<td style="text-align:left"><strong>Rp 750.000</strong> (dari budget Rp 5jt)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>4. Affiliate Commision</strong></td>
+<td style="text-align:left">Komisi pengalihan tombol play pengunjung gratisan.</td>
+<td style="text-align:left">Penonton Gratis</td>
+<td style="text-align:left">Variabel komisi per klik</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="%E2%9A%99%EF%B8%8F-4-struktur-biaya-operasional--keuntungan-sineas-cost-breakdown">⚙️ 4. Struktur Biaya Operasional &amp; Keuntungan Sineas (Cost Breakdown)</h2>
+<ul>
+<li><strong>Platform Margin</strong>: Platform mengambil potongan operasional (misalnya 30%) dari pendapatan kotor premium bulanan untuk menutupi biaya Firebase Hosting, API Verifikasi Apify, dan kas platform.</li>
+<li><strong>Sineas Margin (70%)</strong>: Didistribusikan ke pemilik film secara transparan berdasarkan persentase total menit menonton.</li>
+</ul>
+<hr>
+<h2 id="%F0%9F%93%8A-5-proyeksi-keuangan-3-tahun-3-year-financial-projections">📊 5. Proyeksi Keuangan 3 Tahun (3-Year Financial Projections)</h2>
+<h3 id="a-ringkasan-keuangan-tahunan-asumsi-pertumbuhan-marketplace"><strong>A. Ringkasan Keuangan Tahunan (Asumsi Pertumbuhan Marketplace)</strong></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Metrik Keuangan</th>
+<th style="text-align:left">Tahun 1</th>
+<th style="text-align:left">Tahun 2</th>
+<th style="text-align:left">Tahun 3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Total Event Terbuat</strong></td>
+<td style="text-align:left">200 event</td>
+<td style="text-align:left">1.000 event</td>
+<td style="text-align:left">4.000 event</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Pendapatan Biaya Admin Event (250rb)</strong></td>
+<td style="text-align:left">Rp 50.000.000</td>
+<td style="text-align:left">Rp 250.000.000</td>
+<td style="text-align:left">Rp 1.000.000.000</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Pengguna Premium Aktif</strong></td>
+<td style="text-align:left">2.000 user</td>
+<td style="text-align:left">10.000 user</td>
+<td style="text-align:left">40.000 user</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Pendapatan Premium Kotor (10rb)</strong></td>
+<td style="text-align:left">Rp 240.000.000</td>
+<td style="text-align:left">Rp 1.200.000.000</td>
+<td style="text-align:left">Rp 4.800.000.000</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Bagi Hasil Pemilik Film (70%)</strong></td>
+<td style="text-align:left">(Rp 168.000.000)</td>
+<td style="text-align:left">(Rp 840.000.000)</td>
+<td style="text-align:left">(Rp 3.360.000.000)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Pendapatan Bersih Premium (30%)</strong></td>
+<td style="text-align:left">Rp 72.000.000</td>
+<td style="text-align:left">Rp 360.000.000</td>
+<td style="text-align:left">Rp 1.440.000.000</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Total Ad Pool Terselenggara</strong></td>
+<td style="text-align:left">12 Campaign</td>
+<td style="text-align:left">50 Campaign</td>
+<td style="text-align:left">150 Campaign</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Pendapatan Komisi Ad Pool (15% dari rata-rata budget 5jt)</strong></td>
+<td style="text-align:left">Rp 9.000.000</td>
+<td style="text-align:left">Rp 37.500.000</td>
+<td style="text-align:left">Rp 112.500.000</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Pendapatan Afiliasi Tambahan</strong></td>
+<td style="text-align:left">Rp 10.000.000</td>
+<td style="text-align:left">Rp 50.000.000</td>
+<td style="text-align:left">Rp 150.000.000</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>TOTAL PENDAPATAN PLATFORM (NET)</strong></td>
+<td style="text-align:left"><strong>Rp 141.000.000</strong></td>
+<td style="text-align:left"><strong>Rp 697.500.000</strong></td>
+<td style="text-align:left"><strong>Rp 2.702.500.000</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Biaya Operasional Server &amp; API</strong></td>
+<td style="text-align:left">Rp 25.000.000</td>
+<td style="text-align:left">Rp 100.000.000</td>
+<td style="text-align:left">Rp 250.000.000</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>LABA BERSIH PLATFORM</strong></td>
+<td style="text-align:left"><strong>Rp 116.000.000</strong></td>
+<td style="text-align:left"><strong>Rp 597.500.000</strong></td>
+<td style="text-align:left"><strong>Rp 2.452.500.000</strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="%F0%9F%93%A3-6-strategi-go-to-market-gtm--skalabilitas">📣 6. Strategi Go-To-Market (GTM) &amp; Skalabilitas</h2>
+<ol>
+<li><strong>Akuisisi Komunitas (Kampus &amp; Hobi)</strong>: Menggratiskan biaya admin event (Rp 250.000) untuk 50 event komunitas pertama demi memicu pendaftaran massal kreator konten di awal.</li>
+<li><strong>Kemitraan Indie Filmmakers</strong>: Mendatangi festival film pendek lokal dan komunitas sineas untuk memasukkan karya mereka ke Jamkosong sebagai alternatif platform pemutaran eksklusif.</li>
+<li><strong>Penawaran Brand dengan CPM Terukur</strong>: Menghubungi UMKM dan pemilik brand lokal dengan menyajikan fakta bahwa budget promosi Rp 5.000.000 mereka akan menghasilkan jangkauan jaminan (misal: 500.000 views kumulatif) yang dikerjakan oleh puluhan mikro-kreator secara organik.</li>
+</ol>
+
+</body>
+</html>

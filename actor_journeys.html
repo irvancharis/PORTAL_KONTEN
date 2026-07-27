@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>actor_journeys.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%F0%9F%93%96-panduan-penggunaan-sistem-berdasarkan-peran-aktor">📖 Panduan Penggunaan Sistem Berdasarkan Peran Aktor</h1>
+<p><strong>JAMKOSONG: Panduan Langkah Demi Langkah (Step-by-Step User Journey)</strong></p>
+<p>Dokumen ini menjelaskan alur interaksi dan penggunaan sistem untuk <strong>4 Aktor Utama</strong>: <strong>User (Penonton)</strong>, <strong>Panitia (Penyelenggara)</strong>, <strong>Peserta Event (Kreator)</strong>, dan <strong>Owner (Pemilik)</strong>.</p>
+<hr>
+<h2 id="%F0%9F%8E%9E%EF%B8%8F-1-user-penonton-film-umum">🎞️ 1. USER (Penonton Film Umum)</h2>
+<p>Tujuan utama aktor ini adalah menonton konten video/film premium dengan biaya hemat.</p>
+<pre class="hljs"><code><div>[ Masuk Portal ] ──► [ Pilih Judul Film ] ──► [ Putar Video ]
+                                                   │
+                ┌──────────────────────────────────┴──────────────────────────────────┐
+                ▼                                                                     ▼
+     [ Nonton Gratisan (Guest) ]                                           [ Nonton Premium Member ]
+     * Terkena pengalihan link affiliate                                   * Bayar Rp 10.000 / Bulan via transfer
+     * Durasi dibatasi hanya 3 menit                                       * Bebas batas waktu (Full-length)
+     * Ditawari upgrade ke Premium                                         * Bebas iklan &amp; konten eksklusif
+</div></code></pre>
+<h3 id="langkah-penggunaan"><strong>Langkah Penggunaan:</strong></h3>
+<ol>
+<li><strong>Akses Portal</strong>: Masuk ke aplikasi PWA Jamkosong melalui tautan web di HP/Laptop.</li>
+<li><strong>Pilih &amp; Putar</strong>: Klik salah satu poster film di halaman katalog.</li>
+<li><strong>Menonton Gratis (Teaser)</strong>: Jika belum berlangganan, pengguna dapat memutar video secara gratis namun akan dialihkan terlebih dahulu ke halaman sponsor (Platform Affiliate) dan pemutaran film akan terkunci secara absolut di <strong>menit ke-3</strong>.</li>
+<li><strong>Aktivasi Premium</strong>:
+<ul>
+<li>Klik tombol <strong>&quot;Berlangganan Sekarang&quot;</strong> di modal yang muncul.</li>
+<li>Pilih paket (Rp 10.000 / Bulan), salin rekening pembayaran, transfer biaya, dan unggah bukti transfer (struk).</li>
+<li>Tunggu persetujuan Owner. Setelah aktif, penonton dapat menikmati seluruh film berdurasi penuh tanpa gangguan.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="%F0%9F%8E%96%EF%B8%8F-2-panitia-penyelenggara--pembuat-event">🎖️ 2. PANITIA (Penyelenggara / Pembuat Event)</h2>
+<p>Aktor ini adalah brand lokal, EO, komunitas, atau individu yang ingin menyelenggarakan kompetisi viral.</p>
+<h3 id="langkah-penggunaan"><strong>Langkah Penggunaan:</strong></h3>
+<ol>
+<li><strong>Daftar Akun</strong>: Membuat akun penyelenggara di platform Jamkosong.</li>
+<li><strong>Buat Event Baru</strong>: Masuk ke dasbor admin, pilih menu <strong>&quot;Kelola Event&quot;</strong> ➡️ klik <strong>&quot;Tambah Event Baru&quot;</strong>.</li>
+<li><strong>Pengaturan Parameter</strong>:
+<ul>
+<li>Isi Judul, Deskripsi, Tanggal Mulai/Selesai, dan Kuota.</li>
+<li>Tentukan Tipe Event: <em>Normal Competition</em> (Juara 1, 2, 3) atau <em>Sponsored Ad Pool</em> (Iklan bersama).</li>
+<li>Jika memilih <em>Ad Pool</em>: Masukkan <strong>Total Budget</strong> (misal Rp 5.000.000) dan <strong>Nilai CPM</strong> (misal Rp 10.000 per 1.000 views).</li>
+</ul>
+</li>
+<li><strong>Bayar Biaya Admin</strong>: Membayar biaya administrasi pembuatan event terbuka sebesar <strong>Rp 250.000</strong> ke rekening platform.</li>
+<li><strong>Monitoring &amp; Penjurian</strong>:
+<ul>
+<li>Panitia memantau dashboard untuk melihat daftar peserta yang sudah berhasil <strong>mengunci akun sosial medianya</strong>.</li>
+<li>Mengecek link karya yang dikirimkan peserta.</li>
+<li>Melakukan penilaian akhir (penjurian) dan mencairkan dana <em>Ad Pool</em> kepada peserta berdasarkan audit total jangkauan penayangan riil yang terekam di sistem.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="%F0%9F%93%B1-3-peserta-event-konten-kreator">📱 3. PESERTA EVENT (Konten Kreator)</h2>
+<p>Aktor ini adalah peserta kompetisi/kreator mikro yang ingin mempromosikan produk brand dan dibayar berdasarkan performa jangkauan (<em>views</em>).</p>
+<h3 id="langkah-penggunaan"><strong>Langkah Penggunaan:</strong></h3>
+<ol>
+<li><strong>Pilih Event</strong>: Memilih event kompetisi/kampanye aktif yang ingin diikuti di halaman utama portal.</li>
+<li><strong>Verifikasi &amp; Kunci Akun (Tahap 1)</strong>:
+<ul>
+<li>Masukkan username sosial media (Instagram/TikTok/YouTube) di kolom pendaftaran.</li>
+<li>Sistem akan memunculkan kode unik (misal: <code>JAMKO-X928</code>).</li>
+<li>Peserta membuka aplikasi sosmed mereka, menempelkan kode tersebut di bagian <strong>Bio Profil</strong>.</li>
+<li>Kembali ke portal Jamkosong, klik <strong>&quot;Verifikasi &amp; Kunci Akun&quot;</strong>.</li>
+<li>Setelah robot sistem berhasil membaca kecocokan kode dan memvalidasi keaktifan akun, akun sosmed peserta <strong>terkunci di sistem</strong>. Kode unik di bio profil kini sudah aman untuk dihapus kembali.</li>
+</ul>
+</li>
+<li><strong>Posting Karya &amp; Submit Link (Tahap 2)</strong>:
+<ul>
+<li>Kreator membuat video/karya promosi sesuai arahan event dan mempostingnya <strong>di akun sosmed yang telah terkunci</strong> tadi.</li>
+<li>Salin link postingan karya tersebut, kembali ke portal, lalu kirimkan (<em>submit</em>) link tersebut.</li>
+<li><em>Catatan</em>: Sistem akan menolak jika link postingan yang dimasukkan berasal dari akun/username sosmed yang berbeda dari yang telah dikunci di Tahap 1.</li>
+</ul>
+</li>
+<li><strong>Klaim Pembayaran</strong>: Menunggu event berakhir, memantau jumlah penayangan (<em>views</em>) karya mereka yang diaudit secara transparan di portal, dan menerima pembayaran hasil kinerja (CPM) mereka.</li>
+</ol>
+<hr>
+<h2 id="%F0%9F%91%91-4-owner-pemilik-platform-jamkosong">👑 4. OWNER (Pemilik Platform Jamkosong)</h2>
+<p>Aktor ini adalah administrator utama/pendiri platform yang mengelola perputaran ekosistem secara makro.</p>
+<h3 id="langkah-penggunaan"><strong>Langkah Penggunaan:</strong></h3>
+<ol>
+<li><strong>Persetujuan Langganan Premium</strong>:
+<ul>
+<li>Masuk ke dasbor superadmin, pilih menu <strong>&quot;Verifikasi Bukti Bayar&quot;</strong>.</li>
+<li>Mencocokkan struk transfer yang dikirim pengguna dengan mutasi rekening bank platform.</li>
+<li>Klik <strong>&quot;Setujui/Approve&quot;</strong> untuk otomatis mengubah role pengguna menjadi Premium Member.</li>
+</ul>
+</li>
+<li><strong>Persetujuan Pendaftaran Event Terbuka</strong>:
+<ul>
+<li>Memeriksa permohonan event baru dari Panitia luar dan memverifikasi pembayaran biaya admin Rp 250.000.</li>
+<li>Klik <strong>&quot;Aktifkan Event&quot;</strong> agar event tersebut muncul di beranda utama untuk bisa diikuti publik.</li>
+</ul>
+</li>
+<li><strong>Bagi Hasil Konten (Profit-Sharing)</strong>:
+<ul>
+<li>Meninjau performa jam tayang film-film yang diunggah para sineas mitra di akhir bulan.</li>
+<li>Mendistribusikan porsi bagi hasil <strong>70% dari pendapatan premium</strong> kepada para sineas secara transparan sesuai volume durasi tontonan.</li>
+</ul>
+</li>
+<li><strong>Distribusi Ad Pool</strong>: Memotong komisi administrasi (misal 15%) dari anggaran <em>Ad Pool</em> pengiklan, lalu mentransfer sisa dana ke saldo dompet digital kreator pemenang/peserta kompetisi.</li>
+<li><strong>Pengaturan Iklan Afiliasi</strong>: Memperbarui link program <strong>Platform Affiliate</strong> eksternal di halaman kelola iklan agar penonton gratisan selalu diarahkan ke kampanye afiliasi yang sedang aktif dan menghasilkan komisi terbesar.</li>
+</ol>
+
+</body>
+</html>

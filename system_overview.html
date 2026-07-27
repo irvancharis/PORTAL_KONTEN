@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>system_overview.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="arsitektur--gambaran-umum-sistem-jamkosong">Arsitektur &amp; Gambaran Umum Sistem: JAMKOSONG</h1>
+<p><strong>Ekosistem Terbuka Marketplace Event, Distribusi Film (Revenue-Share), &amp; Otomasi Iklan Kreator (Creator Ad Pool)</strong></p>
+<hr>
+<h2 id="%F0%9F%97%BA%EF%B8%8F-1-diagram-arsitektur-hubungan-sistem-system-topology">🗺️ 1. Diagram Arsitektur Hubungan Sistem (System Topology)</h2>
+<p>Sistem ini dirancang menggunakan arsitektur <strong>Serverless Modern</strong> yang sangat efisien, menghubungkan aplikasi PWA Frontend dengan Database Cloud dan Layanan Mikro-Verifikasi Pihak Ketiga:</p>
+<pre><code class="language-mermaid"><div class="mermaid">graph TD
+    %% Styling
+    classDef frontend fill:#1e1b4b,stroke:#6366f1,stroke-width:2px,color:#f8fafc;
+    classDef database fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#f8fafc;
+    classDef middleware fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#f8fafc;
+    classDef external fill:#1f2937,stroke:#9ca3af,stroke-width:1px,color:#f8fafc;
+    
+    %% Nodes
+    PWA["📱 Frontend React (PWA)<br>Vite + Firebase Hosting"]:::frontend
+    Firestore["🔥 Cloud Firestore Database<br>(Data Relasional Real-time)"]:::database
+    GAS["⚙️ Google Apps Script (GAS)<br>JSONP CORS Bypass & API Router"]:::middleware
+    Apify["🤖 Apify Social Stats Engine<br>(Instagram, TikTok, YouTube APIs)"]:::external
+    FallbackAPIs["🌐 Fallback Scraper APIs<br>(TikWM + DuckDuckGo Scraper)"]:::external
+
+    %% Connections
+    PWA -- "1. Baca/Tulis Data Real-time" --> Firestore
+    PWA -- "2. Validasi Akun Sosmed" --> GAS
+    GAS -- "3a. Tarik Bio Profil (Primary)" --> Apify
+    GAS -- "3b. Tarik Bio Profil (Fallback)" --> FallbackAPIs
+</div></code></pre>
+<hr>
+<h2 id="%F0%9F%93%91-2-arsitektur-data--model-firestore-database-schema">📑 2. Arsitektur Data &amp; Model Firestore (Database Schema)</h2>
+<p>Untuk mendukung sistem pembuatan event terbuka, bagi hasil film, dan kampanye <em>Ad Pool</em>, Firestore diorganisasikan ke dalam struktur koleksi berikut:</p>
+<h3 id="a-koleksi-users-manajemen-pengguna"><strong>A. Koleksi <code>users</code> (Manajemen Pengguna)</strong></h3>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"uid"</span>: <span class="hljs-string">"user_98213"</span>,
+  <span class="hljs-attr">"username"</span>: <span class="hljs-string">"kreator_muda"</span>,
+  <span class="hljs-attr">"email"</span>: <span class="hljs-string">"kreator@jamkosong.com"</span>,
+  <span class="hljs-attr">"role"</span>: <span class="hljs-string">"member"</span>, <span class="hljs-comment">// 'member' (premium), 'pro', 'staf', 'superadmin', 'guest'</span>
+  <span class="hljs-attr">"premiumExpiresAt"</span>: <span class="hljs-number">1789437200000</span>, <span class="hljs-comment">// Unix timestamp kadaluarsa premium</span>
+  <span class="hljs-attr">"linkedHandles"</span>: {
+    <span class="hljs-attr">"instagram"</span>: <span class="hljs-string">"@kreator_ig"</span>, <span class="hljs-comment">// Akun yang sudah divalidasi dan dikunci</span>
+    <span class="hljs-attr">"tiktok"</span>: <span class="hljs-string">"@kreator_tiktok"</span>,
+    <span class="hljs-attr">"youtube"</span>: <span class="hljs-string">"kreatorchannelyt"</span>
+  }
+}
+</div></code></pre>
+<h3 id="b-koleksi-movies-distribusi-film--bagi-hasil"><strong>B. Koleksi <code>movies</code> (Distribusi Film &amp; Bagi Hasil)</strong></h3>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"laskar-pelangi-2026"</span>,
+  <span class="hljs-attr">"title"</span>: <span class="hljs-string">"Laskar Pelangi New Edition"</span>,
+  <span class="hljs-attr">"creatorId"</span>: <span class="hljs-string">"sineas_lokal_01"</span>, <span class="hljs-comment">// ID Akun Sineas Pemilik Film</span>
+  <span class="hljs-attr">"revenueSharePercent"</span>: <span class="hljs-number">70</span>, <span class="hljs-comment">// Persentase bagi hasil untuk Sineas (70%)</span>
+  <span class="hljs-attr">"watchTimeMinutes"</span>: <span class="hljs-number">14200</span>, <span class="hljs-comment">// Total akumulasi menit tontonan pengguna premium</span>
+  <span class="hljs-attr">"videoUrl"</span>: <span class="hljs-string">"https://storage.googleapis.com/movie-bucket/laskar-pelangi.mp4"</span>
+}
+</div></code></pre>
+<h3 id="c-koleksi-events-marketplace-event--kampanye-iklan"><strong>C. Koleksi <code>events</code> (Marketplace Event &amp; Kampanye Iklan)</strong></h3>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"event_creative_cpm_2026"</span>,
+  <span class="hljs-attr">"title"</span>: <span class="hljs-string">"Digital Creative Campaign"</span>,
+  <span class="hljs-attr">"organizerId"</span>: <span class="hljs-string">"brand_indonesia"</span>, <span class="hljs-comment">// ID Pembuat Event (EO / Brand)</span>
+  <span class="hljs-attr">"adminFeePaid"</span>: <span class="hljs-number">250000</span>, <span class="hljs-comment">// Tarif admin pembuatan event terbuka</span>
+  <span class="hljs-attr">"eventType"</span>: <span class="hljs-string">"sponsored_ad_pool"</span>, <span class="hljs-comment">// 'sponsored_ad_pool' atau 'normal_competition'</span>
+  <span class="hljs-attr">"adPoolBudget"</span>: <span class="hljs-number">5000000</span>, <span class="hljs-comment">// Total anggaran iklan untuk kreator</span>
+  <span class="hljs-attr">"cpmRate"</span>: <span class="hljs-number">10000</span>, <span class="hljs-comment">// Pembayaran Rp 10.000 per 1.000 views karya peserta</span>
+  <span class="hljs-attr">"maxParticipants"</span>: <span class="hljs-number">100</span>,
+  <span class="hljs-attr">"uniqueCode"</span>: <span class="hljs-string">"CREAT-2026"</span> <span class="hljs-comment">// Kode unik untuk verifikasi bio kepemilikan akun</span>
+}
+</div></code></pre>
+<h3 id="d-koleksi-eventparticipants-pendaftaran--monitoring-karya"><strong>D. Koleksi <code>eventParticipants</code> (Pendaftaran &amp; Monitoring Karya)</strong></h3>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"part_991823"</span>,
+  <span class="hljs-attr">"eventId"</span>: <span class="hljs-string">"event_creative_cpm_2026"</span>,
+  <span class="hljs-attr">"participantUid"</span>: <span class="hljs-string">"user_98213"</span>,
+  <span class="hljs-attr">"lockedSocialPlatform"</span>: <span class="hljs-string">"instagram"</span>, <span class="hljs-comment">// Platform sosmed yang sudah dikunci</span>
+  <span class="hljs-attr">"lockedSocialHandle"</span>: <span class="hljs-string">"@kreator_ig"</span>, <span class="hljs-comment">// Username sosmed terkunci</span>
+  <span class="hljs-attr">"submissionLink"</span>: <span class="hljs-string">"https://instagram.com/p/C-karya-kreator"</span>, <span class="hljs-comment">// Link postingan karya</span>
+  <span class="hljs-attr">"viewsCount"</span>: <span class="hljs-number">15200</span>, <span class="hljs-comment">// Jumlah views karya yang terdeteksi</span>
+  <span class="hljs-attr">"payoutEarned"</span>: <span class="hljs-number">152000</span>, <span class="hljs-comment">// Pendapatan peserta (15.2K views * CPM Rate 10rb / 1K)</span>
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"approved"</span>
+}
+</div></code></pre>
+<hr>
+<h2 id="%F0%9F%94%84-3-alur-kerja-teknis-dua-tahap-two-stage-event-flow">🔄 3. Alur Kerja Teknis Dua Tahap (Two-Stage Event Flow)</h2>
+<p>Sistem pendaftaran event Jamkosong dibagi menjadi dua tahap terpisah demi meminimalisir kecurangan dan otomatisasi kerja panitia:</p>
+<h3 id="tahap-1-pembuktian-kepemilikan--kunci-akun-sosial-media"><strong>Tahap 1: Pembuktian Kepemilikan &amp; Kunci Akun Sosial Media</strong></h3>
+<p>Peserta mendaftarkan akun sosial media mereka ke dalam event dengan menempelkan kode unik di bio mereka untuk divalidasi oleh sistem:</p>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    autonumber
+    actor User as Peserta
+    participant Portal as React PWA App
+    participant GAS as Apps Script Web App
+    participant Scraper as Apify / Fallback API
+    participant DB as Firestore Database
+
+    User->>Portal: Input username sosmed (@username)
+    Portal->>Portal: Generate Kode Unik Event (misal: CREAT-2026)
+    User->>User: Tempel kode tersebut di Bio Profil sosmednya
+    User->>Portal: Klik tombol "Verifikasi & Kunci Akun"
+    Portal->>GAS: Request verifikasi via JSONP (CORS-free)
+    GAS->>Scraper: Tarik data bio profil secara real-time
+    Scraper-->>GAS: Return data bio profil
+    alt Kode Unik Ditemukan di Bio
+        GAS-->>Portal: Response status: "approved"
+        Portal->>DB: Kunci username sosmed tersebut ke UID peserta
+        Portal->>User: AKUN SOSMED BERHASIL DIKUNCI! (Kode di bio boleh dihapus)
+    else Kode Unik Tidak Cocok
+        GAS-->>Portal: Response status: "failed"
+        Portal->>User: Gagal. Tampilkan pesan "Coba Lagi"
+    end
+</div></code></pre>
+<h3 id="tahap-2-pengiriman-karya--perhitungan-ad-pool-cpm"><strong>Tahap 2: Pengiriman Karya &amp; Perhitungan Ad Pool (CPM)</strong></h3>
+<p>Setelah akun terkunci, peserta memposting karya mereka di akun tersebut dan sistem menghitung bagi hasil iklannya:</p>
+<ol>
+<li><strong>Posting</strong>: Peserta membuat postingan karya promosi produk sponsor di akun sosial media yang telah terkunci di Tahap 1.</li>
+<li><strong>Submit</strong>: Peserta mengirimkan tautan (<em>submissionLink</em>) karya tersebut ke portal.</li>
+<li><strong>Audit</strong>: Sistem memvalidasi bahwa tautan karya yang dikirimkan <strong>wajib berasal dari username yang telah terkunci</strong> di database. Peserta tidak bisa mengirimkan link karya milik orang lain.</li>
+<li><strong>Payout</strong>: Sistem mengaudit jumlah views postingan secara real-time, lalu membagikan anggaran <em>Ad Pool</em> kepada peserta berdasarkan performa CPM yang telah ditetapkan brand (misal: Rp 10.000 per 1.000 views).</li>
+</ol>
+<hr>
+<h2 id="%F0%9F%94%97-4-jalur-penyeberangan-cors-jsonp-bridge">🔗 4. Jalur Penyeberangan CORS (JSONP Bridge)</h2>
+<p>Untuk menghindari hambatan keamanan peramban (<em>CORS Block</em>) saat melakukan permintaan silang dari klien ke API Google Apps Script, platform ini menggunakan sistem callback dinamis (<strong>JSONP</strong>):</p>
+<ul>
+<li>Aplikasi frontend menyisipkan tag <code>&lt;script&gt;</code> baru ke dalam dokumen HTML secara dinamis yang mengarah ke URL Apps Script dengan menyertakan parameter <code>callback=jsonp_callback_XXXXX</code>.</li>
+<li>Google Apps Script merespons dengan membungkus objek JSON evaluasi dalam fungsi callback tersebut (contoh: <code>jsonp_callback_XXXXX({&quot;exists&quot;: true, &quot;codeFound&quot;: true, &quot;status&quot;: &quot;approved&quot;})</code>).</li>
+<li>Browser mengeksekusi script tersebut, memicu fungsi resolver lokal, dan kemudian menghapus kembali tag <code>&lt;script&gt;</code> yang telah disisipkan untuk menjaga kebersihan DOM.</li>
+</ul>
+
+</body>
+</html>
