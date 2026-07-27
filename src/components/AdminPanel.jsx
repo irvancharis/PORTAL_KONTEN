@@ -109,6 +109,7 @@ export default function AdminPanel({
   const [zoomedReceipt, setZoomedReceipt] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleActivitiesCount, setVisibleActivitiesCount] = useState(6);
+  const [visibleMoviesCount, setVisibleMoviesCount] = useState(12);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null); // null means adding a new movie
   const [editingUser, setEditingUser] = useState(null); // null means not editing any user
@@ -137,6 +138,18 @@ export default function AdminPanel({
   const [senderName, setSenderName] = useState('');
   const [senderBank, setSenderBank] = useState('BCA');
   const [receiptFile, setReceiptFile] = useState('');
+
+  useEffect(() => {
+    setVisibleMoviesCount(12);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setVisibleMoviesCount(12);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setVisibleMoviesCount(12);
+  }, [searchTerm]);
 
   const handleOpenPayment = (evt) => {
     setSenderName('');
@@ -3853,7 +3866,7 @@ export default function AdminPanel({
               )}
             </div>
             <div className="admin-toolbar-meta">
-              Menampilkan {filteredList.length} dari {totalMovies} film
+              Menampilkan {Math.min(visibleMoviesCount, filteredList.length)} dari {filteredList.length} film
             </div>
           </div>
 
@@ -3877,7 +3890,7 @@ export default function AdminPanel({
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredList.map((movie) => (
+                    {filteredList.slice(0, visibleMoviesCount).map((movie) => (
                       <tr key={movie.id} className="table-row-hover">
                         <td>
                           <div className="table-movie-info">
@@ -3947,7 +3960,7 @@ export default function AdminPanel({
 
                 {/* Mobile Cards View */}
                 <div className="admin-mobile-cards mobile-only">
-                  {filteredList.map((movie) => (
+                  {filteredList.slice(0, visibleMoviesCount).map((movie) => (
                     <div key={movie.id} className="admin-mob-card glass-panel">
                       <div className="mob-card-header">
                         <img 
@@ -3998,6 +4011,39 @@ export default function AdminPanel({
                     </div>
                   ))}
                 </div>
+
+                {filteredList.length > visibleMoviesCount && (
+                  <div style={{ textAlign: 'center', marginTop: '20px', paddingBottom: '20px' }}>
+                    <button
+                      onClick={() => setVisibleMoviesCount(prev => prev + 12)}
+                      className="btn"
+                      style={{
+                        padding: '10px 24px',
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: 'white',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        fontSize: '0.88rem',
+                        fontWeight: '600',
+                        transition: 'all 0.2s',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                      }}
+                    >
+                      <span>Muat Lebih Banyak</span>
+                    </button>
+                  </div>
+                )}
               </>
             ) : (
               <div className="admin-empty-state">
