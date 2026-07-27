@@ -679,20 +679,7 @@ export default function EventsUserPortal({
 
   const isEventHiddenFromPublic = (evt) => {
     const label = getEventStatusLabel(evt);
-    if (!label.startsWith('Selesai')) return false;
-
-    if (evt.deadline) {
-      const deadlineTime = evt.deadline.includes('T')
-        ? new Date(evt.deadline).getTime()
-        : new Date(evt.deadline + 'T23:59:59').getTime();
-      const hPlus1Time = deadlineTime + 24 * 60 * 60 * 1000;
-      if (new Date().getTime() > hPlus1Time) {
-        return true;
-      }
-    } else {
-      return true;
-    }
-    return false;
+    return label.startsWith('Selesai');
   };
 
   return (
