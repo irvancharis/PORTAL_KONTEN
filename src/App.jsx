@@ -382,6 +382,21 @@ export default function App() {
     }
   };
 
+  const handleAvatarFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 500 * 1024) {
+        alert("Ukuran file maksimal adalah 500 KB!");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setOrganizerAvatar(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Handle Register submission
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
@@ -2252,24 +2267,93 @@ export default function App() {
                       </div>
 
                       <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label htmlFor="organizerAvatar" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Logo / Avatar URL (Opsional)</label>
-                        <input 
-                          type="url" 
-                          id="organizerAvatar"
-                          placeholder="Contoh: https://example.com/logo.png"
-                          value={organizerAvatar}
-                          onChange={(e) => setOrganizerAvatar(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            background: 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: 'var(--text-primary)',
-                            outline: 'none',
-                            fontSize: '0.9rem'
+                        <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Upload Logo / Avatar (Opsional)</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          {organizerAvatar ? (
+                            <div style={{ position: 'relative', display: 'inline-block' }}>
+                              <img 
+                                src={organizerAvatar} 
+                                alt="Preview" 
+                                style={{
+                                  width: '50px',
+                                  height: '50px',
+                                  borderRadius: '50%',
+                                  objectFit: 'cover',
+                                  border: '2px solid rgba(124, 58, 237, 0.5)'
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setOrganizerAvatar('')}
+                                style={{
+                                  position: 'absolute',
+                                  top: '-4px',
+                                  right: '-4px',
+                                  background: '#ef4444',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '50%',
+                                  width: '18px',
+                                  height: '18px',
+                                  fontSize: '10px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontWeight: 'bold'
+                                }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{
+                              width: '50px',
+                              height: '50px',
+                              borderRadius: '50%',
+                              background: 'rgba(255, 255, 255, 0.04)',
+                              border: '1px dashed var(--border-color)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'var(--text-muted)',
+                              fontSize: '0.75rem'
+                            }}>
+                              No Img
+                            </div>
+                          )}
+                          <label style={{
+                            flex: 1,
+                            padding: '10px 14px',
+                            background: 'rgba(124, 58, 237, 0.1)',
+                            border: '1px dashed rgba(124, 58, 237, 0.3)',
+                            borderRadius: '8px',
+                            color: '#c084fc',
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                            fontSize: '0.85rem',
+                            fontWeight: '600',
+                            transition: 'all 0.2s'
                           }}
-                        />
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(124, 58, 237, 0.18)';
+                            e.currentTarget.style.borderColor = '#c084fc';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(124, 58, 237, 0.1)';
+                            e.currentTarget.style.borderColor = 'rgba(124, 58, 237, 0.3)';
+                          }}
+                          >
+                            Pilih File Gambar
+                            <input 
+                              type="file"
+                              accept="image/*"
+                              onChange={handleAvatarFileChange}
+                              style={{ display: 'none' }}
+                            />
+                          </label>
+                        </div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Maks. 500 KB (Format: JPG, PNG, WEBP)</span>
                       </div>
                     </div>
                   </div>
