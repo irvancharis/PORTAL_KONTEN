@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef
+} from 'react';
 import { createPortal } from 'react-dom';
 import { 
   Plus, 
@@ -27,7 +31,8 @@ import {
   ExternalLink,
   Wallet,
   Info,
-  ArrowLeft
+  ArrowLeft,
+  Send
 } from 'lucide-react';
 
 const formatIndonesianDate = (dateString) => {
@@ -111,6 +116,14 @@ export default function AdminPanel({
   const [visibleActivitiesCount, setVisibleActivitiesCount] = useState(6);
   const [visibleMoviesCount, setVisibleMoviesCount] = useState(12);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Creator Marketplace local states
+  const [selectedMarketplaceCreator, setSelectedMarketplaceCreator] = useState(null);
+  const [offerEventId, setOfferEventId] = useState('');
+  const [offerBudget, setOfferBudget] = useState('');
+  const [offerMessage, setOfferMessage] = useState('');
+  const [marketplaceSearch, setMarketplaceSearch] = useState('');
+
   const [editingMovie, setEditingMovie] = useState(null); // null means adding a new movie
   const [editingUser, setEditingUser] = useState(null); // null means not editing any user
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -454,6 +467,86 @@ export default function AdminPanel({
       return sum + payout;
     }, 0);
     return Math.max(0, initialBudget - totalPayout);
+  };
+
+  const calculateCreatorMetrics = (username) => {
+    const userLower = (username || '').toLowerCase();
+    
+    // 1. Events joined (approved status)
+    const joinedEvents = eventParticipants.filter(p => 
+      p.username.toLowerCase() === userLower && 
+      p.status === 'approved'
+    );
+    
+    // 2. Submissions
+    const submissions = eventSubmissions.filter(s => 
+      s.username.toLowerCase() === userLower
+    );
+    
+    // 3. Accumulated Views & Likes
+    const totalViews = submissions.reduce((sum, s) => sum + (s.views || 0), 0);
+    const totalLikes = submissions.reduce((sum, s) => sum + (s.likes || 0), 0);
+    
+    // 4. Calculate wins (placed in top 3 of ended ranking events)
+    let winsCount = 0;
+    events.forEach(evt => {
+      if (evt.budgetMode === 'ranking' && evt.paymentStatus === 'paid') {
+        const isDeadlinePassed = evt.deadline ? (
+          evt.deadline.includes('T')
+            ? new Date().getTime() > new Date(evt.deadline).getTime()
+            : new Date().getTime() > new Date(evt.deadline + 'T23:59:59').getTime()
+        ) : false;
+        
+        if (isDeadlinePassed) {
+          const eventSubs = eventSubmissions.filter(s => s.eventId === evt.id);
+          const sortedSubs = [...eventSubs].sort((a, b) => (b.views || 0) - (a.views || 0));
+          const top3Users = sortedSubs.slice(0, 3).map(s => s.username.toLowerCase());
+          if (top3Users.includes(userLower)) {
+            winsCount++;
+          }
+        }
+      }
+    });
+
+    // 5. Total Points
+    // (Events Joined * 50) + (Math.floor(Total Views / 100)) + (Wins * 100)
+    const points = (joinedEvents.length * 50) + Math.floor(totalViews / 100) + (winsCount * 100);
+
+    // 6. Level Tier
+    let level = 'Bronze Creator';
+    let levelColor = '#b45309'; // Bronze
+    let levelBg = 'rgba(180, 83, 9, 0.15)';
+    let levelBorder = '1px solid rgba(180, 83, 9, 0.3)';
+
+    if (points >= 5000) {
+      level = 'Platinum Creator';
+      levelColor = '#e2e8f0'; // Platinum/Silverish white
+      levelBg = 'rgba(226, 232, 240, 0.15)';
+      levelBorder = '1px solid rgba(226, 232, 240, 0.3)';
+    } else if (points >= 1500) {
+      level = 'Gold Creator';
+      levelColor = '#fbbf24'; // Gold
+      levelBg = 'rgba(251, 191, 36, 0.15)';
+      levelBorder = '1px solid rgba(251, 191, 36, 0.3)';
+    } else if (points >= 500) {
+      level = 'Silver Creator';
+      levelColor = '#cbd5e1'; // Silver
+      levelBg = 'rgba(203, 213, 225, 0.15)';
+      levelBorder = '1px solid rgba(203, 213, 225, 0.3)';
+    }
+
+    return {
+      joinedEventsCount: joinedEvents.length,
+      submissionsCount: submissions.length,
+      totalViews,
+      totalLikes,
+      winsCount,
+      points,
+      level,
+      levelColor,
+      levelBg,
+      levelBorder
+    };
   };
 
   const getEventStatus = (evt) => {
@@ -2639,6 +2732,375 @@ export default function AdminPanel({
             </div>
           </div>
         )
+      ) : adminSubTab === 'creator-marketplace' ? (
+        <div className="creator-marketplace-section animate-fade-in" style={{ padding: '4px', textAlign: 'left' }}>
+          {/* Header */}
+          <div style={{ marginBottom: '24px' }}>
+            <h2 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 'bold', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Users style={{ color: '#fbbf24' }} />
+              <span>Marketplace Content Creator</span>
+            </h2>
+            <span style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+              Temukan dan ajak kerja sama para Content Creator berprestasi berdasarkan performa, jumlah views, dan tingkat keaktifan mereka.
+            </span>
+          </div>
+
+          {/* Search & Filter Toolbar */}
+          <div className="admin-toolbar glass-panel" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+            <div className="admin-search-wrapper" style={{ flex: '1 1 300px' }}>
+              <Search size={18} className="search-icon" />
+              <input
+                type="text"
+                placeholder="Cari nama creator..."
+                value={marketplaceSearch}
+                onChange={(e) => setMarketplaceSearch(e.target.value)}
+              />
+              {marketplaceSearch && (
+                <button className="clear-btn" onClick={() => setMarketplaceSearch('')}>
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Creators Directory Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+            {(() => {
+              // Filter users that have role === 'user' and match search
+              const creatorsList = users.filter(u => 
+                u.role === 'user' && 
+                (u.username.toLowerCase().includes(marketplaceSearch.toLowerCase()) || 
+                 (u.organizerName || '').toLowerCase().includes(marketplaceSearch.toLowerCase()))
+              );
+
+              if (creatorsList.length === 0) {
+                return (
+                  <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    Belum ada Content Creator yang terdaftar atau cocok dengan pencarian.
+                  </div>
+                );
+              }
+
+              return creatorsList.map(creator => {
+                const metrics = calculateCreatorMetrics(creator.username);
+                const creatorAvatar = creator.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(creator.username)}`;
+                
+                return (
+                  <div 
+                    key={creator.username}
+                    className="glass-panel"
+                    style={{
+                      padding: '24px',
+                      borderRadius: '16px',
+                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      background: 'rgba(255, 255, 255, 0.01)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '16px',
+                      transition: 'transform 0.2s',
+                      position: 'relative'
+                    }}
+                  >
+                    {/* Upper Section */}
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
+                        <img 
+                          src={creatorAvatar} 
+                          alt={creator.username} 
+                          style={{
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            border: `2px solid ${metrics.levelColor}`,
+                            background: 'rgba(255,255,255,0.02)'
+                          }}
+                        />
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                          <span style={{ color: 'white', fontWeight: '700', fontSize: '1rem' }}>{creator.username}</span>
+                          <span style={{
+                            fontSize: '0.68rem',
+                            padding: '2px 8px',
+                            borderRadius: '10px',
+                            fontWeight: 'bold',
+                            marginTop: '4px',
+                            color: metrics.levelColor,
+                            background: metrics.levelBg,
+                            border: metrics.levelBorder
+                          }}>
+                            {metrics.level}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Points badge */}
+                      <div style={{
+                        background: 'rgba(251, 191, 36, 0.05)',
+                        border: '1px solid rgba(251, 191, 36, 0.15)',
+                        color: '#fbbf24',
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        fontSize: '0.82rem',
+                        fontWeight: '700',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginBottom: '14px'
+                      }}>
+                        <Award size={14} />
+                        <span>{metrics.points.toLocaleString('id-ID')} Poin</span>
+                      </div>
+
+                      {/* Stats Table */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '8px',
+                        borderTop: '1px solid rgba(255,255,255,0.06)',
+                        paddingTop: '14px',
+                        textAlign: 'center'
+                      }}>
+                        <div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Karya</div>
+                          <strong style={{ color: 'white', fontSize: '0.9rem' }}>{metrics.submissionsCount}</strong>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Total Views</div>
+                          <strong style={{ color: 'white', fontSize: '0.9rem' }}>{metrics.totalViews.toLocaleString('id-ID')}</strong>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Juara</div>
+                          <strong style={{ color: '#fbbf24', fontSize: '0.9rem' }}>{metrics.winsCount}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Offer Trigger Button */}
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => {
+                        setSelectedMarketplaceCreator(creator.username);
+                        // Pre-select first event if exists
+                        const myEvents = events.filter(e => e.creator === currentUser.username && e.paymentStatus === 'paid');
+                        if (myEvents.length > 0) setOfferEventId(myEvents[0].id);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        borderRadius: '12px',
+                        fontSize: '0.85rem',
+                        fontWeight: '700',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+                        border: 'none',
+                        color: 'white',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Send size={14} />
+                      <span>Ajak Kerja Sama</span>
+                    </button>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+
+          {/* Collab Offers Sent Monitoring */}
+          <div className="add-affiliate-card glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontWeight: '700' }}>
+              <ExternalLink size={18} style={{ color: '#c084fc' }} />
+              <span>Monitoring Penawaran Kerja Sama</span>
+            </h3>
+            
+            {(() => {
+              const myOffers = (offers || []).filter(o => o.sender === currentUser.username);
+              if (myOffers.length === 0) {
+                return (
+                  <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+                    Belum ada tawaran kerja sama yang Anda kirimkan.
+                  </div>
+                );
+              }
+
+              return (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Creator</th>
+                        <th>Event</th>
+                        <th>Tawaran Budget</th>
+                        <th>Pesan</th>
+                        <th style={{ textAlign: 'center' }}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {myOffers.map(off => {
+                        return (
+                          <tr key={off.id}>
+                            <td><strong>@{off.recipient}</strong></td>
+                            <td>{off.eventTitle}</td>
+                            <td><strong style={{ color: '#34d399' }}>Rp {off.budget?.toLocaleString('id-ID')}</strong></td>
+                            <td style={{ maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{off.message}</td>
+                            <td style={{ textAlign: 'center' }}>
+                              <span style={{
+                                padding: '4px 10px',
+                                borderRadius: '12px',
+                                fontSize: '0.72rem',
+                                fontWeight: 'bold',
+                                color: off.status === 'accepted' ? '#10b981' : off.status === 'declined' ? '#ef4444' : '#38bdf8',
+                                background: off.status === 'accepted' ? 'rgba(16, 185, 129, 0.1)' : off.status === 'declined' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(56, 189, 248, 0.1)'
+                              }}>
+                                {off.status === 'accepted' ? 'Diterima' : off.status === 'declined' ? 'Ditolak' : 'Pending'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Send Offer Modal */}
+          {selectedMarketplaceCreator && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.6)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px'
+            }} onClick={() => setSelectedMarketplaceCreator(null)}>
+              <div 
+                className="glass-panel" 
+                style={{
+                  width: '100%',
+                  maxWidth: '480px',
+                  padding: '30px',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  textAlign: 'left'
+                }} 
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Send size={20} style={{ color: '#c084fc' }} />
+                  <span>Ajak Kerja Sama @{selectedMarketplaceCreator}</span>
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                  Kirim penawaran budget khusus untuk mengundang creator ini bergabung dalam event Anda.
+                </p>
+
+                {(() => {
+                  const myEvents = events.filter(e => e.creator === currentUser.username && e.paymentStatus === 'paid');
+                  if (myEvents.length === 0) {
+                    return (
+                      <div style={{ padding: '20px', textAlign: 'center', color: '#f87171', fontSize: '0.88rem', background: 'rgba(239,68,68,0.06)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.15)' }}>
+                        Anda belum memiliki Event yang Aktif & Terbayar. Silakan buat dan bayar event terlebih dahulu sebelum mengajak kerja sama.
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div className="form-group">
+                        <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Pilih Event Anda</label>
+                        <select 
+                          value={offerEventId} 
+                          onChange={(e) => setOfferEventId(e.target.value)}
+                          style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.85rem', outline: 'none' }}
+                        >
+                          {myEvents.map(e => (
+                            <option key={e.id} value={e.id}>{e.title}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Tawaran Budget (Rp)</label>
+                        <input 
+                          type="number" 
+                          placeholder="Contoh: 500000" 
+                          value={offerBudget}
+                          onChange={(e) => setOfferBudget(e.target.value)}
+                          style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.85rem', outline: 'none' }}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Pesan Penawaran / Ajakan</label>
+                        <textarea 
+                          placeholder="Tulis pesan ajakan atau penawaran detail di sini..." 
+                          value={offerMessage}
+                          onChange={(e) => setOfferMessage(e.target.value)}
+                          style={{ width: '100%', height: '100px', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.85rem', outline: 'none', resize: 'none' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+                        <button 
+                          className="btn" 
+                          style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer' }}
+                          onClick={() => setSelectedMarketplaceCreator(null)}
+                        >
+                          Batal
+                        </button>
+                        <button 
+                          className="btn btn-primary" 
+                          style={{ flex: 1, cursor: 'pointer' }}
+                          onClick={() => {
+                            if (!offerEventId) {
+                              alert('Silakan pilih event!');
+                              return;
+                            }
+                            if (!offerBudget) {
+                              alert('Silakan masukkan budget!');
+                              return;
+                            }
+                            const selectedEvt = events.find(e => e.id === offerEventId);
+                            const newOffer = {
+                              id: 'offer_' + Date.now(),
+                              sender: currentUser.username,
+                              recipient: selectedMarketplaceCreator,
+                              eventId: offerEventId,
+                              eventTitle: selectedEvt?.title || 'Event Pilihan',
+                              budget: parseInt(offerBudget) || 0,
+                              message: offerMessage,
+                              status: 'pending',
+                              sentAt: new Date().toISOString()
+                            };
+                            setOffers(prev => [...prev, newOffer]);
+                            setSelectedMarketplaceCreator(null);
+                            setOfferEventId('');
+                            setOfferBudget('');
+                            setOfferMessage('');
+                            alert(`Berhasil mengirimkan penawaran kerja sama kepada @${selectedMarketplaceCreator}!`);
+                          }}
+                        >
+                          Kirim Penawaran
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+        </div>
       ) : adminSubTab === 'event-payment' ? (
         <div className="event-payment-ledger-section animate-fade-in" style={{ padding: '4px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>

@@ -368,6 +368,45 @@ export const deleteFirestoreWithdrawal = async (withdrawalId) => {
   }
 };
 
+// Offers CRUD
+export const getFirestoreOffers = async () => {
+  if (!db) return null;
+  try {
+    const querySnapshot = await getDocs(collection(db, "offers"));
+    const list = [];
+    querySnapshot.forEach((doc) => {
+      list.push({ id: doc.id, ...doc.data() });
+    });
+    return list;
+  } catch (e) {
+    console.error("Error fetching offers from Firestore:", e);
+    return null;
+  }
+};
+
+export const saveFirestoreOffer = async (offer) => {
+  if (!db) return false;
+  try {
+    const { id, ...data } = offer;
+    await setDoc(doc(db, "offers", id), data);
+    return true;
+  } catch (e) {
+    console.error("Error saving offer to Firestore:", e);
+    return false;
+  }
+};
+
+export const deleteFirestoreOffer = async (offerId) => {
+  if (!db) return false;
+  try {
+    await deleteDoc(doc(db, "offers", offerId));
+    return true;
+  } catch (e) {
+    console.error("Error deleting offer from Firestore:", e);
+    return false;
+  }
+};
+
 export { 
   db, 
   auth, 

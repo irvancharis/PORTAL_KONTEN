@@ -44,7 +44,10 @@ import {
   deleteFirestoreEventSubmission,
   getFirestoreWithdrawals,
   saveFirestoreWithdrawal,
-  deleteFirestoreWithdrawal
+  deleteFirestoreWithdrawal,
+  getFirestoreOffers,
+  saveFirestoreOffer,
+  deleteFirestoreOffer
 } from './firebase';
 import { 
   Bookmark, 
@@ -167,6 +170,73 @@ export default function App() {
     const saved = localStorage.getItem('portal-withdrawals');
     return saved ? JSON.parse(saved) : [];
   });
+
+  const [offers, setOffers] = useState(() => {
+    const saved = localStorage.getItem('portal-offers');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const handleSetOffers = async (newOffers) => {
+    if (isFirebaseConfigured()) {
+      if (typeof newOffers === 'function') {
+        setOffers(prev => {
+          const updated = newOffers(prev);
+          (async () => {
+            if (updated.length < prev.length) {
+              const remainingIds = updated.map(o => o.id);
+              const deleted = prev.filter(o => !remainingIds.includes(o.id));
+              for (const o of deleted) {
+                await deleteFirestoreOffer(o.id);
+              }
+            } else {
+              for (const o of updated) {
+                const existing = prev.find(old => old.id === o.id);
+                if (!existing || JSON.stringify(existing) !== JSON.stringify(o)) {
+                  await saveFirestoreOffer(o);
+                }
+              }
+            }
+          })();
+          return updated;
+        });
+      } else {
+        const prev = offers;
+        const updated = newOffers;
+        setOffers(updated);
+        if (updated.length < prev.length) {
+          const remainingIds = updated.map(o => o.id);
+          const deleted = prev.filter(o => !remainingIds.includes(o.id));
+          for (const o of deleted) {
+            await deleteFirestoreOffer(o.id);
+          }
+        } else {
+          for (const o of updated) {
+            const existing = prev.find(old => old.id === o.id);
+            if (!existing || JSON.stringify(existing) !== JSON.stringify(o)) {
+              await saveFirestoreOffer(o);
+            }
+          }
+        }
+      }
+    } else {
+      if (typeof newOffers === 'function') {
+        setOffers(prev => {
+          const updated = newOffers(prev);
+          localStorage.setItem('portal-offers', JSON.stringify(updated));
+          return updated;
+        });
+      } else {
+        setOffers(newOffers);
+        localStorage.setItem('portal-offers', JSON.stringify(newOffers));
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!isFirebaseConfigured()) {
+      localStorage.setItem('portal-offers', JSON.stringify(offers));
+    }
+  }, [offers]);
 
   const handleSetWithdrawals = async (newWithdrawals) => {
     if (isFirebaseConfigured()) {
@@ -606,7 +676,8 @@ export default function App() {
             dbEvents,
             dbParticipants,
             dbSubmissions,
-            dbWithdrawals
+            dbWithdrawals,
+            dbOffers
           ] = await Promise.all([
             getFirestoreMovies(),
             getFirestoreUsers(),
@@ -614,9 +685,10 @@ export default function App() {
             getFirestoreEvents(),
             getFirestoreEventParticipants(),
             getFirestoreEventSubmissions(),
-            getFirestoreWithdrawals()
+            getFirestoreWithdrawals(),
+            getFirestoreOffers()
           ]);
-
+ 
           if (dbMovies) setMovies(dbMovies);
           if (dbUsers) {
             setUsers(dbUsers);
@@ -637,6 +709,7 @@ export default function App() {
           if (dbParticipants) setEventParticipants(dbParticipants);
           if (dbSubmissions) setEventSubmissions(dbSubmissions);
           if (dbWithdrawals) setWithdrawals(dbWithdrawals);
+          if (dbOffers) setOffers(dbOffers);
 
         } catch (err) {
           console.error("Firestore initialization failed:", err);
@@ -1534,6 +1607,8 @@ export default function App() {
               setEventSubmissions={handleSetEventSubmissions}
               withdrawals={withdrawals}
               setWithdrawals={handleSetWithdrawals}
+              offers={offers}
+              setOffers={handleSetOffers}
               handleTransferWallet={handleTransferWallet}
               minWithdrawalAmount={minWithdrawalAmount}
               setMinWithdrawalAmount={setMinWithdrawalAmount}
@@ -1567,7 +1642,8 @@ export default function App() {
               setEventSubmissions={handleSetEventSubmissions}
               users={users}
               setUsers={handleSetUsers}
-
+              offers={offers}
+              setOffers={handleSetOffers}
             />
           ) : selectedMovie && isPlaying ? (
             /* YOUTUBE WATCH PAGE LAYOUT */

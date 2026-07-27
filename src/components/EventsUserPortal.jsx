@@ -302,7 +302,9 @@ export default function EventsUserPortal({
   setEventSubmissions,
   users = [],
   setUsers,
-  onPopulateDemoEvents
+  onPopulateDemoEvents,
+  offers = [],
+  setOffers
 }) {
   const [registeringEvent, setRegisteringEvent] = useState(null); // Event model open for register
   const [showRoleWarning, setShowRoleWarning] = useState(false);
@@ -311,6 +313,7 @@ export default function EventsUserPortal({
   const [contact, setContact] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleEventsCount, setVisibleEventsCount] = useState(12);
+  const [userPortalTab, setUserPortalTab] = useState('events'); // 'events' or 'offers'
 
   useEffect(() => {
     setVisibleEventsCount(12);
@@ -353,11 +356,37 @@ export default function EventsUserPortal({
 
 
 
-  const [submittingEvent, setSubmittingEvent] = useState(null); // Event model open for work submission
-  const [workTitle, setWorkTitle] = useState('');
-  const [workVideoUrl, setWorkVideoUrl] = useState('');
-  const [workDescription, setWorkDescription] = useState('');
-  const [workPlatform, setWorkPlatform] = useState('YouTube');
+  const handleAcceptOffer = (off) => {
+    // 1. Update offer status to 'accepted'
+    setOffers(prev => prev.map(o => o.id === off.id ? { ...o, status: 'accepted' } : o));
+
+    // 2. Automatically register creator to the event (if not already registered)
+    const alreadyRegistered = eventParticipants.some(p => p.eventId === off.eventId && p.username.toLowerCase() === currentUser.username.toLowerCase());
+    
+    if (!alreadyRegistered) {
+      const newPart = {
+        id: 'part_' + Date.now(),
+        eventId: off.eventId,
+        name: currentUser.username,
+        username: currentUser.username,
+        email: currentUser.email || `${currentUser.username}@filmo.com`,
+        contact: `@${currentUser.username}`,
+        socialPlatform: 'instagram', // Default fallback
+        socialLink: `https://instagram.com/${currentUser.username}`,
+        status: 'approved',
+        verifiedAt: new Date().toISOString(),
+        registeredAt: new Date().toISOString()
+      };
+      setEventParticipants([...eventParticipants, newPart]);
+    }
+    
+    alert(`Tawaran kolaborasi untuk event "${off.eventTitle}" berhasil diterima! Anda telah otomatis terdaftar.`);
+  };
+
+  const handleDeclineOffer = (off) => {
+    setOffers(prev => prev.map(o => o.id === off.id ? { ...o, status: 'declined' } : o));
+    alert(`Tawaran kolaborasi untuk event "${off.eventTitle}" ditolak.`);
+  };
 
   // Move from input handle step to show code instruction step
   const handleLanjutVerifikasi = (e) => {
@@ -1409,7 +1438,209 @@ export default function EventsUserPortal({
             </p>
           </div>
 
-          {/* Search Bar & Action Buttons */}
+          {/* User Portal Tabs */}
+          {currentUser && currentUser.role === 'user' && (
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px' }}>
+              <button
+                onClick={() => setUserPortalTab('events')}
+                style={{
+                  padding: '10px 20px',
+                  background: userPortalTab === 'events' ? 'rgba(124, 58, 237, 0.15)' : 'transparent',
+                  border: userPortalTab === 'events' ? '1px solid rgba(124, 58, 237, 0.3)' : '1px solid transparent',
+                  color: userPortalTab === 'events' ? 'white' : 'var(--text-secondary)',
+                  borderRadius: '30px',
+                  fontSize: '0.88rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  outline: 'none'
+                }}
+              >
+                Semua Event
+              </button>
+              <button
+                onClick={() => setUserPortalTab('offers')}
+                style={{
+                  padding: '10px 20px',
+                  background: userPortalTab === 'offers' ? 'rgba(124, 58, 237, 0.15)' : 'transparent',
+                  border: userPortalTab === 'offers' ? '1px solid rgba(124, 58, 237, 0.3)' : '1px solid transparent',
+                  color: userPortalTab === 'offers' ? 'white' : 'var(--text-secondary)',
+                  borderRadius: '30px',
+                  fontSize: '0.88rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  outline: 'none'
+                }}
+              >
+                <span>Tawaran Kerja Sama</span>
+                {(() => {
+                  const pendingCount = (offers || []).filter(o => o.recipient.toLowerCase() === currentUser.username.toLowerCase() && o.status === 'pending').length;
+                  if (pendingCount > 0) {
+                    return (
+                      <span style={{
+                        background: '#ef4444',
+                        color: 'white',
+                        fontSize: '0.72rem',
+                        fontWeight: 'bold',
+                        padding: '1px 6px',
+                        borderRadius: '10px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 0 6px rgba(239, 68, 68, 0.6)'
+                      }}>
+                        {pendingCount}
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
+              </button>
+            </div>
+          )}
+
+          {userPortalTab === 'offers' ? (
+            <div className="collab-offers-view animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
+              <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <h3 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 'bold', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Trophy style={{ color: '#fbbf24' }} />
+                  <span>Daftar Tawaran Kerja Sama Penyelenggara</span>
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
+                  Berikut adalah daftar ajakan kolaborasi eksklusif dari Panitia Event untuk Anda. Terima tawaran untuk langsung bergabung.
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                {(() => {
+                  const myOffers = (offers || []).filter(o => o.recipient.toLowerCase() === currentUser?.username.toLowerCase());
+                  if (myOffers.length === 0) {
+                    return (
+                      <div style={{ gridColumn: '1 / -1', padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        Belum ada tawaran kerja sama untuk akun Anda saat ini.
+                      </div>
+                    );
+                  }
+
+                  return myOffers.map(off => {
+                    const evt = events.find(e => e.id === off.eventId);
+                    const offerDate = off.sentAt ? new Date(off.sentAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A';
+                    
+                    return (
+                      <div 
+                        key={off.id}
+                        className="glass-panel"
+                        style={{
+                          padding: '24px',
+                          borderRadius: '16px',
+                          border: '1px solid rgba(255, 255, 255, 0.06)',
+                          background: 'rgba(255, 255, 255, 0.01)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          gap: '16px'
+                        }}
+                      >
+                        <div>
+                          {/* Card Header: Sender Info */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block' }}>Pengirim</span>
+                              <strong style={{ color: '#c084fc', fontSize: '0.95rem' }}>@{off.sender}</strong>
+                            </div>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{offerDate}</span>
+                          </div>
+
+                          {/* Event proposed */}
+                          <div style={{ marginBottom: '14px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px' }}>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block' }}>Event Kompetisi</span>
+                            <span 
+                              onClick={() => {
+                                if (evt) {
+                                  setSelectedEvent(evt);
+                                } else {
+                                  alert('Detail event tidak ditemukan atau sudah dihapus.');
+                                }
+                              }}
+                              style={{ 
+                                color: 'white', 
+                                fontWeight: '700', 
+                                fontSize: '1rem', 
+                                cursor: 'pointer', 
+                                textDecoration: 'underline',
+                                display: 'inline-block',
+                                marginTop: '2px'
+                              }}
+                            >
+                              {off.eventTitle}
+                            </span>
+                          </div>
+
+                          {/* Budget offered */}
+                          <div style={{
+                            background: 'rgba(52, 211, 153, 0.08)',
+                            border: '1px solid rgba(52, 211, 153, 0.2)',
+                            padding: '10px 14px',
+                            borderRadius: '10px',
+                            marginBottom: '14px'
+                          }}>
+                            <span style={{ fontSize: '0.72rem', color: '#34d399', display: 'block', fontWeight: 'bold' }}>TAWARAN BUDGET EKSKLUSIF</span>
+                            <strong style={{ fontSize: '1.25rem', color: '#10b981' }}>Rp {off.budget?.toLocaleString('id-ID')}</strong>
+                          </div>
+
+                          {/* Message content */}
+                          <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '10px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.04)', fontStyle: 'italic', whiteSpace: 'pre-wrap' }}>
+                            "{off.message || 'Tidak ada pesan khusus.'}"
+                          </div>
+                        </div>
+
+                        {/* Card Footer: Actions or status */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px' }}>
+                          {off.status === 'pending' ? (
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                              <button
+                                onClick={() => handleDeclineOffer(off)}
+                                className="btn"
+                                style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#f87171', fontWeight: '700', cursor: 'pointer' }}
+                              >
+                                Tolak
+                              </button>
+                              <button
+                                onClick={() => handleAcceptOffer(off)}
+                                className="btn btn-primary"
+                                style={{ flex: 2, padding: '10px', borderRadius: '10px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: 'none', color: 'white', fontWeight: '700', cursor: 'pointer' }}
+                              >
+                                Terima Tawaran
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{
+                              textAlign: 'center',
+                              padding: '8px',
+                              borderRadius: '10px',
+                              fontSize: '0.85rem',
+                              fontWeight: 'bold',
+                              color: off.status === 'accepted' ? '#10b981' : '#ef4444',
+                              background: off.status === 'accepted' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                              border: off.status === 'accepted' ? '1px solid rgba(16, 185, 129, 0.15)' : '1px solid rgba(239, 68, 68, 0.15)'
+                            }}>
+                              {off.status === 'accepted' ? 'Tawaran Diterima' : 'Tawaran Ditolak'}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Search Bar & Action Buttons */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap', width: '100%' }}>
             <div style={{ position: 'relative', flex: '1 1 300px', maxWidth: '400px' }}>
               <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -1705,6 +1936,8 @@ export default function EventsUserPortal({
             }
             return null;
           })()}
+            </>
+          )}
         </React.Fragment>
       )}{/* Registration Full Page Overlay */}
       {registeringEvent && createPortal(
