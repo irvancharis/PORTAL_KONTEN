@@ -3141,10 +3141,6 @@ export default function AdminPanel({
         </div>
       ) : adminSubTab === 'event-payment' ? (
         <div className="event-payment-ledger-section animate-fade-in" style={{ padding: '4px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Riwayat transaksi keluar dan masuk keuangan panitia (dana escrow, biaya platform, pencairan reward peserta).</span>
-          </div>
-
           <div className="admin-table-container glass-panel">
             {getPanitiaPayments().length > 0 ? (
               <>
