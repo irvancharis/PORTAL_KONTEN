@@ -794,7 +794,11 @@ export default function EventsUserPortal({
                     
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', marginBottom: '24px' }}>
                       <Calendar size={16} style={{ color: '#a78bfa' }} />
-                      <span>Batas Waktu Pendaftaran: <strong style={{ color: 'white' }}>{formatIndonesianDate(evt.deadline)}</strong></span>
+                      {evt.deadline ? (
+                        <span>Batas Waktu Pendaftaran: <strong style={{ color: 'white' }}>{formatIndonesianDate(evt.deadline)}</strong></span>
+                      ) : (
+                        <span>Batas Waktu Pendaftaran: <strong style={{ color: '#38bdf8' }}>Tanpa Batas Waktu (Selesai saat budget habis)</strong></span>
+                      )}
                     </div>
                     
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.8', margin: 0 }}>{evt.description}</p>
@@ -1418,13 +1422,24 @@ export default function EventsUserPortal({
 
                     {/* Middle Section: Budget & Deadline */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap' }}>
-                      <div style={{ minWidth: '130px', textAlign: 'left' }}>
+                      <div style={{ minWidth: '160px', textAlign: 'left' }}>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
-                          {evt.budgetMode === 'ranking' ? 'Prize Pool' : 'Budget Campaign'}
+                          {evt.budgetMode === 'ranking' ? 'Prize Pool' : 'Sisa / Total Budget'}
                         </div>
-                        <strong style={{ color: evt.budgetMode === 'ranking' ? '#fbbf24' : '#4ade80', fontSize: '0.95rem' }}>
-                          Rp {evt.campaignBudget.toLocaleString('id-ID')}
-                        </strong>
+                        {evt.budgetMode === 'ranking' ? (
+                          <strong style={{ color: '#fbbf24', fontSize: '0.95rem' }}>
+                            Rp {evt.campaignBudget.toLocaleString('id-ID')}
+                          </strong>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                            <strong style={{ color: '#4ade80', fontSize: '0.95rem' }}>
+                              Rp {getEventRemainingBudget(evt).toLocaleString('id-ID')}
+                            </strong>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                              / Rp {evt.campaignBudget.toLocaleString('id-ID')}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       <div style={{ minWidth: '180px', display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -1432,7 +1447,21 @@ export default function EventsUserPortal({
                           <Calendar size={13} style={{ color: '#a78bfa' }} />
                           <span>Batas Waktu</span>
                         </div>
-                        {evt.deadline && <CardCountdown deadline={evt.deadline} />}
+                        {evt.deadline ? (
+                          <CardCountdown deadline={evt.deadline} />
+                        ) : (
+                          <span style={{ 
+                            fontSize: '0.75rem', 
+                            color: '#38bdf8', 
+                            background: 'rgba(56, 189, 248, 0.1)', 
+                            padding: '3px 8px', 
+                            borderRadius: '4px', 
+                            display: 'inline-block',
+                            fontWeight: '600'
+                          }}>
+                            Tanpa Batas Waktu
+                          </span>
+                        )}
                       </div>
                     </div>
 

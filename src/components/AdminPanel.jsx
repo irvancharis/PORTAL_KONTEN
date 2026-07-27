@@ -118,6 +118,7 @@ export default function AdminPanel({
   const [eventTitle, setEventTitle] = useState('');
   const [eventCategory, setEventCategory] = useState('Short Film');
   const [eventDeadline, setEventDeadline] = useState('');
+  const [eventHasDeadline, setEventHasDeadline] = useState(true);
   const [eventMaxParticipants, setEventMaxParticipants] = useState(50);
   const [eventHasMaxParticipants, setEventHasMaxParticipants] = useState(true);
   const [eventDescription, setEventDescription] = useState('');
@@ -288,7 +289,7 @@ export default function AdminPanel({
             ...evt,
             title: eventTitle.trim(),
             category: eventCategory,
-            deadline: eventDeadline,
+            deadline: (eventBudgetMode === 'views' && !eventHasDeadline) ? '' : eventDeadline,
             maxParticipants: eventHasMaxParticipants ? (parseInt(eventMaxParticipants) || 0) : 0,
             description: eventDescription.trim(),
             juknis: eventJuknis.trim(),
@@ -314,7 +315,7 @@ export default function AdminPanel({
         id: `evt_${Date.now()}`,
         title: eventTitle.trim(),
         category: eventCategory,
-        deadline: eventDeadline,
+        deadline: (eventBudgetMode === 'views' && !eventHasDeadline) ? '' : eventDeadline,
         maxParticipants: eventHasMaxParticipants ? (parseInt(eventMaxParticipants) || 0) : 0,
         description: eventDescription.trim(),
         juknis: eventJuknis.trim(),
@@ -1614,11 +1615,37 @@ export default function AdminPanel({
                     </div>
                      <div className="form-group">
                       <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Batas Pengiriman (Deadline)</label>
-                      <input type="datetime-local" required={eventBudgetMode === 'ranking'} value={getDatetimeInputValue(eventDeadline)} onChange={(e) => setEventDeadline(e.target.value)} style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} />
+                      <input 
+                        type="datetime-local" 
+                        required={eventBudgetMode === 'ranking' || (eventBudgetMode === 'views' && eventHasDeadline)} 
+                        disabled={eventBudgetMode === 'views' && !eventHasDeadline}
+                        value={eventBudgetMode === 'views' && !eventHasDeadline ? '' : getDatetimeInputValue(eventDeadline)} 
+                        onChange={(e) => setEventDeadline(e.target.value)} 
+                        style={{ 
+                          width: '100%', 
+                          padding: '12px 14px', 
+                          background: (eventBudgetMode === 'views' && !eventHasDeadline) ? 'rgba(255,255,255,0.02)' : '#111827', 
+                          border: '1px solid var(--border-color)', 
+                          borderRadius: '8px', 
+                          color: (eventBudgetMode === 'views' && !eventHasDeadline) ? 'var(--text-muted)' : 'white', 
+                          fontSize: '0.9rem', 
+                          outline: 'none',
+                          cursor: (eventBudgetMode === 'views' && !eventHasDeadline) ? 'not-allowed' : 'text'
+                        }} 
+                      />
                       {eventBudgetMode === 'views' && (
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                          Opsional: Kosongkan jika ditutup saat budget campaign habis.
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                          <input 
+                            type="checkbox" 
+                            id="eventHasDeadline" 
+                            checked={!eventHasDeadline} 
+                            onChange={(e) => setEventHasDeadline(!e.target.checked)} 
+                            style={{ width: '15px', height: '15px', accentColor: 'var(--primary-color)', cursor: 'pointer' }}
+                          />
+                          <label htmlFor="eventHasDeadline" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+                            Tanpa Batas Waktu (Ditutup saat budget campaign habis)
+                          </label>
+                        </div>
                       )}
                     </div>
                   </div>
