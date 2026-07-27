@@ -975,105 +975,225 @@ export default function AdminPanel({
             </div>
           </div>
 
-          {/* Active Events List */}
-          <div className="add-affiliate-card glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-md)' }}>
-            <h3 style={{ marginBottom: '16px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Calendar size={18} className="accent-text" style={{ color: '#a78bfa' }} />
-              <span>Daftar Event Kompetisi</span>
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-              {[...events]
-                .sort((a, b) => {
-                  const statusA = getEventStatus(a).label;
-                  const statusB = getEventStatus(b).label;
-                  const getOrder = (statusStr) => {
-                    if (statusStr === 'Berjalan') return 1;
-                    if (statusStr === 'Menunggu Verifikasi') return 2;
-                    if (statusStr === 'Pending') return 3;
-                    return 4;
-                  };
-                  const orderDiff = getOrder(statusA) - getOrder(statusB);
-                  if (orderDiff !== 0) return orderDiff;
-                  if (!a.deadline && !b.deadline) return 0;
-                  if (!a.deadline) return 1;
-                  if (!b.deadline) return -1;
-                  const timeA = new Date(a.deadline).getTime();
-                  const timeB = new Date(b.deadline).getTime();
-                  return timeA - timeB;
-                })
-                .map(evt => {
-                  const count = eventParticipants.filter(p => p.eventId === evt.id && p.status === 'approved').length;
-                  const status = getEventStatus(evt);
-                  const isActive = status.label === 'Berjalan';
-                  const isPendingWd = status.label === 'Menunggu Verifikasi';
-                  
-                  return (
-                    <div 
-                      key={evt.id} 
-                      style={{ 
-                        background: 'rgba(255,255,255,0.01)', 
-                        border: `1px solid ${isActive ? 'rgba(34, 197, 94, 0.2)' : isPendingWd ? 'rgba(56, 189, 248, 0.2)' : 'var(--border-color)'}`, 
-                        boxShadow: isActive ? '0 0 15px -3px rgba(34, 197, 94, 0.1)' : isPendingWd ? '0 0 15px -3px rgba(56, 189, 248, 0.1)' : 'none',
-                        borderRadius: '12px', 
-                        padding: '16px', 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        justifyContent: 'space-between', 
-                        gap: '12px',
-                        position: 'relative'
-                      }}
-                    >
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '8px' }}>
-                          <span style={{ fontSize: '0.7rem', color: '#a78bfa', fontWeight: 'bold', textTransform: 'uppercase' }}>{evt.category}</span>
-                          <span style={{ 
-                            fontSize: '0.68rem', 
-                            padding: '2px 8px', 
-                            borderRadius: '10px', 
-                            fontWeight: 'bold', 
-                            color: status.color, 
-                            background: status.bg,
-                            display: 'inline-flex',
+          {/* Latest Activities / Informasi Terbaru Feed */}
+          {(() => {
+            const activities = [];
+            const isPanitia = currentUser && currentUser.role === 'panitia';
+            const isSuperadmin = currentUser && currentUser.role === 'superadmin';
+
+            // 1. Participant registrations
+            eventParticipants.forEach(p => {
+              const evt = events.find(e => e.id === p.eventId);
+              if (!evt) return;
+              if (isPanitia && evt.creator !== currentUser.username) return;
+              activities.push({
+                id: `reg_${p.id || p.eventId + '_' + p.username}`,
+                type: 'participant',
+                timestamp: p.registeredAt || p.createdAt || evt.createdAt || new Date().toISOString(),
+                title: 'Peserta Terdaftar Baru',
+                desc: `Content Creator @${p.username} mendaftar ke event "${evt.title}"`,
+                badge: p.status === 'approved' ? 'Terverifikasi' : 'Pending',
+                badgeColor: p.status === 'approved' ? '#10b981' : '#fbbf24',
+                badgeBg: p.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                meta: `Status pendaftaran: ${p.status}`
+              });
+            });
+
+            // 2. Work submissions
+            eventSubmissions.forEach(s => {
+              const evt = events.find(e => e.id === s.eventId);
+              if (!evt) return;
+              if (isPanitia && evt.creator !== currentUser.username) return;
+              activities.push({
+                id: `sub_${s.id}`,
+                type: 'submission',
+                timestamp: s.submittedAt || new Date().toISOString(),
+                title: 'Pengumpulan Karya Baru',
+                desc: `@${s.username} mengumpulkan karya "${s.title}"`,
+                badge: s.platform || 'Karya',
+                badgeColor: '#a78bfa',
+                badgeBg: 'rgba(167, 139, 250, 0.1)',
+                meta: `Views: ${(s.views || 0).toLocaleString('id-ID')} • Event: ${evt.title}`
+              });
+            });
+
+            if (isSuperadmin) {
+              // 3. Premium membership activations
+              confirmations.forEach(c => {
+                activities.push({
+                  id: `membership_${c.id}`,
+                  type: 'membership_payment',
+                  timestamp: c.timestamp || new Date().toISOString(),
+                  title: 'Verifikasi Premium Membership',
+                  desc: `@${c.username} mengajukan pembayaran Premium (${c.planName})`,
+                  badge: c.status === 'approved' ? 'Disetujui' : c.status === 'rejected' ? 'Ditolak' : 'Pending',
+                  badgeColor: c.status === 'approved' ? '#10b981' : c.status === 'rejected' ? '#ef4444' : '#38bdf8',
+                  badgeBg: c.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' : c.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(56, 189, 248, 0.1)',
+                  meta: `Jumlah: ${c.amount || 'Rp 0'} • Pengirim: ${c.senderName || '-'}`
+                });
+              });
+
+              // 4. Event payments
+              events.forEach(evt => {
+                if (evt.proofReceipt || evt.paymentStatus === 'pending_verification') {
+                  activities.push({
+                    id: `evtpay_${evt.id}`,
+                    type: 'event_payment',
+                    timestamp: evt.paymentSubmittedAt || evt.createdAt || new Date().toISOString(),
+                    title: 'Konfirmasi Pembayaran Event',
+                    desc: `@${evt.creator || 'Panitia'} mengirim bukti bayar untuk "${evt.title}"`,
+                    badge: evt.paymentStatus === 'paid' ? 'Disetujui' : evt.paymentStatus === 'pending_verification' ? 'Pending' : 'Belum Bayar',
+                    badgeColor: evt.paymentStatus === 'paid' ? '#10b981' : evt.paymentStatus === 'pending_verification' ? '#38bdf8' : '#fbbf24',
+                    badgeBg: evt.paymentStatus === 'paid' ? 'rgba(16, 185, 129, 0.1)' : evt.paymentStatus === 'pending_verification' ? 'rgba(56, 189, 248, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                    meta: `Total Transfer: Rp ${((evt.campaignBudget || 0) + (evt.adminFee || 0)).toLocaleString('id-ID')}`
+                  });
+                }
+              });
+
+              // 5. Withdrawal requests
+              withdrawals.forEach(wd => {
+                activities.push({
+                  id: `wd_${wd.id}`,
+                  type: 'withdrawal',
+                  timestamp: wd.requestedAt || new Date().toISOString(),
+                  title: 'Pengajuan Tarik Saldo',
+                  desc: `@${wd.username} meminta penarikan dana Rp ${wd.amount.toLocaleString('id-ID')}`,
+                  badge: wd.status === 'approved' ? 'Diselesaikan' : wd.status === 'rejected' ? 'Ditolak' : 'Pending',
+                  badgeColor: wd.status === 'approved' ? '#10b981' : wd.status === 'rejected' ? '#ef4444' : '#38bdf8',
+                  badgeBg: wd.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' : wd.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(56, 189, 248, 0.1)',
+                  meta: `Metode: ${wd.method} • Rek/Akun: ${wd.account}`
+                });
+              });
+            }
+
+            // Sort by timestamp descending
+            const sortedActivities = [...activities].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            return (
+              <div className="add-affiliate-card glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-md)', textAlign: 'left' }}>
+                <h3 style={{ marginBottom: '20px', fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontWeight: '700' }}>
+                  <Sparkles size={18} style={{ color: '#fbbf24' }} />
+                  <span>Aktivitas & Informasi Terbaru</span>
+                </h3>
+
+                {sortedActivities.length === 0 ? (
+                  <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <Users size={40} style={{ opacity: 0.3, marginBottom: '12px' }} />
+                    <p style={{ margin: 0, fontSize: '0.88rem' }}>Belum ada aktivitas terbaru saat ini.</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {sortedActivities.slice(0, 20).map(act => {
+                      return (
+                        <div 
+                          key={act.id}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.01)',
+                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                            borderRadius: '12px',
+                            padding: '16px 20px',
+                            display: 'flex',
                             alignItems: 'center',
-                            gap: '4px',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {isActive && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', display: 'inline-block', boxShadow: '0 0 8px #22c55e' }} className="animate-pulse"></span>}
-                            {status.label}
-                          </span>
-                        </div>
-                        <h4 style={{ fontSize: '1rem', fontWeight: 'bold', color: 'white', margin: '4px 0 8px 0' }}>{evt.title}</h4>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>{evt.description}</p>
-                      </div>
-                      <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span>Peserta: <strong>{evt.maxParticipants > 0 ? `${count} / ${evt.maxParticipants}` : `${count} (Tanpa Batas)`}</strong></span>
-                          <span>Deadline: <strong style={{ color: '#ef4444' }}>{formatIndonesianDate(evt.deadline)}</strong></span>
-                        </div>
-                        {evt.campaignBudget > 0 && (
-                          <div style={{ marginTop: '4px', borderTop: '1px dashed rgba(255,255,255,0.05)', paddingTop: '6px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                              <span>Budget: <strong style={{ color: 'white' }}>Rp {evt.campaignBudget.toLocaleString('id-ID')}</strong></span>
-                              <span>Sisa: <strong style={{ color: '#4ade80' }}>Rp {getEventRemainingBudget(evt).toLocaleString('id-ID')}</strong></span>
+                            justifyContent: 'space-between',
+                            gap: '16px',
+                            transition: 'all 0.2s',
+                            cursor: 'default'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                            e.currentTarget.style.transform = 'translateX(4px)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.01)';
+                            e.currentTarget.style.transform = 'translateX(0)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                            <div style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              background: act.type === 'participant' ? 'rgba(34, 197, 94, 0.1)' :
+                                          act.type === 'submission' ? 'rgba(167, 139, 250, 0.1)' :
+                                          act.type === 'withdrawal' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(56, 189, 248, 0.1)',
+                              color: act.type === 'participant' ? '#4ade80' :
+                                     act.type === 'submission' ? '#c084fc' :
+                                     act.type === 'withdrawal' ? '#f87171' : '#38bdf8',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0
+                            }}>
+                              {act.type === 'participant' ? <Users size={18} /> :
+                               act.type === 'submission' ? <FileVideo size={18} /> :
+                               act.type === 'withdrawal' ? <Wallet size={18} /> : <Award size={18} />}
                             </div>
-                            <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
-                              <div style={{ 
-                                width: `${(getEventRemainingBudget(evt) / evt.campaignBudget) * 100}%`, 
-                                height: '100%', 
-                                background: 'linear-gradient(90deg, #22c55e, #4ade80)' 
-                              }}></div>
-                            </div>
-                            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                              Skema: Rp {evt.benefitAmount?.toLocaleString('id-ID')} / {evt.benefitViewsStep?.toLocaleString('id-ID')} Views
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                <h4 style={{ margin: 0, fontSize: '0.9rem', color: 'white', fontWeight: '700' }}>{act.title}</h4>
+                                <span style={{
+                                  fontSize: '0.65rem',
+                                  padding: '2px 8px',
+                                  borderRadius: '10px',
+                                  fontWeight: 'bold',
+                                  color: act.badgeColor,
+                                  background: act.badgeBg
+                                }}>{act.badge}</span>
+                              </div>
+                              <p style={{ margin: '4px 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{act.desc}</p>
+                              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', gap: '12px' }}>
+                                <span>{formatIndonesianDate(act.timestamp)}</span>
+                                <span>•</span>
+                                <span>{act.meta}</span>
+                              </div>
                             </div>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
+                          
+                          {/* Quick Actions redirection */}
+                          {isSuperadmin && (act.type === 'event_payment' || act.type === 'membership_payment') && (
+                            <button
+                              onClick={() => setAdminSubTab('confirmations')}
+                              style={{
+                                background: 'rgba(56, 189, 248, 0.1)',
+                                border: '1px solid rgba(56, 189, 248, 0.2)',
+                                color: '#38bdf8',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Verifikasi
+                            </button>
+                          )}
+                          {isSuperadmin && act.type === 'withdrawal' && (
+                            <button
+                              onClick={() => setAdminSubTab('withdrawals')}
+                              style={{
+                                background: 'rgba(239, 68, 68, 0.1)',
+                                border: '1px solid rgba(239, 68, 68, 0.2)',
+                                color: '#f87171',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Kelola
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       ) : adminSubTab === 'event-manage' ? (
         selectedManageEvent ? (
