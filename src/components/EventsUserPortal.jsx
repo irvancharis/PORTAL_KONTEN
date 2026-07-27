@@ -151,6 +151,7 @@
    const [searchQuery, setSearchQuery] = useState('');
 
   const [expandedJuknis, setExpandedJuknis] = useState({});
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
  
 
