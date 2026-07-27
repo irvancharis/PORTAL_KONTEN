@@ -1,953 +1,654 @@
- import React, { useState, useEffect } from 'react';
-
- import { createPortal } from 'react-dom';
-
- import { Trophy, Calendar, Users, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft } from 'lucide-react';
-
- 
-
- const formatIndonesianDate = (dateString) => {
-
-   if (!dateString) return 'Hingga Budget Habis';
-
-   try {
-
-     const date = new Date(dateString);
-
-     if (isNaN(date.getTime())) return dateString;
-
-     return date.toLocaleDateString('id-ID', {
-
-       day: 'numeric',
-
-       month: 'long',
-
-       year: 'numeric'
-
-     });
-
-   } catch (e) {
-
-     return dateString;
-
-   }
-
- };
-
- 
-
- const formatInputCurrency = (num) => {
-
-   if (num === 0 || !num) return '';
-
-   return num.toLocaleString('id-ID');
-
- };
-
- 
-
- // Google Apps Script Web App URL for social media verification (Optional)
-
- // Paste your deployed Google Apps Script URL here, e.g. 'https://script.google.com/macros/s/...'
-
- const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbww9byb9H5SIW_HknSEVJJe-oY9S--NaeKSPjcQ6IBACzoQc38oZ36bQqm__60gncIxxA/exec';
-
- 
-
- // JSONP fetch helper to route Google Apps Script calls without CORS blocks
-
- const fetchJSONP = (url, params = {}) => {
-
-   return new Promise((resolve, reject) => {
-
-     const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-
-     window[callbackName] = (data) => {
-
-       delete window[callbackName];
-
-       const scriptTag = document.getElementById(callbackName);
-
-       if (scriptTag) document.body.removeChild(scriptTag);
-
-       resolve(data);
-
-     };
-
- 
-
-     const queryParams = { ...params, callback: callbackName };
-
-     const queryString = Object.keys(queryParams)
-
-       .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(queryParams[key])}`)
-
-       .join('&');
-
- 
-
-     const finalUrl = url.includes('?') ? `${url}&${queryString}` : `${url}?${queryString}`;
-
- 
-
-     const script = document.createElement('script');
-
-     script.id = callbackName;
-
-     script.src = finalUrl;
-
-     script.onerror = (err) => {
-
-       delete window[callbackName];
-
-       const scriptTag = document.getElementById(callbackName);
-
-       if (scriptTag) document.body.removeChild(scriptTag);
-
-       reject(new Error('JSONP request failed'));
-
-     };
-
- 
-
-     document.body.appendChild(script);
-
-   });
-
- };
-
- 
-
- export default function EventsUserPortal({
-
-   currentUser,
-
-   onLoginClick,
-
-   events,
-
-   eventParticipants,
-
-   setEventParticipants,
-
-   eventSubmissions,
-
-   setEventSubmissions,
-
-   users = [],
-
-   setUsers
-
- }) {
-
-   const [registeringEvent, setRegisteringEvent] = useState(null); // Event model open for register
-
-   const [fullName, setFullName] = useState('');
-
-   const [email, setEmail] = useState('');
-
-   const [contact, setContact] = useState('');
-
-   const [searchQuery, setSearchQuery] = useState('');
-
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { Trophy, Calendar, Users, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft } from 'lucide-react';
+
+const formatIndonesianDate = (dateString) => {
+  if (!dateString) return 'Hingga Budget Habis';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    const hasTime = dateString.includes('T');
+    
+    const formattedDate = date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    
+    if (hasTime) {
+      const formattedTime = date.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      return `${formattedDate} pukul ${formattedTime}`;
+    }
+    
+    return formattedDate;
+  } catch (e) {
+    return dateString;
+  }
+};
+
+function CountdownTimer({ deadline }) {
+  const calculateTimeLeft = () => {
+    if (!deadline) return null;
+    const difference = (deadline.includes('T') ? new Date(deadline).getTime() : new Date(deadline + 'T23:59:59').getTime()) - new Date().getTime();
+    if (difference <= 0) return null;
+
+    return {
+      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((difference / 1000 / 60) % 60),
+      seconds: Math.floor((difference / 1000) % 60)
+    };
+  };
+
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [deadline]);
+
+  if (!timeLeft) {
+    return (
+      <div style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: 'bold' }}>
+        Telah Selesai
+      </div>
+    );
+  }
+
+  const { days, hours, minutes, seconds } = timeLeft;
+  return (
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column',
+      gap: '6px', 
+      background: 'rgba(56, 189, 248, 0.06)', 
+      border: '1px solid rgba(56, 189, 248, 0.15)', 
+      padding: '12px 16px', 
+      borderRadius: '8px', 
+      marginBottom: '16px' 
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#38bdf8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        <Clock size={14} className="sidebar-icon animate-pulse" />
+        <span>Sisa Waktu Pendaftaran & Pengiriman</span>
+      </div>
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '2px' }}>
+        {days > 0 && (
+          <div style={{ textAlign: 'center' }}>
+            <span style={{ fontSize: '1.2rem', fontWeight: '800', color: 'white', display: 'block', lineHeight: '1' }}>{days}</span>
+            <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Hari</span>
+          </div>
+        )}
+        {(days > 0 || hours > 0) && (
+          <div style={{ textAlign: 'center' }}>
+            <span style={{ fontSize: '1.2rem', fontWeight: '800', color: 'white', display: 'block', lineHeight: '1' }}>{hours}</span>
+            <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Jam</span>
+          </div>
+        )}
+        <div style={{ textAlign: 'center' }}>
+          <span style={{ fontSize: '1.2rem', fontWeight: '800', color: 'white', display: 'block', lineHeight: '1' }}>{minutes}</span>
+          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Menit</span>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <span style={{ fontSize: '1.2rem', fontWeight: '800', color: '#38bdf8', display: 'block', lineHeight: '1' }}>{seconds}</span>
+          <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 'bold' }}>Detik</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CardCountdown({ deadline }) {
+  const getLabel = () => {
+    if (!deadline) return '';
+    const diffMs = (deadline.includes('T') ? new Date(deadline).getTime() : new Date(deadline + 'T23:59:59').getTime()) - new Date().getTime();
+    if (diffMs <= 0) return 'Telah Selesai';
+    
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHrs = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHrs / 24);
+
+    if (diffDays > 0) {
+      return `Sisa ${diffDays} hari ${diffHrs % 24} jam`;
+    }
+    if (diffHrs > 0) {
+      return `Sisa ${diffHrs} jam ${diffMins % 60} menit`;
+    }
+    return `Sisa ${diffMins} menit`;
+  };
+
+  const [label, setLabel] = useState(getLabel());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLabel(getLabel());
+    }, 60000); // update every minute
+
+    return () => clearInterval(timer);
+  }, [deadline]);
+
+  if (!label) return null;
+
+  const isEndingSoon = label.startsWith('Sisa') && !label.includes('hari');
+  const color = label === 'Telah Selesai' ? '#ef4444' : isEndingSoon ? '#f87171' : '#38bdf8';
+
+  return (
+    <div style={{ 
+      display: 'inline-flex', 
+      alignItems: 'center', 
+      gap: '4px', 
+      fontSize: '0.72rem', 
+      color: color, 
+      fontWeight: 'bold',
+      background: label === 'Telah Selesai' ? 'rgba(239, 68, 68, 0.08)' : isEndingSoon ? 'rgba(239, 68, 68, 0.08)' : 'rgba(56, 189, 248, 0.08)',
+      padding: '2px 8px',
+      borderRadius: '20px',
+      border: `1px solid ${color}20`
+    }}>
+      <Clock size={12} className={isEndingSoon ? "animate-pulse" : ""} />
+      <span>{label}</span>
+    </div>
+  );
+}
+
+const formatInputCurrency = (num) => {
+  if (num === 0 || !num) return '';
+  return num.toLocaleString('id-ID');
+};
+
+// Google Apps Script Web App URL for social media verification (Optional)
+// Paste your deployed Google Apps Script URL here, e.g. 'https://script.google.com/macros/s/...'
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbww9byb9H5SIW_HknSEVJJe-oY9S--NaeKSPjcQ6IBACzoQc38oZ36bQqm__60gncIxxA/exec';
+
+// JSONP fetch helper to route Google Apps Script calls without CORS blocks
+const fetchJSONP = (url, params = {}) => {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+    window[callbackName] = (data) => {
+      delete window[callbackName];
+      const scriptTag = document.getElementById(callbackName);
+      if (scriptTag) document.body.removeChild(scriptTag);
+      resolve(data);
+    };
+
+    const queryParams = { ...params, callback: callbackName };
+    const queryString = Object.keys(queryParams)
+      .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(queryParams[key])}`)
+      .join('&');
+
+    const finalUrl = url.includes('?') ? `${url}&${queryString}` : `${url}?${queryString}`;
+
+    const script = document.createElement('script');
+    script.id = callbackName;
+    script.src = finalUrl;
+    script.onerror = (err) => {
+      delete window[callbackName];
+      const scriptTag = document.getElementById(callbackName);
+      if (scriptTag) document.body.removeChild(scriptTag);
+      reject(new Error('JSONP request failed'));
+    };
+
+    document.body.appendChild(script);
+  });
+};
+
+export default function EventsUserPortal({
+  currentUser,
+  onLoginClick,
+  events,
+  eventParticipants,
+  setEventParticipants,
+  eventSubmissions,
+  setEventSubmissions,
+  users = [],
+  setUsers
+}) {
+  const [registeringEvent, setRegisteringEvent] = useState(null); // Event model open for register
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [contact, setContact] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [expandedJuknis, setExpandedJuknis] = useState({});
-  const [selectedEvent, setSelectedEvent] = useState(null);
 
- 
-
-   // Social Media Verification States
-
-   const [verificationStep, setVerificationStep] = useState('input'); // 'input' | 'verify' | 'loading' | 'success' | 'expired' | 'failed'
-
-   const [selectedPlatform, setSelectedPlatform] = useState('instagram');
-
-   const [socialUrl, setSocialUrl] = useState('');
-
-   const [uniqueCode, setUniqueCode] = useState('');
-
-   const [timerSeconds, setTimerSeconds] = useState(180);
-
-   const [codeTimestamp, setCodeTimestamp] = useState(0);
-
-   const [scanLog, setScanLog] = useState([]);
-
-   const [simulatedBio, setSimulatedBio] = useState('');
-
-   const [verificationError, setVerificationError] = useState('');
-
-   const [confirmCode, setConfirmCode] = useState('');
-
-   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-
- 
-
-   // Timer countdown hook for verification
-
-   useEffect(() => {
-
-     let interval = null;
-
-     if (verificationStep === 'verify' && timerSeconds > 0) {
-
-       interval = setInterval(() => {
-
-         setTimerSeconds((prev) => {
-
-           if (prev <= 1) {
-
-             setVerificationStep('expired');
-
-             clearInterval(interval);
-
-             return 0;
-
-           }
-
-           return prev - 1;
-
-         });
-
-       }, 1000);
-
-     } else {
-
-       clearInterval(interval);
-
-     }
-
-     return () => clearInterval(interval);
-
-   }, [verificationStep, timerSeconds]);
-
- 
-
- 
-
- 
-
-   const [submittingEvent, setSubmittingEvent] = useState(null); // Event model open for work submission
-
-   const [workTitle, setWorkTitle] = useState('');
-
-   const [workVideoUrl, setWorkVideoUrl] = useState('');
-
-   const [workDescription, setWorkDescription] = useState('');
-
-   const [workPlatform, setWorkPlatform] = useState('YouTube');
-
- 
-
-   // Move from input handle step to show code instruction step
-
-   const handleLanjutVerifikasi = (e) => {
-
-     e.preventDefault();
-
-     const usernameInput = socialUrl.trim();
-
-     if (!usernameInput) {
-
-       alert('Silakan masukkan Username atau @handle sosial media Anda!');
-
-       return;
-
-     }
-
-     
-
-     if (usernameInput.includes(' ')) {
-
-       alert('Username / Handle tidak boleh mengandung spasi!');
-
-       return;
-
-     }
-
- 
-
-     // Generate unique code if not already set
-
-     if (!uniqueCode) {
-
-       const randomId = Math.floor(1000 + Math.random() * 9000);
-
-       setUniqueCode(`FILMO-${randomId}`);
-
-     }
-
- 
-
-     setVerificationStep('verify');
-
-     setTimerSeconds(180);
-
-   };
-
- 
-
-   // Handle Check Account (Initiate checking if the social media account exists)
-
-   const handleCheckAccount = async (e) => {
-
-     if (e) e.preventDefault();
-
-     const usernameInput = socialUrl.trim();
-
-     if (!usernameInput) {
-
-       alert('Silakan masukkan Username atau @handle sosial media Anda!');
-
-       return;
-
-     }
-
- 
-
-     setVerificationStep('loading');
-
- 
-
-     let cleanUsername = usernameInput;
-
-     if (cleanUsername.startsWith('@')) {
-
-       cleanUsername = cleanUsername.substring(1);
-
-     }
-
- 
-
-     // Determine target platform URL format for search query
-
-     let searchUrl = '';
-
-     let generatedLink = '';
-
-     if (selectedPlatform === 'instagram') {
-
-       searchUrl = `https://html.duckduckgo.com/html/?q=site:instagram.com/${cleanUsername}`;
-
-       generatedLink = `https://instagram.com/${cleanUsername}`;
-
-     } else if (selectedPlatform === 'tiktok') {
-
-       searchUrl = `https://html.duckduckgo.com/html/?q=site:tiktok.com/%40${cleanUsername}`;
-
-       generatedLink = `https://tiktok.com/@${cleanUsername}`;
-
-     } else if (selectedPlatform === 'youtube') {
-
-       searchUrl = `https://html.duckduckgo.com/html/?q=site:youtube.com/%40${cleanUsername}`;
-
-       generatedLink = `https://youtube.com/@${cleanUsername}`;
-
-     } else if (selectedPlatform === 'facebook') {
-
-       searchUrl = `https://html.duckduckgo.com/html/?q=site:facebook.com/${cleanUsername}`;
-
-       generatedLink = `https://facebook.com/${cleanUsername}`;
-
-     }
-
- 
-
-     try {
-
-       let verificationResult = { exists: false, codeFound: false, status: 'failed' };
-
- 
-
-       // If user configured Google Apps Script Web App, call it via JSONP to bypass CORS.
-
-       if (GOOGLE_APPS_SCRIPT_URL) {
-
-         verificationResult = await fetchJSONP(GOOGLE_APPS_SCRIPT_URL, {
-
-           platform: selectedPlatform,
-
-           username: cleanUsername,
-
-           code: uniqueCode
-
-         });
-
-       } else {
-
-         // Client-side fallback using direct APIs and AllOrigins proxy
-
-         if (selectedPlatform === 'tiktok') {
-
-           // Direct check using TikWM API (CORS friendly!)
-
-           const tikwmUrl = `https://www.tikwm.com/api/user/info?unique_id=${encodeURIComponent(cleanUsername)}`;
-
-           const response = await fetch(tikwmUrl);
-
-           if (response.ok) {
-
-             const data = await response.json();
-
-             if (data.code === 0 && data.data && data.data.user) {
-
-               const signature = data.data.user.signature || '';
-
-               const containsCode = signature.toLowerCase().includes(uniqueCode.toLowerCase());
-
-               verificationResult = {
-
-                 exists: true,
-
-                 codeFound: containsCode,
-
-                 status: containsCode ? 'approved' : 'failed'
-
-               };
-
-             }
-
-           }
-
-         } else if (selectedPlatform === 'youtube') {
-
-           // YouTube: Search channel page using proxy
-
-           const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/@${cleanUsername}`)}`;
-
-           const response = await fetch(proxyUrl);
-
-           if (response.ok) {
-
-             const data = await response.json();
-
-             const html = data.contents || '';
-
-             const containsCode = html.toLowerCase().includes(uniqueCode.toLowerCase());
-
-             verificationResult = {
-
-               exists: html.includes('ytInitialData') && !html.includes('This channel does not exist'),
-
-               codeFound: containsCode,
-
-               status: containsCode ? 'approved' : 'failed'
-
-             };
-
-           }
-
-         } else {
-
-           // Instagram/Facebook fallback check via DuckDuckGo search query
-
-           const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`;
-
-           const response = await fetch(proxyUrl);
-
-           if (response.ok) {
-
-             const data = await response.json();
-
-             const html = data.contents || '';
-
-             const hasResults = html.includes('class="result__body"') || html.includes('result__snippet');
-
-             const containsCode = html.toLowerCase().includes(uniqueCode.toLowerCase());
-
-             
-
-             verificationResult = {
-
-               exists: hasResults,
-
-               codeFound: containsCode,
-
-               status: containsCode ? 'approved' : 'failed'
-
-             };
-
-           }
-
-         }
-
-       }
-
- 
-
-       // Check special test simulation accounts
-
-       const isTestMockSuccess = cleanUsername.toLowerCase() === 'rudiwijaya' || cleanUsername.toLowerCase() === 'sanaminnulloh';
-
-       const isTestMockFailure = cleanUsername.toLowerCase() === 'notfound' || 
-
-                                 cleanUsername.toLowerCase() === 'invalid' || 
-
-                                 cleanUsername.toLowerCase() === 'tidakditemukan' || 
-
-                                 cleanUsername.toLowerCase() === 'error';
-
- 
-
-       if (isTestMockSuccess) {
-
-         verificationResult = { exists: true, codeFound: true, status: 'approved' };
-
-       } else if (isTestMockFailure) {
-
-         verificationResult = { exists: false, codeFound: false, status: 'failed' };
-
-       }
-
- 
-
-       if (verificationResult.status === 'failed') {
-
-         if (!verificationResult.exists) {
-
-           setVerificationError(`Akun @${cleanUsername} tidak ditemukan di platform ${selectedPlatform.toUpperCase()}. Pastikan username Anda sudah benar.`);
-
-         } else {
-
-           setVerificationError(`Kode unik ${uniqueCode} tidak ditemukan di bio/deskripsi profil ${selectedPlatform.toUpperCase()} Anda. Pastikan Anda telah menempelkan kode tersebut dengan benar.`);
-
-         }
-
-         setVerificationStep('failed');
-
-       } else {
-
-         const approvedCount = eventParticipants.filter(p => p.eventId === registeringEvent.id && p.status === 'approved').length;
-
-         if (registeringEvent.maxParticipants > 0 && approvedCount >= registeringEvent.maxParticipants) {
-
-           alert('Maaf, kuota peserta untuk event ini sudah penuh!');
-
-           setRegisteringEvent(null);
-
-           resetVerificationForm();
-
-           return;
-
-         }
-
- 
-
-         const targetStatus = verificationResult.status || 'approved';
-
- 
-
-         const newPart = {
-
-           id: `part_${Date.now()}`,
-
-           eventId: registeringEvent.id,
-
-           eventTitle: registeringEvent.title,
-
-           name: currentUser.username,
-
-           username: currentUser.username,
-
-           email: currentUser.email || `${currentUser.username}@filmo.com`,
-
-           contact: `@${cleanUsername}`,
-
-           socialPlatform: selectedPlatform,
-
-           socialLink: generatedLink,
-
-           status: targetStatus,
-
-           verifiedAt: new Date().toISOString(),
-
-           registeredAt: new Date().toISOString()
-
-         };
-
- 
-
-         setEventParticipants([...eventParticipants, newPart]);
-
-         setVerificationStep('success');
-
-       }
-
-     } catch (err) {
-
-       console.warn('GAS/Primary check failed, running client-side fallback check:', err);
-
-       
-
-       try {
-
-         let fallbackResult = { exists: false, codeFound: false, status: 'failed' };
-
- 
-
-         if (selectedPlatform === 'tiktok') {
-
-           const tikwmUrl = `https://www.tikwm.com/api/user/info?unique_id=${encodeURIComponent(cleanUsername)}`;
-
-           const response = await fetch(tikwmUrl);
-
-           if (response.ok) {
-
-             const data = await response.json();
-
-             if (data.code === 0 && data.data && data.data.user) {
-
-               const signature = data.data.user.signature || '';
-
-               const containsCode = signature.toLowerCase().includes(uniqueCode.toLowerCase());
-
-               fallbackResult = {
-
-                 exists: true,
-
-                 codeFound: containsCode,
-
-                 status: containsCode ? 'approved' : 'failed'
-
-               };
-
-             }
-
-           }
-
-         } else if (selectedPlatform === 'youtube') {
-
-           const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/@${cleanUsername}`)}`;
-
-           const response = await fetch(proxyUrl);
-
-           if (response.ok) {
-
-             const data = await response.json();
-
-             const html = data.contents || '';
-
-             const containsCode = html.toLowerCase().includes(uniqueCode.toLowerCase());
-
-             fallbackResult = {
-
-               exists: html.includes('ytInitialData') && !html.includes('This channel does not exist'),
-
-               codeFound: containsCode,
-
-               status: containsCode ? 'approved' : 'failed'
-
-             };
-
-           }
-
-         } else {
-
-           // Instagram/Facebook
-
-           const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`;
-
-           const response = await fetch(proxyUrl);
-
-           if (response.ok) {
-
-             const data = await response.json();
-
-             const html = data.contents || '';
-
-             const hasResults = html.includes('class="result__body"') || html.includes('result__snippet');
-
-             const containsCode = html.toLowerCase().includes(uniqueCode.toLowerCase());
-
-             fallbackResult = {
-
-               exists: hasResults,
-
-               codeFound: containsCode,
-
-               status: containsCode ? 'approved' : 'failed'
-
-             };
-
-           }
-
-         }
-
- 
-
-         // Test mock override
-
-         const isTestMockSuccess = cleanUsername.toLowerCase() === 'rudiwijaya' || cleanUsername.toLowerCase() === 'sanaminnulloh';
-
-         const isTestMockFailure = cleanUsername.toLowerCase() === 'notfound' || 
-
-                                   cleanUsername.toLowerCase() === 'invalid' || 
-
-                                   cleanUsername.toLowerCase() === 'tidakditemukan' || 
-
-                                   cleanUsername.toLowerCase() === 'error';
-
- 
-
-         if (isTestMockSuccess) fallbackResult = { exists: true, codeFound: true, status: 'approved' };
-
-         if (isTestMockFailure) fallbackResult = { exists: false, codeFound: false, status: 'failed' };
-
- 
-
-         if (fallbackResult.status === 'failed') {
-
-           if (!fallbackResult.exists) {
-
-             setVerificationError(`Akun @${cleanUsername} tidak ditemukan di platform ${selectedPlatform.toUpperCase()}. Pastikan username Anda sudah benar.`);
-
-           } else {
-
-             setVerificationError(`Kode unik ${uniqueCode} tidak ditemukan di bio/deskripsi profil ${selectedPlatform.toUpperCase()} Anda. Pastikan Anda telah menempelkan kode tersebut dengan benar.`);
-
-           }
-
-           setVerificationStep('failed');
-
-         } else {
-
-           const approvedCount = eventParticipants.filter(p => p.eventId === registeringEvent.id && p.status === 'approved').length;
-
-           if (registeringEvent.maxParticipants > 0 && approvedCount >= registeringEvent.maxParticipants) {
-
-             alert('Maaf, kuota peserta untuk event ini sudah penuh!');
-
-             setRegisteringEvent(null);
-
-             resetVerificationForm();
-
-             return;
-
-           }
-
- 
-
-           const targetStatus = fallbackResult.status || 'approved';
-
-           const newPart = {
-
-             id: `part_${Date.now()}`,
-
-             eventId: registeringEvent.id,
-
-             eventTitle: registeringEvent.title,
-
-             name: currentUser.username,
-
-             username: currentUser.username,
-
-             email: currentUser.email || `${currentUser.username}@filmo.com`,
-
-             contact: `@${cleanUsername}`,
-
-             socialPlatform: selectedPlatform,
-
-             socialLink: generatedLink,
-
-             status: targetStatus,
-
-             verifiedAt: new Date().toISOString(),
-
-             registeredAt: new Date().toISOString()
-
-           };
-
- 
-
-           setEventParticipants([...eventParticipants, newPart]);
-
-           setVerificationStep('success');
-
-         }
-
-       } catch (fallbackErr) {
-
-         console.error('Fallback check failed too:', fallbackErr);
-
-         setVerificationError(`Gagal menghubungi server verifikasi. Silakan periksa koneksi internet Anda atau coba lagi beberapa saat.`);
-
-         setVerificationStep('failed');
-
-       }
-
-     }
-
-   };
-
- 
-
-   const resetVerificationForm = () => {
-
-     setVerificationStep('input');
-
-     setSelectedPlatform('instagram');
-
-     setSocialUrl('');
-
-     setUniqueCode('');
-
-     setTimerSeconds(180);
-
-     setScanLog([]);
-
-     setSimulatedBio('');
-
-     setVerificationError('');
-
-     setConfirmCode('');
-
-     setShowConfirmDialog(false);
-
-   };
-
- 
-
- 
-
- 
-
-   // Handle Work Submission submit
-
-   const handleWorkSubmit = (e) => {
-
-     e.preventDefault();
-
-     if (!currentUser) return;
-
- 
-
-     const userRegistration = eventParticipants.find(
-
-       p => p.eventId === submittingEvent.id && p.username.toLowerCase() === currentUser.username.toLowerCase()
-
-     );
-
- 
-
-     if (!userRegistration) {
-
-       alert('Pendaftaran Anda untuk event ini tidak ditemukan!');
-
-       return;
-
-     }
-
- 
-
-     const newSub = {
-
-       id: `sub_${Date.now()}`,
-
-       eventId: submittingEvent.id,
-
-       eventTitle: submittingEvent.title,
-
-       participantName: userRegistration.name,
-
-       username: currentUser.username,
-
-       title: workTitle.trim(),
-
-       videoUrl: workVideoUrl.trim(),
-
-       description: workDescription.trim(),
-
-       platform: workPlatform,
-
-       views: 0,
-
-       likes: 0,
-
-       comments: 0,
-
-       status: 'submitted',
-
-       submittedAt: new Date().toISOString(),
-
-       score: null,
-
-       feedback: ''
-
-     };
-
- 
-
-     setEventSubmissions([...eventSubmissions, newSub]);
-
-     setSubmittingEvent(null);
-
-     setWorkTitle('');
-
-     setWorkVideoUrl('');
-
-     setWorkDescription('');
-
-     setWorkPlatform('YouTube');
-
-     alert('Karya Anda berhasil dikirim! Panitia dan Juri akan segera menilai karya Anda.');
-
-   };
-
- 
-
-   const handleUrlChange = (url) => {
-
-     setWorkVideoUrl(url);
-
-     if (url.toLowerCase().includes('youtube.com') || url.toLowerCase().includes('youtu.be')) {
-
-       setWorkPlatform('YouTube');
-
-     } else if (url.toLowerCase().includes('tiktok.com')) {
-
-       setWorkPlatform('TikTok');
-
-     } else if (url.toLowerCase().includes('instagram.com')) {
-
-       setWorkPlatform('Instagram');
-
-     }
-
-   };
-
- 
-
- 
-
- 
-
-   const getEventRemainingBudget = (evt) => {
-
-     const initialBudget = evt.campaignBudget || 0;
-
-     const eventSubs = eventSubmissions.filter(s => s.eventId === evt.id);
-
-     const totalPayout = eventSubs.reduce((sum, sub) => {
-
-       const views = sub.views || 0;
-
-       const step = evt.benefitViewsStep || 1000;
-
-       const amount = evt.benefitAmount || 0;
-
-       const payout = Math.floor(views / step) * amount;
-
-       return sum + payout;
-
-     }, 0);
-
-     return Math.max(0, initialBudget - totalPayout);
-
-   };
-
- 
-
-   return (
-
-     <div className="events-portal-container animate-fade-in-up" style={{ padding: '24px', color: 'var(--text-primary)' }}>
+  // Social Media Verification States
+  const [verificationStep, setVerificationStep] = useState('input'); // 'input' | 'verify' | 'loading' | 'success' | 'expired' | 'failed'
+  const [selectedPlatform, setSelectedPlatform] = useState('instagram');
+  const [socialUrl, setSocialUrl] = useState('');
+  const [uniqueCode, setUniqueCode] = useState('');
+  const [timerSeconds, setTimerSeconds] = useState(180);
+  const [codeTimestamp, setCodeTimestamp] = useState(0);
+  const [scanLog, setScanLog] = useState([]);
+  const [simulatedBio, setSimulatedBio] = useState('');
+  const [verificationError, setVerificationError] = useState('');
+  const [confirmCode, setConfirmCode] = useState('');
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  // Timer countdown hook for verification
+  useEffect(() => {
+    let interval = null;
+    if (verificationStep === 'verify' && timerSeconds > 0) {
+      interval = setInterval(() => {
+        setTimerSeconds((prev) => {
+          if (prev <= 1) {
+            setVerificationStep('expired');
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [verificationStep, timerSeconds]);
+
+
+
+  const [submittingEvent, setSubmittingEvent] = useState(null); // Event model open for work submission
+  const [workTitle, setWorkTitle] = useState('');
+  const [workVideoUrl, setWorkVideoUrl] = useState('');
+  const [workDescription, setWorkDescription] = useState('');
+  const [workPlatform, setWorkPlatform] = useState('YouTube');
+
+  // Move from input handle step to show code instruction step
+  const handleLanjutVerifikasi = (e) => {
+    e.preventDefault();
+    const usernameInput = socialUrl.trim();
+    if (!usernameInput) {
+      alert('Silakan masukkan Username atau @handle sosial media Anda!');
+      return;
+    }
+    
+    if (usernameInput.includes(' ')) {
+      alert('Username / Handle tidak boleh mengandung spasi!');
+      return;
+    }
+
+    // Generate unique code if not already set
+    if (!uniqueCode) {
+      const randomId = Math.floor(1000 + Math.random() * 9000);
+      setUniqueCode(`FILMO-${randomId}`);
+    }
+
+    setVerificationStep('verify');
+    setTimerSeconds(180);
+  };
+
+  // Handle Check Account (Initiate checking if the social media account exists)
+  const handleCheckAccount = async (e) => {
+    if (e) e.preventDefault();
+    const usernameInput = socialUrl.trim();
+    if (!usernameInput) {
+      alert('Silakan masukkan Username atau @handle sosial media Anda!');
+      return;
+    }
+
+    setVerificationStep('loading');
+
+    let cleanUsername = usernameInput;
+    if (cleanUsername.startsWith('@')) {
+      cleanUsername = cleanUsername.substring(1);
+    }
+
+    // Determine target platform URL format for search query
+    let searchUrl = '';
+    let generatedLink = '';
+    if (selectedPlatform === 'instagram') {
+      searchUrl = `https://html.duckduckgo.com/html/?q=site:instagram.com/${cleanUsername}`;
+      generatedLink = `https://instagram.com/${cleanUsername}`;
+    } else if (selectedPlatform === 'tiktok') {
+      searchUrl = `https://html.duckduckgo.com/html/?q=site:tiktok.com/%40${cleanUsername}`;
+      generatedLink = `https://tiktok.com/@${cleanUsername}`;
+    } else if (selectedPlatform === 'youtube') {
+      searchUrl = `https://html.duckduckgo.com/html/?q=site:youtube.com/%40${cleanUsername}`;
+      generatedLink = `https://youtube.com/@${cleanUsername}`;
+    } else if (selectedPlatform === 'facebook') {
+      searchUrl = `https://html.duckduckgo.com/html/?q=site:facebook.com/${cleanUsername}`;
+      generatedLink = `https://facebook.com/${cleanUsername}`;
+    }
+
+    try {
+      let verificationResult = { exists: false, codeFound: false, status: 'failed' };
+
+      // If user configured Google Apps Script Web App, call it via JSONP to bypass CORS.
+      if (GOOGLE_APPS_SCRIPT_URL) {
+        verificationResult = await fetchJSONP(GOOGLE_APPS_SCRIPT_URL, {
+          platform: selectedPlatform,
+          username: cleanUsername,
+          code: uniqueCode
+        });
+      } else {
+        // Client-side fallback using direct APIs and AllOrigins proxy
+        if (selectedPlatform === 'tiktok') {
+          // Direct check using TikWM API (CORS friendly!)
+          const tikwmUrl = `https://www.tikwm.com/api/user/info?unique_id=${encodeURIComponent(cleanUsername)}`;
+          const response = await fetch(tikwmUrl);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.code === 0 && data.data && data.data.user) {
+              const signature = data.data.user.signature || '';
+              const containsCode = signature.toLowerCase().includes(uniqueCode.toLowerCase());
+              verificationResult = {
+                exists: true,
+                codeFound: containsCode,
+                status: containsCode ? 'approved' : 'failed'
+              };
+            }
+          }
+        } else if (selectedPlatform === 'youtube') {
+          // YouTube: Search channel page using proxy
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/@${cleanUsername}`)}`;
+          const response = await fetch(proxyUrl);
+          if (response.ok) {
+            const data = await response.json();
+            const html = data.contents || '';
+            const containsCode = html.toLowerCase().includes(uniqueCode.toLowerCase());
+            verificationResult = {
+              exists: html.includes('ytInitialData') && !html.includes('This channel does not exist'),
+              codeFound: containsCode,
+              status: containsCode ? 'approved' : 'failed'
+            };
+          }
+        } else {
+          // Instagram/Facebook fallback check via DuckDuckGo search query
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`;
+          const response = await fetch(proxyUrl);
+          if (response.ok) {
+            const data = await response.json();
+            const html = data.contents || '';
+            const hasResults = html.includes('class="result__body"') || html.includes('result__snippet');
+            const containsCode = html.toLowerCase().includes(uniqueCode.toLowerCase());
+            
+            verificationResult = {
+              exists: hasResults,
+              codeFound: containsCode,
+              status: containsCode ? 'approved' : 'failed'
+            };
+          }
+        }
+      }
+
+      // Check special test simulation accounts
+      const isTestMockSuccess = cleanUsername.toLowerCase() === 'rudiwijaya' || cleanUsername.toLowerCase() === 'sanaminnulloh';
+      const isTestMockFailure = cleanUsername.toLowerCase() === 'notfound' || 
+                                cleanUsername.toLowerCase() === 'invalid' || 
+                                cleanUsername.toLowerCase() === 'tidakditemukan' || 
+                                cleanUsername.toLowerCase() === 'error';
+
+      if (isTestMockSuccess) {
+        verificationResult = { exists: true, codeFound: true, status: 'approved' };
+      } else if (isTestMockFailure) {
+        verificationResult = { exists: false, codeFound: false, status: 'failed' };
+      }
+
+      if (verificationResult.status === 'failed') {
+        if (!verificationResult.exists) {
+          setVerificationError(`Akun @${cleanUsername} tidak ditemukan di platform ${selectedPlatform.toUpperCase()}. Pastikan username Anda sudah benar.`);
+        } else {
+          setVerificationError(`Kode unik ${uniqueCode} tidak ditemukan di bio/deskripsi profil ${selectedPlatform.toUpperCase()} Anda. Pastikan Anda telah menempelkan kode tersebut dengan benar.`);
+        }
+        setVerificationStep('failed');
+      } else {
+        const approvedCount = eventParticipants.filter(p => p.eventId === registeringEvent.id && p.status === 'approved').length;
+        if (registeringEvent.maxParticipants > 0 && approvedCount >= registeringEvent.maxParticipants) {
+          alert('Maaf, kuota peserta untuk event ini sudah penuh!');
+          setRegisteringEvent(null);
+          resetVerificationForm();
+          return;
+        }
+
+        const targetStatus = verificationResult.status || 'approved';
+
+        const newPart = {
+          id: `part_${Date.now()}`,
+          eventId: registeringEvent.id,
+          eventTitle: registeringEvent.title,
+          name: currentUser.username,
+          username: currentUser.username,
+          email: currentUser.email || `${currentUser.username}@filmo.com`,
+          contact: `@${cleanUsername}`,
+          socialPlatform: selectedPlatform,
+          socialLink: generatedLink,
+          status: targetStatus,
+          verifiedAt: new Date().toISOString(),
+          registeredAt: new Date().toISOString()
+        };
+
+        setEventParticipants([...eventParticipants, newPart]);
+        setVerificationStep('success');
+      }
+    } catch (err) {
+      console.warn('GAS/Primary check failed, running client-side fallback check:', err);
+      
+      try {
+        let fallbackResult = { exists: false, codeFound: false, status: 'failed' };
+
+        if (selectedPlatform === 'tiktok') {
+          const tikwmUrl = `https://www.tikwm.com/api/user/info?unique_id=${encodeURIComponent(cleanUsername)}`;
+          const response = await fetch(tikwmUrl);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.code === 0 && data.data && data.data.user) {
+              const signature = data.data.user.signature || '';
+              const containsCode = signature.toLowerCase().includes(uniqueCode.toLowerCase());
+              fallbackResult = {
+                exists: true,
+                codeFound: containsCode,
+                status: containsCode ? 'approved' : 'failed'
+              };
+            }
+          }
+        } else if (selectedPlatform === 'youtube') {
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/@${cleanUsername}`)}`;
+          const response = await fetch(proxyUrl);
+          if (response.ok) {
+            const data = await response.json();
+            const html = data.contents || '';
+            const containsCode = html.toLowerCase().includes(uniqueCode.toLowerCase());
+            fallbackResult = {
+              exists: html.includes('ytInitialData') && !html.includes('This channel does not exist'),
+              codeFound: containsCode,
+              status: containsCode ? 'approved' : 'failed'
+            };
+          }
+        } else {
+          // Instagram/Facebook
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`;
+          const response = await fetch(proxyUrl);
+          if (response.ok) {
+            const data = await response.json();
+            const html = data.contents || '';
+            const hasResults = html.includes('class="result__body"') || html.includes('result__snippet');
+            const containsCode = html.toLowerCase().includes(uniqueCode.toLowerCase());
+            fallbackResult = {
+              exists: hasResults,
+              codeFound: containsCode,
+              status: containsCode ? 'approved' : 'failed'
+            };
+          }
+        }
+
+        // Test mock override
+        const isTestMockSuccess = cleanUsername.toLowerCase() === 'rudiwijaya' || cleanUsername.toLowerCase() === 'sanaminnulloh';
+        const isTestMockFailure = cleanUsername.toLowerCase() === 'notfound' || 
+                                  cleanUsername.toLowerCase() === 'invalid' || 
+                                  cleanUsername.toLowerCase() === 'tidakditemukan' || 
+                                  cleanUsername.toLowerCase() === 'error';
+
+        if (isTestMockSuccess) fallbackResult = { exists: true, codeFound: true, status: 'approved' };
+        if (isTestMockFailure) fallbackResult = { exists: false, codeFound: false, status: 'failed' };
+
+        if (fallbackResult.status === 'failed') {
+          if (!fallbackResult.exists) {
+            setVerificationError(`Akun @${cleanUsername} tidak ditemukan di platform ${selectedPlatform.toUpperCase()}. Pastikan username Anda sudah benar.`);
+          } else {
+            setVerificationError(`Kode unik ${uniqueCode} tidak ditemukan di bio/deskripsi profil ${selectedPlatform.toUpperCase()} Anda. Pastikan Anda telah menempelkan kode tersebut dengan benar.`);
+          }
+          setVerificationStep('failed');
+        } else {
+          const approvedCount = eventParticipants.filter(p => p.eventId === registeringEvent.id && p.status === 'approved').length;
+          if (registeringEvent.maxParticipants > 0 && approvedCount >= registeringEvent.maxParticipants) {
+            alert('Maaf, kuota peserta untuk event ini sudah penuh!');
+            setRegisteringEvent(null);
+            resetVerificationForm();
+            return;
+          }
+
+          const targetStatus = fallbackResult.status || 'approved';
+          const newPart = {
+            id: `part_${Date.now()}`,
+            eventId: registeringEvent.id,
+            eventTitle: registeringEvent.title,
+            name: currentUser.username,
+            username: currentUser.username,
+            email: currentUser.email || `${currentUser.username}@filmo.com`,
+            contact: `@${cleanUsername}`,
+            socialPlatform: selectedPlatform,
+            socialLink: generatedLink,
+            status: targetStatus,
+            verifiedAt: new Date().toISOString(),
+            registeredAt: new Date().toISOString()
+          };
+
+          setEventParticipants([...eventParticipants, newPart]);
+          setVerificationStep('success');
+        }
+      } catch (fallbackErr) {
+        console.error('Fallback check failed too:', fallbackErr);
+        setVerificationError(`Gagal menghubungi server verifikasi. Silakan periksa koneksi internet Anda atau coba lagi beberapa saat.`);
+        setVerificationStep('failed');
+      }
+    }
+  };
+
+  const resetVerificationForm = () => {
+    setVerificationStep('input');
+    setSelectedPlatform('instagram');
+    setSocialUrl('');
+    setUniqueCode('');
+    setTimerSeconds(180);
+    setScanLog([]);
+    setSimulatedBio('');
+    setVerificationError('');
+    setConfirmCode('');
+    setShowConfirmDialog(false);
+  };
+
+
+
+  // Handle Work Submission submit
+  const handleWorkSubmit = (e) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    const userRegistration = eventParticipants.find(
+      p => p.eventId === submittingEvent.id && p.username.toLowerCase() === currentUser.username.toLowerCase()
+    );
+
+    if (!userRegistration) {
+      alert('Pendaftaran Anda untuk event ini tidak ditemukan!');
+      return;
+    }
+
+    const newSub = {
+      id: `sub_${Date.now()}`,
+      eventId: submittingEvent.id,
+      eventTitle: submittingEvent.title,
+      participantName: userRegistration.name,
+      username: currentUser.username,
+      title: workTitle.trim(),
+      videoUrl: workVideoUrl.trim(),
+      description: workDescription.trim(),
+      platform: workPlatform,
+      views: 0,
+      likes: 0,
+      comments: 0,
+      status: 'submitted',
+      submittedAt: new Date().toISOString(),
+      score: null,
+      feedback: ''
+    };
+
+    setEventSubmissions([...eventSubmissions, newSub]);
+    setSubmittingEvent(null);
+    setWorkTitle('');
+    setWorkVideoUrl('');
+    setWorkDescription('');
+    setWorkPlatform('YouTube');
+    alert('Karya Anda berhasil dikirim! Panitia dan Juri akan segera menilai karya Anda.');
+  };
+
+  const handleUrlChange = (url) => {
+    setWorkVideoUrl(url);
+    if (url.toLowerCase().includes('youtube.com') || url.toLowerCase().includes('youtu.be')) {
+      setWorkPlatform('YouTube');
+    } else if (url.toLowerCase().includes('tiktok.com')) {
+      setWorkPlatform('TikTok');
+    } else if (url.toLowerCase().includes('instagram.com')) {
+      setWorkPlatform('Instagram');
+    }
+  };
+
+
+
+  const getEventRemainingBudget = (evt) => {
+    const initialBudget = evt.campaignBudget || 0;
+    const eventSubs = eventSubmissions.filter(s => s.eventId === evt.id);
+    const totalPayout = eventSubs.reduce((sum, sub) => {
+      const views = sub.views || 0;
+      const step = evt.benefitViewsStep || 1000;
+      const amount = evt.benefitAmount || 0;
+      const payout = Math.floor(views / step) * amount;
+      return sum + payout;
+    }, 0);
+    return Math.max(0, initialBudget - totalPayout);
+  };
+
+  const getEventStatusLabel = (evt) => {
+    if (evt.paymentStatus !== 'paid') return 'Pending';
+    const isDeadlinePassed = evt.deadline ? (
+      evt.deadline.includes('T')
+        ? new Date().getTime() > new Date(evt.deadline).getTime()
+        : new Date().getTime() > new Date(evt.deadline + 'T23:59:59').getTime()
+    ) : false;
+    if (evt.budgetMode === 'ranking') {
+      if (evt.winnersReleased) return 'Selesai';
+      if (isDeadlinePassed) return 'Selesai (Menunggu Pemenang)';
+      return 'Berjalan';
+    } else {
+      const remainingBudget = getEventRemainingBudget(evt);
+      if (remainingBudget <= 0) return 'Selesai (Budget Habis)';
+      if (isDeadlinePassed) return 'Selesai';
+      return 'Berjalan';
+    }
+  };
+
+  const isEventHiddenFromPublic = (evt) => {
+    const label = getEventStatusLabel(evt);
+    if (!label.startsWith('Selesai')) return false;
+
+    if (evt.deadline) {
+      const deadlineTime = evt.deadline.includes('T')
+        ? new Date(evt.deadline).getTime()
+        : new Date(evt.deadline + 'T23:59:59').getTime();
+      const hPlus1Time = deadlineTime + 24 * 60 * 60 * 1000;
+      if (new Date().getTime() > hPlus1Time) {
+        return true;
+      }
+    } else {
+      return true;
+    }
+    return false;
+  };
+
+  return (
+    <div className="events-portal-container animate-fade-in-up" style={{ padding: '24px', color: 'var(--text-primary)' }}>
       {selectedEvent ? (
         // ================= DEDICATED DETAIL PAGE VIEW =================
         (() => {
@@ -1555,803 +1256,402 @@
           </div>
         </React.Fragment>
       )}{/* Registration Full Page Overlay */}
-
-       {registeringEvent && createPortal(
-
-         <div style={{
-
-           position: 'fixed',
-
-           top: 0,
-
-           left: 0,
-
-           width: '100vw',
-
-           height: '100vh',
-
-           background: '#090d16',
-
-           zIndex: 99999,
-
-           overflowY: 'auto',
-
-           padding: '40px 24px',
-
-           boxSizing: 'border-box'
-
-         }} className="animate-fade-in">
-
-           <div className="glass-panel" style={{ maxWidth: '600px', margin: '0 auto', width: '100%', padding: '32px', textAlign: 'left', border: '1px solid rgba(167, 139, 250, 0.25)', borderRadius: '12px' }}>
-
-             
-
-             {/* Header */}
-
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
-
-               <div>
-
-                 <h3 style={{ margin: 0, color: 'white', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.4rem', fontWeight: 'bold' }}>
-
-                   <ShieldCheck size={26} style={{ color: '#c084fc' }} />
-
-                   <span>Verifikasi Akun Sosmed</span>
-
-                 </h3>
-
-                 <p style={{ margin: '6px 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-
-                   Pendaftaran Kompetisi: <strong style={{ color: 'white' }}>{registeringEvent.title}</strong>
-
-                 </p>
-
-               </div>
-
-               <button 
-
-                 onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }} 
-
-                 style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', outline: 'none' }}
-
-               >
-
-                 <XCircle size={24} />
-
-               </button>
-
-             </div>
-
- 
-
-             {verificationStep === 'input' && (
-
-               <div>
-
-                 <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '600' }}>Pilih Platform Sosial Media</label>
-
-                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
-
-                   {[
-
-                     { id: 'instagram', label: 'Instagram', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>, color: '#e1306c' },
-
-                     { id: 'tiktok', label: 'TikTok', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>, color: '#00f2fe' },
-
-                     { id: 'youtube', label: 'YouTube', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17z"/><polygon points="10 15 15 12 10 9"/></svg>, color: '#ff0000' },
-
-                     { id: 'facebook', label: 'Facebook', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, color: '#1877f2' }
-
-                   ].map(p => {
-
-                     const isSelected = selectedPlatform === p.id;
-
-                     return (
-
-                       <button
-
-                         type="button"
-
-                         key={p.id}
-
-                         onClick={() => setSelectedPlatform(p.id)}
-
-                         style={{
-
-                           display: 'flex',
-
-                           alignItems: 'center',
-
-                           gap: '10px',
-
-                           padding: '14px 16px',
-
-                           borderRadius: '8px',
-
-                           background: isSelected ? 'rgba(167, 139, 250, 0.12)' : 'rgba(255,255,255,0.02)',
-
-                           border: isSelected ? '1px solid #c084fc' : '1px solid var(--border-color)',
-
-                           color: isSelected ? '#c084fc' : 'var(--text-secondary)',
-
-                           cursor: 'pointer',
-
-                           fontWeight: '600',
-
-                           fontSize: '0.9rem',
-
-                           transition: 'all 0.2s',
-
-                           outline: 'none'
-
-                         }}
-
-                       >
-
-                         <span style={{ color: isSelected ? '#c084fc' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
-
-                           {p.svg}
-
-                         </span>
-
-                         <span>{p.label}</span>
-
-                       </button>
-
-                     );
-
-                   })}
-
-                 </div>
-
- 
-
-                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.2)', padding: '12px 14px', borderRadius: '8px', marginBottom: '24px', fontSize: '0.82rem', color: '#f59e0b', lineHeight: '1.5' }}>
-
-                   <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
-
-                   <span>
-
-                     <strong>PENTING:</strong> Akun sosial media ini wajib menjadi akun yang Anda gunakan untuk mempublikasikan video hasil karya kompetisi Anda nantinya.
-
-                   </span>
-
-                 </div>
-
- 
-
-                 <form onSubmit={handleLanjutVerifikasi} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-                   <div className="form-group">
-
-                     <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: '500' }}>Username / Handle {selectedPlatform.toUpperCase()}</label>
-
-                     <input
-
-                       type="text"
-
-                       required
-
-                       value={socialUrl}
-
-                       onChange={(e) => setSocialUrl(e.target.value)}
-
-                       placeholder={`Contoh: @username atau username Anda`}
-
-                       style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
-
-                     />
-
-                   </div>
-
-                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '12px' }}>
-
-                     <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
-
-                     <button type="submit" className="btn btn-primary" style={{ background: 'linear-gradient(90deg, #c084fc, #a78bfa)', border: 'none', padding: '10px 20px' }}>Lanjut ke Verifikasi Kode</button>
-
-                   </div>
-
-                 </form>
-
-               </div>
-
-             )}
-
- 
-
-             {verificationStep === 'verify' && (
-
-               <div>
-
-                 <div style={{ background: 'rgba(167, 139, 250, 0.05)', border: '1px solid rgba(167, 139, 250, 0.15)', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
-
-                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-
-                     <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Kode Verifikasi Unik:</span>
-
-                     <span style={{ fontSize: '0.8rem', color: '#a78bfa', fontWeight: 'bold' }}>Sisa Waktu: {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}</span>
-
-                   </div>
-
-                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-
-                     <div style={{ flex: 1, background: '#0f172a', border: '1px solid var(--border-color)', padding: '12px', borderRadius: '6px', fontSize: '1.2rem', fontWeight: 'bold', color: 'white', letterSpacing: '2px', textAlign: 'center' }}>
-
-                       {uniqueCode}
-
-                     </div>
-
-                     <button 
-
-                       type="button" 
-
-                       onClick={() => {
-
-                         navigator.clipboard.writeText(uniqueCode);
-
-                         alert('Kode berhasil disalin ke clipboard!');
-
-                       }}
-
-                       className="btn btn-secondary"
-
-                       style={{ height: '50px', padding: '0 16px' }}
-
-                     >
-
-                       Salin
-
-                     </button>
-
-                   </div>
-
-                 </div>
-
- 
-
-                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-
-                   <div style={{ display: 'flex', gap: '10px' }}>
-
-                     <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(167, 139, 250, 0.15)', color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>1</span>
-
-                     <span>Salin kode verifikasi unik di atas.</span>
-
-                   </div>
-
-                   <div style={{ display: 'flex', gap: '10px' }}>
-
-                     <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(167, 139, 250, 0.15)', color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>2</span>
-
-                     <span>Buka profil {selectedPlatform.toUpperCase()} Anda (<strong>@{socialUrl.trim()}</strong>), tempelkan kode tersebut ke dalam <strong>Bio</strong> atau deskripsi profil Anda.</span>
-
-                   </div>
-
-                   <div style={{ display: 'flex', gap: '10px' }}>
-
-                     <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(167, 139, 250, 0.15)', color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>3</span>
-
-                     <span>Setelah bio diperbarui, klik tombol <strong>"Verifikasi Akun Saya"</strong> di bawah untuk memindai akun secara real-time.</span>
-
-                   </div>
-
-                 </div>
-
- 
-
-                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-
-                   <button type="button" className="btn btn-secondary" style={{ padding: '12px 20px' }} onClick={() => setVerificationStep('input')}>Kembali</button>
-
-                   <button type="button" className="btn btn-primary" style={{ background: 'linear-gradient(90deg, #c084fc, #a78bfa)', border: 'none', padding: '12px 24px', fontWeight: 'bold' }} onClick={() => handleCheckAccount()}>Verifikasi Akun Saya</button>
-
-                 </div>
-
-               </div>
-
-             )}
-
- 
-
-             {verificationStep === 'expired' && (
-
-               <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-
-                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', border: '2px solid #ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#ef4444' }}>
-
-                   <Clock size={32} />
-
-                 </div>
-
-                 <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>Waktu Verifikasi Habis</h3>
-
-                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: '0 0 28px 0' }}>
-
-                   Batas waktu 3 menit untuk menempelkan kode ke bio telah berakhir. Silakan coba kembali untuk membuat kode baru.
-
-                 </p>
-
-                 <button 
-
-                   type="button" 
-
-                   className="btn btn-primary" 
-
-                   onClick={() => {
-
-                     setVerificationStep('input');
-
-                     setUniqueCode('');
-
-                   }}
-
-                   style={{ width: '100%', padding: '12px' }}
-
-                 >
-
-                   Buat Kode Baru
-
-                 </button>
-
-               </div>
-
-             )}
-
- 
-
-             {verificationStep === 'pending' && (
-
-               <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-
-                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(245, 158, 11, 0.1)', border: '2px solid #fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#fbbf24' }}>
-
-                   <Clock size={32} />
-
-                 </div>
-
-                 <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>Pendaftaran Terkirim (Pending)</h3>
-
-                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: '0 0 24px 0' }}>
-
-                   Akun <strong>@{socialUrl.trim()}</strong> berhasil didaftarkan. Namun, karena delay mesin pencari untuk menyinkronkan bio {selectedPlatform.toUpperCase()} Anda secara instan, pendaftaran disetujui dengan status "Pending" untuk diverifikasi manual oleh Admin.
-
-                 </p>
-
-                 <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '8px', padding: '12px', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '28px', textAlign: 'left', lineHeight: '1.4' }}>
-
-                   💡 <strong>Petunjuk:</strong> Pastikan kode <strong>{uniqueCode}</strong> tetap berada di Bio/deskripsi akun Anda sampai disetujui oleh panitia event.
-
-                 </div>
-
-                 <button 
-
-                   type="button" 
-
-                   className="btn btn-primary" 
-
-                   onClick={() => {
-
-                     setRegisteringEvent(null);
-
-                     resetVerificationForm();
-
-                   }}
-
-                   style={{ width: '100%', background: 'linear-gradient(90deg, #f59e0b, #d97706)', border: 'none', fontWeight: 'bold', padding: '12px' }}
-
-                 >
-
-                   Selesai
-
-                 </button>
-
-               </div>
-
-             )}
-
- 
-
-             {verificationStep === 'loading' && (
-
-               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 16px', textAlign: 'center' }}>
-
-                 <Loader2 className="spinner" size={48} style={{ color: '#c084fc', marginBottom: '24px', animation: 'spin 1s linear infinite' }} />
-
-                 <h4 style={{ color: 'white', marginBottom: '8px', fontSize: '1.1rem', fontWeight: '600' }}>Memindai Bio Profil {selectedPlatform.toUpperCase()}...</h4>
-
-                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', maxWidth: '360px', margin: '0 auto', lineHeight: '1.5' }}>
-
-                   Sedang menghubungi server {selectedPlatform.toUpperCase()} untuk memeriksa apakah kode <strong>{uniqueCode}</strong> tertera di bio akun <strong>@{socialUrl.trim()}</strong> Anda...
-
-                 </p>
-
-               </div>
-
-             )}
-
- 
-
-             {verificationStep === 'success' && (
-
-               <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-
-                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', border: '2px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#10b981' }}>
-
-                   <CheckCircle2 size={32} />
-
-                 </div>
-
-                 <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>Verifikasi Akun Sukses!</h3>
-
-                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: '0 0 28px 0' }}>
-
-                   Sistem mendeteksi akun <strong>@{socialUrl.trim()}</strong> Anda valid dan aktif. Pendaftaran kompetisi disetujui secara otomatis.
-
-                 </p>
-
-                 <button 
-
-                   type="button" 
-
-                   className="btn btn-primary" 
-
-                   onClick={() => {
-
-                     setRegisteringEvent(null);
-
-                     resetVerificationForm();
-
-                   }}
-
-                   style={{ width: '100%', background: 'linear-gradient(90deg, #10b981, #059669)', border: 'none', fontWeight: 'bold', padding: '12px' }}
-
-                 >
-
-                   Mulai Kompetisi
-
-                 </button>
-
-               </div>
-
-             )}
-
- 
-
-             {verificationStep === 'failed' && (
-
-               <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-
-                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', border: '2px solid #ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#ef4444' }}>
-
-                   <XCircle size={32} />
-
-                 </div>
-
-                 <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>Akun Tidak Ditemukan</h3>
-
-                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: '0 0 28px 0' }}>
-
-                   {verificationError}
-
-                 </p>
-
-                 <div style={{ display: 'flex', gap: '16px' }}>
-
-                   <button 
-
-                     type="button" 
-
-                     className="btn btn-secondary" 
-
-                     onClick={() => {
-
-                       setVerificationStep('input');
-
-                     }}
-
-                     style={{ flex: 1, padding: '12px' }}
-
-                   >
-
-                     Coba Lagi
-
-                   </button>
-
-                   <button 
-
-                     type="button" 
-
-                     className="btn btn-primary" 
-
-                     onClick={() => {
-
-                       setRegisteringEvent(null);
-
-                       resetVerificationForm();
-
-                     }}
-
-                     style={{ flex: 1, background: 'linear-gradient(90deg, #ef4444, #dc2626)', border: 'none', fontWeight: 'bold', padding: '12px' }}
-
-                   >
-
-                     Batal
-
-                   </button>
-
-                 </div>
-
-               </div>
-
-             )}
-
-           </div>
-
-         </div>,
-
-         document.body
-
-       )}
-
- 
-
-       {/* Submission Full Page Overlay */}
-
-       {submittingEvent && createPortal(
-
-         <div style={{
-
-           position: 'fixed',
-
-           top: 0,
-
-           left: 0,
-
-           width: '100vw',
-
-           height: '100vh',
-
-           background: '#0a0f1d',
-
-           zIndex: 10200,
-
-           overflowY: 'auto',
-
-           padding: '40px 24px',
-
-           color: 'var(--text-primary)',
-
-           display: 'flex',
-
-           flexDirection: 'column',
-
-           alignItems: 'center'
-
-         }} className="animate-fade-in">
-
-           <div style={{ width: '100%', maxWidth: '640px' }}>
-
-             {/* Header */}
-
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
-
-               <div>
-
-                 <h2 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: 'bold' }}>Kirim Hasil Karya</h2>
-
-                 <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-
-                   Event Kompetisi: <strong style={{ color: '#a78bfa' }}>{submittingEvent.title}</strong>
-
-                 </p>
-
-               </div>
-
-               <button 
-
-                 onClick={() => setSubmittingEvent(null)} 
-
-                 style={{ 
-
-                   background: 'rgba(255,255,255,0.03)', 
-
-                   border: '1px solid var(--border-color)', 
-
-                   color: 'var(--text-secondary)', 
-
-                   cursor: 'pointer',
-
-                   width: '40px',
-
-                   height: '40px',
-
-                   borderRadius: '50%',
-
-                   display: 'flex',
-
-                   alignItems: 'center',
-
-                   justifyContent: 'center'
-
-                 }}
-
-                 onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-
-                 onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
-
-               >
-
-                 <XCircle size={22} style={{ color: 'var(--text-secondary)' }} />
-
-               </button>
-
-             </div>
-
- 
-
-             {/* Form */}
-
-             <form onSubmit={handleWorkSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-               <div className="form-group">
-
-                 <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Judul Karya Film / Konten</label>
-
-                 <input 
-
-                   type="text" 
-
-                   required 
-
-                   value={workTitle} 
-
-                   onChange={(e) => setWorkTitle(e.target.value)} 
-
-                   placeholder="Masukkan judul menarik karya Anda" 
-
-                   style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
-
-                 />
-
-               </div>
-
-               
-
-               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-
-                 <div className="form-group">
-
-                   <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Platform Publikasi</label>
-
-                   <select 
-
-                     value={workPlatform} 
-
-                     onChange={(e) => setWorkPlatform(e.target.value)} 
-
-                     style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
-
-                   >
-
-                     <option value="YouTube">YouTube</option>
-
-                     <option value="TikTok">TikTok</option>
-
-                     <option value="Instagram">Instagram</option>
-
-                     <option value="Facebook">Facebook</option>
-
-                     <option value="Twitter / X">Twitter / X</option>
-
-                     <option value="Threads">Threads</option>
-
-                     <option value="Lainnya">Lainnya</option>
-
-                   </select>
-
-                 </div>
-
-                 <div className="form-group">
-
-                   <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Tautan Karya (URL)</label>
-
-                   <input 
-
-                     type="url" 
-
-                     required 
-
-                     value={workVideoUrl} 
-
-                     onChange={(e) => handleUrlChange(e.target.value)} 
-
-                     placeholder="Contoh: https://www.youtube.com/watch?v=..." 
-
-                     style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
-
-                   />
-
-                 </div>
-
-               </div>
-
- 
-
-               <div className="form-group">
-
-                 <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Deskripsi Singkat Karya</label>
-
-                 <textarea 
-
-                   rows="5" 
-
-                   required 
-
-                   value={workDescription} 
-
-                   onChange={(e) => setWorkDescription(e.target.value)} 
-
-                   placeholder="Tuliskan latar belakang singkat, sinopsis, atau pesan penting dari karya Anda..." 
-
-                   style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontFamily: 'inherit', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }}
-
-                 ></textarea>
-
-               </div>
-
- 
-
-               {/* Form Buttons */}
-
-               <div style={{ display: 'flex', gap: '16px', justifyContent: 'flex-end', marginTop: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
-
-                 <button 
-
-                   type="button" 
-
-                   className="btn btn-secondary" 
-
-                   onClick={() => setSubmittingEvent(null)}
-
-                   style={{ padding: '12px 24px', borderRadius: '30px', fontSize: '0.9rem' }}
-
-                 >
-
-                   Batal
-
-                 </button>
-
-                 <button 
-
-                   type="submit" 
-
-                   className="btn btn-primary"
-
-                   style={{ padding: '12px 28px', borderRadius: '30px', fontSize: '0.9rem', fontWeight: 'bold' }}
-
-                 >
-
-                   Kirim Karya Sekarang
-
-                 </button>
-
-               </div>
-
-             </form>
-
-           </div>
-
-         </div>,
-
-         document.body
-
-       )}
-
-     </div>
-
-   );
-
- }
-
- 
+      {registeringEvent && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: '#090d16',
+          zIndex: 99999,
+          overflowY: 'auto',
+          padding: '40px 24px',
+          boxSizing: 'border-box'
+        }} className="animate-fade-in">
+          <div className="glass-panel" style={{ maxWidth: '600px', margin: '0 auto', width: '100%', padding: '32px', textAlign: 'left', border: '1px solid rgba(167, 139, 250, 0.25)', borderRadius: '12px' }}>
+            
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+              <div>
+                <h3 style={{ margin: 0, color: 'white', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.4rem', fontWeight: 'bold' }}>
+                  <ShieldCheck size={26} style={{ color: '#c084fc' }} />
+                  <span>Verifikasi Akun Sosmed</span>
+                </h3>
+                <p style={{ margin: '6px 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  Pendaftaran Kompetisi: <strong style={{ color: 'white' }}>{registeringEvent.title}</strong>
+                </p>
+              </div>
+              <button 
+                onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }} 
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', outline: 'none' }}
+              >
+                <XCircle size={24} />
+              </button>
+            </div>
+
+            {verificationStep === 'input' && (
+              <div>
+                <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '600' }}>Pilih Platform Sosial Media</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+                  {[
+                    { id: 'instagram', label: 'Instagram', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>, color: '#e1306c' },
+                    { id: 'tiktok', label: 'TikTok', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>, color: '#00f2fe' },
+                    { id: 'youtube', label: 'YouTube', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17z"/><polygon points="10 15 15 12 10 9"/></svg>, color: '#ff0000' },
+                    { id: 'facebook', label: 'Facebook', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, color: '#1877f2' }
+                  ].map(p => {
+                    const isSelected = selectedPlatform === p.id;
+                    return (
+                      <button
+                        type="button"
+                        key={p.id}
+                        onClick={() => setSelectedPlatform(p.id)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '14px 16px',
+                          borderRadius: '8px',
+                          background: isSelected ? 'rgba(167, 139, 250, 0.12)' : 'rgba(255,255,255,0.02)',
+                          border: isSelected ? '1px solid #c084fc' : '1px solid var(--border-color)',
+                          color: isSelected ? '#c084fc' : 'var(--text-secondary)',
+                          cursor: 'pointer',
+                          fontWeight: '600',
+                          fontSize: '0.9rem',
+                          transition: 'all 0.2s',
+                          outline: 'none'
+                        }}
+                      >
+                        <span style={{ color: isSelected ? '#c084fc' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+                          {p.svg}
+                        </span>
+                        <span>{p.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.2)', padding: '12px 14px', borderRadius: '8px', marginBottom: '24px', fontSize: '0.82rem', color: '#f59e0b', lineHeight: '1.5' }}>
+                  <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span>
+                    <strong>PENTING:</strong> Akun sosial media ini wajib menjadi akun yang Anda gunakan untuk mempublikasikan video hasil karya kompetisi Anda nantinya.
+                  </span>
+                </div>
+
+                <form onSubmit={handleLanjutVerifikasi} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div className="form-group">
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: '500' }}>Username / Handle {selectedPlatform.toUpperCase()}</label>
+                    <input
+                      type="text"
+                      required
+                      value={socialUrl}
+                      onChange={(e) => setSocialUrl(e.target.value)}
+                      placeholder={`Contoh: @username atau username Anda`}
+                      style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '12px' }}>
+                    <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
+                    <button type="submit" className="btn btn-primary" style={{ background: 'linear-gradient(90deg, #c084fc, #a78bfa)', border: 'none', padding: '10px 20px' }}>Lanjut ke Verifikasi Kode</button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {verificationStep === 'verify' && (
+              <div>
+                <div style={{ background: 'rgba(167, 139, 250, 0.05)', border: '1px solid rgba(167, 139, 250, 0.15)', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Kode Verifikasi Unik:</span>
+                    <span style={{ fontSize: '0.8rem', color: '#a78bfa', fontWeight: 'bold' }}>Sisa Waktu: {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <div style={{ flex: 1, background: '#0f172a', border: '1px solid var(--border-color)', padding: '12px', borderRadius: '6px', fontSize: '1.2rem', fontWeight: 'bold', color: 'white', letterSpacing: '2px', textAlign: 'center' }}>
+                      {uniqueCode}
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        navigator.clipboard.writeText(uniqueCode);
+                        alert('Kode berhasil disalin ke clipboard!');
+                      }}
+                      className="btn btn-secondary"
+                      style={{ height: '50px', padding: '0 16px' }}
+                    >
+                      Salin
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(167, 139, 250, 0.15)', color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>1</span>
+                    <span>Salin kode verifikasi unik di atas.</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(167, 139, 250, 0.15)', color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>2</span>
+                    <span>Buka profil {selectedPlatform.toUpperCase()} Anda (<strong>@{socialUrl.trim()}</strong>), tempelkan kode tersebut ke dalam <strong>Bio</strong> atau deskripsi profil Anda.</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(167, 139, 250, 0.15)', color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>3</span>
+                    <span>Setelah bio diperbarui, klik tombol <strong>"Verifikasi Akun Saya"</strong> di bawah untuk memindai akun secara real-time.</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                  <button type="button" className="btn btn-secondary" style={{ padding: '12px 20px' }} onClick={() => setVerificationStep('input')}>Kembali</button>
+                  <button type="button" className="btn btn-primary" style={{ background: 'linear-gradient(90deg, #c084fc, #a78bfa)', border: 'none', padding: '12px 24px', fontWeight: 'bold' }} onClick={() => handleCheckAccount()}>Verifikasi Akun Saya</button>
+                </div>
+              </div>
+            )}
+
+            {verificationStep === 'expired' && (
+              <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', border: '2px solid #ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#ef4444' }}>
+                  <Clock size={32} />
+                </div>
+                <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>Waktu Verifikasi Habis</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: '0 0 28px 0' }}>
+                  Batas waktu 3 menit untuk menempelkan kode ke bio telah berakhir. Silakan coba kembali untuk membuat kode baru.
+                </p>
+                <button 
+                  type="button" 
+                  className="btn btn-primary" 
+                  onClick={() => {
+                    setVerificationStep('input');
+                    setUniqueCode('');
+                  }}
+                  style={{ width: '100%', padding: '12px' }}
+                >
+                  Buat Kode Baru
+                </button>
+              </div>
+            )}
+
+            {verificationStep === 'pending' && (
+              <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(245, 158, 11, 0.1)', border: '2px solid #fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#fbbf24' }}>
+                  <Clock size={32} />
+                </div>
+                <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>Pendaftaran Terkirim (Pending)</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: '0 0 24px 0' }}>
+                  Akun <strong>@{socialUrl.trim()}</strong> berhasil didaftarkan. Namun, karena delay mesin pencari untuk menyinkronkan bio {selectedPlatform.toUpperCase()} Anda secara instan, pendaftaran disetujui dengan status "Pending" untuk diverifikasi manual oleh Admin.
+                </p>
+                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '8px', padding: '12px', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '28px', textAlign: 'left', lineHeight: '1.4' }}>
+                  💡 <strong>Petunjuk:</strong> Pastikan kode <strong>{uniqueCode}</strong> tetap berada di Bio/deskripsi akun Anda sampai disetujui oleh panitia event.
+                </div>
+                <button 
+                  type="button" 
+                  className="btn btn-primary" 
+                  onClick={() => {
+                    setRegisteringEvent(null);
+                    resetVerificationForm();
+                  }}
+                  style={{ width: '100%', background: 'linear-gradient(90deg, #f59e0b, #d97706)', border: 'none', fontWeight: 'bold', padding: '12px' }}
+                >
+                  Selesai
+                </button>
+              </div>
+            )}
+
+            {verificationStep === 'loading' && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 16px', textAlign: 'center' }}>
+                <Loader2 className="spinner" size={48} style={{ color: '#c084fc', marginBottom: '24px', animation: 'spin 1s linear infinite' }} />
+                <h4 style={{ color: 'white', marginBottom: '8px', fontSize: '1.1rem', fontWeight: '600' }}>Memindai Bio Profil {selectedPlatform.toUpperCase()}...</h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', maxWidth: '360px', margin: '0 auto', lineHeight: '1.5' }}>
+                  Sedang menghubungi server {selectedPlatform.toUpperCase()} untuk memeriksa apakah kode <strong>{uniqueCode}</strong> tertera di bio akun <strong>@{socialUrl.trim()}</strong> Anda...
+                </p>
+              </div>
+            )}
+
+            {verificationStep === 'success' && (
+              <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', border: '2px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#10b981' }}>
+                  <CheckCircle2 size={32} />
+                </div>
+                <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>Verifikasi Akun Sukses!</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: '0 0 28px 0' }}>
+                  Sistem mendeteksi akun <strong>@{socialUrl.trim()}</strong> Anda valid dan aktif. Pendaftaran kompetisi disetujui secara otomatis.
+                </p>
+                <button 
+                  type="button" 
+                  className="btn btn-primary" 
+                  onClick={() => {
+                    setRegisteringEvent(null);
+                    resetVerificationForm();
+                  }}
+                  style={{ width: '100%', background: 'linear-gradient(90deg, #10b981, #059669)', border: 'none', fontWeight: 'bold', padding: '12px' }}
+                >
+                  Mulai Kompetisi
+                </button>
+              </div>
+            )}
+
+            {verificationStep === 'failed' && (
+              <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', border: '2px solid #ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#ef4444' }}>
+                  <XCircle size={32} />
+                </div>
+                <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>Akun Tidak Ditemukan</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: '0 0 28px 0' }}>
+                  {verificationError}
+                </p>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    onClick={() => {
+                      setVerificationStep('input');
+                    }}
+                    style={{ flex: 1, padding: '12px' }}
+                  >
+                    Coba Lagi
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-primary" 
+                    onClick={() => {
+                      setRegisteringEvent(null);
+                      resetVerificationForm();
+                    }}
+                    style={{ flex: 1, background: 'linear-gradient(90deg, #ef4444, #dc2626)', border: 'none', fontWeight: 'bold', padding: '12px' }}
+                  >
+                    Batal
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Submission Full Page Overlay */}
+      {submittingEvent && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: '#0a0f1d',
+          zIndex: 10200,
+          overflowY: 'auto',
+          padding: '40px 24px',
+          color: 'var(--text-primary)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }} className="animate-fade-in">
+          <div style={{ width: '100%', maxWidth: '640px' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+              <div>
+                <h2 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: 'bold' }}>Kirim Hasil Karya</h2>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+                  Event Kompetisi: <strong style={{ color: '#a78bfa' }}>{submittingEvent.title}</strong>
+                </p>
+              </div>
+              <button 
+                onClick={() => setSubmittingEvent(null)} 
+                style={{ 
+                  background: 'rgba(255,255,255,0.03)', 
+                  border: '1px solid var(--border-color)', 
+                  color: 'var(--text-secondary)', 
+                  cursor: 'pointer',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+              >
+                <XCircle size={22} style={{ color: 'var(--text-secondary)' }} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleWorkSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="form-group">
+                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Judul Karya Film / Konten</label>
+                <input 
+                  type="text" 
+                  required 
+                  value={workTitle} 
+                  onChange={(e) => setWorkTitle(e.target.value)} 
+                  placeholder="Masukkan judul menarik karya Anda" 
+                  style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
+                />
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                <div className="form-group">
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Platform Publikasi</label>
+                  <select 
+                    value={workPlatform} 
+                    onChange={(e) => setWorkPlatform(e.target.value)} 
+                    style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                  >
+                    <option value="YouTube">YouTube</option>
+                    <option value="TikTok">TikTok</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="Facebook">Facebook</option>
+                    <option value="Twitter / X">Twitter / X</option>
+                    <option value="Threads">Threads</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Tautan Karya (URL)</label>
+                  <input 
+                    type="url" 
+                    required 
+                    value={workVideoUrl} 
+                    onChange={(e) => handleUrlChange(e.target.value)} 
+                    placeholder="Contoh: https://www.youtube.com/watch?v=..." 
+                    style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Deskripsi Singkat Karya</label>
+                <textarea 
+                  rows="5" 
+                  required 
+                  value={workDescription} 
+                  onChange={(e) => setWorkDescription(e.target.value)} 
+                  placeholder="Tuliskan latar belakang singkat, sinopsis, atau pesan penting dari karya Anda..." 
+                  style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontFamily: 'inherit', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }}
+                ></textarea>
+              </div>
+
+              {/* Form Buttons */}
+              <div style={{ display: 'flex', gap: '16px', justifyContent: 'flex-end', marginTop: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => setSubmittingEvent(null)}
+                  style={{ padding: '12px 24px', borderRadius: '30px', fontSize: '0.9rem' }}
+                >
+                  Batal
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  style={{ padding: '12px 28px', borderRadius: '30px', fontSize: '0.9rem', fontWeight: 'bold' }}
+                >
+                  Kirim Karya Sekarang
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
