@@ -29,6 +29,52 @@ const formatIndonesianDate = (dateString) => {
   }
 };
 
+const getCategoryBadgeStyle = (category) => {
+  const cat = (category || '').toUpperCase().trim();
+  
+  if (cat.includes('UGC') || cat.includes('CREATIVE')) {
+    return {
+      bg: 'linear-gradient(135deg, rgba(244, 63, 94, 0.15) 0%, rgba(225, 29, 72, 0.15) 100%)',
+      color: '#fda4af', // Light Rose/Pink
+      border: '1px solid rgba(244, 63, 94, 0.3)'
+    };
+  }
+  if (cat.includes('DOC') || cat.includes('DOKUMENTER')) {
+    return {
+      bg: 'linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(56, 189, 248, 0.15) 100%)',
+      color: '#38bdf8', // Sky Blue
+      border: '1px solid rgba(56, 189, 248, 0.3)'
+    };
+  }
+  if (cat.includes('MUSIC') || cat.includes('LAGU') || cat.includes('AUDIO')) {
+    return {
+      bg: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(52, 211, 153, 0.15) 100%)',
+      color: '#34d399', // Emerald Green
+      border: '1px solid rgba(52, 211, 153, 0.3)'
+    };
+  }
+  if (cat.includes('SHORT') || cat.includes('FILM') || cat.includes('MOVIE')) {
+    return {
+      bg: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(251, 191, 36, 0.15) 100%)',
+      color: '#fbbf24', // Amber/Yellow
+      border: '1px solid rgba(251, 191, 36, 0.3)'
+    };
+  }
+  if (cat.includes('CINEMA') || cat.includes('SINEMATOGRAFI')) {
+    return {
+      bg: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(167, 139, 250, 0.15) 100%)',
+      color: '#c084fc', // Purple/Violet
+      border: '1px solid rgba(167, 139, 250, 0.3)'
+    };
+  }
+  // Default fallback for any other categories
+  return {
+    bg: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(129, 140, 248, 0.15) 100%)',
+    color: '#818cf8', // Indigo
+    border: '1px solid rgba(129, 140, 248, 0.3)'
+  };
+};
+
 function CountdownTimer({ deadline }) {
   const calculateTimeLeft = () => {
     if (!deadline) return null;
@@ -775,19 +821,24 @@ export default function EventsUserPortal({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   <div style={{ textAlign: 'left' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                      <span style={{ 
-                        fontSize: '0.72rem', 
-                        background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.25) 0%, rgba(167, 139, 250, 0.25) 100%)', 
-                        color: '#c084fc', 
-                        padding: '5px 14px', 
-                        borderRadius: '20px',
-                        fontWeight: 'bold',
-                        textTransform: 'uppercase',
-                        border: '1px solid rgba(167, 139, 250, 0.35)',
-                        letterSpacing: '0.5px'
-                      }}>
-                        {evt.category}
-                      </span>
+                      {(() => {
+                        const style = getCategoryBadgeStyle(evt.category);
+                        return (
+                          <span style={{ 
+                            fontSize: '0.72rem', 
+                            background: style.bg, 
+                            color: style.color, 
+                            padding: '5px 14px', 
+                            borderRadius: '20px',
+                            fontWeight: 'bold',
+                            textTransform: 'uppercase',
+                            border: style.border,
+                            letterSpacing: '0.5px'
+                          }}>
+                            {evt.category}
+                          </span>
+                        );
+                      })()}
                       {evt.deadline && <CardCountdown deadline={evt.deadline} />}
                     </div>
                     
@@ -1418,18 +1469,23 @@ export default function EventsUserPortal({
                     {/* Left Section: Tags, Title & Desc */}
                     <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ 
-                          fontSize: '0.68rem', 
-                          background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(167, 139, 250, 0.2) 100%)', 
-                          color: '#c084fc', 
-                          padding: '3px 10px', 
-                          borderRadius: '12px',
-                          fontWeight: 'bold',
-                          textTransform: 'uppercase',
-                          border: '1px solid rgba(167, 139, 250, 0.15)'
-                        }}>
-                          {evt.category}
-                        </span>
+                        {(() => {
+                          const style = getCategoryBadgeStyle(evt.category);
+                          return (
+                            <span style={{ 
+                              fontSize: '0.68rem', 
+                              background: style.bg, 
+                              color: style.color, 
+                              padding: '3px 10px', 
+                              borderRadius: '12px',
+                              fontWeight: 'bold',
+                              textTransform: 'uppercase',
+                              border: style.border
+                            }}>
+                              {evt.category}
+                            </span>
+                          );
+                        })()}
                         {userReg?.status === 'approved' && (
                           <span style={{ 
                             fontSize: '0.68rem', 
