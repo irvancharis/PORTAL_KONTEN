@@ -1373,10 +1373,11 @@ export default function EventsUserPortal({
                   ? eventParticipants.find(p => p.eventId === evt.id && p.username.toLowerCase() === currentUser.username.toLowerCase())
                   : null;
 
-                return (
+                 return (
                   <div 
                     key={evt.id} 
                     className={`glass-panel event-portal-card ${userReg?.status === 'approved' ? 'registered-card' : ''}`}
+                    onClick={() => setSelectedEvent(evt)}
                     style={{ 
                       borderRadius: '12px', 
                       padding: '18px 24px', 
@@ -1390,7 +1391,19 @@ export default function EventsUserPortal({
                       boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
                       flexWrap: 'wrap',
                       width: '100%',
-                      boxSizing: 'border-box'
+                      boxSizing: 'border-box',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(124, 58, 237, 0.06)';
+                      e.currentTarget.style.borderColor = 'rgba(167, 139, 250, 0.3)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(15, 23, 42, 0.45)';
+                      e.currentTarget.style.borderColor = userReg?.status === 'approved' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255, 255, 255, 0.06)';
+                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
                     {/* Left Section: Tags, Title & Desc */}
@@ -1429,7 +1442,7 @@ export default function EventsUserPortal({
                     </div>
 
                     {/* Middle Section: Budget & Deadline */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap', marginRight: '8px' }}>
                       <div style={{ minWidth: '160px', textAlign: 'left' }}>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
                           {evt.budgetMode === 'ranking' ? 'Prize Pool' : 'Sisa / Total Budget'}
@@ -1471,41 +1484,6 @@ export default function EventsUserPortal({
                           </span>
                         )}
                       </div>
-                    </div>
-
-                    {/* Right Section: Button Detail */}
-                    <div>
-                      <button 
-                        onClick={() => setSelectedEvent(evt)}
-                        className="btn"
-                        style={{
-                          background: 'rgba(124, 58, 237, 0.1)',
-                          border: '1px solid rgba(124, 58, 237, 0.25)',
-                          color: '#c084fc',
-                          padding: '8px 18px',
-                          borderRadius: '8px',
-                          fontWeight: 'bold',
-                          fontSize: '0.85rem',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'rgba(124, 58, 237, 0.2)';
-                          e.currentTarget.style.borderColor = '#c084fc';
-                          e.currentTarget.style.color = 'white';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'rgba(124, 58, 237, 0.1)';
-                          e.currentTarget.style.borderColor = 'rgba(124, 58, 237, 0.25)';
-                          e.currentTarget.style.color = '#c084fc';
-                        }}
-                      >
-                        <span>Lihat Detail</span>
-                        <span style={{ fontSize: '1rem', lineHeight: 1 }}>➜</span>
-                      </button>
                     </div>
                   </div>
                 );
