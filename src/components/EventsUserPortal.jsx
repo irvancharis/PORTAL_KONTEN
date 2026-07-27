@@ -260,15 +260,15 @@ export default function EventsUserPortal({
 }) {
   const [registeringEvent, setRegisteringEvent] = useState(null); // Event model open for register
   const [showRoleWarning, setShowRoleWarning] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [contact, setContact] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [visibleEventsCount, setVisibleEventsCount] = useState(12);
 
   useEffect(() => {
     setVisibleEventsCount(12);
   }, [searchQuery]);
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [contact, setContact] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
   const [expandedJuknis, setExpandedJuknis] = useState({});
   const [selectedEvent, setSelectedEvent] = useState(null);
 
