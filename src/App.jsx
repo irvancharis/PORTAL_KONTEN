@@ -1965,14 +1965,15 @@ export default function App() {
             className="login-card glass-panel" 
             style={{
               width: '100%',
-              maxWidth: '400px',
+              maxWidth: loginModalMode === 'register' && registerRole === 'panitia' ? '680px' : '400px',
               padding: '32px 28px',
               borderRadius: '16px',
               background: 'rgba(15, 23, 42, 0.65)',
               backdropFilter: 'blur(20px)',
               border: '1px solid rgba(255, 255, 255, 0.08)',
               boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
-              position: 'relative'
+              position: 'relative',
+              transition: 'all 0.3s ease'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -2021,61 +2022,17 @@ export default function App() {
                 </div>
               )}
 
-              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label htmlFor="loginUsername" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{loginModalMode === 'login' ? 'Email / Username' : 'Alamat Email'}</label>
-                <input 
-                  type={loginModalMode === 'register' ? 'email' : 'text'}
-                  id="loginUsername" 
-                  ref={usernameInputRef}
-                  placeholder={loginModalMode === 'login' ? "Masukkan email atau username" : "Masukkan alamat email aktif"}
-                  value={loginUsername}
-                  onChange={(e) => setLoginUsername(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: 'var(--radius-sm)',
-                    color: 'var(--text-primary)',
-                    outline: 'none',
-                    fontSize: '0.9rem'
-                  }}
-                  required
-                />
-              </div>
-
-              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label htmlFor="loginPassword" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Password</label>
-                <input 
-                  type="password" 
-                  id="loginPassword" 
-                  placeholder="Masukkan password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: 'var(--radius-sm)',
-                    color: 'var(--text-primary)',
-                    outline: 'none',
-                    fontSize: '0.9rem'
-                  }}
-                  required
-                />
-              </div>
-
-              {loginModalMode === 'register' && (
+              {loginModalMode === 'login' ? (
                 <>
                   <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label htmlFor="registerConfirm" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Konfirmasi Password</label>
+                    <label htmlFor="loginUsername" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Email / Username</label>
                     <input 
-                      type="password" 
-                      id="registerConfirm" 
-                      placeholder="Konfirmasi password Anda"
-                      value={registerConfirmPassword}
-                      onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                      type="text"
+                      id="loginUsername" 
+                      ref={usernameInputRef}
+                      placeholder="Masukkan email atau username"
+                      value={loginUsername}
+                      onChange={(e) => setLoginUsername(e.target.value)}
                       style={{
                         width: '100%',
                         padding: '10px 12px',
@@ -2089,12 +2046,15 @@ export default function App() {
                       required
                     />
                   </div>
+
                   <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label htmlFor="registerRole" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Daftar Sebagai</label>
-                    <select
-                      id="registerRole"
-                      value={registerRole}
-                      onChange={(e) => setRegisterRole(e.target.value)}
+                    <label htmlFor="loginPassword" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Password</label>
+                    <input 
+                      type="password" 
+                      id="loginPassword" 
+                      placeholder="Masukkan password"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
                       style={{
                         width: '100%',
                         padding: '10px 12px',
@@ -2102,18 +2062,113 @@ export default function App() {
                         border: '1px solid var(--border-color)',
                         borderRadius: 'var(--radius-sm)',
                         color: 'var(--text-primary)',
-                        fontFamily: 'var(--font-sans)',
-                        fontSize: '0.9rem',
-                        outline: 'none'
+                        outline: 'none',
+                        fontSize: '0.9rem'
                       }}
-                    >
-                      <option value="user" style={{ background: '#0f172a' }}>Penonton / Regular User</option>
-                      <option value="panitia" style={{ background: '#0f172a' }}>Panitia / Event Creator</option>
-                    </select>
+                      required
+                    />
                   </div>
+                </>
+              ) : (
+                // REGISTER MODE
+                registerRole === 'panitia' ? (
+                  // TWO COLUMNS FOR PANITIA REGISTER
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', width: '100%' }}>
+                    {/* Left Column: Account Details */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label htmlFor="loginUsername" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Alamat Email</label>
+                        <input 
+                          type="email"
+                          id="loginUsername" 
+                          ref={usernameInputRef}
+                          placeholder="Masukkan alamat email aktif"
+                          value={loginUsername}
+                          onChange={(e) => setLoginUsername(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--text-primary)',
+                            outline: 'none',
+                            fontSize: '0.9rem'
+                          }}
+                          required
+                        />
+                      </div>
 
-                  {registerRole === 'panitia' && (
-                    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '4px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '14px' }}>
+                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label htmlFor="loginPassword" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Password</label>
+                        <input 
+                          type="password" 
+                          id="loginPassword" 
+                          placeholder="Masukkan password"
+                          value={loginPassword}
+                          onChange={(e) => setLoginPassword(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--text-primary)',
+                            outline: 'none',
+                            fontSize: '0.9rem'
+                          }}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label htmlFor="registerConfirm" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Konfirmasi Password</label>
+                        <input 
+                          type="password" 
+                          id="registerConfirm" 
+                          placeholder="Konfirmasi password Anda"
+                          value={registerConfirmPassword}
+                          onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--text-primary)',
+                            outline: 'none',
+                            fontSize: '0.9rem'
+                          }}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label htmlFor="registerRole" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Daftar Sebagai</label>
+                        <select
+                          id="registerRole"
+                          value={registerRole}
+                          onChange={(e) => setRegisterRole(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--text-primary)',
+                            fontFamily: 'var(--font-sans)',
+                            fontSize: '0.9rem',
+                            outline: 'none'
+                          }}
+                        >
+                          <option value="user" style={{ background: '#0f172a' }}>Penonton / Regular User</option>
+                          <option value="panitia" style={{ background: '#0f172a' }}>Panitia / Event Creator</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Right Column: Organizer Details */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderLeft: '1px dashed rgba(255,255,255,0.08)', paddingLeft: '24px' }}>
                       <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <label htmlFor="organizerName" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Nama / Instansi / Komunitas</label>
                         <input 
@@ -2135,6 +2190,7 @@ export default function App() {
                           required
                         />
                       </div>
+
                       <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <label htmlFor="organizerPhone" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>No. Telepon / WhatsApp</label>
                         <input 
@@ -2156,12 +2212,13 @@ export default function App() {
                           required
                         />
                       </div>
+
                       <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <label htmlFor="organizerDescription" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Deskripsi Penyelenggara (Opsional)</label>
                         <textarea 
                           id="organizerDescription"
-                          rows="3"
-                          placeholder="Tuliskan deskripsi singkat mengenai instansi / komunitas Anda..."
+                          rows="4"
+                          placeholder="Tuliskan deskripsi singkat instansi / komunitas Anda..."
                           value={organizerDescription}
                           onChange={(e) => setOrganizerDescription(e.target.value)}
                           style={{
@@ -2174,13 +2231,107 @@ export default function App() {
                             outline: 'none',
                             fontSize: '0.9rem',
                             resize: 'none',
-                            fontFamily: 'inherit'
+                            fontFamily: 'inherit',
+                            height: '110px'
                           }}
                         />
                       </div>
                     </div>
-                  )}
-                </>
+                  </div>
+                ) : (
+                  // SINGLE COLUMN FOR USER REGISTER
+                  <>
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label htmlFor="loginUsername" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Alamat Email</label>
+                      <input 
+                        type="email"
+                        id="loginUsername" 
+                        ref={usernameInputRef}
+                        placeholder="Masukkan alamat email aktif"
+                        value={loginUsername}
+                        onChange={(e) => setLoginUsername(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
+                          outline: 'none',
+                          fontSize: '0.9rem'
+                        }}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label htmlFor="loginPassword" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Password</label>
+                      <input 
+                        type="password" 
+                        id="loginPassword" 
+                        placeholder="Masukkan password"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
+                          outline: 'none',
+                          fontSize: '0.9rem'
+                        }}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label htmlFor="registerConfirm" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Konfirmasi Password</label>
+                      <input 
+                        type="password" 
+                        id="registerConfirm" 
+                        placeholder="Konfirmasi password Anda"
+                        value={registerConfirmPassword}
+                        onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
+                          outline: 'none',
+                          fontSize: '0.9rem'
+                        }}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label htmlFor="registerRole" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Daftar Sebagai</label>
+                      <select
+                        id="registerRole"
+                        value={registerRole}
+                        onChange={(e) => setRegisterRole(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
+                          fontFamily: 'var(--font-sans)',
+                          fontSize: '0.9rem',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="user" style={{ background: '#0f172a' }}>Penonton / Regular User</option>
+                        <option value="panitia" style={{ background: '#0f172a' }}>Panitia / Event Creator</option>
+                      </select>
+                    </div>
+                  </>
+                )
               )}
 
               <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '8px', padding: '10px' }}>
