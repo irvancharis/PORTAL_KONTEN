@@ -468,20 +468,12 @@ export default function AdminPanel({
     ) : false;
     
     if (evt.budgetMode === 'ranking') {
-      if (evt.winnersReleased) {
+      if (isDeadlinePassed) {
         return {
           label: 'Selesai',
           color: '#10b981',
           bg: 'rgba(16, 185, 129, 0.1)',
-          info: 'Event telah selesai. Pemenang telah ditentukan dan hadiah telah didistribusikan.'
-        };
-      }
-      if (isDeadlinePassed) {
-        return {
-          label: 'Selesai (Menunggu Pemenang)',
-          color: '#38bdf8',
-          bg: 'rgba(56, 189, 248, 0.1)',
-          info: 'Batas waktu pengiriman karya telah habis. Menunggu panitia menentukan pemenang kompetisi.'
+          info: 'Event telah selesai. Pemenang ditentukan secara otomatis berdasarkan jumlah views tertinggi.'
         };
       }
       return {
@@ -2460,21 +2452,6 @@ export default function AdminPanel({
                                 <Trash2 size={16} />
                               </button>
                             </div>
-                            {evt.budgetMode === 'ranking' && evt.paymentStatus === 'paid' && !evt.winnersReleased && (
-                              <button 
-                                className="btn btn-secondary btn-sm" 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setRankingWinnerEvent(evt);
-                                  setWinnerJuara1('');
-                                  setWinnerJuara2('');
-                                  setWinnerJuara3('');
-                                }}
-                                style={{ padding: '4px 8px', fontSize: '0.7rem', color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.3)', display: 'block', margin: '4px auto 0 auto' }}
-                              >
-                                Tentukan Pemenang
-                              </button>
-                            )}
                           </td>
                         </tr>
                       ))}

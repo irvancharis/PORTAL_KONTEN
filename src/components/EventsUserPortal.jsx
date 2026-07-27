@@ -735,8 +735,7 @@ export default function EventsUserPortal({
         : new Date().getTime() > new Date(evt.deadline + 'T23:59:59').getTime()
     ) : false;
     if (evt.budgetMode === 'ranking') {
-      if (evt.winnersReleased) return 'Selesai';
-      if (isDeadlinePassed) return 'Selesai (Menunggu Pemenang)';
+      if (isDeadlinePassed) return 'Selesai';
       return 'Berjalan';
     } else {
       const remainingBudget = getEventRemainingBudget(evt);
@@ -926,6 +925,92 @@ export default function EventsUserPortal({
                       )}
                     </div>
                   </div>
+
+                  {/* Standings / Leaderboard (Automatically Calculated) */}
+                  {evt.budgetMode === 'ranking' && (
+                    <div style={{
+                      padding: '24px',
+                      background: 'rgba(251, 191, 36, 0.02)',
+                      border: '1px solid rgba(251, 191, 36, 0.15)',
+                      borderRadius: '16px',
+                      textAlign: 'left',
+                      boxShadow: 'inset 0 0 20px rgba(251, 191, 36, 0.01)',
+                      marginTop: '24px'
+                    }}>
+                      <strong style={{ color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
+                        <Trophy size={18} style={{ color: '#fbbf24' }} />
+                        <span>{new Date(evt.deadline) < new Date() ? 'Pemenang Kompetisi (Final)' : 'Klasemen Sementara (Real-time)'}</span>
+                      </strong>
+                      {(() => {
+                        const eventSubs = eventSubmissions.filter(sub => sub.eventId === evt.id);
+                        const sortedSubs = [...eventSubs].sort((a, b) => (b.views || 0) - (a.views || 0));
+                        
+                        if (sortedSubs.length === 0) {
+                          return <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Belum ada karya yang dikirimkan untuk kompetisi ini.</div>;
+                        }
+                        
+                        return (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {sortedSubs.map((sub, index) => {
+                              const rankLabels = ['🥇 Juara 1', '🥈 Juara 2', '🥉 Juara 3'];
+                              const rankColors = ['#fbbf24', '#cbd5e1', '#b45309'];
+                              const prizeAmounts = [evt.prize1, evt.prize2, evt.prize3];
+                              
+                              const isTop3 = index < 3;
+                              const subUser = users.find(u => u.username.toLowerCase() === sub.username.toLowerCase());
+                              const userAvatar = subUser?.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(sub.username)}`;
+                              
+                              return (
+                                <div 
+                                  key={sub.id} 
+                                  style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'space-between',
+                                    background: isTop3 ? 'rgba(251, 191, 36, 0.04)' : 'rgba(255, 255, 255, 0.02)',
+                                    padding: '12px 16px',
+                                    borderRadius: '10px',
+                                    border: isTop3 ? '1px solid rgba(251, 191, 36, 0.15)' : '1px solid rgba(255, 255, 255, 0.04)'
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <span style={{ 
+                                      fontSize: '0.82rem', 
+                                      fontWeight: '700', 
+                                      color: isTop3 ? rankColors[index] : 'var(--text-muted)',
+                                      width: '65px',
+                                      display: 'inline-block'
+                                    }}>
+                                      {isTop3 ? rankLabels[index] : `#${index + 1}`}
+                                    </span>
+                                    <img 
+                                      src={userAvatar} 
+                                      alt={sub.username} 
+                                      style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.08)' }}
+                                    />
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                      <span style={{ color: 'white', fontWeight: '700', fontSize: '0.85rem' }}>{sub.username}</span>
+                                      <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '200px' }}>{sub.title}</span>
+                                    </div>
+                                  </div>
+                                  <div style={{ textAlign: 'right' }}>
+                                    {isTop3 && prizeAmounts[index] > 0 && (
+                                      <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '0.85rem', marginBottom: '2px' }}>
+                                        Rp {prizeAmounts[index].toLocaleString('id-ID')}
+                                      </div>
+                                    )}
+                                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', fontWeight: '600' }}>
+                                      {(sub.views || 0).toLocaleString('id-ID')} <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>views</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
 
                 {/* Right Column: Timer, Budget, and Forms/Status */}

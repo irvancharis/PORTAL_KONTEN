@@ -51,35 +51,51 @@ export default function WalletUserPortal({
   // 2. Credits from ranking wins
   const creditPrizes = [];
   events.forEach(evt => {
-    if (evt.winnersReleased && evt.winners) {
+    // Check if event is paid, ranking mode, and deadline has passed
+    const isDeadlinePassed = evt.deadline ? (
+      evt.deadline.includes('T')
+        ? new Date().getTime() > new Date(evt.deadline).getTime()
+        : new Date().getTime() > new Date(evt.deadline + 'T23:59:59').getTime()
+    ) : false;
+
+    if (evt.budgetMode === 'ranking' && evt.paymentStatus === 'paid' && isDeadlinePassed) {
+      // Find all submissions for this event
+      const eventSubs = eventSubmissions.filter(sub => sub.eventId === evt.id);
+      // Sort submissions by views (highest first)
+      const sortedSubs = [...eventSubs].sort((a, b) => (b.views || 0) - (a.views || 0));
+      
       const userLower = currentUser.username.toLowerCase();
-      if (evt.winners.juara1?.toLowerCase() === userLower) {
+      
+      // Winner 1
+      if (sortedSubs[0] && sortedSubs[0].username.toLowerCase() === userLower) {
         creditPrizes.push({
           id: `prize1_${evt.id}`,
-          date: evt.deadline || new Date().toISOString(),
+          date: evt.deadline,
           description: `Hadiah Juara 1: ${evt.title}`,
           type: 'credit',
-          amount: evt.prize1,
+          amount: evt.prize1 || 0,
           status: 'approved'
         });
       }
-      if (evt.winners.juara2?.toLowerCase() === userLower) {
+      // Winner 2
+      if (sortedSubs[1] && sortedSubs[1].username.toLowerCase() === userLower) {
         creditPrizes.push({
           id: `prize2_${evt.id}`,
-          date: evt.deadline || new Date().toISOString(),
+          date: evt.deadline,
           description: `Hadiah Juara 2: ${evt.title}`,
           type: 'credit',
-          amount: evt.prize2,
+          amount: evt.prize2 || 0,
           status: 'approved'
         });
       }
-      if (evt.winners.juara3?.toLowerCase() === userLower) {
+      // Winner 3
+      if (sortedSubs[2] && sortedSubs[2].username.toLowerCase() === userLower) {
         creditPrizes.push({
           id: `prize3_${evt.id}`,
-          date: evt.deadline || new Date().toISOString(),
+          date: evt.deadline,
           description: `Hadiah Juara 3: ${evt.title}`,
           type: 'credit',
-          amount: evt.prize3,
+          amount: evt.prize3 || 0,
           status: 'approved'
         });
       }
