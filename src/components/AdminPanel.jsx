@@ -125,6 +125,7 @@ export default function AdminPanel({
   const [offerBudget, setOfferBudget] = useState('');
   const [offerMessage, setOfferMessage] = useState('');
   const [marketplaceSearch, setMarketplaceSearch] = useState('');
+  const [marketplaceLevelFilter, setMarketplaceLevelFilter] = useState('All');
 
   const [editingMovie, setEditingMovie] = useState(null); // null means adding a new movie
   const [editingUser, setEditingUser] = useState(null); // null means not editing any user
@@ -2748,7 +2749,7 @@ export default function AdminPanel({
           </div>
 
           {/* Search & Filter Toolbar */}
-          <div className="admin-toolbar glass-panel" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+          <div className="admin-toolbar glass-panel" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
             <div className="admin-search-wrapper" style={{ flex: '1 1 300px' }}>
               <Search size={18} className="search-icon" />
               <input
@@ -2763,152 +2764,184 @@ export default function AdminPanel({
                 </button>
               )}
             </div>
+
+            {/* Level Filter Dropdown */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '500' }}>Tingkat Level:</span>
+              <select
+                value={marketplaceLevelFilter}
+                onChange={(e) => setMarketplaceLevelFilter(e.target.value)}
+                style={{
+                  padding: '10px 16px',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '10px',
+                  color: 'white',
+                  fontSize: '0.85rem',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                }}
+              >
+                <option value="All" style={{ background: '#0b0f19' }}>Semua Level</option>
+                <option value="Bronze Creator" style={{ background: '#0b0f19' }}>Bronze Creator</option>
+                <option value="Silver Creator" style={{ background: '#0b0f19' }}>Silver Creator</option>
+                <option value="Gold Creator" style={{ background: '#0b0f19' }}>Gold Creator</option>
+                <option value="Platinum Creator" style={{ background: '#0b0f19' }}>Platinum Creator</option>
+              </select>
+            </div>
           </div>
 
-          {/* Creators Directory Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+          {/* Creators Directory Rows Table */}
+          <div className="admin-table-container glass-panel" style={{ marginBottom: '40px' }}>
             {(() => {
-              // Filter users that have role === 'user' and match search
-              const creatorsList = users.filter(u => 
-                u.role === 'user' && 
-                (u.username.toLowerCase().includes(marketplaceSearch.toLowerCase()) || 
-                 (u.organizerName || '').toLowerCase().includes(marketplaceSearch.toLowerCase()))
-              );
+              // 1. Calculate metrics and pre-filter by search & level
+              const creatorsList = users
+                .filter(u => u.role === 'user')
+                .map(u => ({
+                  ...u,
+                  metrics: calculateCreatorMetrics(u.username)
+                }))
+                .filter(c => {
+                  const matchSearch = c.username.toLowerCase().includes(marketplaceSearch.toLowerCase()) || 
+                                      (c.organizerName || '').toLowerCase().includes(marketplaceSearch.toLowerCase());
+                  const matchLevel = marketplaceLevelFilter === 'All' || c.metrics.level === marketplaceLevelFilter;
+                  return matchSearch && matchLevel;
+                });
 
               if (creatorsList.length === 0) {
                 return (
-                  <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    Belum ada Content Creator yang terdaftar atau cocok dengan pencarian.
+                  <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    Belum ada Content Creator yang cocok dengan pencarian dan filter tingkat level saat ini.
                   </div>
                 );
               }
 
-              return creatorsList.map(creator => {
-                const metrics = calculateCreatorMetrics(creator.username);
-                const creatorAvatar = creator.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(creator.username)}`;
-                
-                return (
-                  <div 
-                    key={creator.username}
-                    className="glass-panel"
-                    style={{
-                      padding: '24px',
-                      borderRadius: '16px',
-                      border: '1px solid rgba(255, 255, 255, 0.06)',
-                      background: 'rgba(255, 255, 255, 0.01)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      gap: '16px',
-                      transition: 'transform 0.2s',
-                      position: 'relative'
-                    }}
-                  >
-                    {/* Upper Section */}
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
-                        <img 
-                          src={creatorAvatar} 
-                          alt={creator.username} 
-                          style={{
-                            width: '48px',
-                            height: '48px',
-                            borderRadius: '50%',
-                            objectFit: 'cover',
-                            border: `2px solid ${metrics.levelColor}`,
-                            background: 'rgba(255,255,255,0.02)'
-                          }}
-                        />
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                          <span style={{ color: 'white', fontWeight: '700', fontSize: '1rem' }}>{creator.username}</span>
-                          <span style={{
-                            fontSize: '0.68rem',
-                            padding: '2px 8px',
-                            borderRadius: '10px',
-                            fontWeight: 'bold',
-                            marginTop: '4px',
-                            color: metrics.levelColor,
-                            background: metrics.levelBg,
-                            border: metrics.levelBorder
-                          }}>
-                            {metrics.level}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Points badge */}
-                      <div style={{
-                        background: 'rgba(251, 191, 36, 0.05)',
-                        border: '1px solid rgba(251, 191, 36, 0.15)',
-                        color: '#fbbf24',
-                        padding: '6px 12px',
-                        borderRadius: '8px',
-                        fontSize: '0.82rem',
-                        fontWeight: '700',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        marginBottom: '14px'
-                      }}>
-                        <Award size={14} />
-                        <span>{metrics.points.toLocaleString('id-ID')} Poin</span>
-                      </div>
-
-                      {/* Stats Table */}
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '8px',
-                        borderTop: '1px solid rgba(255,255,255,0.06)',
-                        paddingTop: '14px',
-                        textAlign: 'center'
-                      }}>
-                        <div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Karya</div>
-                          <strong style={{ color: 'white', fontSize: '0.9rem' }}>{metrics.submissionsCount}</strong>
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Total Views</div>
-                          <strong style={{ color: 'white', fontSize: '0.9rem' }}>{metrics.totalViews.toLocaleString('id-ID')}</strong>
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Juara</div>
-                          <strong style={{ color: '#fbbf24', fontSize: '0.9rem' }}>{metrics.winsCount}</strong>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Offer Trigger Button */}
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => {
-                        setSelectedMarketplaceCreator(creator.username);
-                        // Pre-select first event if exists
-                        const myEvents = events.filter(e => e.creator === currentUser.username && e.paymentStatus === 'paid');
-                        if (myEvents.length > 0) setOfferEventId(myEvents[0].id);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        borderRadius: '12px',
-                        fontSize: '0.85rem',
-                        fontWeight: '700',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
-                        border: 'none',
-                        color: 'white',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Send size={14} />
-                      <span>Ajak Kerja Sama</span>
-                    </button>
-                  </div>
-                );
-              });
+              return (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Content Creator</th>
+                        <th>Level / Tier</th>
+                        <th>Akumulasi Poin</th>
+                        <th style={{ textAlign: 'center' }}>Total Karya</th>
+                        <th style={{ textAlign: 'center' }}>Total Views</th>
+                        <th style={{ textAlign: 'center' }}>Prestasi Juara</th>
+                        <th style={{ textAlign: 'center' }}>Aksi Kolaborasi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {creatorsList.map(creator => {
+                        const creatorAvatar = creator.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(creator.username)}`;
+                        
+                        return (
+                          <tr key={creator.username} className="table-row-hover">
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <img 
+                                  src={creatorAvatar} 
+                                  alt={creator.username} 
+                                  style={{
+                                    width: '38px',
+                                    height: '38px',
+                                    borderRadius: '50%',
+                                    objectFit: 'cover',
+                                    border: `2px solid ${creator.metrics.levelColor}`,
+                                    background: 'rgba(255,255,255,0.02)'
+                                  }}
+                                />
+                                <strong style={{ color: 'white', fontSize: '0.92rem' }}>@{creator.username}</strong>
+                              </div>
+                            </td>
+                            <td>
+                              <span style={{
+                                fontSize: '0.7rem',
+                                padding: '3px 10px',
+                                borderRadius: '12px',
+                                fontWeight: 'bold',
+                                color: creator.metrics.levelColor,
+                                background: creator.metrics.levelBg,
+                                border: creator.metrics.levelBorder,
+                                display: 'inline-block'
+                              }}>
+                                {creator.metrics.level}
+                              </span>
+                            </td>
+                            <td>
+                              <span style={{
+                                background: 'rgba(251, 191, 36, 0.05)',
+                                border: '1px solid rgba(251, 191, 36, 0.15)',
+                                color: '#fbbf24',
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                fontSize: '0.78rem',
+                                fontWeight: '700',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}>
+                                <Award size={12} />
+                                <span>{creator.metrics.points.toLocaleString('id-ID')} Pts</span>
+                              </span>
+                            </td>
+                            <td style={{ textAlign: 'center', color: 'white', fontWeight: '600' }}>
+                              {creator.metrics.submissionsCount} Karya
+                            </td>
+                            <td style={{ textAlign: 'center', color: '#c084fc', fontWeight: '600' }}>
+                              {creator.metrics.totalViews.toLocaleString('id-ID')} Views
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              {creator.metrics.winsCount > 0 ? (
+                                <span style={{
+                                  background: 'rgba(251, 191, 36, 0.15)',
+                                  border: '1px solid rgba(251, 191, 36, 0.3)',
+                                  color: '#fbbf24',
+                                  padding: '3px 8px',
+                                  borderRadius: '6px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 'bold'
+                                }}>
+                                  Juara ({creator.metrics.winsCount}x)
+                                </span>
+                              ) : (
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>0</span>
+                              )}
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <button
+                                className="btn btn-primary"
+                                onClick={() => {
+                                  setSelectedMarketplaceCreator(creator.username);
+                                  const myEvents = events.filter(e => e.creator === currentUser.username && e.paymentStatus === 'paid');
+                                  if (myEvents.length > 0) setOfferEventId(myEvents[0].id);
+                                }}
+                                style={{
+                                  padding: '6px 14px',
+                                  borderRadius: '8px',
+                                  fontSize: '0.8rem',
+                                  fontWeight: '700',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+                                  border: 'none',
+                                  color: 'white',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <Send size={12} />
+                                <span>Ajak Kerja Sama</span>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              );
             })()}
           </div>
 
