@@ -329,7 +329,10 @@ export default function AdminPanel({
         prize2: isRanking ? (parseInt(eventPrize2) || 0) : 0,
         prize3: isRanking ? (parseInt(eventPrize3) || 0) : 0,
         paymentStatus: 'pending',
-        adminFee: eventAdminFee || 0
+        adminFee: eventAdminFee || 0,
+        organizerName: currentUser?.organizerName || currentUser?.username || 'Panitia Portal',
+        organizerPhone: currentUser?.organizerPhone || '',
+        organizerDescription: currentUser?.organizerDescription || ''
       };
       setEvents([...events, newEvent]);
       setShowEventForm(false);

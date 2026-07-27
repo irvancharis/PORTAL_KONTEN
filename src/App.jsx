@@ -290,6 +290,9 @@ export default function App() {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [loginModalMode, setLoginModalMode] = useState('login'); // 'login' or 'register'
   const [registerRole, setRegisterRole] = useState('user'); // 'user' or 'panitia'
+  const [organizerName, setOrganizerName] = useState('');
+  const [organizerPhone, setOrganizerPhone] = useState('');
+  const [organizerDescription, setOrganizerDescription] = useState('');
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
@@ -304,6 +307,9 @@ export default function App() {
     setLoginUsername('');
     setLoginPassword('');
     setRegisterConfirmPassword('');
+    setOrganizerName('');
+    setOrganizerPhone('');
+    setOrganizerDescription('');
     if (mode === 'register') {
       setRegisterRole(role);
     }
@@ -387,6 +393,12 @@ export default function App() {
       setLoginError('Konfirmasi password tidak cocok!');
       return;
     }
+    if (registerRole === 'panitia') {
+      if (!organizerName.trim() || !organizerPhone.trim()) {
+        setLoginError('Nama instansi/komunitas dan No. Telepon wajib diisi!');
+        return;
+      }
+    }
 
     if (isFirebaseConfigured() && auth) {
       try {
@@ -398,13 +410,21 @@ export default function App() {
           email: email.toLowerCase(),
           password,
           role: registerRole,
-          walletBalance: 0
+          walletBalance: 0,
+          ...(registerRole === 'panitia' ? {
+            organizerName: organizerName.trim(),
+            organizerPhone: organizerPhone.trim(),
+            organizerDescription: organizerDescription.trim()
+          } : {})
         };
         await saveFirestoreUser(newUser);
         setIsLoginModalOpen(false);
         setLoginUsername('');
         setLoginPassword('');
         setRegisterConfirmPassword('');
+        setOrganizerName('');
+        setOrganizerPhone('');
+        setOrganizerDescription('');
         setLoginError('');
       } catch (err) {
         console.error("Firebase registration failed:", err);
@@ -425,7 +445,12 @@ export default function App() {
         id: `usr_${Date.now()}`,
         username: emailOrUser,
         password,
-        role: registerRole
+        role: registerRole,
+        ...(registerRole === 'panitia' ? {
+          organizerName: organizerName.trim(),
+          organizerPhone: organizerPhone.trim(),
+          organizerDescription: organizerDescription.trim()
+        } : {})
       };
       await handleSetUsers(prev => [...prev, newUser]);
       setCurrentUser(newUser);
@@ -433,6 +458,9 @@ export default function App() {
       setLoginUsername('');
       setLoginPassword('');
       setRegisterConfirmPassword('');
+      setOrganizerName('');
+      setOrganizerPhone('');
+      setOrganizerDescription('');
       setLoginError('');
     }
   };
@@ -2083,6 +2111,75 @@ export default function App() {
                       <option value="panitia" style={{ background: '#0f172a' }}>Panitia / Event Creator</option>
                     </select>
                   </div>
+
+                  {registerRole === 'panitia' && (
+                    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '4px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '14px' }}>
+                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label htmlFor="organizerName" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Nama / Instansi / Komunitas</label>
+                        <input 
+                          type="text" 
+                          id="organizerName"
+                          placeholder="Masukkan nama penyelenggara / komunitas"
+                          value={organizerName}
+                          onChange={(e) => setOrganizerName(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--text-primary)',
+                            outline: 'none',
+                            fontSize: '0.9rem'
+                          }}
+                          required
+                        />
+                      </div>
+                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label htmlFor="organizerPhone" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>No. Telepon / WhatsApp</label>
+                        <input 
+                          type="tel" 
+                          id="organizerPhone"
+                          placeholder="Contoh: 08123456789"
+                          value={organizerPhone}
+                          onChange={(e) => setOrganizerPhone(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--text-primary)',
+                            outline: 'none',
+                            fontSize: '0.9rem'
+                          }}
+                          required
+                        />
+                      </div>
+                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label htmlFor="organizerDescription" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Deskripsi Penyelenggara (Opsional)</label>
+                        <textarea 
+                          id="organizerDescription"
+                          rows="3"
+                          placeholder="Tuliskan deskripsi singkat mengenai instansi / komunitas Anda..."
+                          value={organizerDescription}
+                          onChange={(e) => setOrganizerDescription(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--text-primary)',
+                            outline: 'none',
+                            fontSize: '0.9rem',
+                            resize: 'none',
+                            fontFamily: 'inherit'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 

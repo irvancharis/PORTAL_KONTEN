@@ -817,6 +817,48 @@ export default function EventsUserPortal({
                       <div style={{ color: 'rgba(255, 255, 255, 0.7)', whiteSpace: 'pre-wrap', lineHeight: '1.7' }}>{evt.juknis}</div>
                     </div>
                   )}
+
+                  <div style={{
+                    padding: '24px',
+                    background: 'rgba(255, 255, 255, 0.01)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderRadius: '16px',
+                    textAlign: 'left',
+                    boxShadow: 'inset 0 0 20px rgba(255, 255, 255, 0.01)'
+                  }}>
+                    <strong style={{ color: '#a78bfa', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
+                      <Users size={18} style={{ color: '#a78bfa' }} />
+                      <span>Detail Penyelenggara</span>
+                    </strong>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.88rem' }}>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem', marginBottom: '2px' }}>Nama Penyelenggara / Komunitas</span>
+                        <span style={{ color: 'white', fontWeight: '700' }}>{evt.organizerName || 'Panitia Portal'}</span>
+                      </div>
+                      {evt.organizerPhone && (
+                        <div>
+                          <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem', marginBottom: '2px' }}>Kontak WhatsApp / Telepon</span>
+                          <a 
+                            href={`https://wa.me/${evt.organizerPhone.replace(/[^0-9]/g, '')}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{ color: '#34d399', fontWeight: '600', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', transition: 'color 0.2s' }}
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#10b981'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#34d399'}
+                          >
+                            <span>{evt.organizerPhone}</span>
+                            <span style={{ fontSize: '0.8rem' }}>↗</span>
+                          </a>
+                        </div>
+                      )}
+                      {evt.organizerDescription && (
+                        <div>
+                          <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem', marginBottom: '2px' }}>Tentang Penyelenggara</span>
+                          <p style={{ color: 'rgba(255,255,255,0.7)', margin: '4px 0 0 0', lineHeight: '1.6' }}>{evt.organizerDescription}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Right Column: Timer, Budget, and Forms/Status */}
