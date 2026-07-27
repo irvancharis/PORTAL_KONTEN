@@ -1367,12 +1367,15 @@ export default function EventsUserPortal({
               }
 
               const displayed = filtered.slice(0, visibleEventsCount);
-              
-              return displayed.map(evt => {
+                 return displayed.map(evt => {
                 const userReg = currentUser 
                   ? eventParticipants.find(p => p.eventId === evt.id && p.username.toLowerCase() === currentUser.username.toLowerCase())
                   : null;
 
+                const organizerUser = users.find(u => u.username.toLowerCase() === (evt.creator || '').toLowerCase());
+                const orgName = organizerUser?.organizerName || evt.organizerName || 'Panitia Portal';
+                const orgAvatar = organizerUser?.organizerAvatar || evt.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}`;
+ 
                  return (
                   <div 
                     key={evt.id} 
@@ -1439,6 +1442,27 @@ export default function EventsUserPortal({
                       <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: 0, overflow: 'hidden', textOverride: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', maxWidth: '500px' }}>
                         {evt.description}
                       </p>
+
+                      {/* Organizer info */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                        <img 
+                          src={orgAvatar} 
+                          alt={orgName} 
+                          style={{
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            border: '1px solid rgba(255, 255, 255, 0.1)'
+                          }} 
+                          onError={(e) => {
+                            e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}`;
+                          }}
+                        />
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '500' }}>
+                          {orgName}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Middle Section: Budget & Deadline */}

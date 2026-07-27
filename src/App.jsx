@@ -296,6 +296,7 @@ export default function App() {
   const [organizerName, setOrganizerName] = useState('');
   const [organizerPhone, setOrganizerPhone] = useState('');
   const [organizerDescription, setOrganizerDescription] = useState('');
+  const [organizerAvatar, setOrganizerAvatar] = useState('');
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
@@ -313,6 +314,7 @@ export default function App() {
     setOrganizerName('');
     setOrganizerPhone('');
     setOrganizerDescription('');
+    setOrganizerAvatar('');
     setRegisterRole(role);
     setLoginModalLockedRole(isLocked ? role : null);
   };
@@ -416,7 +418,8 @@ export default function App() {
           ...(registerRole === 'panitia' ? {
             organizerName: organizerName.trim(),
             organizerPhone: organizerPhone.trim(),
-            organizerDescription: organizerDescription.trim()
+            organizerDescription: organizerDescription.trim(),
+            organizerAvatar: organizerAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(organizerName.trim())}`
           } : {})
         };
         await saveFirestoreUser(newUser);
@@ -427,6 +430,7 @@ export default function App() {
         setOrganizerName('');
         setOrganizerPhone('');
         setOrganizerDescription('');
+        setOrganizerAvatar('');
         setLoginError('');
       } catch (err) {
         console.error("Firebase registration failed:", err);
@@ -451,7 +455,8 @@ export default function App() {
         ...(registerRole === 'panitia' ? {
           organizerName: organizerName.trim(),
           organizerPhone: organizerPhone.trim(),
-          organizerDescription: organizerDescription.trim()
+          organizerDescription: organizerDescription.trim(),
+          organizerAvatar: organizerAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(organizerName.trim())}`
         } : {})
       };
       await handleSetUsers(prev => [...prev, newUser]);
@@ -463,6 +468,7 @@ export default function App() {
       setOrganizerName('');
       setOrganizerPhone('');
       setOrganizerDescription('');
+      setOrganizerAvatar('');
       setLoginError('');
     }
   };
@@ -2241,6 +2247,27 @@ export default function App() {
                             resize: 'none',
                             fontFamily: 'inherit',
                             height: '110px'
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label htmlFor="organizerAvatar" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Logo / Avatar URL (Opsional)</label>
+                        <input 
+                          type="url" 
+                          id="organizerAvatar"
+                          placeholder="Contoh: https://example.com/logo.png"
+                          value={organizerAvatar}
+                          onChange={(e) => setOrganizerAvatar(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--text-primary)',
+                            outline: 'none',
+                            fontSize: '0.9rem'
                           }}
                         />
                       </div>
