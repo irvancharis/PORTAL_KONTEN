@@ -55,53 +55,100 @@ function CountdownTimer({ deadline }) {
 
   if (!timeLeft) {
     return (
-      <div style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: 'bold' }}>
-        Telah Selesai
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '8px', 
+        background: 'rgba(239, 68, 68, 0.08)', 
+        border: '1px solid rgba(239, 68, 68, 0.2)', 
+        padding: '12px 20px', 
+        borderRadius: '12px', 
+        color: '#ef4444', 
+        fontWeight: 'bold',
+        fontSize: '0.9rem' 
+      }}>
+        <Clock size={16} />
+        <span>Pendaftaran & Pengiriman Karya Telah Ditutup</span>
       </div>
     );
   }
 
   const { days, hours, minutes, seconds } = timeLeft;
+  
+  const digitBoxStyle = {
+    background: 'rgba(15, 23, 42, 0.65)',
+    border: '1px solid rgba(56, 189, 248, 0.25)',
+    borderRadius: '12px',
+    padding: '12px 14px',
+    minWidth: '55px',
+    textAlign: 'center',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(56, 189, 248, 0.05)'
+  };
+  
+  const digitStyle = {
+    fontSize: '1.6rem', 
+    fontWeight: '800', 
+    color: 'white', 
+    display: 'block', 
+    lineHeight: '1.1',
+    textShadow: '0 0 10px rgba(255, 255, 255, 0.2)'
+  };
+  
+  const digitLabelStyle = {
+    fontSize: '0.62rem', 
+    color: 'var(--text-muted)', 
+    textTransform: 'uppercase', 
+    fontWeight: '700',
+    letterSpacing: '0.5px',
+    marginTop: '4px',
+    display: 'block'
+  };
+
   return (
     <div style={{ 
       display: 'flex', 
       flexDirection: 'column',
-      gap: '6px', 
-      background: 'rgba(56, 189, 248, 0.06)', 
-      border: '1px solid rgba(56, 189, 248, 0.15)', 
-      padding: '12px 16px', 
-      borderRadius: '8px', 
-      marginBottom: '16px' 
+      gap: '12px', 
+      background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.04) 0%, rgba(15, 23, 42, 0.4) 100%)', 
+      border: '1px solid rgba(56, 189, 248, 0.18)', 
+      padding: '20px', 
+      borderRadius: '16px', 
+      marginBottom: '20px',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#38bdf8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-        <Clock size={14} className="sidebar-icon animate-pulse" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: '#38bdf8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+        <Clock size={15} className="animate-pulse" style={{ color: '#38bdf8' }} />
         <span>Sisa Waktu Pendaftaran & Pengiriman</span>
       </div>
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '2px' }}>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
         {days > 0 && (
-          <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '1.2rem', fontWeight: '800', color: 'white', display: 'block', lineHeight: '1' }}>{days}</span>
-            <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Hari</span>
-          </div>
+          <>
+            <div style={digitBoxStyle}>
+              <span style={digitStyle}>{days}</span>
+              <span style={digitLabelStyle}>Hari</span>
+            </div>
+            <span style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold' }}>:</span>
+          </>
         )}
-        {(days > 0 || hours > 0) && (
-          <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '1.2rem', fontWeight: '800', color: 'white', display: 'block', lineHeight: '1' }}>{hours}</span>
-            <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Jam</span>
-          </div>
-        )}
-        <div style={{ textAlign: 'center' }}>
-          <span style={{ fontSize: '1.2rem', fontWeight: '800', color: 'white', display: 'block', lineHeight: '1' }}>{minutes}</span>
-          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Menit</span>
+        <div style={digitBoxStyle}>
+          <span style={digitStyle}>{hours.toString().padStart(2, '0')}</span>
+          <span style={digitLabelStyle}>Jam</span>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <span style={{ fontSize: '1.2rem', fontWeight: '800', color: '#38bdf8', display: 'block', lineHeight: '1' }}>{seconds}</span>
-          <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 'bold' }}>Detik</span>
+        <span style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold' }}>:</span>
+        <div style={digitBoxStyle}>
+          <span style={digitStyle}>{minutes.toString().padStart(2, '0')}</span>
+          <span style={digitLabelStyle}>Menit</span>
+        </div>
+        <span style={{ fontSize: '1.2rem', color: '#38bdf8', fontWeight: 'bold' }}>:</span>
+        <div style={{...digitBoxStyle, borderColor: 'rgba(56, 189, 248, 0.4)'}}>
+          <span style={{...digitStyle, color: '#38bdf8', textShadow: '0 0 10px rgba(56, 189, 248, 0.4)'}}>{seconds.toString().padStart(2, '0')}</span>
+          <span style={digitLabelStyle}>Detik</span>
         </div>
       </div>
     </div>
   );
 }
+
 
 function CardCountdown({ deadline }) {
   const getLabel = () => {
@@ -663,7 +710,14 @@ export default function EventsUserPortal({
             : null;
 
           return (
-            <div className="animate-fade-in" style={{ background: 'rgba(15, 23, 42, 0.3)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
+            <div className="animate-fade-in" style={{
+              background: 'linear-gradient(135deg, rgba(17, 24, 39, 0.6) 0%, rgba(10, 15, 30, 0.8) 100%)', 
+              backdropFilter: 'blur(16px)', 
+              padding: '32px', 
+              borderRadius: '24px', 
+              border: '1px solid rgba(255,255,255,0.05)',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)'
+            }}>
               {/* Back button */}
               <button 
                 onClick={() => setSelectedEvent(null)}
@@ -674,22 +728,27 @@ export default function EventsUserPortal({
                   gap: '8px',
                   background: 'rgba(255, 255, 255, 0.03)',
                   border: '1px solid rgba(255, 255, 255, 0.08)',
-                  padding: '8px 16px',
-                  borderRadius: '20px',
-                  color: 'white',
+                  padding: '10px 20px',
+                  borderRadius: '30px',
+                  color: 'rgba(255, 255, 255, 0.8)',
                   cursor: 'pointer',
                   fontSize: '0.85rem',
                   fontWeight: '600',
-                  marginBottom: '24px',
-                  transition: 'all 0.2s'
+                  marginBottom: '28px',
+                  transition: 'all 0.3s ease',
+                  outline: 'none'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                  e.currentTarget.style.background = 'rgba(124, 58, 237, 0.1)';
+                  e.currentTarget.style.borderColor = 'rgba(124, 58, 237, 0.4)';
+                  e.currentTarget.style.color = '#c084fc';
+                  e.currentTarget.style.boxShadow = '0 0 15px rgba(124, 58, 237, 0.15)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               >
                 <ArrowLeft size={16} />
@@ -699,50 +758,65 @@ export default function EventsUserPortal({
               {/* Grid Detail Content */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px', alignItems: 'start' }}>
                 {/* Left Column: Info & Juknis */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
                       <span style={{ 
                         fontSize: '0.72rem', 
-                        background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(167, 139, 250, 0.2) 100%)', 
+                        background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.25) 0%, rgba(167, 139, 250, 0.25) 100%)', 
                         color: '#c084fc', 
-                        padding: '4px 12px', 
+                        padding: '5px 14px', 
                         borderRadius: '20px',
                         fontWeight: 'bold',
                         textTransform: 'uppercase',
-                        border: '1px solid rgba(167, 139, 250, 0.2)'
+                        border: '1px solid rgba(167, 139, 250, 0.35)',
+                        letterSpacing: '0.5px'
                       }}>
                         {evt.category}
                       </span>
                       {evt.deadline && <CardCountdown deadline={evt.deadline} />}
                     </div>
-                    <h2 style={{ color: 'white', fontSize: '1.6rem', fontWeight: 'bold', margin: '0 0 12px 0', letterSpacing: '-0.5px' }}>{evt.title}</h2>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                      <Calendar size={15} style={{ color: '#a78bfa' }} />
-                      <span>Batas Waktu: <strong>{formatIndonesianDate(evt.deadline)}</strong></span>
+                    
+                    <h2 style={{ 
+                      color: 'white', 
+                      fontSize: '2.2rem', 
+                      fontWeight: '800', 
+                      margin: '0 0 16px 0', 
+                      letterSpacing: '-0.8px',
+                      background: 'linear-gradient(to right, #ffffff, #d8b4fe)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
+                    }}>{evt.title}</h2>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', marginBottom: '24px' }}>
+                      <Calendar size={16} style={{ color: '#a78bfa' }} />
+                      <span>Batas Waktu Pendaftaran: <strong style={{ color: 'white' }}>{formatIndonesianDate(evt.deadline)}</strong></span>
                     </div>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: '1.7', margin: 0 }}>{evt.description}</p>
+                    
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.8', margin: 0 }}>{evt.description}</p>
                   </div>
 
                   {evt.juknis && (
                     <div style={{ 
-                      padding: '16px',
-                      background: 'rgba(255, 255, 255, 0.02)',
-                      border: '1px dashed rgba(255, 255, 255, 0.1)',
-                      borderRadius: '10px',
-                      fontSize: '0.85rem'
+                      padding: '24px',
+                      background: 'rgba(124, 58, 237, 0.01)',
+                      border: '1px solid rgba(167, 139, 250, 0.15)',
+                      borderRadius: '16px',
+                      fontSize: '0.88rem',
+                      boxShadow: 'inset 0 0 20px rgba(124, 58, 237, 0.02)',
+                      textAlign: 'left'
                     }}>
-                      <strong style={{ color: '#a78bfa', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px', fontSize: '0.9rem' }}>
-                        <CheckCircle2 size={16} style={{ color: '#a78bfa' }} />
+                      <strong style={{ color: '#c084fc', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
+                        <CheckCircle2 size={18} style={{ color: '#c084fc' }} />
                         <span>Petunjuk Teknis (Juknis)</span>
                       </strong>
-                      <div style={{ color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{evt.juknis}</div>
+                      <div style={{ color: 'rgba(255, 255, 255, 0.7)', whiteSpace: 'pre-wrap', lineHeight: '1.7' }}>{evt.juknis}</div>
                     </div>
                   )}
                 </div>
 
                 {/* Right Column: Timer, Budget, and Forms/Status */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   {/* Countdown and Budget widgets */}
                   {!getEventStatusLabel(evt).startsWith('Selesai') && evt.deadline && (
                     <CountdownTimer deadline={evt.deadline} />
@@ -751,37 +825,38 @@ export default function EventsUserPortal({
                   {evt.campaignBudget > 0 && (
                     evt.budgetMode === 'ranking' ? (
                       <div style={{ 
-                        background: 'rgba(251, 191, 36, 0.02)',
-                        border: '1px solid rgba(251, 191, 36, 0.12)',
-                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.03) 0%, rgba(15, 23, 42, 0.6) 100%)',
+                        border: '1px solid rgba(251, 191, 36, 0.18)',
+                        borderRadius: '16px',
                         overflow: 'hidden',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
                         fontSize: '0.85rem'
                       }}>
                         <div style={{
-                          background: 'linear-gradient(90deg, rgba(251, 191, 36, 0.08) 0%, rgba(217, 119, 6, 0.08) 100%)',
-                          padding: '12px 16px',
+                          background: 'linear-gradient(90deg, rgba(251, 191, 36, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%)',
+                          padding: '14px 20px',
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          borderBottom: '1px solid rgba(251, 191, 36, 0.08)'
+                          borderBottom: '1px solid rgba(251, 191, 36, 0.1)'
                         }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', color: '#fbbf24' }}>
-                            <Trophy size={16} />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700', color: '#fbbf24', fontSize: '0.9rem' }}>
+                            <Trophy size={18} style={{ color: '#fbbf24' }} />
                             <span>Total Hadiah (Prize Pool)</span>
                           </div>
-                          <strong style={{ color: '#fbbf24', fontSize: '1rem' }}>Rp {evt.campaignBudget.toLocaleString('id-ID')}</strong>
+                          <strong style={{ color: '#fbbf24', fontSize: '1.15rem', textShadow: '0 0 10px rgba(251, 191, 36, 0.2)' }}>Rp {evt.campaignBudget.toLocaleString('id-ID')}</strong>
                         </div>
                         
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '14px 16px', fontSize: '0.8rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '16px 20px', fontSize: '0.85rem', textAlign: 'left' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ color: '#fbbf24', fontWeight: '600' }}>🥇 Juara 1</span>
                             <strong style={{ color: 'white' }}>Rp {evt.prize1?.toLocaleString('id-ID')}</strong>
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '8px' }}>
                             <span style={{ color: '#cbd5e1', fontWeight: '600' }}>🥈 Juara 2</span>
                             <strong style={{ color: 'white' }}>Rp {evt.prize2?.toLocaleString('id-ID')}</strong>
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '8px' }}>
                             <span style={{ color: '#b45309', fontWeight: '600' }}>🥉 Juara 3</span>
                             <strong style={{ color: 'white' }}>Rp {evt.prize3?.toLocaleString('id-ID')}</strong>
                           </div>
@@ -789,41 +864,43 @@ export default function EventsUserPortal({
                       </div>
                     ) : (
                       <div style={{ 
-                        background: 'rgba(34, 197, 94, 0.02)',
-                        border: '1px solid rgba(34, 197, 94, 0.12)',
-                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.03) 0%, rgba(15, 23, 42, 0.6) 100%)',
+                        border: '1px solid rgba(34, 197, 94, 0.18)',
+                        borderRadius: '16px',
                         overflow: 'hidden',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
                         fontSize: '0.85rem'
                       }}>
                         <div style={{
-                          background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.06) 0%, rgba(16, 185, 129, 0.06) 100%)',
-                          padding: '12px 16px',
+                          background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%)',
+                          padding: '14px 20px',
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          borderBottom: '1px solid rgba(34, 197, 94, 0.08)'
+                          borderBottom: '1px solid rgba(34, 197, 94, 0.1)'
                         }}>
-                          <span style={{ color: '#4ade80', fontWeight: '700' }}>Budget Campaign</span>
-                          <strong style={{ color: 'white' }}>Rp {evt.campaignBudget.toLocaleString('id-ID')}</strong>
+                          <span style={{ color: '#4ade80', fontWeight: '700', fontSize: '0.9rem' }}>Budget Campaign</span>
+                          <strong style={{ color: 'white', fontSize: '1.05rem' }}>Rp {evt.campaignBudget.toLocaleString('id-ID')}</strong>
                         </div>
                         
-                        <div style={{ padding: '14px 16px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.8rem' }}>
+                        <div style={{ padding: '16px 20px', textAlign: 'left' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.82rem' }}>
                             <span style={{ color: 'var(--text-muted)' }}>Sisa Saldo</span>
                             <span style={{ color: '#4ade80', fontWeight: 'bold' }}>Rp {getEventRemainingBudget(evt).toLocaleString('id-ID')}</span>
                           </div>
                           
                           {/* Budget Progress Bar */}
-                          <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden', marginBottom: '12px' }}>
+                          <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden', marginBottom: '16px' }}>
                             <div style={{ 
                               width: `${(getEventRemainingBudget(evt) / evt.campaignBudget) * 100}%`, 
                               height: '100%', 
-                              background: 'linear-gradient(90deg, #22c55e, #4ade80)' 
+                              background: 'linear-gradient(90deg, #22c55e, #4ade80)',
+                              boxShadow: '0 0 8px rgba(34, 197, 94, 0.4)'
                             }}></div>
                           </div>
                           
-                          <div style={{ fontSize: '0.78rem', color: '#c084fc', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(167, 139, 250, 0.05)', padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(167, 139, 250, 0.1)' }}>
-                            <Award size={13} style={{ color: '#c084fc' }} />
+                          <div style={{ fontSize: '0.78rem', color: '#c084fc', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(167, 139, 250, 0.04)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(167, 139, 250, 0.15)' }}>
+                            <Award size={14} style={{ color: '#c084fc' }} />
                             <span>Benefit: Rp {evt.benefitAmount?.toLocaleString('id-ID')} per {evt.benefitViewsStep?.toLocaleString('id-ID')} Views</span>
                           </div>
                         </div>
@@ -832,27 +909,27 @@ export default function EventsUserPortal({
                   )}
 
                   {/* Status Section based on Registration and Submission */}
-                  <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {getEventStatusLabel(evt).startsWith('Selesai') ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {/* Event Ended Info Box */}
-                        <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <XCircle size={18} style={{ color: '#ef4444', flexShrink: 0 }} />
-                          <div style={{ fontSize: '0.8rem', color: '#f87171' }}>
-                            <strong>Event Telah Selesai</strong><br />
+                        <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '14px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left' }}>
+                          <XCircle size={20} style={{ color: '#ef4444', flexShrink: 0 }} />
+                          <div style={{ fontSize: '0.82rem', color: '#f87171', lineHeight: '1.5' }}>
+                            <strong style={{ color: 'white' }}>Event Telah Selesai</strong><br />
                             Pendaftaran dan pengiriman karya untuk event ini sudah ditutup.
                           </div>
                         </div>
                         
                         {/* If user already submitted, still show their submission info */}
                         {userSub && (
-                          <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', background: 'rgba(255, 255, 255, 0.01)' }}>
+                          <div style={{ border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', background: 'rgba(255, 255, 255, 0.02)', textAlign: 'left' }}>
                             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Karya Anda:</div>
-                            <div style={{ fontSize: '0.88rem', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>{userSub.title}</div>
-                            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
+                            <div style={{ fontSize: '0.92rem', fontWeight: 'bold', color: 'white', marginBottom: '6px' }}>{userSub.title}</div>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                               <span style={{ 
-                                padding: '2px 8px', 
-                                borderRadius: '10px', 
+                                padding: '3px 10px', 
+                                borderRadius: '12px', 
                                 fontSize: '0.65rem',
                                 color: 'white',
                                 fontWeight: 'bold',
@@ -874,29 +951,29 @@ export default function EventsUserPortal({
                               return (
                                 <div style={{ 
                                   margin: '8px 0', 
-                                  padding: '8px 12px', 
+                                  padding: '10px 14px', 
                                   background: 'rgba(34, 197, 94, 0.08)', 
                                   border: '1px solid rgba(34, 197, 94, 0.15)', 
-                                  borderRadius: '6px',
+                                  borderRadius: '8px',
                                   display: 'flex',
                                   justifyContent: 'space-between',
                                   alignItems: 'center',
-                                  fontSize: '0.8rem'
+                                  fontSize: '0.82rem'
                                 }}>
                                   <span style={{ color: '#4ade80', fontWeight: '500' }}>Estimasi Pembayaran</span>
-                                  <strong style={{ color: 'white' }}>Rp {payout.toLocaleString('id-ID')}</strong>
+                                  <strong style={{ color: 'white', fontSize: '0.9rem' }}>Rp {payout.toLocaleString('id-ID')}</strong>
                                 </div>
                               );
                             })()}
                             
                             {userSub.score !== null ? (
-                              <div style={{ background: 'rgba(139, 92, 246, 0.08)', border: '1px solid rgba(139, 92, 246, 0.2)', padding: '10px', borderRadius: '6px', marginTop: '8px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                  <span style={{ fontSize: '0.75rem', color: '#c084fc', fontWeight: '600' }}>Hasil Penjurian</span>
-                                  <span style={{ fontSize: '1rem', color: '#a78bfa', fontWeight: 'bold' }}>{userSub.score} / 100</span>
+                              <div style={{ background: 'rgba(139, 92, 246, 0.08)', border: '1px solid rgba(139, 92, 246, 0.2)', padding: '12px', borderRadius: '8px', marginTop: '10px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                  <span style={{ fontSize: '0.78rem', color: '#c084fc', fontWeight: '600' }}>Hasil Penjurian</span>
+                                  <span style={{ fontSize: '1.05rem', color: '#a78bfa', fontWeight: 'bold' }}>{userSub.score} / 100</span>
                                 </div>
                                 {userSub.feedback && (
-                                  <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.4' }}>
+                                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.4' }}>
                                     "{userSub.feedback}"
                                   </p>
                                 )}
@@ -918,7 +995,28 @@ export default function EventsUserPortal({
                           <button 
                             className="btn btn-primary" 
                             onClick={onLoginClick}
-                            style={{ width: '100%', justifyContent: 'center' }}
+                            style={{ 
+                              width: '100%', 
+                              justifyContent: 'center',
+                              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                              border: 'none',
+                              padding: '14px 28px',
+                              borderRadius: '30px',
+                              fontSize: '0.92rem',
+                              fontWeight: 'bold',
+                              color: 'white',
+                              boxShadow: '0 8px 24px rgba(239, 68, 68, 0.25)',
+                              transition: 'all 0.3s ease',
+                              cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                              e.currentTarget.style.boxShadow = '0 12px 30px rgba(239, 68, 68, 0.4)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = '0 8px 24px rgba(239, 68, 68, 0.25)';
+                            }}
                           >
                             <span>Masuk untuk Mendaftar</span>
                           </button>
@@ -930,39 +1028,60 @@ export default function EventsUserPortal({
                               setRegisteringEvent(evt);
                               setEmail(currentUser.username + '@gmail.com');
                             }}
-                            style={{ width: '100%', justifyContent: 'center' }}
+                            style={{ 
+                              width: '100%', 
+                              justifyContent: 'center',
+                              background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
+                              border: 'none',
+                              padding: '14px 28px',
+                              borderRadius: '30px',
+                              fontSize: '0.92rem',
+                              fontWeight: 'bold',
+                              color: 'white',
+                              boxShadow: '0 8px 24px rgba(124, 58, 237, 0.25)',
+                              transition: 'all 0.3s ease',
+                              cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                              e.currentTarget.style.boxShadow = '0 12px 30px rgba(124, 58, 237, 0.4)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = '0 8px 24px rgba(124, 58, 237, 0.25)';
+                            }}
                           >
                             <span>Daftar Kompetisi</span>
                           </button>
                         ) : (
                           // Logged In & Registered
-                          <div>
+                          <div style={{ textAlign: 'left' }}>
                             {userReg.status === 'pending' && (
-                              <div style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.2)', padding: '12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Clock size={18} style={{ color: '#fbbf24', flexShrink: 0 }} />
-                                <div style={{ fontSize: '0.8rem', color: '#f59e0b' }}>
-                                  <strong>Pendaftaran Tertunda</strong><br />
+                              <div style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.2)', padding: '14px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <Clock size={20} style={{ color: '#fbbf24', flexShrink: 0 }} />
+                                <div style={{ fontSize: '0.82rem', color: '#f59e0b', lineHeight: '1.4' }}>
+                                  <strong style={{ color: 'white' }}>Pendaftaran Tertunda</strong><br />
                                   Menunggu persetujuan panitia event.
                                 </div>
                               </div>
                             )}
 
                             {userReg.status === 'rejected' && (
-                              <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <XCircle size={18} style={{ color: '#ef4444', flexShrink: 0 }} />
-                                <div style={{ fontSize: '0.8rem', color: '#f87171' }}>
-                                  <strong>Pendaftaran Ditolak</strong><br />
+                              <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '14px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <XCircle size={20} style={{ color: '#ef4444', flexShrink: 0 }} />
+                                <div style={{ fontSize: '0.82rem', color: '#f87171', lineHeight: '1.4' }}>
+                                  <strong style={{ color: 'white' }}>Pendaftaran Ditolak</strong><br />
                                   Pendaftaran Anda ditolak oleh panitia.
                                 </div>
                               </div>
                             )}
 
                             {userReg.status === 'approved' && (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                                 {/* Registration Approved Status Badge */}
-                                <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)', padding: '10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <CheckCircle2 size={16} style={{ color: '#22c55e', flexShrink: 0 }} />
-                                  <span style={{ fontSize: '0.8rem', color: '#4ade80', fontWeight: '500' }}>Terdaftar (Pendaftaran Disetujui)</span>
+                                <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)', padding: '12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <CheckCircle2 size={18} style={{ color: '#22c55e', flexShrink: 0 }} />
+                                  <span style={{ fontSize: '0.82rem', color: '#4ade80', fontWeight: '600' }}>Terdaftar (Pendaftaran Disetujui)</span>
                                 </div>
 
                                 {/* Submission Status */}
@@ -970,19 +1089,39 @@ export default function EventsUserPortal({
                                   <button 
                                     className="btn btn-secondary" 
                                     onClick={() => setSubmittingEvent(evt)}
-                                    style={{ width: '100%', justifyContent: 'center', borderColor: '#22c55e', color: '#4ade80' }}
+                                    style={{ 
+                                      width: '100%', 
+                                      justifyContent: 'center', 
+                                      borderColor: '#22c55e', 
+                                      color: '#4ade80',
+                                      background: 'rgba(34, 197, 94, 0.04)',
+                                      padding: '12px 24px',
+                                      borderRadius: '30px',
+                                      fontWeight: 'bold',
+                                      fontSize: '0.9rem',
+                                      transition: 'all 0.3s ease',
+                                      cursor: 'pointer'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.background = 'rgba(34, 197, 94, 0.1)';
+                                      e.currentTarget.style.transform = 'translateY(-2px)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.background = 'rgba(34, 197, 94, 0.04)';
+                                      e.currentTarget.style.transform = 'translateY(0)';
+                                    }}
                                   >
                                     <Send size={16} />
-                                    <span>Kirim Karya</span>
+                                    <span>Kirim Karya Sekarang</span>
                                   </button>
                                 ) : (
-                                  <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', background: 'rgba(255, 255, 255, 0.01)' }}>
+                                  <div style={{ border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', background: 'rgba(255, 255, 255, 0.02)' }}>
                                     <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Karya Anda:</div>
-                                    <div style={{ fontSize: '0.88rem', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>{userSub.title}</div>
-                                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
+                                    <div style={{ fontSize: '0.92rem', fontWeight: 'bold', color: 'white', marginBottom: '6px' }}>{userSub.title}</div>
+                                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                                       <span style={{ 
-                                        padding: '2px 8px', 
-                                        borderRadius: '10px', 
+                                        padding: '3px 10px', 
+                                        borderRadius: '12px', 
                                         fontSize: '0.65rem',
                                         color: 'white',
                                         fontWeight: 'bold',
@@ -1004,29 +1143,29 @@ export default function EventsUserPortal({
                                       return (
                                         <div style={{ 
                                           margin: '8px 0', 
-                                          padding: '8px 12px', 
+                                          padding: '10px 14px', 
                                           background: 'rgba(34, 197, 94, 0.08)', 
                                           border: '1px solid rgba(34, 197, 94, 0.15)', 
-                                          borderRadius: '6px',
+                                          borderRadius: '8px',
                                           display: 'flex',
                                           justifyContent: 'space-between',
                                           alignItems: 'center',
-                                          fontSize: '0.8rem'
+                                          fontSize: '0.82rem'
                                         }}>
                                           <span style={{ color: '#4ade80', fontWeight: '500' }}>Estimasi Pembayaran</span>
-                                          <strong style={{ color: 'white' }}>Rp {payout.toLocaleString('id-ID')}</strong>
+                                          <strong style={{ color: 'white', fontSize: '0.9rem' }}>Rp {payout.toLocaleString('id-ID')}</strong>
                                         </div>
                                       );
                                     })()}
                                     
                                     {userSub.score !== null ? (
-                                      <div style={{ background: 'rgba(139, 92, 246, 0.08)', border: '1px solid rgba(139, 92, 246, 0.2)', padding: '10px', borderRadius: '6px', marginTop: '8px' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                          <span style={{ fontSize: '0.75rem', color: '#c084fc', fontWeight: '600' }}>Hasil Penjurian</span>
-                                          <span style={{ fontSize: '1rem', color: '#a78bfa', fontWeight: 'bold' }}>{userSub.score} / 100</span>
+                                      <div style={{ background: 'rgba(139, 92, 246, 0.08)', border: '1px solid rgba(139, 92, 246, 0.2)', padding: '12px', borderRadius: '8px', marginTop: '10px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                          <span style={{ fontSize: '0.78rem', color: '#c084fc', fontWeight: '600' }}>Hasil Penjurian</span>
+                                          <span style={{ fontSize: '1.05rem', color: '#a78bfa', fontWeight: 'bold' }}>{userSub.score} / 100</span>
                                         </div>
                                         {userSub.feedback && (
-                                          <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.4' }}>
+                                          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.4' }}>
                                             "{userSub.feedback}"
                                           </p>
                                         )}
@@ -1050,7 +1189,7 @@ export default function EventsUserPortal({
               </div>
             </div>
           );
-        })()
+        })
       ) : (
         // ================= ROW LIST VIEW =================
         <React.Fragment>
