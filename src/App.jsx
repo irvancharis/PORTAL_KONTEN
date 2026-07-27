@@ -1018,9 +1018,321 @@ export default function App() {
           }
         }
       }
-    } else {
-      setEventSubmissions(newSubmissions);
     }
+  };
+
+  const handlePopulateDemoEvents = async () => {
+    const demoEvents = [
+      {
+        id: "evt_demo_1",
+        title: "Festival Film Pendek Indonesia 2026",
+        category: "Short Film",
+        deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+        maxParticipants: 100,
+        description: "Kompetisi film pendek berskala nasional untuk menunjukkan kreativitas sineas muda Indonesia dalam bercerita visual.",
+        juknis: "1. Durasi film maksimal 15 menit.\n2. Resolusi minimal 1080p.\n3. Menyertakan teks bahasa Indonesia jika menggunakan bahasa daerah.",
+        budgetMode: "ranking",
+        campaignBudget: 8500000,
+        remainingBudget: 8500000,
+        benefitAmount: 0,
+        benefitViewsStep: 0,
+        prize1: 5000000,
+        prize2: 2500000,
+        prize3: 1000000,
+        paymentStatus: "paid",
+        adminFee: 50000,
+        organizerName: "Asosiasi Sineas Indonesia",
+        organizerPhone: "081234567890",
+        organizerDescription: "Komunitas resmi sineas dan pelaku industri kreatif perfilman di Indonesia."
+      },
+      {
+        id: "evt_demo_2",
+        title: "UGC TikTok Creative Review",
+        category: "Creative UGC",
+        deadline: "",
+        maxParticipants: 0,
+        description: "Buat ulasan kreatif mengenai fitur portal film kami di TikTok dan raih benefit berdasarkan tayangan video Anda!",
+        juknis: "1. Upload video di TikTok berdurasi minimal 30 detik.\n2. Gunakan tagar #FilmoCreative.\n3. Tampilkan antarmuka web Filmo dengan jelas.",
+        budgetMode: "views",
+        campaignBudget: 3000000,
+        remainingBudget: 1000000,
+        benefitAmount: 50000,
+        benefitViewsStep: 10000,
+        prize1: 0,
+        prize2: 0,
+        prize3: 0,
+        paymentStatus: "paid",
+        adminFee: 20000,
+        organizerName: "Filmo Marketing Team",
+        organizerPhone: "089876543210",
+        organizerDescription: "Tim promosi dan kemitraan resmi platform Filmo."
+      },
+      {
+        id: "evt_demo_3",
+        title: "Dokumenter Kelestarian Alam Nusantara",
+        category: "Documentary",
+        deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+        maxParticipants: 50,
+        description: "Kompetisi film dokumenter berfokus pada isu pelestarian lingkungan hidup dan kekayaan alam Indonesia.",
+        juknis: "1. Durasi 5-10 menit.\n2. Harus berdasarkan fakta dan riset riil.\n3. Menggunakan musik bebas hak cipta.",
+        budgetMode: "ranking",
+        campaignBudget: 5000000,
+        remainingBudget: 5000000,
+        benefitAmount: 0,
+        benefitViewsStep: 0,
+        prize1: 3000000,
+        prize2: 1500000,
+        prize3: 500000,
+        paymentStatus: "paid",
+        adminFee: 30000,
+        organizerName: "Yayasan Hijau Indonesia",
+        organizerPhone: "082345678901",
+        organizerDescription: "Lembaga swadaya masyarakat peduli kelestarian alam dan lingkungan hidup."
+      },
+      {
+        id: "evt_demo_4",
+        title: "Lagu Indie Music Video Competition",
+        category: "Music Video",
+        deadline: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+        maxParticipants: 0,
+        description: "Visualisasikan lagu indie favorit Anda atau karya orisinal Anda sendiri ke dalam video klip sinematik.",
+        juknis: "1. Menggunakan lagu dengan izin hak cipta.\n2. Audio harus jernih.\n3. Menampilkan lirik lagu di video.",
+        budgetMode: "views",
+        campaignBudget: 10000000,
+        remainingBudget: 7600000,
+        benefitAmount: 20000,
+        benefitViewsStep: 1000,
+        prize1: 0,
+        prize2: 0,
+        prize3: 0,
+        paymentStatus: "paid",
+        adminFee: 60000,
+        organizerName: "Ruang Musik Nusantara",
+        organizerPhone: "083456789012",
+        organizerDescription: "Kolektif musik independen Indonesia yang mewadahi talenta lokal baru."
+      },
+      {
+        id: "evt_demo_5",
+        title: "Animation Cinematic Short Showcase",
+        category: "Animation",
+        deadline: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+        maxParticipants: 30,
+        description: "Tantangan bagi animator lokal untuk memproduksi karya animasi pendek 2D/3D dengan tema masa depan bumi.",
+        juknis: "1. Durasi animasi 1-3 menit.\n2. Boleh menggunakan teknik 2D, 3D, maupun stop-motion.",
+        budgetMode: "ranking",
+        campaignBudget: 14000000,
+        remainingBudget: 14000000,
+        benefitAmount: 0,
+        benefitViewsStep: 0,
+        prize1: 8000000,
+        prize2: 4000000,
+        prize3: 2000000,
+        paymentStatus: "paid",
+        adminFee: 80000,
+        organizerName: "Animasi Indonesia Guild",
+        organizerPhone: "084567890123",
+        organizerDescription: "Komunitas animator profesional dan pengembang industri animasi nasional."
+      },
+      {
+        id: "evt_demo_6",
+        title: "Vlog Kuliner Nusantara 2026",
+        category: "Vlog",
+        deadline: "",
+        maxParticipants: 0,
+        description: "Bagikan pengalaman kuliner khas daerah Anda dalam format vlog menarik, informatif, dan kreatif.",
+        juknis: "1. Vlog harus orisinal.\n2. Wajib menampilkan proses pembuatan atau review rasa makanan khas daerah.\n3. Durasi minimal 2 menit.",
+        budgetMode: "views",
+        campaignBudget: 2500000,
+        remainingBudget: 1900000,
+        benefitAmount: 15000,
+        benefitViewsStep: 1000,
+        prize1: 0,
+        prize2: 0,
+        prize3: 0,
+        paymentStatus: "paid",
+        adminFee: 15000,
+        organizerName: "Kolektif Foodie Indonesia",
+        organizerPhone: "085678901234",
+        organizerDescription: "Jaringan pencinta kuliner dan reviewer makanan tradisional Indonesia."
+      },
+      {
+        id: "evt_demo_7",
+        title: "Tech & Gadget Review Video Challenge",
+        category: "Review Product",
+        deadline: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+        maxParticipants: 150,
+        description: "Buat ulasan video jujur mengenai gadget atau barang teknologi yang Anda gunakan sehari-hari.",
+        juknis: "1. Video berdurasi minimal 1 menit.\n2. Jelaskan kelebihan, kekurangan, dan kesimpulan produk.\n3. Kualitas audio harus jernih.",
+        budgetMode: "views",
+        campaignBudget: 5000000,
+        remainingBudget: 3800000,
+        benefitAmount: 30000,
+        benefitViewsStep: 5000,
+        prize1: 0,
+        prize2: 0,
+        prize3: 0,
+        paymentStatus: "paid",
+        adminFee: 40000,
+        organizerName: "Klub Gadget Indonesia",
+        organizerPhone: "086789012345",
+        organizerDescription: "Komunitas antusias teknologi dan reviewer produk elektronik konsumen."
+      },
+      {
+        id: "evt_demo_8",
+        title: "Edukasi Lingkungan Short Video",
+        category: "Creative UGC",
+        deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+        maxParticipants: 0,
+        description: "Sebarkan tips ramah lingkungan sederhana melalui video kreatif berformat potret (Reels/Shorts).",
+        juknis: "1. Format video potret 9:16.\n2. Durasi maksimal 60 detik.\n3. Wajib menyertakan tips nyata yang mudah dipraktikkan.",
+        budgetMode: "views",
+        campaignBudget: 1500000,
+        remainingBudget: 900000,
+        benefitAmount: 10000,
+        benefitViewsStep: 1000,
+        prize1: 0,
+        prize2: 0,
+        prize3: 0,
+        paymentStatus: "paid",
+        adminFee: 10000,
+        organizerName: "Green Generation",
+        organizerPhone: "087890123456",
+        organizerDescription: "Gerakan anak muda aktif mengampanyekan gaya hidup ramah lingkungan."
+      },
+      {
+        id: "evt_demo_9",
+        title: "Cipta Lagu & Video Musik Daerah",
+        category: "Music Video",
+        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+        maxParticipants: 40,
+        description: "Kompetisi mengaransemen lagu daerah dengan gaya modern beserta pembuatan video klip pengiringnya.",
+        juknis: "1. Aransemen harus orisinal.\n2. Video klip wajib menyoroti kekayaan budaya atau pemandangan daerah asal lagu.",
+        budgetMode: "ranking",
+        campaignBudget: 7000000,
+        remainingBudget: 7000000,
+        benefitAmount: 0,
+        benefitViewsStep: 0,
+        prize1: 4000000,
+        prize2: 2000000,
+        prize3: 1000000,
+        paymentStatus: "paid",
+        adminFee: 45000,
+        organizerName: "Budaya Lestari Foundation",
+        organizerPhone: "088901234567",
+        organizerDescription: "Lembaga swasta pengembang kebudayaan tradisional dan kesenian Nusantara."
+      },
+      {
+        id: "evt_demo_10",
+        title: "Kisah Inspiratif Short Vlog",
+        category: "Vlog",
+        deadline: "",
+        maxParticipants: 0,
+        description: "Bagikan kisah inspiratif dari orang-orang di sekitar Anda yang jarang terekspos ke media dalam format vlog sinematik.",
+        juknis: "1. Vlog harus memuat alur cerita inspiratif yang nyata.\n2. Menghormati privasi narasumber.\n3. Durasi 3-8 menit.",
+        budgetMode: "views",
+        campaignBudget: 4000000,
+        remainingBudget: 2500000,
+        benefitAmount: 25000,
+        benefitViewsStep: 2000,
+        prize1: 0,
+        prize2: 0,
+        prize3: 0,
+        paymentStatus: "paid",
+        adminFee: 35000,
+        organizerName: "Karya Media Kreatif",
+        organizerPhone: "089012345678",
+        organizerDescription: "Agensi kreatif produser konten-konten humanis dan dokumenter sosial."
+      }
+    ];
+
+    const demoParticipants = [];
+    const demoSubmissions = [];
+
+    const participantsMap = [
+      { eventId: "evt_demo_1", users: ["budi", "ani", "candra"] },
+      { eventId: "evt_demo_2", users: ["budi", "ani"] },
+      { eventId: "evt_demo_3", users: ["budi", "ani", "candra", "dewi"] },
+      { eventId: "evt_demo_4", users: ["budi", "ani"] },
+      { eventId: "evt_demo_5", users: ["budi"] },
+      { eventId: "evt_demo_6", users: ["budi"] },
+      { eventId: "evt_demo_7", users: ["budi"] },
+      { eventId: "evt_demo_8", users: ["budi"] },
+      { eventId: "evt_demo_9", users: ["budi", "ani"] },
+      { eventId: "evt_demo_10", users: ["budi"] }
+    ];
+
+    participantsMap.forEach(({ eventId, users }) => {
+      users.forEach(username => {
+        demoParticipants.push({
+          id: `part_demo_${eventId}_${username}`,
+          eventId,
+          username,
+          phone: "0812345678",
+          channelLink: `https://youtube.com/@${username}`,
+          status: "approved",
+          registeredAt: new Date().toISOString()
+        });
+      });
+    });
+
+    const submissionMap = [
+      { eventId: "evt_demo_2", username: "budi", videoLink: "https://tiktok.com/@budi/video/1", views: 250000 },
+      { eventId: "evt_demo_2", username: "ani", videoLink: "https://tiktok.com/@ani/video/2", views: 150000 },
+      { eventId: "evt_demo_4", username: "budi", videoLink: "https://youtube.com/watch?v=1", views: 70000 },
+      { eventId: "evt_demo_4", username: "ani", videoLink: "https://youtube.com/watch?v=2", views: 50000 },
+      { eventId: "evt_demo_6", username: "budi", videoLink: "https://youtube.com/watch?v=3", views: 40000 },
+      { eventId: "evt_demo_7", username: "budi", videoLink: "https://youtube.com/watch?v=4", views: 200000 },
+      { eventId: "evt_demo_8", username: "budi", videoLink: "https://instagram.com/reels/1", views: 60000 },
+      { eventId: "evt_demo_10", username: "budi", videoLink: "https://youtube.com/watch?v=5", views: 120000 }
+    ];
+
+    submissionMap.forEach(({ eventId, username, videoLink, views }) => {
+      demoSubmissions.push({
+        id: `sub_demo_${eventId}_${username}`,
+        eventId,
+        username,
+        videoLink,
+        status: "approved",
+        submittedAt: new Date().toISOString(),
+        views,
+        score: 0,
+        feedback: ""
+      });
+    });
+
+    await handleSetUsers(prev => {
+      const neededUsers = ["budi", "ani", "candra", "dewi"];
+      const updated = [...prev];
+      neededUsers.forEach(uname => {
+        if (!updated.some(u => u.username.toLowerCase() === uname.toLowerCase())) {
+          updated.push({
+            id: `usr_demo_${uname}`,
+            username: uname,
+            password: "password123",
+            role: "user",
+            walletBalance: 0
+          });
+        }
+      });
+      return updated;
+    });
+
+    setEvents(prev => {
+      const filtered = prev.filter(e => !e.id.startsWith("evt_demo_"));
+      return [...filtered, ...demoEvents];
+    });
+
+    setEventParticipants(prev => {
+      const filtered = prev.filter(p => !p.id.startsWith("part_demo_"));
+      return [...filtered, ...demoParticipants];
+    });
+
+    setEventSubmissions(prev => {
+      const filtered = prev.filter(s => !s.id.startsWith("sub_demo_"));
+      return [...filtered, ...demoSubmissions];
+    });
+
+    alert("Berhasil mempopulasikan 10 event baru dengan sisa campaign dan partisipan acak!");
   };
 
   // Intercept affiliate links changes
@@ -1579,6 +1891,7 @@ export default function App() {
               setEventSubmissions={handleSetEventSubmissions}
               users={users}
               setUsers={handleSetUsers}
+              onPopulateDemoEvents={handlePopulateDemoEvents}
             />
           ) : selectedMovie && isPlaying ? (
             /* YOUTUBE WATCH PAGE LAYOUT */
