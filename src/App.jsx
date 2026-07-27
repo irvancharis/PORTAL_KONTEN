@@ -275,6 +275,17 @@ export default function App() {
     localStorage.setItem('portal-users', JSON.stringify(users));
   }, [users]);
 
+  // Auto-inject demo data once on startup
+  useEffect(() => {
+    const injected = localStorage.getItem('portal-demo-injected');
+    if (!injected) {
+      localStorage.setItem('portal-demo-injected', 'true');
+      setTimeout(() => {
+        handlePopulateDemoEvents();
+      }, 2000);
+    }
+  }, []);
+
   // Save confirmations state changes
   useEffect(() => {
     localStorage.setItem('portal-confirmations', JSON.stringify(confirmations));

@@ -1302,72 +1302,37 @@ export default function EventsUserPortal({
               )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {onPopulateDemoEvents && (
-                <button 
-                  onClick={onPopulateDemoEvents}
-                  className="btn"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    background: 'rgba(56, 189, 248, 0.1)',
-                    border: '1px solid rgba(56, 189, 248, 0.25)',
-                    padding: '10px 24px',
-                    borderRadius: '30px',
-                    fontWeight: 'bold',
-                    color: '#38bdf8',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    fontSize: '0.88rem',
-                    boxShadow: 'none'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(56, 189, 248, 0.15)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(56, 189, 248, 0.1)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  <Plus size={16} />
-                  <span>Populasi Data Demo</span>
-                </button>
-              )}
-
-              {/* Buat Event Button */}
-              <button 
-                onClick={handleCreateEventClick}
-                className="btn btn-primary"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
-                  border: 'none',
-                  padding: '10px 24px',
-                  borderRadius: '30px',
-                  fontWeight: 'bold',
-                  color: 'white',
-                  boxShadow: '0 4px 15px rgba(124, 58, 237, 0.2)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  fontSize: '0.88rem'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(124, 58, 237, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(124, 58, 237, 0.2)';
-                }}
-              >
-                <Calendar size={16} />
-                <span>Buat Event Baru</span>
-              </button>
-            </div>
+            {/* Buat Event Button */}
+            <button 
+              onClick={handleCreateEventClick}
+              className="btn btn-primary"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
+                border: 'none',
+                padding: '10px 24px',
+                borderRadius: '30px',
+                fontWeight: 'bold',
+                color: 'white',
+                boxShadow: '0 4px 15px rgba(124, 58, 237, 0.2)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontSize: '0.88rem'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(124, 58, 237, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(124, 58, 237, 0.2)';
+              }}
+            >
+              <Calendar size={16} />
+              <span>Buat Event Baru</span>
+            </button>
           </div>
 
           {/* List Layout: Row Cards */}
