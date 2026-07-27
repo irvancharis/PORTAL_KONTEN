@@ -999,7 +999,14 @@ export default function AdminPanel({
                     if (statusStr === 'Pending') return 3;
                     return 4;
                   };
-                  return getOrder(statusA) - getOrder(statusB);
+                  const orderDiff = getOrder(statusA) - getOrder(statusB);
+                  if (orderDiff !== 0) return orderDiff;
+                  if (!a.deadline && !b.deadline) return 0;
+                  if (!a.deadline) return 1;
+                  if (!b.deadline) return -1;
+                  const timeA = new Date(a.deadline).getTime();
+                  const timeB = new Date(b.deadline).getTime();
+                  return timeA - timeB;
                 })
                 .map(evt => {
                   const count = eventParticipants.filter(p => p.eventId === evt.id && p.status === 'approved').length;
@@ -2244,7 +2251,24 @@ export default function AdminPanel({
                       evt.title?.toLowerCase().includes(eventManageSearch.toLowerCase()) ||
                       evt.category?.toLowerCase().includes(eventManageSearch.toLowerCase()) ||
                       evt.description?.toLowerCase().includes(eventManageSearch.toLowerCase())
-                    );
+                    ).sort((a, b) => {
+                      const statusA = getEventStatus(a).label;
+                      const statusB = getEventStatus(b).label;
+                      const getOrder = (statusStr) => {
+                        if (statusStr === 'Berjalan') return 1;
+                        if (statusStr === 'Menunggu Verifikasi') return 2;
+                        if (statusStr === 'Pending') return 3;
+                        return 4;
+                      };
+                      const orderDiff = getOrder(statusA) - getOrder(statusB);
+                      if (orderDiff !== 0) return orderDiff;
+                      if (!a.deadline && !b.deadline) return 0;
+                      if (!a.deadline) return 1;
+                      if (!b.deadline) return -1;
+                      const timeA = new Date(a.deadline).getTime();
+                      const timeB = new Date(b.deadline).getTime();
+                      return timeA - timeB;
+                    });
                     if (filteredEvents.length === 0) {
                       return (
                         <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
