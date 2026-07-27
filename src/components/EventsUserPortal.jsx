@@ -214,6 +214,7 @@ export default function EventsUserPortal({
   const [contact, setContact] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedJuknis, setExpandedJuknis] = useState({});
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   // Social Media Verification States
   const [verificationStep, setVerificationStep] = useState('input'); // 'input' | 'verify' | 'loading' | 'success' | 'expired' | 'failed'
