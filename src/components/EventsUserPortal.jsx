@@ -867,22 +867,6 @@ export default function EventsUserPortal({
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.88rem' }}>
-                      {evt.organizerPhone && (
-                        <div>
-                          <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem', marginBottom: '2px' }}>Kontak WhatsApp / Telepon</span>
-                          <a 
-                            href={`https://wa.me/${evt.organizerPhone.replace(/[^0-9]/g, '')}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            style={{ color: '#34d399', fontWeight: '600', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', transition: 'color 0.2s' }}
-                            onMouseEnter={(e) => e.currentTarget.style.color = '#10b981'}
-                            onMouseLeave={(e) => e.currentTarget.style.color = '#34d399'}
-                          >
-                            <span>{evt.organizerPhone}</span>
-                            <span style={{ fontSize: '0.8rem' }}>↗</span>
-                          </a>
-                        </div>
-                      )}
                       {evt.organizerDescription && (
                         <div>
                           <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem', marginBottom: '2px' }}>Tentang Penyelenggara</span>
