@@ -669,7 +669,7 @@ export default function EventsUserPortal({
 
   const handleCreateEventClick = () => {
     if (!currentUser) {
-      onLoginClick('register', 'panitia');
+      onLoginClick('register', 'panitia', true);
     } else if (
       currentUser.role === 'panitia' ||
       currentUser.role === 'staf' ||
@@ -1047,7 +1047,7 @@ export default function EventsUserPortal({
                           // Not Logged In
                           <button 
                             className="btn btn-primary" 
-                            onClick={onLoginClick}
+                            onClick={() => onLoginClick('register', 'user', true)}
                             style={{ 
                               width: '100%', 
                               justifyContent: 'center',
@@ -1992,7 +1992,7 @@ export default function EventsUserPortal({
                   if (onLogout) {
                     await onLogout();
                   }
-                  onLoginClick('register', 'panitia');
+                  onLoginClick('register', 'panitia', true);
                 }}
                 className="btn btn-primary"
                 style={{

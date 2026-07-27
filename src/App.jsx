@@ -292,6 +292,7 @@ export default function App() {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [loginModalMode, setLoginModalMode] = useState('login'); // 'login' or 'register'
   const [registerRole, setRegisterRole] = useState('user'); // 'user' or 'panitia'
+  const [loginModalLockedRole, setLoginModalLockedRole] = useState(null); // 'user', 'panitia', or null
   const [organizerName, setOrganizerName] = useState('');
   const [organizerPhone, setOrganizerPhone] = useState('');
   const [organizerDescription, setOrganizerDescription] = useState('');
@@ -302,7 +303,7 @@ export default function App() {
   const usernameInputRef = useRef(null);
 
   // Open login/register modal
-  const handleOpenLoginModal = (mode = 'login', role = 'user') => {
+  const handleOpenLoginModal = (mode = 'login', role = 'user', isLocked = false) => {
     setLoginModalMode(mode);
     setIsLoginModalOpen(true);
     setLoginError('');
@@ -312,9 +313,8 @@ export default function App() {
     setOrganizerName('');
     setOrganizerPhone('');
     setOrganizerDescription('');
-    if (mode === 'register') {
-      setRegisterRole(role);
-    }
+    setRegisterRole(role);
+    setLoginModalLockedRole(isLocked ? role : null);
   };
 
   // Autofocus username input when login modal opens
@@ -1533,7 +1533,7 @@ export default function App() {
           ) : activeTab === 'events' ? (
             <EventsUserPortal 
               currentUser={currentUser}
-              onLoginClick={(mode, role) => handleOpenLoginModal(mode, role)}
+              onLoginClick={(mode, role, isLocked) => handleOpenLoginModal(mode, role, isLocked)}
               onLogout={handleLogout}
               onCreateEventRedirect={() => {
                 setActiveTab('admin');
@@ -2155,19 +2155,21 @@ export default function App() {
                           id="registerRole"
                           value={registerRole}
                           onChange={(e) => setRegisterRole(e.target.value)}
+                          disabled={loginModalLockedRole !== null}
                           style={{
                             width: '100%',
                             padding: '10px 12px',
-                            background: 'rgba(255, 255, 255, 0.04)',
+                            background: loginModalLockedRole !== null ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.04)',
                             border: '1px solid var(--border-color)',
                             borderRadius: 'var(--radius-sm)',
-                            color: 'var(--text-primary)',
+                            color: loginModalLockedRole !== null ? 'var(--text-muted)' : 'var(--text-primary)',
                             fontFamily: 'var(--font-sans)',
                             fontSize: '0.9rem',
-                            outline: 'none'
+                            outline: 'none',
+                            cursor: loginModalLockedRole !== null ? 'not-allowed' : 'default'
                           }}
                         >
-                          <option value="user" style={{ background: '#0f172a' }}>Penonton / Regular User</option>
+                          <option value="user" style={{ background: '#0f172a' }}>Regular User / Content Creator</option>
                           <option value="panitia" style={{ background: '#0f172a' }}>Panitia / Event Creator</option>
                         </select>
                       </div>
@@ -2320,19 +2322,21 @@ export default function App() {
                         id="registerRole"
                         value={registerRole}
                         onChange={(e) => setRegisterRole(e.target.value)}
+                        disabled={loginModalLockedRole !== null}
                         style={{
                           width: '100%',
                           padding: '10px 12px',
-                          background: 'rgba(255, 255, 255, 0.04)',
+                          background: loginModalLockedRole !== null ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.04)',
                           border: '1px solid var(--border-color)',
                           borderRadius: 'var(--radius-sm)',
-                          color: 'var(--text-primary)',
+                          color: loginModalLockedRole !== null ? 'var(--text-muted)' : 'var(--text-primary)',
                           fontFamily: 'var(--font-sans)',
                           fontSize: '0.9rem',
-                          outline: 'none'
+                          outline: 'none',
+                          cursor: loginModalLockedRole !== null ? 'not-allowed' : 'default'
                         }}
                       >
-                        <option value="user" style={{ background: '#0f172a' }}>Penonton / Regular User</option>
+                        <option value="user" style={{ background: '#0f172a' }}>Regular User / Content Creator</option>
                         <option value="panitia" style={{ background: '#0f172a' }}>Panitia / Event Creator</option>
                       </select>
                     </div>
