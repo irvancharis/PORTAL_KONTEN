@@ -127,6 +127,9 @@ export default function AdminPanel({
   const [marketplaceSearch, setMarketplaceSearch] = useState('');
   const [marketplaceLevelFilter, setMarketplaceLevelFilter] = useState('All');
 
+  // Payment local states
+  const [visiblePaymentsCount, setVisiblePaymentsCount] = useState(10);
+
   const [editingMovie, setEditingMovie] = useState(null); // null means adding a new movie
   const [editingUser, setEditingUser] = useState(null); // null means not editing any user
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -3144,47 +3147,82 @@ export default function AdminPanel({
 
           <div className="admin-table-container glass-panel">
             {getPanitiaPayments().length > 0 ? (
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Tanggal</th>
-                    <th>Nama Event</th>
-                    <th>Deskripsi Transaksi</th>
-                    <th style={{ textAlign: 'center' }}>Tipe</th>
-                    <th style={{ textAlign: 'right' }}>Jumlah</th>
-                    <th style={{ textAlign: 'center' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {getPanitiaPayments().map(pay => (
-                    <tr key={pay.id} className="table-row-hover">
-                      <td>{pay.date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
-                      <td><strong style={{ color: 'white' }}>{pay.eventTitle}</strong></td>
-                      <td>{pay.description}</td>
-                      <td style={{ textAlign: 'center' }}>
-                        <span style={{ 
-                          fontSize: '0.72rem', 
-                          padding: '2px 8px', 
-                          borderRadius: '12px', 
-                          fontWeight: 'bold',
-                          color: pay.type === 'Masuk' ? '#22c55e' : '#f87171',
-                          background: pay.type === 'Masuk' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(248, 113, 113, 0.1)'
-                        }}>{pay.type}</span>
-                      </td>
-                      <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'white' }}>Rp {pay.amount.toLocaleString('id-ID')}</td>
-                      <td style={{ textAlign: 'center' }}>
-                        <span style={{ 
-                          fontSize: '0.72rem', 
-                          padding: '2px 8px', 
-                          borderRadius: '12px',
-                          color: pay.status === 'Sukses' ? '#22c55e' : '#fbbf24',
-                          background: pay.status === 'Sukses' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(245, 158, 11, 0.1)'
-                        }}>{pay.status}</span>
-                      </td>
+              <>
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Tanggal</th>
+                      <th>Nama Event</th>
+                      <th>Deskripsi Transaksi</th>
+                      <th style={{ textAlign: 'center' }}>Tipe</th>
+                      <th style={{ textAlign: 'right' }}>Jumlah</th>
+                      <th style={{ textAlign: 'center' }}>Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {getPanitiaPayments().slice(0, visiblePaymentsCount).map(pay => (
+                      <tr key={pay.id} className="table-row-hover">
+                        <td>{pay.date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+                        <td><strong style={{ color: 'white' }}>{pay.eventTitle}</strong></td>
+                        <td>{pay.description}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span style={{ 
+                            fontSize: '0.72rem', 
+                            padding: '2px 8px', 
+                            borderRadius: '12px', 
+                            fontWeight: 'bold',
+                            color: pay.type === 'Masuk' ? '#22c55e' : '#f87171',
+                            background: pay.type === 'Masuk' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(248, 113, 113, 0.1)'
+                          }}>{pay.type}</span>
+                        </td>
+                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'white' }}>Rp {pay.amount.toLocaleString('id-ID')}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span style={{ 
+                            fontSize: '0.72rem', 
+                            padding: '2px 8px', 
+                            borderRadius: '12px',
+                            color: pay.status === 'Sukses' ? '#22c55e' : '#fbbf24',
+                            background: pay.status === 'Sukses' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(245, 158, 11, 0.1)'
+                          }}>{pay.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {getPanitiaPayments().length > visiblePaymentsCount && (
+                  <div style={{ textAlign: 'center', marginTop: '20px', paddingBottom: '20px' }}>
+                    <button
+                      onClick={() => setVisiblePaymentsCount(prev => prev + 10)}
+                      className="btn"
+                      style={{
+                        padding: '10px 24px',
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: 'white',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        fontSize: '0.88rem',
+                        fontWeight: '600',
+                        transition: 'all 0.2s',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                      }}
+                    >
+                      <span>Muat Lebih Banyak</span>
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                 Belum ada transaksi keuangan tercatat.
