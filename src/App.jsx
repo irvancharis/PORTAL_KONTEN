@@ -1946,11 +1946,18 @@ export default function App() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: '24px',
+            padding: '40px 24px',
             overflowY: 'auto'
           }}
         >
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            margin: 'auto 0', 
+            width: '100%', 
+            maxWidth: loginModalMode === 'register' && registerRole === 'panitia' ? '680px' : '400px'
+          }}>
           {/* Logo Brand Header */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
             <div style={{ background: 'linear-gradient(135deg, #fe2c55, #7c3aed)', padding: '8px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(254, 44, 85, 0.3)' }}>
@@ -2438,6 +2445,7 @@ export default function App() {
           >
             <span>← Kembali ke Beranda</span>
           </button>
+          </div>
         </div>
       )}
 
