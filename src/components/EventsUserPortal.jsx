@@ -818,9 +818,6 @@ export default function EventsUserPortal({
                 {/* Right Column: Timer, Budget, and Forms/Status */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   {/* Countdown and Budget widgets */}
-                  {!getEventStatusLabel(evt).startsWith('Selesai') && evt.deadline && (
-                    <CountdownTimer deadline={evt.deadline} />
-                  )}
 
                   {evt.campaignBudget > 0 && (
                     evt.budgetMode === 'ranking' ? (
