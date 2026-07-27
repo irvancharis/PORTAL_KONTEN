@@ -356,6 +356,12 @@ export default function EventsUserPortal({
 
 
 
+  const [submittingEvent, setSubmittingEvent] = useState(null); // Event model open for work submission
+  const [workTitle, setWorkTitle] = useState('');
+  const [workVideoUrl, setWorkVideoUrl] = useState('');
+  const [workDescription, setWorkDescription] = useState('');
+  const [workPlatform, setWorkPlatform] = useState('YouTube');
+
   const handleAcceptOffer = (off) => {
     // 1. Update offer status to 'accepted'
     setOffers(prev => prev.map(o => o.id === off.id ? { ...o, status: 'accepted' } : o));
