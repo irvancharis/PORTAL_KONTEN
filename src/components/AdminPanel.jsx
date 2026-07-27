@@ -104,6 +104,8 @@ export default function AdminPanel({
   setEventSubmissions,
   withdrawals = [],
   setWithdrawals,
+  offers = [],
+  setOffers,
   handleTransferWallet,
   minWithdrawalAmount = 50000,
   setMinWithdrawalAmount,
