@@ -1,11 +1,13 @@
 import React from 'react';
-import { Home, Bookmark, History, SlidersHorizontal } from 'lucide-react';
+import { Home, Bookmark, History, LayoutDashboard, Calendar, Wallet, Users, Film, TrendingUp } from 'lucide-react';
 
 export default function BottomNav({
   activeTab,
   setActiveTab,
   setSelectedGenre,
-  currentUser
+  currentUser,
+  adminSubTab,
+  onAdminSubTabChange
 }) {
   const handleNav = (tabId) => {
     setActiveTab(tabId);
@@ -13,8 +15,55 @@ export default function BottomNav({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const showAdmin = currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'staf');
+  const isAdmin = currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role);
 
+  // If user is admin, show admin subtabs in bottom nav
+  if (isAdmin) {
+    const getAdminNavItems = (role) => {
+      const lookupRole = role.toLowerCase() === 'staff' ? 'staf' : role.toLowerCase();
+      if (lookupRole === 'panitia') {
+        return [
+          { id: 'event-dashboard', label: 'Dashboard', icon: LayoutDashboard },
+          { id: 'event-manage', label: 'Kelola Event', icon: Calendar },
+          { id: 'event-payment', label: 'Pembayaran', icon: Wallet },
+          { id: 'creator-marketplace', label: 'Marketplace', icon: Users }
+        ];
+      }
+      // Defaults/superadmin/staf
+      return [
+        { id: 'event-dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'event-manage', label: 'Event', icon: Calendar },
+        { id: 'movies', label: 'Film', icon: Film },
+        { id: 'finance-report', label: 'Laporan', icon: TrendingUp }
+      ];
+    };
+
+    const navItems = getAdminNavItems(currentUser.role);
+
+    return (
+      <nav className="bottom-nav glass-panel">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = adminSubTab === item.id;
+          return (
+            <button 
+              key={item.id}
+              className={`bottom-nav-item ${isActive ? 'active' : ''}`}
+              onClick={() => {
+                if (onAdminSubTabChange) onAdminSubTabChange(item.id);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            >
+              <Icon size={20} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+    );
+  }
+
+  // Otherwise, render standard public bottom navigation
   return (
     <nav className="bottom-nav glass-panel">
       <button 
@@ -40,16 +89,6 @@ export default function BottomNav({
         <History size={20} />
         <span>Riwayat</span>
       </button>
-
-      {showAdmin && (
-        <button 
-          className={`bottom-nav-item ${activeTab === 'admin' ? 'active' : ''}`}
-          onClick={() => handleNav('admin')}
-        >
-          <SlidersHorizontal size={20} />
-          <span>Admin</span>
-        </button>
-      )}
     </nav>
   );
 }

@@ -13,7 +13,9 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
-  Wallet
+  Wallet,
+  Shield,
+  TrendingUp
 } from 'lucide-react';
 
 export default function AdminSidebar({
@@ -27,7 +29,8 @@ export default function AdminSidebar({
   pendingSubmissionsCount = 0,
   pendingConfirmationsCount = 0,
   pendingWithdrawalsCount = 0,
-  pendingEventsCount = 0
+  pendingEventsCount = 0,
+  customRoles = []
 }) {
   // Define menu items for Event Management (available to panitia & superadmin)
   const eventMenuItems = [
@@ -41,49 +44,77 @@ export default function AdminSidebar({
     { id: 'movies', label: 'Kelola Film', icon: Film },
     { id: 'affiliates', label: 'Link Afiliasi', icon: Link },
     { id: 'membership', label: 'Pengaturan Premium', icon: CreditCard },
-    { id: 'confirmations', label: 'Verifikasi Bukti Bayar', icon: CheckSquare },
+    { id: 'confirmations', label: 'Pemasukan Saldo', icon: CheckSquare },
     { id: 'withdrawals', label: 'Penarikan Saldo', icon: Wallet },
-    { id: 'users', label: 'Kelola Pengguna', icon: Users }
+    { id: 'finance-report', label: 'Laporan Keuangan', icon: TrendingUp },
+    { id: 'users', label: 'Kelola Pengguna', icon: Users },
+    { id: 'roles', label: 'Kelola Role', icon: Shield }
   ];
 
-  const isPanitia = currentUser?.role === 'panitia';
-  const isSuperadmin = currentUser?.role === 'superadmin';
-  const isStaf = currentUser?.role === 'staf';
+  const getDefaultPermissions = (role) => {
+    if (!role) return [];
+    const normalizedRole = role.toLowerCase();
+    const lookupRole = normalizedRole === 'staff' ? 'staf' : normalizedRole;
+
+    // Check custom roles list first
+    const customRole = customRoles.find(r => 
+      r.id?.toLowerCase() === lookupRole || 
+      r.name?.toLowerCase() === lookupRole
+    );
+    if (customRole) return customRole.permissions;
+
+    if (lookupRole === 'superadmin') {
+      return [
+        'movies', 'affiliates', 'membership', 'confirmations', 'withdrawals', 'users', 'roles',
+        'event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace', 'finance-report'
+      ];
+    }
+    if (lookupRole === 'staf') {
+      return ['movies', 'affiliates', 'confirmations', 'withdrawals', 'finance-report'];
+    }
+    if (lookupRole === 'panitia') {
+      return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'];
+    }
+    if (lookupRole === 'moderator') {
+      return ['confirmations', 'withdrawals', 'finance-report'];
+    }
+    if (lookupRole === 'editor') {
+      return ['movies', 'affiliates'];
+    }
+    return [];
+  };
+
+  const hasPermission = (tabId) => {
+    if (currentUser?.role === 'superadmin') return true;
+    
+    const lookupRole = currentUser?.role?.toLowerCase() === 'staff' ? 'staf' : currentUser?.role?.toLowerCase();
+    const customRole = customRoles.find(r => 
+      r.id?.toLowerCase() === lookupRole || 
+      r.name?.toLowerCase() === lookupRole
+    );
+    if (customRole) {
+      return customRole.permissions.includes(tabId);
+    }
+
+    const userPerms = currentUser?.permissions || getDefaultPermissions(currentUser?.role);
+    return userPerms.includes(tabId);
+  };
 
   return (
     <aside className={`sidebar glass-panel ${isCollapsed ? 'collapsed' : ''}`} style={{ borderRight: '1px solid var(--border-color)', height: 'calc(100vh - 56px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       <div className="sidebar-menu" style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '12px 8px' }}>
         
-        {/* Toggle Collapse Button on Desktop */}
-        <div style={{ display: 'flex', justifyContent: isCollapsed ? 'center' : 'flex-end', marginBottom: '12px', padding: '0 8px' }}>
-          <button 
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            style={{
-              background: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid var(--border-color)',
-              color: 'var(--text-secondary)',
-              borderRadius: '50%',
-              width: '28px',
-              height: '28px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer'
-            }}
-          >
-            {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
-        </div>
 
-        {/* Section: Event Management (Panitia & Superadmin) */}
-        {(isPanitia || isSuperadmin) && (
+
+        {/* Section: Event Management */}
+        {eventMenuItems.some(item => hasPermission(item.id)) && (
           <>
             {!isCollapsed && (
               <span style={{ fontSize: '0.68rem', fontWeight: 'bold', color: 'var(--text-muted)', textTransform: 'uppercase', padding: '8px 12px 4px 12px', letterSpacing: '0.5px' }}>
                 Event Creator
               </span>
             )}
-            {eventMenuItems.map((item) => {
+            {eventMenuItems.filter(item => hasPermission(item.id)).map((item) => {
               const Icon = item.icon;
               const isActive = adminSubTab === item.id;
               
@@ -98,8 +129,8 @@ export default function AdminSidebar({
                   onClick={() => setAdminSubTab(item.id)}
                   title={item.label}
                   style={{
-                    background: isActive ? 'rgba(124, 58, 237, 0.12)' : 'transparent',
-                    borderLeft: isActive ? '3px solid #7c3aed' : '3px solid transparent',
+                    background: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                    borderLeft: isActive ? '3px solid #ffffff' : '3px solid transparent',
                     position: 'relative',
                     width: '100%',
                     display: 'flex',
@@ -108,7 +139,7 @@ export default function AdminSidebar({
                   }}
                 >
                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon size={18} className="sidebar-icon" style={{ color: isActive ? '#a78bfa' : 'var(--text-secondary)' }} />
+                    <Icon size={18} className="sidebar-icon" style={{ color: isActive ? '#ffffff' : 'var(--text-secondary)' }} />
                     {badgeCount > 0 && (
                       <span 
                         className="animate-glow-red"
@@ -143,8 +174,8 @@ export default function AdminSidebar({
           </>
         )}
  
-        {/* Section: Portal Administration (Superadmin & Staff) */}
-        {(isSuperadmin || isStaf) && (
+        {/* Section: Portal Administration */}
+        {systemMenuItems.some(item => hasPermission(item.id)) && (
           <>
             <div style={{ height: '8px' }} />
             {!isCollapsed && (
@@ -152,7 +183,7 @@ export default function AdminSidebar({
                 Admin Portal
               </span>
             )}
-            {systemMenuItems.map((item) => {
+            {systemMenuItems.filter(item => hasPermission(item.id)).map((item) => {
               const Icon = item.icon;
               const isActive = adminSubTab === item.id;
               
@@ -168,8 +199,8 @@ export default function AdminSidebar({
                   onClick={() => setAdminSubTab(item.id)}
                   title={item.label}
                   style={{
-                    background: isActive ? 'rgba(239, 68, 68, 0.12)' : 'transparent',
-                    borderLeft: isActive ? '3px solid #ef4444' : '3px solid transparent',
+                    background: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                    borderLeft: isActive ? '3px solid #ffffff' : '3px solid transparent',
                     position: 'relative',
                     width: '100%',
                     display: 'flex',
@@ -178,7 +209,7 @@ export default function AdminSidebar({
                   }}
                 >
                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon size={18} className="sidebar-icon" style={{ color: isActive ? '#f87171' : 'var(--text-secondary)' }} />
+                    <Icon size={18} className="sidebar-icon" style={{ color: isActive ? '#ffffff' : 'var(--text-secondary)' }} />
                     {badgeCount > 0 && (
                       <span 
                         className="animate-glow-red"
@@ -215,23 +246,25 @@ export default function AdminSidebar({
       </div>
 
       {/* Back to Portal Button at bottom */}
-      <div style={{ padding: '12px 8px', borderTop: '1px solid var(--border-color)' }}>
-        <button
-          className="sidebar-item"
-          onClick={onBackToPortal}
-          title="Kembali ke Portal"
-          style={{
-            width: '100%',
-            justifyContent: isCollapsed ? 'center' : 'flex-start',
-            color: 'var(--text-primary)',
-            background: 'rgba(255, 255, 255, 0.02)',
-            borderRadius: 'var(--radius-sm)'
-          }}
-        >
-          <ArrowLeft size={18} className="sidebar-icon" style={{ color: 'var(--text-secondary)' }} />
-          <span className="sidebar-label">Kembali ke Portal</span>
-        </button>
-      </div>
+      {!(currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role)) && (
+        <div style={{ padding: '12px 8px', borderTop: '1px solid var(--border-color)' }}>
+          <button
+            className="sidebar-item"
+            onClick={onBackToPortal}
+            title="Kembali ke Portal"
+            style={{
+              width: '100%',
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
+              color: 'var(--text-primary)',
+              background: 'rgba(255, 255, 255, 0.02)',
+              borderRadius: 'var(--radius-sm)'
+            }}
+          >
+            <ArrowLeft size={18} className="sidebar-icon" style={{ color: 'var(--text-secondary)' }} />
+            <span className="sidebar-label">Kembali ke Portal</span>
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

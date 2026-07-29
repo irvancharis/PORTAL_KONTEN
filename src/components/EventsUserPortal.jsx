@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Trophy, Calendar, Users, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft } from 'lucide-react';
+import { Trophy, Calendar, Users, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown } from 'lucide-react';
 
 const formatIndonesianDate = (dateString) => {
   if (!dateString) return 'Hingga Budget Habis';
@@ -30,48 +30,10 @@ const formatIndonesianDate = (dateString) => {
 };
 
 const getCategoryBadgeStyle = (category) => {
-  const cat = (category || '').toUpperCase().trim();
-  
-  if (cat.includes('UGC') || cat.includes('CREATIVE')) {
-    return {
-      bg: 'linear-gradient(135deg, rgba(244, 63, 94, 0.15) 0%, rgba(225, 29, 72, 0.15) 100%)',
-      color: '#fda4af', // Light Rose/Pink
-      border: '1px solid rgba(244, 63, 94, 0.3)'
-    };
-  }
-  if (cat.includes('DOC') || cat.includes('DOKUMENTER')) {
-    return {
-      bg: 'linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(56, 189, 248, 0.15) 100%)',
-      color: '#38bdf8', // Sky Blue
-      border: '1px solid rgba(56, 189, 248, 0.3)'
-    };
-  }
-  if (cat.includes('MUSIC') || cat.includes('LAGU') || cat.includes('AUDIO')) {
-    return {
-      bg: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(52, 211, 153, 0.15) 100%)',
-      color: '#34d399', // Emerald Green
-      border: '1px solid rgba(52, 211, 153, 0.3)'
-    };
-  }
-  if (cat.includes('SHORT') || cat.includes('FILM') || cat.includes('MOVIE')) {
-    return {
-      bg: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(251, 191, 36, 0.15) 100%)',
-      color: '#fbbf24', // Amber/Yellow
-      border: '1px solid rgba(251, 191, 36, 0.3)'
-    };
-  }
-  if (cat.includes('CINEMA') || cat.includes('SINEMATOGRAFI')) {
-    return {
-      bg: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(167, 139, 250, 0.15) 100%)',
-      color: '#c084fc', // Purple/Violet
-      border: '1px solid rgba(167, 139, 250, 0.3)'
-    };
-  }
-  // Default fallback for any other categories
   return {
-    bg: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(129, 140, 248, 0.15) 100%)',
-    color: '#818cf8', // Indigo
-    border: '1px solid rgba(129, 140, 248, 0.3)'
+    bg: 'rgba(255, 255, 255, 0.05)',
+    color: '#ffffff',
+    border: '1px solid rgba(255, 255, 255, 0.2)'
   };
 };
 
@@ -228,7 +190,9 @@ function CardCountdown({ deadline }) {
   if (!label) return null;
 
   const isEndingSoon = label.startsWith('Sisa') && !label.includes('hari');
-  const color = label === 'Telah Selesai' ? '#ef4444' : isEndingSoon ? '#f87171' : '#38bdf8';
+  const color = label === 'Telah Selesai' ? '#a3a3a3' : '#ffffff';
+  const bg = label === 'Telah Selesai' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.06)';
+  const border = label === 'Telah Selesai' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(255, 255, 255, 0.2)';
 
   return (
     <div style={{ 
@@ -238,10 +202,10 @@ function CardCountdown({ deadline }) {
       fontSize: '0.72rem', 
       color: color, 
       fontWeight: 'bold',
-      background: label === 'Telah Selesai' ? 'rgba(239, 68, 68, 0.08)' : isEndingSoon ? 'rgba(239, 68, 68, 0.08)' : 'rgba(56, 189, 248, 0.08)',
-      padding: '2px 8px',
+      background: bg,
+      padding: '3px 8px',
       borderRadius: '20px',
-      border: `1px solid ${color}20`
+      border: border
     }}>
       <Clock size={12} className={isEndingSoon ? "animate-pulse" : ""} />
       <span>{label}</span>
@@ -801,7 +765,7 @@ export default function EventsUserPortal({
 
           const organizerUser = users.find(u => u.username.toLowerCase() === (evt.creator || '').toLowerCase());
           const orgName = organizerUser?.organizerName || evt.organizerName || 'Panitia Portal';
-          const orgAvatar = organizerUser?.organizerAvatar || evt.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}`;
+          const orgAvatar = organizerUser?.organizerAvatar || evt.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}&backgroundColor=262626&textColor=ffffff`;
 
           return (
             <div className="animate-fade-in" style={{
@@ -943,7 +907,7 @@ export default function EventsUserPortal({
                           boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
                         }}
                         onError={(e) => {
-                          e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}`;
+                          e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}&backgroundColor=262626&textColor=ffffff`;
                         }}
                       />
                       <div>
@@ -993,7 +957,7 @@ export default function EventsUserPortal({
                               
                               const isTop3 = index < 3;
                               const subUser = users.find(u => u.username.toLowerCase() === sub.username.toLowerCase());
-                              const userAvatar = subUser?.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(sub.username)}`;
+                              const userAvatar = subUser?.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(sub.username)}&backgroundColor=262626&textColor=ffffff`;
                               
                               return (
                                 <div 
@@ -1423,25 +1387,17 @@ export default function EventsUserPortal({
       ) : (
         // ================= ROW LIST VIEW =================
         <React.Fragment>
-          {/* Header Banner */}
-          <div className="glass-panel" style={{ 
-            padding: '32px', 
-            borderRadius: 'var(--radius-md)', 
-            marginBottom: '32px',
-            background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(15, 23, 42, 0.9) 100%)',
-            border: '1px solid rgba(124, 58, 237, 0.2)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px'
+          {/* Header Title */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px', 
+            marginBottom: '24px' 
           }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#a78bfa', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.85rem' }}>
-              <Trophy size={18} />
-              <span>Kompetisi Kreatif</span>
-            </div>
-            <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', margin: 0 }}>Event & Kompetisi Kreatif</h1>
-            <p style={{ color: 'var(--text-secondary)', maxWidth: '640px', lineHeight: '1.5' }}>
-              Tunjukkan bakat, keahlian, dan kreativitas Anda dalam berbagai kompetisi kami. Daftarkan diri Anda, kirim karya terbaik, dan dapatkan penilaian dari tim juri profesional.
-            </p>
+            <Trophy size={24} style={{ color: '#a78bfa' }} />
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
+              Event & Kompetisi Kreatif
+            </h1>
           </div>
 
           {/* User Portal Tabs */}
@@ -1753,7 +1709,7 @@ export default function EventsUserPortal({
 
                 const organizerUser = users.find(u => u.username.toLowerCase() === (evt.creator || '').toLowerCase());
                 const orgName = organizerUser?.organizerName || evt.organizerName || 'Panitia Portal';
-                const orgAvatar = organizerUser?.organizerAvatar || evt.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}`;
+                const orgAvatar = organizerUser?.organizerAvatar || evt.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}&backgroundColor=262626&textColor=ffffff`;
  
                  return (
                   <div 
@@ -1840,7 +1796,7 @@ export default function EventsUserPortal({
                             border: '1px solid rgba(255, 255, 255, 0.1)'
                           }} 
                           onError={(e) => {
-                            e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}`;
+                            e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}&backgroundColor=262626&textColor=ffffff`;
                           }}
                         />
                         <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '500' }}>
@@ -1856,12 +1812,12 @@ export default function EventsUserPortal({
                           {evt.budgetMode === 'ranking' ? 'Prize Pool' : 'Sisa / Total Budget'}
                         </div>
                         {evt.budgetMode === 'ranking' ? (
-                          <strong style={{ color: '#fbbf24', fontSize: '0.95rem' }}>
+                          <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
                             Rp {evt.campaignBudget.toLocaleString('id-ID')}
                           </strong>
                         ) : (
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                            <strong style={{ color: '#4ade80', fontSize: '0.95rem' }}>
+                            <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
                               Rp {getEventRemainingBudget(evt).toLocaleString('id-ID')}
                             </strong>
                             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
@@ -1873,7 +1829,7 @@ export default function EventsUserPortal({
 
                       <div style={{ minWidth: '180px', display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          <Calendar size={13} style={{ color: '#a78bfa' }} />
+                          <Calendar size={13} style={{ color: 'var(--text-secondary)' }} />
                           <span>Batas Waktu</span>
                         </div>
                         {evt.deadline ? (
@@ -1881,8 +1837,9 @@ export default function EventsUserPortal({
                         ) : (
                           <span style={{ 
                             fontSize: '0.75rem', 
-                            color: '#38bdf8', 
-                            background: 'rgba(56, 189, 248, 0.1)', 
+                            color: '#ffffff', 
+                            background: 'rgba(255, 255, 255, 0.06)', 
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
                             padding: '3px 8px', 
                             borderRadius: '4px', 
                             display: 'inline-block',
@@ -1914,28 +1871,37 @@ export default function EventsUserPortal({
                 <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px', marginBottom: '16px' }}>
                   <button 
                     onClick={() => setVisibleEventsCount(prev => prev + 12)}
-                    className="btn"
+                    title="Muat Lebih Banyak"
                     style={{
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      padding: '12px 32px',
-                      borderRadius: '30px',
-                      color: 'var(--text-primary)',
-                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '50%',
+                      color: 'rgba(255, 255, 255, 0.8)',
                       cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      fontSize: '0.9rem'
+                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                      e.currentTarget.style.color = '#ffffff';
                       e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.15)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
                       e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
                     }}
                   >
-                    Muat Lebih Banyak
+                    <ChevronDown size={20} />
                   </button>
                 </div>
               );
@@ -2224,7 +2190,7 @@ export default function EventsUserPortal({
           left: 0,
           width: '100vw',
           height: '100vh',
-          background: '#0a0f1d',
+          background: '#020202',
           zIndex: 10200,
           overflowY: 'auto',
           padding: '40px 24px',
@@ -2239,7 +2205,7 @@ export default function EventsUserPortal({
               <div>
                 <h2 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: 'bold' }}>Kirim Hasil Karya</h2>
                 <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-                  Event Kompetisi: <strong style={{ color: '#a78bfa' }}>{submittingEvent.title}</strong>
+                  Event Kompetisi: <strong style={{ color: '#ffffff' }}>{submittingEvent.title}</strong>
                 </p>
               </div>
               <button 
@@ -2273,7 +2239,7 @@ export default function EventsUserPortal({
                   value={workTitle} 
                   onChange={(e) => setWorkTitle(e.target.value)} 
                   placeholder="Masukkan judul menarik karya Anda" 
-                  style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
+                  style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
                 />
               </div>
               
@@ -2283,7 +2249,7 @@ export default function EventsUserPortal({
                   <select 
                     value={workPlatform} 
                     onChange={(e) => setWorkPlatform(e.target.value)} 
-                    style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                    style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
                   >
                     <option value="YouTube">YouTube</option>
                     <option value="TikTok">TikTok</option>
@@ -2302,7 +2268,7 @@ export default function EventsUserPortal({
                     value={workVideoUrl} 
                     onChange={(e) => handleUrlChange(e.target.value)} 
                     placeholder="Contoh: https://www.youtube.com/watch?v=..." 
-                    style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
+                    style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
                   />
                 </div>
               </div>
@@ -2315,7 +2281,7 @@ export default function EventsUserPortal({
                   value={workDescription} 
                   onChange={(e) => setWorkDescription(e.target.value)} 
                   placeholder="Tuliskan latar belakang singkat, sinopsis, atau pesan penting dari karya Anda..." 
-                  style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontFamily: 'inherit', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }}
+                  style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontFamily: 'inherit', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }}
                 ></textarea>
               </div>
 

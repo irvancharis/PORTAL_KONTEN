@@ -108,7 +108,7 @@ export default function MovieCard({ movie, onSelect, currentUser }) {
         {/* Play Overlay */}
         <div className="thumbnail-hover-overlay">
           <div className="play-circle-small">
-            <Play fill="white" size={18} />
+            <Play fill="currentColor" size={18} />
           </div>
         </div>
 

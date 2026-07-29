@@ -359,32 +359,128 @@ export default function VideoPlayer({
     }
   };
 
+  // Lock orientation to landscape
+  const lockLandscape = () => {
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(err => {
+          console.log('Orientation lock rejected/unsupported:', err);
+        });
+      } else if (screen.lockOrientation) {
+        screen.lockOrientation('landscape');
+      } else if (screen.mozLockOrientation) {
+        screen.mozLockOrientation('landscape');
+      } else if (screen.msLockOrientation) {
+        screen.msLockOrientation('landscape');
+      }
+    } catch (e) {
+      console.warn('Orientation lock failed:', e);
+    }
+  };
+
+  // Unlock orientation
+  const unlockOrientation = () => {
+    try {
+      if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      } else if (screen.unlockOrientation) {
+        screen.unlockOrientation();
+      } else if (screen.mozUnlockOrientation) {
+        screen.mozUnlockOrientation();
+      } else if (screen.msUnlockOrientation) {
+        screen.msUnlockOrientation();
+      }
+    } catch (e) {
+      console.warn('Orientation unlock failed:', e);
+    }
+  };
+
   // Toggle Fullscreen
   const toggleFullscreen = () => {
-    if (!playerContainerRef.current) return;
+    const container = playerContainerRef.current;
+    const video = videoRef.current;
+    if (!container) return;
 
-    if (!document.fullscreenElement) {
-      playerContainerRef.current.requestFullscreen().then(() => {
-        setIsFullscreen(true);
-      }).catch(err => {
-        console.error('Error entering fullscreen:', err);
-      });
+    const requestFS = container.requestFullscreen || 
+                      container.webkitRequestFullscreen || 
+                      container.mozRequestFullScreen || 
+                      container.msRequestFullscreen;
+
+    const exitFS = document.exitFullscreen || 
+                   document.webkitExitFullscreen || 
+                   document.mozCancelFullScreen || 
+                   document.msExitFullscreen;
+
+    if (!document.fullscreenElement && 
+        !document.webkitFullscreenElement && 
+        !document.mozFullScreenElement && 
+        !document.msFullscreenElement) {
+      
+      if (requestFS) {
+        // Try container request first
+        const promise = requestFS.call(container);
+        if (promise) {
+          promise.then(() => {
+            setIsFullscreen(true);
+            lockLandscape();
+          }).catch(err => {
+            // Fallback to video element fullscreen if container request fails
+            if (video && video.webkitEnterFullscreen) {
+              video.webkitEnterFullscreen();
+            } else {
+              console.error('Error entering fullscreen:', err);
+            }
+          });
+        } else {
+          setIsFullscreen(true);
+          lockLandscape();
+        }
+      } else if (video && video.webkitEnterFullscreen) {
+        // Direct iOS Safari fallback on video element
+        video.webkitEnterFullscreen();
+      }
     } else {
-      document.exitFullscreen().then(() => {
-        setIsFullscreen(false);
-      }).catch(err => {
-        console.error('Error exiting fullscreen:', err);
-      });
+      if (exitFS) {
+        const promise = exitFS.call(document);
+        if (promise) {
+          promise.then(() => {
+            setIsFullscreen(false);
+            unlockOrientation();
+          }).catch(err => {
+            console.error('Error exiting fullscreen:', err);
+          });
+        } else {
+          setIsFullscreen(false);
+          unlockOrientation();
+        }
+      }
     }
   };
 
   // Sync fullscreen state
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isFS = !!(document.fullscreenElement || 
+                     document.webkitFullscreenElement || 
+                     document.mozFullScreenElement || 
+                     document.msFullscreenElement);
+      setIsFullscreen(isFS);
+      if (!isFS) {
+        unlockOrientation();
+      }
     };
+    
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
   }, []);
 
   // Format Time (mm:ss)

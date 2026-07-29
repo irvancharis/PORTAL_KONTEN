@@ -108,6 +108,20 @@ export const deleteFirestoreMovie = async (movieId) => {
 };
 
 // Users CRUD
+export const getFirestoreUser = async (userId) => {
+  if (!db) return null;
+  try {
+    const docSnap = await getDoc(doc(db, "users", userId));
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    }
+    return null;
+  } catch (e) {
+    console.error("Error fetching single user from Firestore:", e);
+    return null;
+  }
+};
+
 export const getFirestoreUsers = async () => {
   if (!db) return null;
   try {

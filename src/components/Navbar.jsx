@@ -20,12 +20,30 @@ export default function Navbar({
   confirmations = [],
   withdrawals = [],
   onAdminSubTabChange,
+  adminSubTab,
   events = []
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
   const notificationRef = useRef(null);
+  const mobileMenuRef = useRef(null);
+
+  // Close mobile hamburger dropdown when clicked outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    if (isMobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMobileMenuOpen]);
 
   // Close notification dropdown when clicked outside
   useEffect(() => {
@@ -81,13 +99,18 @@ export default function Navbar({
 
     const isPanitiaOrSuperadmin = currentUser.role === 'panitia' || currentUser.role === 'superadmin';
     const isStafOrSuperadmin = currentUser.role === 'staf' || currentUser.role === 'superadmin';
+    const isPanitia = currentUser.role === 'panitia';
+    const myEvents = isPanitia 
+      ? events.filter(e => e.creator === currentUser.username) 
+      : events;
+    const myEventIds = myEvents.map(e => e.id);
 
     // === ADMIN / PANITIA / STAF NOTIFICATIONS ===
 
     // 1. Pending participants
     if (isPanitiaOrSuperadmin) {
       eventParticipants
-        .filter(p => p.status === 'pending')
+        .filter(p => p.status === 'pending' && (!isPanitia || myEventIds.includes(p.eventId)))
         .forEach(p => {
           list.push({
             id: p.id,
@@ -103,7 +126,7 @@ export default function Navbar({
     // 2. Pending submissions
     if (isPanitiaOrSuperadmin) {
       eventSubmissions
-        .filter(s => s.score === null)
+        .filter(s => s.score === null && (!isPanitia || myEventIds.includes(s.eventId)))
         .forEach(s => {
           list.push({
             id: s.id,
@@ -165,7 +188,7 @@ export default function Navbar({
 
     // 5. Pending event payments (belum bayar biaya event) & pending winner releases (completed)
     if (isPanitiaOrSuperadmin) {
-      events
+      myEvents
         .filter(e => e.paymentStatus !== 'paid')
         .forEach(e => {
           list.push({
@@ -178,7 +201,7 @@ export default function Navbar({
           });
         });
 
-      events
+      myEvents
         .filter(e => {
           const isDeadlinePassed = e.deadline ? (
             e.deadline.includes('T')
@@ -332,57 +355,224 @@ export default function Navbar({
     <header className="navbar glass-panel">
       <div className="navbar-container">
         {/* Left: Menu Hamburger + Logo */}
-        <div className="navbar-left">
+        <div className="navbar-left" ref={mobileMenuRef} style={{ position: 'relative' }}>
           <button 
             className="menu-toggle-btn"
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            aria-label="Toggle sidebar"
+            onClick={() => {
+              if (window.innerWidth <= 768) {
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+              } else {
+                setIsSidebarCollapsed(!isSidebarCollapsed);
+              }
+            }}
+            aria-label="Toggle menu"
           >
             <Menu size={20} />
           </button>
+
+          {isMobileMenuOpen && (
+            <div 
+              className="mobile-hamburger-dropdown glass-panel animate-fade-in"
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 8px)',
+                left: '0',
+                background: '#0a0a0a',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '16px',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                zIndex: 1001,
+                boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 1px 1px rgba(255, 255, 255, 0.05) inset',
+                minWidth: '220px',
+                transformOrigin: 'top left'
+              }}
+            >
+              {currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role) ? (
+                <>
+                  <div style={{ paddingBottom: '6px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Menu Admin</span>
+                  </div>
+                  {(() => {
+                    const getAdminPermissions = (role) => {
+                      if (!role) return [];
+                      const normalizedRole = role.toLowerCase();
+                      const lookupRole = normalizedRole === 'staff' ? 'staf' : normalizedRole;
+
+                      if (lookupRole === 'superadmin') {
+                        return [
+                          'event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace', 'finance-report',
+                          'movies', 'users', 'roles', 'membership', 'gdrive', 'firebase'
+                        ];
+                      }
+                      if (lookupRole === 'staf') {
+                        return ['movies', 'finance-report', 'event-payment', 'creator-marketplace'];
+                      }
+                      if (lookupRole === 'panitia') {
+                        return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'];
+                      }
+                      if (lookupRole === 'moderator') {
+                        return ['finance-report', 'event-payment'];
+                      }
+                      if (lookupRole === 'editor') {
+                        return ['movies'];
+                      }
+                      return [];
+                    };
+
+                    const permissions = getAdminPermissions(currentUser.role);
+                    return [
+                      { id: 'event-dashboard', label: 'Dashboard Event' },
+                      { id: 'event-manage', label: 'Kelola Event' },
+                      { id: 'event-payment', label: 'Verifikasi Pembayaran' },
+                      { id: 'creator-marketplace', label: 'Marketplace Creator' },
+                      { id: 'finance-report', label: 'Laporan Keuangan' },
+                      { id: 'movies', label: 'Kelola Film' },
+                      { id: 'users', label: 'Kelola Pengguna' },
+                      { id: 'roles', label: 'Kelola Role' },
+                      { id: 'membership', label: 'Pengaturan Premium' },
+                      { id: 'gdrive', label: 'Google Drive API Key' },
+                      { id: 'firebase', label: 'Koneksi Firebase' }
+                    ].filter(tab => permissions.includes(tab.id)).map(tab => {
+                      const isTabActive = adminSubTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => {
+                            if (onAdminSubTabChange) onAdminSubTabChange(tab.id);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          style={{
+                            padding: '10px 14px',
+                            background: isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                            border: isTabActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.08)',
+                            borderRadius: '10px',
+                            color: 'white',
+                            fontWeight: '600',
+                            fontSize: '0.82rem',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            width: '100%'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)';
+                          }}
+                        >
+                          {tab.label}
+                        </button>
+                      );
+                    });
+                  })()}
+                </>
+              ) : (
+                <>
+                  <div style={{ paddingBottom: '6px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Menu Utama</span>
+                  </div>
+                  {[
+                    { id: 'discover', label: 'Beranda' },
+                    { id: 'events', label: 'Event Kompetisi' },
+                    { id: 'wallet', label: 'Dompet Saya', requiresUser: true },
+                    { id: 'watchlist', label: 'Daftar Tontonan' },
+                    { id: 'history', label: 'Riwayat Nonton' }
+                  ]
+                    .filter(tab => !tab.requiresUser || currentUser)
+                    .map(tab => {
+                      const isTabActive = activeTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => {
+                            setActiveTab(tab.id);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          style={{
+                            padding: '10px 14px',
+                            background: isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                            border: isTabActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.08)',
+                            borderRadius: '10px',
+                            color: 'white',
+                            fontWeight: '600',
+                            fontSize: '0.82rem',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            width: '100%'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)';
+                          }}
+                        >
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                </>
+              )}
+            </div>
+          )}
           
-          <div className="navbar-logo" onClick={() => {
-            setSelectedGenre(null);
-            setSearchQuery('');
-            setActiveTab('discover');
-          }}>
+          <div 
+            className="navbar-logo" 
+            style={{ display: activeTab === 'admin' ? 'flex' : undefined }}
+            onClick={() => {
+              if (activeTab !== 'admin') {
+                setSelectedGenre(null);
+                setSearchQuery('');
+                setActiveTab('discover');
+              }
+            }}
+          >
             <Film className="logo-icon" />
             <span className="logo-text">FIL<span className="accent-text" style={{ color: 'var(--primary)' }}>MO</span></span>
           </div>
         </div>
 
-        {/* Center: YouTube style Search Bar */}
-        <form 
-          onSubmit={handleSearchSubmit}
-          className={`navbar-search-wrapper ${isSearchFocused ? 'focused' : ''}`}
-        >
-          <div className="search-input-container">
-            <Search className="search-icon-left" size={16} />
-            <input
-              type="text"
-              placeholder="Telusuri film, genre, deskripsi..."
-              value={localInput}
-              onChange={(e) => setLocalInput(e.target.value)}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setIsSearchFocused(false)}
-            />
-            {localInput && (
-              <button 
-                type="button"
-                className="clear-btn" 
-                onClick={() => {
-                  setLocalInput('');
-                  setSearchQuery('');
-                }}
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
-          <button type="submit" className="search-submit-btn" aria-label="Search">
-            <Search size={18} />
-          </button>
-        </form>
+        {/* Center: Search Bar or Admin Header */}
+        {activeTab === 'admin' ? null : (
+          <form 
+            onSubmit={handleSearchSubmit}
+            className={`navbar-search-wrapper ${isSearchFocused ? 'focused' : ''}`}
+          >
+            <div className="search-input-container">
+              <Search className="search-icon-left" size={16} />
+              <input
+                type="text"
+                placeholder="Telusuri film, genre, deskripsi..."
+                value={localInput}
+                onChange={(e) => setLocalInput(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+              />
+              {localInput && (
+                <button 
+                  type="button"
+                  className="clear-btn" 
+                  onClick={() => {
+                    setLocalInput('');
+                    setSearchQuery('');
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+            <button type="submit" className="search-submit-btn" aria-label="Search">
+              <Search size={18} />
+            </button>
+          </form>
+        )}
 
         {/* Right: User Avatar / Login Button */}
         <div className="navbar-right">
@@ -420,7 +610,7 @@ export default function Navbar({
                       e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
                     }}
                   >
-                    <Bell size={18} style={{ color: unreadCount > 0 ? '#a78bfa' : 'var(--text-secondary)' }} />
+                    <Bell size={18} style={{ color: unreadCount > 0 ? 'white' : 'var(--text-secondary)' }} />
                     {unreadCount > 0 && (
                       <span 
                         className="animate-glow-red"
@@ -461,14 +651,14 @@ export default function Navbar({
                         padding: '16px',
                         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.6)',
                         border: '1px solid rgba(255, 255, 255, 0.08)',
-                        background: 'rgba(15, 23, 42, 0.96)',
+                        background: '#0a0a0a',
                         backdropFilter: 'blur(20px)',
                         WebkitBackdropFilter: 'blur(20px)'
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px', marginBottom: '12px' }}>
                         <span style={{ fontWeight: '700', fontSize: '0.88rem', color: 'white' }}>Notifikasi Terbaru</span>
-                        <span style={{ fontSize: '0.7rem', color: '#a78bfa', background: 'rgba(167, 139, 250, 0.12)', padding: '3px 10px', borderRadius: '20px', fontWeight: 'bold', border: '1px solid rgba(167, 139, 250, 0.2)' }}>{unreadCount} Baru</span>
+                        <span style={{ fontSize: '0.7rem', color: 'white', background: 'rgba(255, 255, 255, 0.08)', padding: '3px 10px', borderRadius: '20px', fontWeight: 'bold', border: '1px solid rgba(255, 255, 255, 0.12)' }}>{unreadCount} Baru</span>
                       </div>
                       
                       {notificationsList.length > 0 ? (
@@ -580,7 +770,7 @@ export default function Navbar({
                     height: '24px',
                     borderRadius: '50%',
                     background: 'var(--primary)',
-                    color: 'white',
+                    color: '#020202',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -593,14 +783,20 @@ export default function Navbar({
                 </div>
                 <div className="desktop-only" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                    <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-primary)' }}>{currentUser.username}</span>
-                    <span style={{ fontSize: '0.65rem', color: '#a78bfa', fontWeight: 'bold' }}>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>
                       {currentUser.role === 'member' 
                         ? 'Premium Member' 
                         : currentUser.role === 'superadmin' 
                           ? 'Superadmin' 
                           : currentUser.role === 'staf' 
                             ? 'Staff' 
-                            : 'Regular User'}
+                            : currentUser.role === 'panitia'
+                              ? 'Panitia'
+                              : currentUser.role === 'moderator'
+                                ? 'Moderator'
+                                : currentUser.role === 'editor'
+                                  ? 'Editor'
+                                  : 'Regular User'}
                     </span>
                 </div>
                 <ChevronDown 
@@ -620,7 +816,7 @@ export default function Navbar({
                     position: 'absolute',
                     top: 'calc(100% + 8px)',
                     right: '0',
-                    background: 'rgba(15, 23, 42, 0.93)',
+                    background: '#0a0a0a',
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -642,15 +838,15 @@ export default function Navbar({
                         width: '36px',
                         height: '36px',
                         borderRadius: '50%',
-                        background: 'linear-gradient(135deg, var(--primary), #a78bfa)',
-                        color: 'white',
+                        background: 'var(--primary)',
+                        color: '#020202',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontSize: '1rem',
                         fontWeight: 'bold',
                         textTransform: 'uppercase',
-                        boxShadow: '0 2px 8px rgba(124, 58, 237, 0.3)'
+                        boxShadow: 'none'
                       }}
                     >
                       {currentUser.username.charAt(0)}
@@ -660,14 +856,14 @@ export default function Navbar({
                       <span 
                         style={{ 
                           fontSize: '0.68rem', 
-                          color: currentUser.role === 'member' ? '#c084fc' : '#94a3b8', 
+                          color: 'var(--text-secondary)', 
                           fontWeight: '600',
-                          background: currentUser.role === 'member' ? 'rgba(167, 139, 250, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                          background: 'rgba(255, 255, 255, 0.05)',
                           padding: '2px 8px',
                           borderRadius: '20px',
                           width: 'fit-content',
                           marginTop: '3px',
-                          border: currentUser.role === 'member' ? '1px solid rgba(167, 139, 250, 0.2)' : '1px solid rgba(255, 255, 255, 0.08)'
+                          border: '1px solid rgba(255, 255, 255, 0.08)'
                         }}
                       >
                         {currentUser.role === 'member' 
@@ -676,7 +872,13 @@ export default function Navbar({
                             ? 'Superadmin' 
                             : currentUser.role === 'staf' 
                               ? 'Staff' 
-                              : 'Regular User'}
+                              : currentUser.role === 'panitia'
+                                ? 'Panitia'
+                                : currentUser.role === 'moderator'
+                                  ? 'Moderator'
+                                  : currentUser.role === 'editor'
+                                    ? 'Editor'
+                                    : 'Regular User'}
                       </span>
                     </div>
                   </div>
@@ -695,27 +897,31 @@ export default function Navbar({
                         gap: '8px',
                         width: '100%',
                         padding: '10px 14px',
-                        background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)',
-                        border: 'none',
+                        background: '#ffffff',
+                        border: '1px solid #ffffff',
                         borderRadius: '10px',
-                        color: 'white',
+                        color: '#020202',
                         fontWeight: '700',
                         fontSize: '0.8rem',
                         cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)',
+                        boxShadow: '0 4px 12px rgba(255, 255, 255, 0.1)',
                         transition: 'all 0.2s ease',
                         whiteSpace: 'nowrap'
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'translateY(-1px)';
-                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(124, 58, 237, 0.45)';
+                        e.currentTarget.style.background = '#e5e5e5';
+                        e.currentTarget.style.borderColor = '#e5e5e5';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(255, 255, 255, 0.2)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(124, 58, 237, 0.3)';
+                        e.currentTarget.style.background = '#ffffff';
+                        e.currentTarget.style.borderColor = '#ffffff';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 255, 255, 0.1)';
                       }}
                     >
-                      <Sparkles size={14} style={{ color: '#fbbf24' }} />
+                      <Sparkles size={14} style={{ color: '#020202' }} />
                       <span>Berlangganan Premium</span>
                     </button>
                   )}
@@ -734,21 +940,21 @@ export default function Navbar({
                       width: '100%',
                       padding: '10px 14px', 
                       fontSize: '0.8rem',
-                      color: '#f87171',
-                      background: 'rgba(239, 68, 68, 0.03)',
-                      border: '1px solid rgba(239, 68, 68, 0.15)',
+                      color: '#ffffff',
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
                       borderRadius: '10px',
                       cursor: 'pointer',
                       fontWeight: '600',
                       transition: 'all 0.2s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
-                      e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(239, 68, 68, 0.03)';
-                      e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.15)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
                     }}
                   >
                     <LogOut size={14} />

@@ -25,6 +25,7 @@ import {
   getFirestoreMovies,
   saveFirestoreMovie,
   deleteFirestoreMovie,
+  getFirestoreUser,
   getFirestoreUsers,
   saveFirestoreUser,
   deleteFirestoreUser,
@@ -64,6 +65,7 @@ import {
   Film,
   User,
   X,
+  Play,
   AlertTriangle,
   Trash2
 } from 'lucide-react';
@@ -111,19 +113,47 @@ export default function App() {
       { id: '1', username: 'admin', password: 'admin', role: 'superadmin' },
       { id: '2', username: 'staff', password: 'staff', role: 'staf' },
       { id: '3', username: 'member', password: 'member', role: 'member' },
-      { id: '4', username: 'panitia', password: 'panitia', role: 'panitia' }
+      { id: '4', username: 'panitia', password: 'panitia', role: 'panitia' },
+      { id: '5', username: 'moderator', password: 'moderator', role: 'moderator' },
+      { id: '6', username: 'editor', password: 'editor', role: 'editor' }
     ];
     if (usersList.length === 0) {
       localStorage.setItem('portal-users', JSON.stringify(defaults));
       return defaults;
     } else {
+      let changed = false;
       if (!usersList.some(u => u.username.toLowerCase() === 'panitia')) {
         usersList.push({ id: '4', username: 'panitia', password: 'panitia', role: 'panitia' });
+        changed = true;
+      }
+      if (!usersList.some(u => u.username.toLowerCase() === 'moderator')) {
+        usersList.push({ id: '5', username: 'moderator', password: 'moderator', role: 'moderator' });
+        changed = true;
+      }
+      if (!usersList.some(u => u.username.toLowerCase() === 'editor')) {
+        usersList.push({ id: '6', username: 'editor', password: 'editor', role: 'editor' });
+        changed = true;
+      }
+      if (changed) {
         localStorage.setItem('portal-users', JSON.stringify(usersList));
       }
       return usersList;
     }
   });
+
+  const [customRoles, setCustomRoles] = useState(() => {
+    const saved = localStorage.getItem('portal-custom-roles');
+    return saved ? JSON.parse(saved) : [
+      { id: 'staf', name: 'Staf', permissions: ['movies', 'affiliates', 'confirmations', 'withdrawals'] },
+      { id: 'panitia', name: 'Panitia', permissions: ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'] },
+      { id: 'moderator', name: 'Moderator', permissions: ['confirmations', 'withdrawals'] },
+      { id: 'editor', name: 'Editor', permissions: ['movies', 'affiliates'] }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('portal-custom-roles', JSON.stringify(customRoles));
+  }, [customRoles]);
 
   // Event creator states
   const [events, setEvents] = useState(() => {
@@ -309,6 +339,16 @@ export default function App() {
     return saved ? JSON.parse(saved) : null;
   });
 
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Save current user changes
   useEffect(() => {
     if (currentUser) {
@@ -318,25 +358,30 @@ export default function App() {
     }
   }, [currentUser]);
 
-  // Automatic premium membership expiration check (30 days limit)
+  // Automatic premium membership expiration check (30 days limit) for current user
   useEffect(() => {
-    const now = Date.now();
-    const expiredUsers = users.filter(u => (u.role === 'member' || u.role === 'pro') && u.premiumExpiresAt && now > u.premiumExpiresAt);
-    if (expiredUsers.length > 0) {
-      handleSetUsers(prev => prev.map(u => {
-        if ((u.role === 'member' || u.role === 'pro') && u.premiumExpiresAt && now > u.premiumExpiresAt) {
-          const updated = { ...u, role: 'user', premiumExpiresAt: null };
-          // If the currently logged in user is one of the expired users, update currentUser state
-          if (currentUser && currentUser.id === u.id) {
-            setTimeout(() => {
-              setCurrentUser(updated);
-              alert("Masa aktif berlangganan Premium Anda telah habis (30 Hari). Status akun Anda dikembalikan menjadi user biasa.");
-            }, 100);
-          }
-          return updated;
+    if (currentUser && (currentUser.role === 'member' || currentUser.role === 'pro') && currentUser.premiumExpiresAt) {
+      const now = Date.now();
+      if (now > currentUser.premiumExpiresAt) {
+        const updated = { ...currentUser, role: 'user', premiumExpiresAt: null };
+        setCurrentUser(updated);
+        if (isFirebaseConfigured()) {
+          saveFirestoreUser(updated);
+        } else {
+          handleSetUsers(prev => prev.map(u => u.id === currentUser.id ? updated : u));
         }
-        return u;
-      }));
+        alert("Masa aktif berlangganan Premium Anda telah habis (30 Hari). Status akun Anda dikembalikan menjadi user biasa.");
+      }
+    }
+  }, [currentUser]);
+
+  // Sync currentUser with latest user details from users list (for offline mode)
+  useEffect(() => {
+    if (!isFirebaseConfigured() && currentUser && users.length > 0) {
+      const latestUser = users.find(u => u.id === currentUser.id);
+      if (latestUser && JSON.stringify(latestUser) !== JSON.stringify(currentUser)) {
+        setCurrentUser(latestUser);
+      }
     }
   }, [users, currentUser]);
 
@@ -416,9 +461,33 @@ export default function App() {
         setLoginError('');
       } catch (err) {
         // Fallback: Check if user exists in the Firestore database users list (e.g. legacy username-only account)
-        const foundUser = users.find(
-          u => u.username.toLowerCase() === emailOrUser.toLowerCase() && u.password === password
-        );
+        let foundUser = null;
+        try {
+          const { collection, query, where, getDocs } = await import("firebase/firestore");
+          // Check by username
+          let q = query(collection(db, "users"), where("username", "==", emailOrUser));
+          let querySnapshot = await getDocs(q);
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.password === password) {
+              foundUser = { id: doc.id, ...data };
+            }
+          });
+          // If not found and input contains '@', check by email
+          if (!foundUser && emailOrUser.includes('@')) {
+            q = query(collection(db, "users"), where("email", "==", emailOrUser));
+            querySnapshot = await getDocs(q);
+            querySnapshot.forEach((doc) => {
+              const data = doc.data();
+              if (data.password === password) {
+                foundUser = { id: doc.id, ...data };
+              }
+            });
+          }
+        } catch (dbErr) {
+          console.error("Firestore legacy user check failed:", dbErr);
+        }
+
         if (foundUser) {
           setCurrentUser(foundUser);
           setIsLoginModalOpen(false);
@@ -504,7 +573,7 @@ export default function App() {
             organizerName: organizerName.trim(),
             organizerPhone: organizerPhone.trim(),
             organizerDescription: organizerDescription.trim(),
-            organizerAvatar: organizerAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(organizerName.trim())}`
+            organizerAvatar: organizerAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(organizerName.trim())}&backgroundColor=262626&textColor=ffffff`
           } : {})
         };
         await saveFirestoreUser(newUser);
@@ -541,7 +610,7 @@ export default function App() {
           organizerName: organizerName.trim(),
           organizerPhone: organizerPhone.trim(),
           organizerDescription: organizerDescription.trim(),
-          organizerAvatar: organizerAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(organizerName.trim())}`
+          organizerAvatar: organizerAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(organizerName.trim())}&backgroundColor=262626&textColor=ffffff`
         } : {})
       };
       await handleSetUsers(prev => [...prev, newUser]);
@@ -583,12 +652,14 @@ export default function App() {
       } catch (err) {
         console.error("Firebase Signout failed:", err);
       }
-    } else {
-      setCurrentUser(null);
     }
-    if (activeTab === 'admin') {
-      handleTabChange('discover');
-    }
+    setCurrentUser(null);
+    localStorage.removeItem('portal-current-user');
+    setActiveTab('discover');
+    setIsPlaying(false);
+    setSelectedMovie(null);
+    window.location.hash = '';
+    window.history.pushState("", document.title, window.location.pathname + window.location.search);
   };
 
   // Fetch initial data from Firestore if configured
@@ -671,7 +742,6 @@ export default function App() {
           console.log("Fetching one-time Firestore snapshot for collections...");
           const [
             dbMovies,
-            dbUsers,
             dbConfirmations,
             dbEvents,
             dbParticipants,
@@ -680,7 +750,6 @@ export default function App() {
             dbOffers
           ] = await Promise.all([
             getFirestoreMovies(),
-            getFirestoreUsers(),
             getFirestoreConfirmations(),
             getFirestoreEvents(),
             getFirestoreEventParticipants(),
@@ -690,18 +759,16 @@ export default function App() {
           ]);
  
           if (dbMovies) setMovies(dbMovies);
-          if (dbUsers) {
-            setUsers(dbUsers);
-            if (currentUser) {
-              const updatedMe = dbUsers.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
-              if (updatedMe) {
-                setCurrentUser(prev => {
-                  if (prev && JSON.stringify(prev) !== JSON.stringify(updatedMe)) {
-                    return updatedMe;
-                  }
-                  return prev;
-                });
-              }
+          
+          if (currentUser) {
+            const updatedMe = await getFirestoreUser(currentUser.id);
+            if (updatedMe) {
+              setCurrentUser(prev => {
+                if (prev && JSON.stringify(prev) !== JSON.stringify(updatedMe)) {
+                  return updatedMe;
+                }
+                return prev;
+              });
             }
           }
           if (dbConfirmations) setConfirmations(dbConfirmations);
@@ -732,18 +799,10 @@ export default function App() {
       if (firebaseUser) {
         console.log("Firebase user logged in:", firebaseUser.email);
         
-        let currentDbUsers = [];
-        const dbUsers = await getFirestoreUsers();
-        if (dbUsers) {
-          currentDbUsers = dbUsers;
-        }
-
-        const emailLower = firebaseUser.email.toLowerCase();
-        let matchedUser = currentDbUsers.find(
-          u => (u.email && u.email.toLowerCase() === emailLower) || u.username.toLowerCase() === emailLower.split('@')[0]
-        );
+        let matchedUser = await getFirestoreUser(firebaseUser.uid);
 
         if (!matchedUser) {
+          const emailLower = firebaseUser.email.toLowerCase();
           let targetRole = 'user';
           if (emailLower === 'admin@gmail.com' || emailLower === 'admin@jamkosong.web.app' || emailLower.startsWith('admin@')) {
             targetRole = 'superadmin';
@@ -1222,6 +1281,27 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Disable pinch-to-zoom and gesture zoom on mobile devices (especially iOS Safari)
+  useEffect(() => {
+    const handleTouchStart = (event) => {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+    };
+
+    const handleGestureStart = (event) => {
+      event.preventDefault();
+    };
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.addEventListener('gesturestart', handleGestureStart);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('gesturestart', handleGestureStart);
+    };
+  }, []);
+
   // Close player and return to catalog if user searches
   useEffect(() => {
     if (searchQuery.trim() !== '') {
@@ -1237,21 +1317,63 @@ export default function App() {
     setHistory(savedHistory);
   }, []);
 
-  // 1. Initial Hash Route for Tabs (runs immediately on mount)
+  // Helper to change admin sub-tab and update URL hash
+  const handleAdminSubTabChange = (subTabId) => {
+    setAdminSubTab(subTabId);
+    if (activeTab === 'admin') {
+      window.location.hash = `#admin/${subTabId}`;
+    }
+  };
+
+  // 1. Initial Hash Route for Tabs (runs immediately on mount or user change)
   useEffect(() => {
+    if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role)) {
+      setActiveTab('admin');
+      window.location.hash = `#admin/${adminSubTab}`;
+      return;
+    }
     const hash = window.location.hash;
     if (hash) {
-      const tabId = hash.replace('#', '');
-      if (['discover', 'watchlist', 'history', 'admin'].includes(tabId)) {
-        setActiveTab(tabId);
+      const parts = hash.replace('#', '').split('/');
+      const tabId = parts[0];
+      const subTabId = parts[1];
+      if (['discover', 'events', 'wallet', 'watchlist', 'history', 'admin'].includes(tabId)) {
+        if (tabId === 'admin') {
+          setActiveTab('discover');
+          window.location.hash = '';
+        } else {
+          setActiveTab(tabId);
+          if (tabId === 'admin' && subTabId) {
+            setAdminSubTab(subTabId);
+          }
+        }
       }
     }
-  }, []);
+  }, [currentUser]);
 
   // 2. Hash-based Router & Event Listener
   useEffect(() => {
     const handleHashRoute = () => {
       const hash = window.location.hash;
+      
+      // Enforce admin panel routing for admin users
+      if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role)) {
+        setActiveTab('admin');
+        setIsPlaying(false);
+        setSelectedMovie(null);
+        if (hash) {
+          const parts = hash.replace('#', '').split('/');
+          const tabId = parts[0];
+          const subTabId = parts[1];
+          if (tabId === 'admin' && subTabId) {
+            setAdminSubTab(subTabId);
+          }
+        } else {
+          window.location.hash = `#admin/${adminSubTab}`;
+        }
+        return;
+      }
+
       if (hash) {
         if (hash.startsWith('#play=')) {
           const movieId = hash.replace('#play=', '').split('&')[0];
@@ -1261,16 +1383,27 @@ export default function App() {
             setIsPlaying(true);
           }
         } else {
-          // If hash matches a tab name
-          const tabId = hash.replace('#', '');
-          if (['discover', 'watchlist', 'history', 'admin'].includes(tabId)) {
-            setActiveTab(tabId);
-            setIsPlaying(false);
-            setSelectedMovie(null);
+          // Parse tabId and subTabId
+          const parts = hash.replace('#', '').split('/');
+          const tabId = parts[0];
+          const subTabId = parts[1];
+          if (['discover', 'events', 'wallet', 'watchlist', 'history', 'admin'].includes(tabId)) {
+            if (tabId === 'admin') {
+              setActiveTab('discover');
+              window.location.hash = '';
+            } else {
+              setActiveTab(tabId);
+              setIsPlaying(false);
+              setSelectedMovie(null);
+              if (tabId === 'admin' && subTabId) {
+                setAdminSubTab(subTabId);
+              }
+            }
           }
         }
       } else {
-        // If hash is empty, return to current active tab state
+        // If hash is empty, return to discover/home
+        setActiveTab('discover');
         setIsPlaying(false);
         setSelectedMovie(null);
       }
@@ -1281,16 +1414,26 @@ export default function App() {
     }
     window.addEventListener('hashchange', handleHashRoute);
     return () => window.removeEventListener('hashchange', handleHashRoute);
-  }, [movies]);
+  }, [movies, currentUser, adminSubTab]);
 
   // Handle Tab Change and update URL hash
   function handleTabChange(tabId) {
+    if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role)) {
+      setActiveTab('admin');
+      setIsPlaying(false);
+      setSelectedMovie(null);
+      window.location.hash = `#admin/${adminSubTab}`;
+      return;
+    }
+    
     setActiveTab(tabId);
     setIsPlaying(false);
     setSelectedMovie(null);
     if (tabId === 'discover') {
       // Clear hash for discover/home
       window.history.pushState("", document.title, window.location.pathname + window.location.search);
+    } else if (tabId === 'admin') {
+      window.location.hash = `#admin/${adminSubTab}`;
     } else {
       window.location.hash = `#${tabId}`;
     }
@@ -1508,6 +1651,18 @@ export default function App() {
     return views;
   };
 
+  const isPanitia = currentUser && currentUser.role === 'panitia';
+  const sidebarEvents = isPanitia 
+    ? events.filter(e => e.creator === currentUser.username) 
+    : events;
+  const sidebarEventIds = sidebarEvents.map(e => e.id);
+  const sidebarParticipants = isPanitia 
+    ? eventParticipants.filter(p => sidebarEventIds.includes(p.eventId)) 
+    : eventParticipants;
+  const sidebarSubmissions = isPanitia 
+    ? eventSubmissions.filter(s => sidebarEventIds.includes(s.eventId)) 
+    : eventSubmissions;
+
   return (
     <div className={`app-container youtube-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       {/* Header */}
@@ -1529,30 +1684,31 @@ export default function App() {
         eventSubmissions={eventSubmissions}
         confirmations={confirmations}
         withdrawals={withdrawals}
-        onAdminSubTabChange={setAdminSubTab}
+        onAdminSubTabChange={handleAdminSubTabChange}
+        adminSubTab={adminSubTab}
         events={events}
       />
 
       <div className="app-body-wrapper">
         {/* Left Sidebar (Desktop) */}
-        {activeTab === 'admin' ? (
+        {!isMobile && (activeTab === 'admin' ? (
           <AdminSidebar 
             adminSubTab={adminSubTab}
-            setAdminSubTab={setAdminSubTab}
+            setAdminSubTab={handleAdminSubTabChange}
             isCollapsed={isSidebarCollapsed}
             setIsCollapsed={setIsSidebarCollapsed}
             currentUser={currentUser}
             onBackToPortal={() => handleTabChange('discover')}
-            pendingParticipantsCount={eventParticipants.filter(p => p.status === 'pending').length}
-            pendingSubmissionsCount={eventSubmissions.filter(s => s.score === null).length}
+            pendingParticipantsCount={sidebarParticipants.filter(p => p.status === 'pending').length}
+            pendingSubmissionsCount={sidebarSubmissions.filter(s => s.score === null).length}
             pendingConfirmationsCount={
               confirmations.filter(c => c.status === 'pending').length +
-              events.filter(e => e.paymentStatus === 'pending_verification').length
+              sidebarEvents.filter(e => e.paymentStatus === 'pending_verification').length
             }
             pendingWithdrawalsCount={withdrawals.filter(w => w.status === 'pending').length}
             pendingEventsCount={
-              events.filter(e => e.paymentStatus !== 'paid').length +
-              events.filter(e => {
+              sidebarEvents.filter(e => e.paymentStatus !== 'paid').length +
+              sidebarEvents.filter(e => {
                 const isDeadlinePassed = e.deadline ? (
                   e.deadline.includes('T')
                     ? new Date().getTime() > new Date(e.deadline).getTime()
@@ -1561,6 +1717,7 @@ export default function App() {
                 return e.budgetMode === 'ranking' && e.paymentStatus === 'paid' && !e.winnersReleased && isDeadlinePassed;
               }).length
             }
+            customRoles={customRoles}
           />
         ) : (
           <Sidebar 
@@ -1572,11 +1729,11 @@ export default function App() {
             watchlistCount={watchlist.length}
             currentUser={currentUser}
           />
-        )}
+        ))}
 
         {/* Main Content Area */}
         <main className="main-content">
-          {activeTab === 'admin' && currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'staf' || currentUser.role === 'panitia') ? (
+          {activeTab === 'admin' && currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role) ? (
             <AdminPanel 
               movies={movies} 
               setMovies={handleSetMovies} 
@@ -1598,7 +1755,7 @@ export default function App() {
               onSaveSettings={handleSaveSettings}
               
               adminSubTab={adminSubTab}
-              setAdminSubTab={setAdminSubTab}
+              setAdminSubTab={handleAdminSubTabChange}
               events={events}
               setEvents={handleSetEvents}
               eventParticipants={eventParticipants}
@@ -1614,6 +1771,8 @@ export default function App() {
               setMinWithdrawalAmount={setMinWithdrawalAmount}
               eventAdminFee={eventAdminFee}
               setEventAdminFee={setEventAdminFee}
+              customRoles={customRoles}
+              setCustomRoles={setCustomRoles}
             />
           ) : activeTab === 'wallet' ? (
             <WalletUserPortal 
@@ -1632,8 +1791,8 @@ export default function App() {
               onLoginClick={(mode, role, isLocked) => handleOpenLoginModal(mode, role, isLocked)}
               onLogout={handleLogout}
               onCreateEventRedirect={() => {
-                setActiveTab('admin');
-                setAdminSubTab('event-manage');
+                handleTabChange('admin');
+                handleAdminSubTabChange('event-manage');
               }}
               events={events}
               eventParticipants={eventParticipants}
@@ -1733,8 +1892,13 @@ export default function App() {
                         className="sidebar-rec-item"
                         onClick={() => handleMovieSelect(movie)}
                       >
-                        <div className="sidebar-rec-thumbnail">
+                        <div className="sidebar-rec-thumbnail" style={{ position: 'relative' }}>
                           <img src={movie.backdrop} alt={movie.title} />
+                          <div className="thumbnail-hover-overlay">
+                            <div className="play-circle-small" style={{ width: '32px', height: '32px' }}>
+                              <Play fill="currentColor" size={14} />
+                            </div>
+                          </div>
                           <span className="rec-duration-badge">{movie.duration}</span>
                         </div>
                         <div className="sidebar-rec-info">
@@ -1933,7 +2097,7 @@ export default function App() {
               {isLoadingDB ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '16px' }}>
                   <div style={{ width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.05)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                  <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Memuat data dari Firestore...</span>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Memuat data...</span>
                 </div>
               ) : filteredMovies.length > 0 ? (
                 <React.Fragment>
@@ -1951,28 +2115,37 @@ export default function App() {
                     <div style={{ display: 'flex', justifyContent: 'center', marginTop: '32px', marginBottom: '16px' }}>
                       <button 
                         onClick={() => setVisibleMoviesCount(prev => prev + 12)}
-                        className="btn"
+                        title="Muat Lebih Banyak"
                         style={{
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          border: '1px solid rgba(255, 255, 255, 0.1)',
-                          padding: '12px 32px',
-                          borderRadius: '30px',
-                          color: 'var(--text-primary)',
-                          fontWeight: 'bold',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          width: '44px',
+                          height: '44px',
+                          borderRadius: '50%',
+                          color: 'rgba(255, 255, 255, 0.8)',
                           cursor: 'pointer',
-                          transition: 'all 0.3s ease',
-                          fontSize: '0.9rem'
+                          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                          e.currentTarget.style.color = '#ffffff';
                           e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.15)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                          e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
                           e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
                         }}
                       >
-                        Muat Lebih Banyak
+                        <ChevronDown size={20} />
                       </button>
                     </div>
                   )}
@@ -2013,6 +2186,8 @@ export default function App() {
         setActiveTab={handleTabChange}
         setSelectedGenre={setSelectedGenre}
         currentUser={currentUser}
+        adminSubTab={adminSubTab}
+        onAdminSubTabChange={handleAdminSubTabChange}
       />
 
       {/* Premium Subscription Modal */}
@@ -2028,7 +2203,7 @@ export default function App() {
       />
 
       {/* Login / Register Modal - Restructured to Full Page */}
-      {isLoginModalOpen && (
+       {isLoginModalOpen && (
         <div 
           className="full-page-login-container animate-fade-in" 
           style={{
@@ -2038,12 +2213,12 @@ export default function App() {
             width: '100vw',
             height: '100vh',
             zIndex: 100000,
-            background: '#070a13',
-            backgroundImage: 'radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.15) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(239, 68, 68, 0.1) 0%, transparent 40%)',
+            background: '#020202',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '40px 24px',
+            padding: '24px 16px 120px 16px',
+            boxSizing: 'border-box',
             overflowY: 'auto'
           }}
         >
@@ -2057,10 +2232,10 @@ export default function App() {
           }}>
           {/* Logo Brand Header */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-            <div style={{ background: 'linear-gradient(135deg, #fe2c55, #7c3aed)', padding: '8px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(254, 44, 85, 0.3)' }}>
-              <Film size={24} color="white" />
+            <div style={{ background: '#ffffff', padding: '8px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Film size={24} color="black" />
             </div>
-            <span style={{ fontSize: '1.6rem', fontWeight: '900', letterSpacing: '1.5px', background: 'linear-gradient(to right, #ffffff, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>FILMO</span>
+            <span style={{ fontSize: '1.6rem', fontWeight: '900', letterSpacing: '1.5px', color: '#ffffff' }}>FILMO</span>
           </div>
 
           {/* Login Card */}
@@ -2071,17 +2246,15 @@ export default function App() {
               maxWidth: loginModalMode === 'register' && registerRole === 'panitia' ? '680px' : '400px',
               padding: '32px 28px',
               borderRadius: '16px',
-              background: 'rgba(15, 23, 42, 0.65)',
-              backdropFilter: 'blur(20px)',
+              background: '#020202',
               border: '1px solid rgba(255, 255, 255, 0.08)',
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
               position: 'relative',
               transition: 'all 0.3s ease'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <User size={18} className="accent-text" style={{ color: 'var(--primary)' }} />
+                <User size={18} className="accent-text" style={{ color: '#ffffff' }} />
                 <span>{loginModalMode === 'login' ? 'Masuk Akun' : 'Daftar Akun Baru'}</span>
               </h3>
               <button 
@@ -2104,14 +2277,14 @@ export default function App() {
               <button 
                 type="button"
                 onClick={() => { setLoginModalMode('login'); setLoginError(''); }}
-                style={{ flex: 1, padding: '10px', background: 'transparent', border: 'none', borderBottom: loginModalMode === 'login' ? '2px solid var(--primary-color)' : 'none', color: loginModalMode === 'login' ? 'white' : 'var(--text-secondary)', fontWeight: '600', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '10px', background: 'transparent', border: 'none', borderBottom: loginModalMode === 'login' ? '2px solid #ffffff' : 'none', color: loginModalMode === 'login' ? 'white' : 'var(--text-secondary)', fontWeight: '600', cursor: 'pointer' }}
               >
                 Masuk
               </button>
               <button 
                 type="button"
                 onClick={() => { setLoginModalMode('register'); setLoginError(''); }}
-                style={{ flex: 1, padding: '10px', background: 'transparent', border: 'none', borderBottom: loginModalMode === 'register' ? '2px solid var(--primary-color)' : 'none', color: loginModalMode === 'register' ? 'white' : 'var(--text-secondary)', fontWeight: '600', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '10px', background: 'transparent', border: 'none', borderBottom: loginModalMode === 'register' ? '2px solid #ffffff' : 'none', color: loginModalMode === 'register' ? 'white' : 'var(--text-secondary)', fontWeight: '600', cursor: 'pointer' }}
               >
                 Daftar
               </button>
@@ -2266,8 +2439,8 @@ export default function App() {
                             cursor: loginModalLockedRole !== null ? 'not-allowed' : 'default'
                           }}
                         >
-                          <option value="user" style={{ background: '#0f172a' }}>Regular User / Content Creator</option>
-                          <option value="panitia" style={{ background: '#0f172a' }}>Panitia / Event Creator</option>
+                          <option value="user" style={{ background: '#020202' }}>Regular User / Content Creator</option>
+                          <option value="panitia" style={{ background: '#020202' }}>Panitia / Event Creator</option>
                         </select>
                       </div>
                     </div>
@@ -2523,8 +2696,8 @@ export default function App() {
                           cursor: loginModalLockedRole !== null ? 'not-allowed' : 'default'
                         }}
                       >
-                        <option value="user" style={{ background: '#0f172a' }}>Regular User / Content Creator</option>
-                        <option value="panitia" style={{ background: '#0f172a' }}>Panitia / Event Creator</option>
+                        <option value="user" style={{ background: '#020202' }}>Regular User / Content Creator</option>
+                        <option value="panitia" style={{ background: '#020202' }}>Panitia / Event Creator</option>
                       </select>
                     </div>
                   </>

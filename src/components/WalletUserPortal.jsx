@@ -379,14 +379,28 @@ export default function WalletUserPortal({
 
       {/* Withdrawal Form Modal */}
       {isWdModalOpen && createPortal(
-        <div className="admin-modal-overlay d-flex-center animate-fade-in" style={{ zIndex: 10200 }} onClick={() => setIsWdModalOpen(false)}>
-          <div className="admin-confirm-modal glass-panel" style={{ maxWidth: '420px', width: '90%', padding: '24px', textAlign: 'left' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: '#020202',
+          zIndex: 10200,
+          overflowY: 'auto',
+          padding: '40px 24px',
+          color: 'var(--text-primary)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }} className="animate-fade-in">
+          <div style={{ width: '100%', maxWidth: '640px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
               <h3 style={{ margin: 0, color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Wallet size={20} style={{ color: '#c084fc' }} />
+                <Wallet size={20} style={{ color: '#ffffff' }} />
                 <span>Tarik Saldo Dompet</span>
               </h3>
-              <button onClick={() => setIsWdModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><XCircle size={20} /></button>
+              <button onClick={() => setIsWdModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><XCircle size={22} /></button>
             </div>
             
             <form onSubmit={handleWithdrawClick} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -400,7 +414,7 @@ export default function WalletUserPortal({
                 <select 
                   value={wdMethod} 
                   onChange={(e) => setWdMethod(e.target.value)}
-                  style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }}
+                  style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }}
                 >
                   <option value="Dana">Dana</option>
                   <option value="GoPay">GoPay</option>
@@ -417,7 +431,7 @@ export default function WalletUserPortal({
                   value={wdAccount} 
                   onChange={(e) => setWdAccount(e.target.value.replace(/\D/g, ''))} 
                   placeholder="Contoh: 0812XXXXXXXX / No Rek" 
-                  style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
+                  style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
                 />
               </div>
 
@@ -429,7 +443,7 @@ export default function WalletUserPortal({
                   value={wdName} 
                   onChange={(e) => setWdName(e.target.value)} 
                   placeholder="Masukkan nama lengkap pemilik akun" 
-                  style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
+                  style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
                 />
               </div>
 
@@ -444,7 +458,7 @@ export default function WalletUserPortal({
                     setWdAmount(parsed ? parseInt(parsed) : 0);
                   }} 
                   placeholder="Masukkan nominal, cth: 50.000" 
-                  style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
+                  style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
                 />
                 <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                   Batas minimal penarikan: <strong>Rp {minWithdrawalAmount.toLocaleString('id-ID')}</strong>
@@ -452,18 +466,18 @@ export default function WalletUserPortal({
               </div>
 
               <div className="form-group" style={{ marginTop: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', color: '#f87171', fontSize: '0.85rem', fontWeight: '600' }}>Verifikasi Keamanan: Password Akun</label>
+                <label style={{ display: 'block', marginBottom: '6px', color: '#ffffff', fontSize: '0.85rem', fontWeight: '600' }}>Verifikasi Keamanan: Password Akun</label>
                 <input 
                   type="password" 
                   required 
                   value={wdPassword} 
                   onChange={(e) => setWdPassword(e.target.value)} 
                   placeholder="Masukkan password akun Anda untuk verifikasi" 
-                  style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid rgba(248, 113, 113, 0.4)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
+                  style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
                 <button 
                   type="button" 
                   className="btn btn-secondary" 

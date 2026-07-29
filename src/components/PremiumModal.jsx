@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, AlertTriangle, Check, X } from 'lucide-react';
+import { Sparkles, AlertTriangle, Check, X, XCircle } from 'lucide-react';
 
 export default function PremiumModal({
   isOpen,
@@ -101,38 +101,57 @@ export default function PremiumModal({
   const pendingConf = hasPending ? confirmations.find(c => c.userId === currentUser.id && c.status === 'pending') : null;
 
   return (
-    <div className="admin-modal-overlay d-flex-center animate-fade-in" style={{ zIndex: 10000 }} onClick={onClose}>
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      background: '#020202',
+      zIndex: 10000,
+      overflowY: 'auto',
+      padding: '40px 24px',
+      color: 'var(--text-primary)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center'
+    }} className="animate-fade-in" onClick={onClose}>
       <div 
-        className="admin-confirm-modal glass-panel" 
+        className="admin-modal glass-panel" 
         style={{ 
-          maxWidth: hasPending ? '450px' : (checkoutStep === 'plans' ? '450px' : '450px'), 
-          width: '90%', 
-          padding: '30px 24px', 
+          background: '#020202',
           textAlign: 'center',
-          position: 'relative'
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          border: 'none',
+          boxShadow: 'none'
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
-        <button 
-          onClick={onClose}
-          style={{
-            position: 'absolute',
-            top: '16px',
-            right: '16px',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--text-secondary)',
-            cursor: 'pointer',
-            padding: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-          aria-label="Tutup"
-        >
-          <X size={20} />
-        </button>
+        <div style={{ width: '100%', maxWidth: '640px' }}>
+          {/* Close Button */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            <button 
+              onClick={onClose}
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                color: 'var(--text-secondary)',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              aria-label="Tutup"
+            >
+              <XCircle size={18} />
+            </button>
+          </div>
 
         {hasPending ? (
           <div style={{ padding: '10px 0' }}>
@@ -555,6 +574,7 @@ export default function PremiumModal({
             )}
           </>
         )}
+        </div>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useRef
 } from 'react';
+import { isFirebaseConfigured, db } from '../firebase';
 import { createPortal } from 'react-dom';
 import { 
   Plus, 
@@ -14,6 +15,7 @@ import {
   Calendar, 
   Flag, 
   X, 
+  XCircle,
   Search, 
   Sparkles,
   Clock,
@@ -32,7 +34,11 @@ import {
   Wallet,
   Info,
   ArrowLeft,
-  Send
+  Send,
+  Shield,
+  ShieldCheck,
+  TrendingUp,
+  ChevronDown
 } from 'lucide-react';
 
 const formatIndonesianDate = (dateString) => {
@@ -74,6 +80,48 @@ const formatInputCurrency = (num) => {
 };
 
 
+const getCategoryBadgeStyle = (category) => {
+  return {
+    bg: 'rgba(255, 255, 255, 0.05)',
+    color: '#ffffff',
+    border: '1px solid rgba(255, 255, 255, 0.2)'
+  };
+};
+
+
+const getDefaultPermissions = (role, customRoles = []) => {
+  if (!role) return [];
+  const normalizedRole = role.toLowerCase();
+  const lookupRole = normalizedRole === 'staff' ? 'staf' : normalizedRole;
+
+  // Check custom roles list first
+  const customRole = customRoles.find(r => 
+    r.id?.toLowerCase() === lookupRole || 
+    r.name?.toLowerCase() === lookupRole
+  );
+  if (customRole) return customRole.permissions;
+
+  if (lookupRole === 'superadmin') {
+    return [
+      'movies', 'affiliates', 'membership', 'confirmations', 'withdrawals', 'users', 'roles',
+      'event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace', 'finance-report'
+    ];
+  }
+  if (lookupRole === 'staf') {
+    return ['movies', 'affiliates', 'confirmations', 'withdrawals', 'finance-report'];
+  }
+  if (lookupRole === 'panitia') {
+    return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'];
+  }
+  if (lookupRole === 'moderator') {
+    return ['confirmations', 'withdrawals', 'finance-report'];
+  }
+  if (lookupRole === 'editor') {
+    return ['movies', 'affiliates'];
+  }
+  return [];
+};
+
 export default function AdminPanel({ 
   movies, 
   setMovies, 
@@ -110,9 +158,40 @@ export default function AdminPanel({
   minWithdrawalAmount = 50000,
   setMinWithdrawalAmount,
   eventAdminFee = 0,
-  setEventAdminFee
+  setEventAdminFee,
+  customRoles = [],
+  setCustomRoles
 }) {
+  const isPanitia = currentUser && currentUser.role === 'panitia';
+  const myEvents = isPanitia 
+    ? events.filter(e => e.creator === currentUser.username) 
+    : events;
+  const myEventIds = myEvents.map(e => e.id);
+  const myParticipants = isPanitia 
+    ? eventParticipants.filter(p => myEventIds.includes(p.eventId)) 
+    : eventParticipants;
+  const mySubmissions = isPanitia 
+    ? eventSubmissions.filter(s => myEventIds.includes(s.eventId)) 
+    : eventSubmissions;
+
+  const hasPermission = (tabId) => {
+    if (currentUser?.role === 'superadmin') return true;
+    
+    const lookupRole = currentUser?.role?.toLowerCase() === 'staff' ? 'staf' : currentUser?.role?.toLowerCase();
+    const customRole = customRoles.find(r => 
+      r.id?.toLowerCase() === lookupRole || 
+      r.name?.toLowerCase() === lookupRole
+    );
+    if (customRole) {
+      return customRole.permissions.includes(tabId);
+    }
+
+    const userPerms = currentUser?.permissions || getDefaultPermissions(currentUser?.role, customRoles);
+    return userPerms.includes(tabId);
+  };
+
   // Local state
+  const [userViewMode, setUserViewMode] = useState('list'); // 'list' | 'add'
   const [zoomedReceipt, setZoomedReceipt] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleActivitiesCount, setVisibleActivitiesCount] = useState(6);
@@ -126,13 +205,193 @@ export default function AdminPanel({
   const [offerMessage, setOfferMessage] = useState('');
   const [marketplaceSearch, setMarketplaceSearch] = useState('');
   const [marketplaceLevelFilter, setMarketplaceLevelFilter] = useState('All');
+  const [viewingCreatorProfile, setViewingCreatorProfile] = useState(null);
 
   // Payment local states
   const [visiblePaymentsCount, setVisiblePaymentsCount] = useState(10);
 
   const [editingMovie, setEditingMovie] = useState(null); // null means adding a new movie
   const [editingUser, setEditingUser] = useState(null); // null means not editing any user
+  const [editingRole, setEditingRole] = useState(null); // null means not editing any role
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [userFilter, setUserFilter] = useState('all'); // 'all' | 'internal' | 'external'
+  const [userSearch, setUserSearch] = useState('');
+
+  // Pemasukan Saldo (Confirmations) States
+  const [confirmationSearch, setConfirmationSearch] = useState('');
+  const [confirmationStatusFilter, setConfirmationStatusFilter] = useState('all');
+  const [confirmationTypeFilter, setConfirmationTypeFilter] = useState('all');
+
+  // Penarikan Saldo (Withdrawals) States
+  const [withdrawalSearch, setWithdrawalSearch] = useState('');
+  const [withdrawalStatusFilter, setWithdrawalStatusFilter] = useState('all');
+
+  // Date range filter states
+  const [confirmationStartDate, setConfirmationStartDate] = useState('');
+  const [confirmationEndDate, setConfirmationEndDate] = useState('');
+  const [withdrawalStartDate, setWithdrawalStartDate] = useState('');
+  const [withdrawalEndDate, setWithdrawalEndDate] = useState('');
+
+  const [loadedUsers, setLoadedUsers] = useState([]);
+  const [hasMoreUsers, setHasMoreUsers] = useState(true);
+  const [isLoadingMoreUsers, setIsLoadingMoreUsers] = useState(false);
+  const [lastUserDoc, setLastUserDoc] = useState(null);
+
+  const [loadedCreators, setLoadedCreators] = useState([]);
+  const [hasMoreCreators, setHasMoreCreators] = useState(true);
+  const [isLoadingMoreCreators, setIsLoadingMoreCreators] = useState(false);
+  const [lastCreatorDoc, setLastCreatorDoc] = useState(null);
+
+  const loadMoreCreators = async (isFirstLoad = false) => {
+    if (isLoadingMoreCreators) return;
+    setIsLoadingMoreCreators(true);
+
+    const batchSize = 10;
+    const currentList = isFirstLoad ? [] : loadedCreators;
+    const lastDoc = isFirstLoad ? null : lastCreatorDoc;
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        const { collection, query, limit, startAfter, getDocs, where } = await import("firebase/firestore");
+        
+        let q;
+        const constraints = [
+          where("role", "==", "user"),
+          limit(batchSize)
+        ];
+        
+        if (lastDoc) {
+          constraints.push(startAfter(lastDoc));
+        }
+        
+        q = query(collection(db, "users"), ...constraints);
+        const querySnapshot = await getDocs(q);
+        const newCreators = [];
+        
+        querySnapshot.forEach((doc) => {
+          newCreators.push({ id: doc.id, ...doc.data() });
+        });
+
+        const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+        setLastCreatorDoc(lastVisible);
+        
+        const mergedList = isFirstLoad ? newCreators : [...currentList, ...newCreators];
+        setLoadedCreators(mergedList);
+        setHasMoreCreators(newCreators.length === batchSize);
+      } catch (err) {
+        console.error("Error lazy loading creators:", err);
+      } finally {
+        setIsLoadingMoreCreators(false);
+      }
+    } else {
+      // Offline local load
+      let sourceList = (users || []).filter(u => u.role === 'user');
+      
+      const startIndex = currentList.length;
+      const nextBatch = sourceList.slice(startIndex, startIndex + batchSize);
+      
+      setLoadedCreators([...currentList, ...nextBatch]);
+      setHasMoreCreators(startIndex + nextBatch.length < sourceList.length);
+      setIsLoadingMoreCreators(false);
+    }
+  };
+
+  useEffect(() => {
+    if (adminSubTab === 'creator-marketplace') {
+      loadMoreCreators(true);
+    }
+  }, [adminSubTab]);
+
+  useEffect(() => {
+    if (adminSubTab === 'creator-marketplace' && !isFirebaseConfigured()) {
+      loadMoreCreators(true);
+    }
+  }, [users]);
+
+  const loadMoreUsers = async (isFirstLoad = false) => {
+    if (isLoadingMoreUsers) return;
+    setIsLoadingMoreUsers(true);
+
+    const batchSize = 10;
+    const currentList = isFirstLoad ? [] : loadedUsers;
+    const lastDoc = isFirstLoad ? null : lastUserDoc;
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        const { collection, query, limit, startAfter, getDocs, orderBy, startAt, endAt } = await import("firebase/firestore");
+        
+        let q;
+        const constraints = [];
+        
+        if (userSearch) {
+          constraints.push(orderBy("username"));
+          constraints.push(startAt(userSearch));
+          constraints.push(endAt(userSearch + "\uf8ff"));
+        } else {
+          constraints.push(orderBy("username"));
+        }
+        
+        constraints.push(limit(batchSize));
+        
+        if (lastDoc) {
+          constraints.push(startAfter(lastDoc));
+        }
+        
+        q = query(collection(db, "users"), ...constraints);
+        const querySnapshot = await getDocs(q);
+        const newUsers = [];
+        
+        querySnapshot.forEach((doc) => {
+          newUsers.push({ id: doc.id, ...doc.data() });
+        });
+
+        const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+        setLastUserDoc(lastVisible);
+        
+        const mergedList = isFirstLoad ? newUsers : [...currentList, ...newUsers];
+        setLoadedUsers(mergedList);
+        setHasMoreUsers(newUsers.length === batchSize);
+      } catch (err) {
+        console.error("Error lazy loading users:", err);
+      } finally {
+        setIsLoadingMoreUsers(false);
+      }
+    } else {
+      // LocalStorage / Offline lazy load
+      let sourceList = users || [];
+      
+      if (userSearch) {
+        sourceList = sourceList.filter(u => u.username.toLowerCase().includes(userSearch.toLowerCase()));
+      }
+      
+      if (userFilter === 'internal') {
+        sourceList = sourceList.filter(u => ['superadmin', 'staf', 'moderator', 'editor'].includes(u.role) || (customRoles.some(r => r.id === u.role) && u.role !== 'panitia'));
+      } else if (userFilter === 'panitia') {
+        sourceList = sourceList.filter(u => u.role === 'panitia');
+      } else if (userFilter === 'external') {
+        sourceList = sourceList.filter(u => ['member', 'user'].includes(u.role));
+      }
+      
+      const startIndex = currentList.length;
+      const nextBatch = sourceList.slice(startIndex, startIndex + batchSize);
+      
+      setLoadedUsers([...currentList, ...nextBatch]);
+      setHasMoreUsers(startIndex + nextBatch.length < sourceList.length);
+      setIsLoadingMoreUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    if (adminSubTab === 'users') {
+      loadMoreUsers(true);
+    }
+  }, [adminSubTab, userSearch, userFilter]);
+
+  useEffect(() => {
+    if (adminSubTab === 'users' && !isFirebaseConfigured()) {
+      loadMoreUsers(true);
+    }
+  }, [users]);
 
   // Event creation form states
   const [showEventForm, setShowEventForm] = useState(false);
@@ -366,7 +625,9 @@ export default function AdminPanel({
         adminFee: eventAdminFee || 0,
         organizerName: currentUser?.organizerName || currentUser?.username || 'Panitia Portal',
         organizerPhone: currentUser?.organizerPhone || '',
-        organizerDescription: currentUser?.organizerDescription || ''
+        organizerDescription: currentUser?.organizerDescription || '',
+        creator: currentUser?.username || 'Panitia',
+        creatorId: currentUser?.id || 'panitia_id'
       };
       setEvents([...events, newEvent]);
       setShowEventForm(false);
@@ -376,7 +637,7 @@ export default function AdminPanel({
 
   const getPanitiaPayments = () => {
     const list = [];
-    events.forEach(evt => {
+    myEvents.forEach(evt => {
       if (evt.paymentStatus === 'paid' || evt.paymentStatus === 'pending_verification') {
         list.push({
           id: `pay_${evt.id}`,
@@ -400,7 +661,7 @@ export default function AdminPanel({
         }
       }
       if (evt.budgetMode === 'views') {
-        const subs = eventSubmissions.filter(s => s.eventId === evt.id && s.views > 0);
+        const subs = mySubmissions.filter(s => s.eventId === evt.id && s.views > 0);
         subs.forEach(s => {
           const step = evt.benefitViewsStep || 1000;
           const payout = Math.floor(s.views / step) * (evt.benefitAmount || 0);
@@ -518,27 +779,16 @@ export default function AdminPanel({
     // (Events Joined * 50) + (Math.floor(Total Views / 100)) + (Wins * 100)
     const points = (joinedEvents.length * 50) + Math.floor(totalViews / 100) + (winsCount * 100);
 
-    // 6. Level Tier
-    let level = 'Bronze Creator';
-    let levelColor = '#b45309'; // Bronze
-    let levelBg = 'rgba(180, 83, 9, 0.15)';
-    let levelBorder = '1px solid rgba(180, 83, 9, 0.3)';
-
+    // 6. Level Tier (Stars rating 1-5)
+    let stars = 1;
     if (points >= 5000) {
-      level = 'Platinum Creator';
-      levelColor = '#e2e8f0'; // Platinum/Silverish white
-      levelBg = 'rgba(226, 232, 240, 0.15)';
-      levelBorder = '1px solid rgba(226, 232, 240, 0.3)';
-    } else if (points >= 1500) {
-      level = 'Gold Creator';
-      levelColor = '#fbbf24'; // Gold
-      levelBg = 'rgba(251, 191, 36, 0.15)';
-      levelBorder = '1px solid rgba(251, 191, 36, 0.3)';
-    } else if (points >= 500) {
-      level = 'Silver Creator';
-      levelColor = '#cbd5e1'; // Silver
-      levelBg = 'rgba(203, 213, 225, 0.15)';
-      levelBorder = '1px solid rgba(203, 213, 225, 0.3)';
+      stars = 5;
+    } else if (points >= 2500) {
+      stars = 4;
+    } else if (points >= 1000) {
+      stars = 3;
+    } else if (points >= 300) {
+      stars = 2;
     }
 
     return {
@@ -548,10 +798,7 @@ export default function AdminPanel({
       totalLikes,
       winsCount,
       points,
-      level,
-      levelColor,
-      levelBg,
-      levelBorder
+      stars
     };
   };
 
@@ -1001,18 +1248,33 @@ export default function AdminPanel({
         };
       case 'confirmations':
         return {
-          title: 'Verifikasi Pembayaran',
+          title: 'Pemasukan Saldo',
           subtitle: 'Setujui atau tolak verifikasi bukti bayar transfer premium user.'
         };
       case 'users':
         return {
-          title: 'Kelola Pengguna',
-          subtitle: 'Daftar seluruh akun terdaftar dan ubah hak peran akses sistem.'
+          title: userViewMode === 'add' ? 'Tambah Pengguna Baru' : 'Kelola Pengguna',
+          subtitle: userViewMode === 'add' ? 'Buat akun pengguna baru dengan role/jabatan bawaan atau custom.' : 'Daftar seluruh akun terdaftar dan ubah hak peran akses sistem.'
         };
       case 'withdrawals':
         return {
           title: 'Penarikan Saldo',
           subtitle: 'Tinjau, cairkan, atau batalkan pengajuan penarikan dana dompet kreatif peserta.'
+        };
+      case 'finance-report':
+        return {
+          title: 'Laporan Keuangan',
+          subtitle: 'Rincian detail total pemasukan, keuntungan bersih sistem, dana escrow, dan histori transaksi.'
+        };
+      case 'creator-marketplace':
+        return {
+          title: 'Marketplace Content Creator',
+          subtitle: 'Temukan dan ajak kerja sama para Content Creator berprestasi berdasarkan performa, jumlah views, dan tingkat keaktifan mereka.'
+        };
+      case 'roles':
+        return {
+          title: 'Kelola Role',
+          subtitle: 'Atur hak akses kustom untuk staf admin, moderator, dan panitia event.'
         };
       default:
         return {
@@ -1040,6 +1302,29 @@ export default function AdminPanel({
               </button>
             </div>
           )}
+          {adminSubTab === 'users' && currentUser && currentUser.role === 'superadmin' && (
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {userViewMode === 'list' ? (
+                <button 
+                  onClick={() => setUserViewMode('add')} 
+                  className="btn btn-primary"
+                  style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <Plus size={16} />
+                  <span>Tambah Pengguna Baru</span>
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setUserViewMode('list')} 
+                  className="btn btn-secondary"
+                  style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <ArrowLeft size={16} />
+                  <span>Kembali ke Daftar</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -1047,42 +1332,42 @@ export default function AdminPanel({
         <div className="event-dashboard-section animate-fade-in">
           {/* Stats Grid */}
           <div className="admin-dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-            <div className="admin-stat-card glass-panel" style={{ background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%)', border: '1px solid rgba(124, 58, 237, 0.2)' }}>
+            <div className="admin-stat-card glass-panel" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)' }}>
               <div className="stat-content">
                 <span className="stat-label" style={{ color: 'var(--text-secondary)' }}>Total Event</span>
-                <span className="stat-value" style={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>{events.length}</span>
+                <span className="stat-value" style={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>{myEvents.length}</span>
               </div>
-              <div className="stat-icon-wrapper p-primary" style={{ background: 'rgba(124, 58, 237, 0.2)', color: '#c084fc' }}>
+              <div className="stat-icon-wrapper" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                 <Calendar size={24} />
               </div>
             </div>
 
-            <div className="admin-stat-card glass-panel" style={{ background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%)', border: '1px solid rgba(6, 182, 212, 0.2)' }}>
+            <div className="admin-stat-card glass-panel" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)' }}>
               <div className="stat-content">
                 <span className="stat-label" style={{ color: 'var(--text-secondary)' }}>Peserta Terdaftar</span>
-                <span className="stat-value" style={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>{eventParticipants.length}</span>
+                <span className="stat-value" style={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>{myParticipants.length}</span>
               </div>
-              <div className="stat-icon-wrapper p-secondary" style={{ background: 'rgba(6, 182, 212, 0.2)', color: '#22d3ee' }}>
+              <div className="stat-icon-wrapper" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                 <Users size={24} />
               </div>
             </div>
 
-            <div className="admin-stat-card glass-panel" style={{ background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%)', border: '1px solid rgba(236, 72, 153, 0.2)' }}>
+            <div className="admin-stat-card glass-panel" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)' }}>
               <div className="stat-content">
                 <span className="stat-label" style={{ color: 'var(--text-secondary)' }}>Karya Dikirim</span>
-                <span className="stat-value" style={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>{eventSubmissions.length}</span>
+                <span className="stat-value" style={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>{mySubmissions.length}</span>
               </div>
-              <div className="stat-icon-wrapper p-info" style={{ background: 'rgba(236, 72, 153, 0.2)', color: '#f472b6' }}>
+              <div className="stat-icon-wrapper" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                 <FileVideo size={24} />
               </div>
             </div>
 
-            <div className="admin-stat-card glass-panel" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%)', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+            <div className="admin-stat-card glass-panel" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)' }}>
               <div className="stat-content">
                 <span className="stat-label" style={{ color: 'var(--text-secondary)' }}>Menunggu Penjurian</span>
-                <span className="stat-value" style={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>{eventSubmissions.filter(s => s.score === null).length}</span>
+                <span className="stat-value" style={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>{mySubmissions.filter(s => s.score === null).length}</span>
               </div>
-              <div className="stat-icon-wrapper p-accent" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}>
+              <div className="stat-icon-wrapper" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                 <Award size={24} />
               </div>
             </div>
@@ -1106,8 +1391,8 @@ export default function AdminPanel({
                 title: 'Peserta Terdaftar Baru',
                 desc: `Content Creator @${p.username} mendaftar ke event "${evt.title}"`,
                 badge: p.status === 'approved' ? 'Terverifikasi' : 'Pending',
-                badgeColor: p.status === 'approved' ? '#10b981' : '#fbbf24',
-                badgeBg: p.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                badgeColor: '#ffffff',
+                badgeBg: 'rgba(255, 255, 255, 0.08)',
                 meta: `Status pendaftaran: ${p.status}`
               });
             });
@@ -1124,8 +1409,8 @@ export default function AdminPanel({
                 title: 'Pengumpulan Karya Baru',
                 desc: `@${s.username} mengumpulkan karya "${s.title}"`,
                 badge: s.platform || 'Karya',
-                badgeColor: '#a78bfa',
-                badgeBg: 'rgba(167, 139, 250, 0.1)',
+                badgeColor: '#ffffff',
+                badgeBg: 'rgba(255, 255, 255, 0.08)',
                 meta: `Views: ${(s.views || 0).toLocaleString('id-ID')} • Event: ${evt.title}`
               });
             });
@@ -1140,8 +1425,8 @@ export default function AdminPanel({
                   title: 'Verifikasi Premium Membership',
                   desc: `@${c.username} mengajukan pembayaran Premium (${c.planName})`,
                   badge: c.status === 'approved' ? 'Disetujui' : c.status === 'rejected' ? 'Ditolak' : 'Pending',
-                  badgeColor: c.status === 'approved' ? '#10b981' : c.status === 'rejected' ? '#ef4444' : '#38bdf8',
-                  badgeBg: c.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' : c.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(56, 189, 248, 0.1)',
+                  badgeColor: '#ffffff',
+                  badgeBg: 'rgba(255, 255, 255, 0.08)',
                   meta: `Jumlah: ${c.amount || 'Rp 0'} • Pengirim: ${c.senderName || '-'}`
                 });
               });
@@ -1156,8 +1441,8 @@ export default function AdminPanel({
                     title: 'Konfirmasi Pembayaran Event',
                     desc: `@${evt.creator || 'Panitia'} mengirim bukti bayar untuk "${evt.title}"`,
                     badge: evt.paymentStatus === 'paid' ? 'Disetujui' : evt.paymentStatus === 'pending_verification' ? 'Pending' : 'Belum Bayar',
-                    badgeColor: evt.paymentStatus === 'paid' ? '#10b981' : evt.paymentStatus === 'pending_verification' ? '#38bdf8' : '#fbbf24',
-                    badgeBg: evt.paymentStatus === 'paid' ? 'rgba(16, 185, 129, 0.1)' : evt.paymentStatus === 'pending_verification' ? 'rgba(56, 189, 248, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                    badgeColor: '#ffffff',
+                    badgeBg: 'rgba(255, 255, 255, 0.08)',
                     meta: `Total Transfer: Rp ${((evt.campaignBudget || 0) + (evt.adminFee || 0)).toLocaleString('id-ID')}`
                   });
                 }
@@ -1172,8 +1457,8 @@ export default function AdminPanel({
                   title: 'Pengajuan Tarik Saldo',
                   desc: `@${wd.username} meminta penarikan dana Rp ${wd.amount.toLocaleString('id-ID')}`,
                   badge: wd.status === 'approved' ? 'Diselesaikan' : wd.status === 'rejected' ? 'Ditolak' : 'Pending',
-                  badgeColor: wd.status === 'approved' ? '#10b981' : wd.status === 'rejected' ? '#ef4444' : '#38bdf8',
-                  badgeBg: wd.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' : wd.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(56, 189, 248, 0.1)',
+                  badgeColor: '#ffffff',
+                  badgeBg: 'rgba(255, 255, 255, 0.08)',
                   meta: `Metode: ${wd.method} • Rek/Akun: ${wd.account}`
                 });
               });
@@ -1185,7 +1470,7 @@ export default function AdminPanel({
             return (
               <div className="add-affiliate-card glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-md)', textAlign: 'left' }}>
                 <h3 style={{ marginBottom: '20px', fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontWeight: '700' }}>
-                  <Sparkles size={18} style={{ color: '#fbbf24' }} />
+                  <Sparkles size={18} style={{ color: '#ffffff' }} />
                   <span>Aktivitas & Informasi Terbaru</span>
                 </h3>
 
@@ -1229,12 +1514,9 @@ export default function AdminPanel({
                                 width: '40px',
                                 height: '40px',
                                 borderRadius: '50%',
-                                background: act.type === 'participant' ? 'rgba(34, 197, 94, 0.1)' :
-                                            act.type === 'submission' ? 'rgba(167, 139, 250, 0.1)' :
-                                            act.type === 'withdrawal' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(56, 189, 248, 0.1)',
-                                color: act.type === 'participant' ? '#4ade80' :
-                                       act.type === 'submission' ? '#c084fc' :
-                                       act.type === 'withdrawal' ? '#f87171' : '#38bdf8',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                color: '#ffffff',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -1264,15 +1546,14 @@ export default function AdminPanel({
                                 </div>
                               </div>
                             </div>
-                            
-                            {/* Quick Actions redirection */}
+                                                  {/* Quick Actions redirection */}
                             {isSuperadmin && (act.type === 'event_payment' || act.type === 'membership_payment') && (
                               <button
                                 onClick={() => setAdminSubTab('confirmations')}
                                 style={{
-                                  background: 'rgba(56, 189, 248, 0.1)',
-                                  border: '1px solid rgba(56, 189, 248, 0.2)',
-                                  color: '#38bdf8',
+                                  background: 'rgba(255, 255, 255, 0.05)',
+                                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                                  color: '#ffffff',
                                   padding: '6px 12px',
                                   borderRadius: '8px',
                                   fontSize: '0.75rem',
@@ -1287,9 +1568,9 @@ export default function AdminPanel({
                               <button
                                 onClick={() => setAdminSubTab('withdrawals')}
                                 style={{
-                                  background: 'rgba(239, 68, 68, 0.1)',
-                                  border: '1px solid rgba(239, 68, 68, 0.2)',
-                                  color: '#f87171',
+                                  background: 'rgba(255, 255, 255, 0.05)',
+                                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                                  color: '#ffffff',
                                   padding: '6px 12px',
                                   borderRadius: '8px',
                                   fontSize: '0.75rem',
@@ -1309,31 +1590,37 @@ export default function AdminPanel({
                       <div style={{ textAlign: 'center', marginTop: '20px' }}>
                         <button
                           onClick={() => setVisibleActivitiesCount(prev => prev + 6)}
-                          className="btn"
+                          title="Muat Lebih Banyak"
                           style={{
-                            padding: '10px 24px',
-                            background: 'rgba(255, 255, 255, 0.03)',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            color: 'white',
-                            borderRadius: '12px',
-                            cursor: 'pointer',
-                            fontSize: '0.88rem',
-                            fontWeight: '600',
-                            transition: 'all 0.2s',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '8px'
+                            justifyContent: 'center',
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '50%',
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            cursor: 'pointer',
+                            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                            e.currentTarget.style.color = '#ffffff';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.15)';
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
                             e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
                           }}
                         >
-                          <span>Muat Lebih Banyak</span>
+                          <ChevronDown size={20} />
                         </button>
                       </div>
                     )}
@@ -1386,7 +1673,7 @@ export default function AdminPanel({
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <span style={{ fontSize: '0.72rem', color: '#a78bfa', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Detail Panel Event</span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Detail Panel Event</span>
                   <h2 style={{ margin: '4px 0 0 0', fontSize: '1.6rem', color: 'white', fontWeight: '800' }}>
                     {selectedManageEvent.title}
                   </h2>
@@ -1430,10 +1717,10 @@ export default function AdminPanel({
                     onClick={() => setInnerManageTab(tab.id)}
                     style={{
                       padding: '8px 16px',
-                      background: isActive ? 'rgba(124, 58, 237, 0.1)' : 'transparent',
-                      border: isActive ? '1px solid #7c3aed' : '1px solid transparent',
+                      background: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                      border: isActive ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid transparent',
                       borderRadius: '20px',
-                      color: isActive ? '#c084fc' : 'var(--text-secondary)',
+                      color: isActive ? 'white' : 'var(--text-secondary)',
                       fontWeight: 'bold',
                       fontSize: '0.8rem',
                       cursor: 'pointer',
@@ -1815,10 +2102,11 @@ export default function AdminPanel({
               left: 0,
               width: '100vw',
               height: '100vh',
-              background: '#0a0f1d',
+              background: '#020202',
               zIndex: 10200,
               overflowY: 'auto',
-              padding: '40px 24px',
+              padding: '24px 16px 120px 16px',
+              boxSizing: 'border-box',
               color: 'var(--text-primary)',
               display: 'flex',
               flexDirection: 'column',
@@ -1947,18 +2235,18 @@ export default function AdminPanel({
 
                   {/* Mode Budget Selector */}
                   <div className="form-group" style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '12px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: '#a78bfa', fontSize: '0.92rem', fontWeight: 'bold' }}>Skema & Mode Pembagian Budget</label>
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'white', fontSize: '0.92rem', fontWeight: 'bold' }}>Skema & Mode Pembagian Budget</label>
                     <select 
                       value={eventBudgetMode} 
                       onChange={(e) => setEventBudgetMode(e.target.value)} 
-                      style={{ width: '100%', padding: '12px 14px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none', marginBottom: '16px' }}
+                      style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none', marginBottom: '16px' }}
                     >
-                      <option value="views">Berdasarkan Jumlah Views (Pay-per-View UGC)</option>
-                      <option value="ranking">Kompetisi Tradisional (Juara 1, 2, 3)</option>
+                      <option value="views" style={{ background: '#020202' }}>Pay-per-View</option>
+                      <option value="ranking" style={{ background: '#020202' }}>Juara 1, 2, 3</option>
                     </select>
 
                     {eventBudgetMode === 'views' ? (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
                         <div className="form-group" style={{ marginBottom: 0 }}>
                           <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Budget Campaign (IDR)</label>
                           <input type="text" required value={formatInputCurrency(eventBudget)} onChange={(e) => {
@@ -1982,7 +2270,7 @@ export default function AdminPanel({
                         </div>
                       </div>
                     ) : (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
                         <div className="form-group" style={{ marginBottom: 0 }}>
                           <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Juara 1 (IDR)</label>
                           <input type="text" required value={formatInputCurrency(eventPrize1)} onChange={(e) => {
@@ -2037,10 +2325,11 @@ export default function AdminPanel({
               left: 0,
               width: '100vw',
               height: '100vh',
-              background: '#0a0f1d',
+              background: '#020202',
               zIndex: 11000,
               overflowY: 'auto',
-              padding: '40px 24px',
+              padding: '24px 16px 120px 16px',
+              boxSizing: 'border-box',
               color: 'var(--text-primary)',
               display: 'flex',
               flexDirection: 'column',
@@ -2107,11 +2396,11 @@ export default function AdminPanel({
                   </div>
 
                   {/* Escrow Bank Instructions */}
-                  <div style={{ background: 'rgba(56, 189, 248, 0.03)', border: '1px solid rgba(56, 189, 248, 0.15)', padding: '20px', borderRadius: '12px' }}>
-                    <h4 style={{ margin: '0 0 12px 0', color: '#38bdf8', fontSize: '0.95rem', fontWeight: 'bold' }}>Rekening Tujuan Transfer (Escrow):</h4>
+                  <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '20px', borderRadius: '12px' }}>
+                    <h4 style={{ margin: '0 0 12px 0', color: 'white', fontSize: '0.95rem', fontWeight: 'bold' }}>Rekening Tujuan Transfer (Escrow):</h4>
                     <div style={{ fontFamily: 'monospace', color: '#f1f5f9', fontSize: '0.9rem', lineHeight: '1.6' }}>
                       BANK MANDIRI KAB. JAKARTA<br />
-                      No. Rekening: <strong style={{ color: '#38bdf8', fontSize: '1.05rem' }}>127-000-999-888</strong><br />
+                      No. Rekening: <strong style={{ color: 'white', fontSize: '1.05rem' }}>127-000-999-888</strong><br />
                       Atas Nama: <strong>PT Filmo Media Indonesia (Escrow)</strong>
                     </div>
                   </div>
@@ -2146,7 +2435,7 @@ export default function AdminPanel({
                         value={senderName} 
                         onChange={(e) => setSenderName(e.target.value)} 
                         placeholder="Contoh: Rudi Wijaya" 
-                        style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem' }} 
+                        style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem' }} 
                       />
                     </div>
                     <div className="form-group">
@@ -2154,20 +2443,21 @@ export default function AdminPanel({
                       <select 
                         value={senderBank} 
                         onChange={(e) => setSenderBank(e.target.value)} 
-                        style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem' }}
+                        style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem' }}
                       >
-                        <option value="BCA">Bank BCA</option>
-                        <option value="Mandiri">Bank Mandiri</option>
-                        <option value="BNI">Bank BNI</option>
-                        <option value="BRI">Bank BRI</option>
-                        <option value="CIMB">CIMB Niaga</option>
-                        <option value="Lainnya">Bank Lainnya</option>
+                        <option value="BCA" style={{ background: '#020202' }}>Bank BCA</option>
+                        <option value="Mandiri" style={{ background: '#020202' }}>Bank Mandiri</option>
+                        <option value="BNI" style={{ background: '#020202' }}>Bank BNI</option>
+                        <option value="BRI" style={{ background: '#020202' }}>Bank BRI</option>
+                        <option value="CIMB" style={{ background: '#020202' }}>CIMB Niaga</option>
+                        <option value="Lainnya" style={{ background: '#020202' }}>Bank Lainnya</option>
                       </select>
                     </div>
                     <div className="form-group">
                       <label style={{ display: 'block', marginBottom: '8px', color: 'white', fontSize: '0.9rem', fontWeight: 'bold' }}>Unggah Bukti Transfer</label>
                       <input 
                         type="file" 
+                        required 
                         accept="image/*" 
                         onChange={(e) => {
                           const file = e.target.files[0];
@@ -2179,7 +2469,7 @@ export default function AdminPanel({
                             reader.readAsDataURL(file);
                           }
                         }} 
-                        style={{ width: '100%', padding: '10px 12px', background: '#111827', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: '8px', color: 'var(--text-secondary)', fontSize: '0.85rem' }} 
+                        style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.04)', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: '8px', color: 'var(--text-secondary)', fontSize: '0.85rem' }} 
                       />
                       {receiptFile && (
                         <div style={{ marginTop: '12px', textAlign: 'center' }}>
@@ -2207,10 +2497,11 @@ export default function AdminPanel({
               left: 0,
               width: '100vw',
               height: '100vh',
-              background: '#0a0f1d',
+              background: '#020202',
               zIndex: 11000,
               overflowY: 'auto',
-              padding: '40px 24px',
+              padding: '24px 16px 120px 16px',
+              boxSizing: 'border-box',
               color: 'var(--text-primary)',
               display: 'flex',
               flexDirection: 'column',
@@ -2472,27 +2763,17 @@ export default function AdminPanel({
 
           {/* Event List View */}
           <div className="event-list-container">
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
-                <button className="btn btn-primary" onClick={() => {
-                  setEventTitle('');
-                  setEventCategory('Short Film');
-                  setEventDeadline('');
-                  setEventMaxParticipants(50);
-                  setEventDescription('');
-                  setEventJuknis('');
-                  setEventBudget(5000000);
-                  setEventBenefitAmount(10000);
-                  setEventBenefitViewsStep(1000);
-                  setEventHasMaxParticipants(true);
-                  setShowEventForm(true);
-                }}>
-                  <Plus size={18} />
-                  <span>Buat Event Baru</span>
-                </button>
-              </div>
-              
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', width: '100%', maxWidth: '360px' }}>
-                <div style={{ position: 'relative', flex: 1 }}>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                gap: '16px', 
+                marginBottom: '20px',
+                width: '100%',
+                flexWrap: 'wrap'
+              }}>
+                {/* Search Bar */}
+                <div style={{ position: 'relative', width: '100%', maxWidth: '360px' }}>
                   <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
                     type="text"
@@ -2529,12 +2810,38 @@ export default function AdminPanel({
                     </button>
                   )}
                 </div>
+
+                {/* Create Event Button */}
+                <button 
+                  className="btn btn-primary" 
+                  onClick={() => {
+                    setEventTitle('');
+                    setEventCategory('Short Film');
+                    setEventDeadline('');
+                    setEventMaxParticipants(50);
+                    setEventDescription('');
+                    setEventJuknis('');
+                    setEventBudget(5000000);
+                    setEventBenefitAmount(10000);
+                    setEventBenefitViewsStep(1000);
+                    setEventHasMaxParticipants(true);
+                    setShowEventForm(true);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Plus size={18} />
+                  <span>Buat Event Baru</span>
+                </button>
               </div>
 
               <div className="admin-table-container glass-panel">
-                {events.length > 0 ? (
+                {myEvents.length > 0 ? (
                   (() => {
-                    const filteredEvents = events.filter(evt => 
+                    const filteredEvents = myEvents.filter(evt => 
                       evt.title?.toLowerCase().includes(eventManageSearch.toLowerCase()) ||
                       evt.category?.toLowerCase().includes(eventManageSearch.toLowerCase()) ||
                       evt.description?.toLowerCase().includes(eventManageSearch.toLowerCase())
@@ -2542,9 +2849,9 @@ export default function AdminPanel({
                       const statusA = getEventStatus(a).label;
                       const statusB = getEventStatus(b).label;
                       const getOrder = (statusStr) => {
-                        if (statusStr === 'Berjalan') return 1;
-                        if (statusStr === 'Menunggu Verifikasi') return 2;
-                        if (statusStr === 'Pending') return 3;
+                        if (statusStr === 'Menunggu Verifikasi') return 1;
+                        if (statusStr === 'Pending') return 2;
+                        if (statusStr === 'Berjalan') return 3;
                         return 4;
                       };
                       const orderDiff = getOrder(statusA) - getOrder(statusB);
@@ -2567,8 +2874,7 @@ export default function AdminPanel({
                       <table className="admin-table">
                         <thead>
                           <tr>
-                            <th>Judul Event</th>
-                            <th>Kategori</th>
+                            <th>Judul Event / Kategori</th>
                             <th>Batas Waktu</th>
                             <th style={{ textAlign: 'center' }}>Budget Campaign</th>
                             <th style={{ textAlign: 'center' }}>Status Event</th>
@@ -2583,32 +2889,43 @@ export default function AdminPanel({
                           onClick={() => { setSelectedManageEvent(evt); setInnerManageTab('participants'); }}
                           style={{
                             cursor: 'pointer',
-                            background: (() => {
-                              const stat = getEventStatus(evt).label;
-                              if (stat === 'Berjalan') return 'rgba(16, 185, 129, 0.08)';
-                              if (stat === 'Menunggu Verifikasi') return 'rgba(14, 165, 233, 0.08)';
-                              if (stat === 'Pending') return 'rgba(245, 158, 11, 0.06)';
-                              return 'rgba(255, 255, 255, 0.01)';
-                            })()
+                            background: 'rgba(255, 255, 255, 0.01)'
                           }}
                         >
                           <td>
-                            <strong style={{ color: 'white' }}>{evt.title}</strong>
-                            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.description}</div>
-                          </td>
-                          <td><span style={{ fontSize: '0.8rem', background: 'rgba(124, 58, 237, 0.1)', color: '#c084fc', padding: '2px 8px', borderRadius: '12px' }}>{evt.category}</span></td>
-                          <td><strong style={{ color: '#f87171' }}>{formatIndonesianDate(evt.deadline)}</strong></td>
+                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                               <strong style={{ color: 'white' }}>{evt.title}</strong>
+                               {(() => {
+                                 const style = getCategoryBadgeStyle(evt.category);
+                                 return (
+                                   <span style={{ 
+                                     fontSize: '0.7rem', 
+                                     background: 'rgba(255, 255, 255, 0.06)', 
+                                     border: '1px solid rgba(255, 255, 255, 0.15)',
+                                     color: '#ffffff', 
+                                     padding: '1px 6px', 
+                                     borderRadius: '6px',
+                                     fontWeight: '600'
+                                   }}>
+                                     {evt.category}
+                                   </span>
+                                 );
+                               })()}
+                             </div>
+                             <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', maxWidth: '450px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.description}</div>
+                           </td>
+                          <td><strong style={{ color: '#ffffff' }}>{formatIndonesianDate(evt.deadline)}</strong></td>
                           <td style={{ textAlign: 'center' }}>
                             <strong style={{ color: 'white' }}>
                               Rp {evt.campaignBudget ? evt.campaignBudget.toLocaleString('id-ID') : '0'}
                             </strong>
                             {evt.adminFee > 0 && (
-                              <div style={{ fontSize: '0.68rem', color: '#c084fc' }}>
+                              <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
                                 + Platform: Rp {evt.adminFee.toLocaleString('id-ID')}
                               </div>
                             )}
                             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                              {evt.budgetMode === 'views' ? 'Pay-per-View' : 'Tradisional Juara'}
+                              {evt.budgetMode === 'views' ? 'Pay-per-View' : 'Sistem Juara'}
                             </div>
                           </td>
                           <td style={{ textAlign: 'center' }}>
@@ -2628,6 +2945,7 @@ export default function AdminPanel({
                                         fontWeight: 'bold', 
                                         color: status.color, 
                                         background: status.bg, 
+                                        border: `1px solid ${status.color}30`,
                                         display: 'inline-flex',
                                         alignItems: 'center',
                                         gap: '4px'
@@ -2645,7 +2963,7 @@ export default function AdminPanel({
                                     evt.paymentStatus === 'pending_verification' ? (
                                       currentUser.role === 'superadmin' ? (
                                         <button 
-                                          className="btn btn-primary btn-sm animate-glow-blue" 
+                                          className="btn btn-sm" 
                                           onClick={(e) => { e.stopPropagation(); setAdminSubTab('confirmations'); }}
                                           style={{ 
                                             padding: '4px 10px', 
@@ -2653,9 +2971,9 @@ export default function AdminPanel({
                                             display: 'inline-flex', 
                                             alignItems: 'center', 
                                             gap: '4px', 
-                                            background: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)', 
-                                            border: 'none', 
-                                            color: 'white', 
+                                            background: '#ffffff', 
+                                            border: '1px solid #ffffff', 
+                                            color: '#020202', 
                                             fontWeight: 'bold',
                                             borderRadius: '20px',
                                             marginTop: '4px'
@@ -2670,7 +2988,7 @@ export default function AdminPanel({
                                       )
                                     ) : (
                                       <button 
-                                        className="btn btn-primary btn-sm animate-glow-amber" 
+                                        className="btn btn-sm" 
                                         onClick={(e) => { e.stopPropagation(); handleOpenPayment(evt); }}
                                         style={{ 
                                           padding: '4px 10px', 
@@ -2678,9 +2996,9 @@ export default function AdminPanel({
                                           display: 'inline-flex', 
                                           alignItems: 'center', 
                                           gap: '4px', 
-                                          background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)', 
-                                          border: 'none', 
-                                          color: '#1e1b4b', 
+                                          background: '#ffffff', 
+                                          border: '1px solid #ffffff', 
+                                          color: '#020202', 
                                           fontWeight: 'bold',
                                           borderRadius: '20px'
                                         }}
@@ -2694,30 +3012,30 @@ export default function AdminPanel({
                             })()}
                           </td>
                           <td style={{ textAlign: 'center' }}>
-                            <div className="table-actions">
+                            <div className="table-actions" style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                               <button 
-                                className="action-btn view" 
+                                className="action-btn" 
                                 onClick={(e) => { e.stopPropagation(); setSelectedManageEvent(evt); setInnerManageTab('participants'); }} 
-                                style={{ color: '#38bdf8', cursor: 'pointer' }}
+                                style={{ color: '#ffffff', cursor: 'pointer', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                 title="Kelola Event (Detail)"
                               >
-                                <Eye size={16} />
+                                <Eye size={14} />
                               </button>
                               <button 
-                                className="action-btn edit" 
+                                className="action-btn" 
                                 onClick={(e) => { e.stopPropagation(); handleEditEvent(evt); }} 
-                                style={{ color: '#a78bfa', cursor: 'pointer' }}
+                                style={{ color: '#ffffff', cursor: 'pointer', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                 title="Edit Event"
                               >
-                                <Edit size={16} />
+                                <Edit size={14} />
                               </button>
                               <button 
-                                className="action-btn delete" 
+                                className="action-btn" 
                                 onClick={(e) => { e.stopPropagation(); handleDeleteEvent(evt.id); }} 
-                                style={{ color: '#ef4444', cursor: 'pointer' }}
+                                style={{ color: '#ffffff', cursor: 'pointer', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                 title="Hapus Event"
                               >
-                                <Trash2 size={16} />
+                                <Trash2 size={14} />
                               </button>
                             </div>
                           </td>
@@ -2740,16 +3058,7 @@ export default function AdminPanel({
         )
       ) : adminSubTab === 'creator-marketplace' ? (
         <div className="creator-marketplace-section animate-fade-in" style={{ padding: '4px', textAlign: 'left' }}>
-          {/* Header */}
-          <div style={{ marginBottom: '24px' }}>
-            <h2 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 'bold', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Users style={{ color: '#fbbf24' }} />
-              <span>Marketplace Content Creator</span>
-            </h2>
-            <span style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-              Temukan dan ajak kerja sama para Content Creator berprestasi berdasarkan performa, jumlah views, dan tingkat keaktifan mereka.
-            </span>
-          </div>
+
 
           {/* Search & Filter Toolbar */}
           <div className="admin-toolbar glass-panel" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
@@ -2787,11 +3096,12 @@ export default function AdminPanel({
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
                 }}
               >
-                <option value="All" style={{ background: '#0b0f19' }}>Semua Level</option>
-                <option value="Bronze Creator" style={{ background: '#0b0f19' }}>Bronze Creator</option>
-                <option value="Silver Creator" style={{ background: '#0b0f19' }}>Silver Creator</option>
-                <option value="Gold Creator" style={{ background: '#0b0f19' }}>Gold Creator</option>
-                <option value="Platinum Creator" style={{ background: '#0b0f19' }}>Platinum Creator</option>
+                <option value="All" style={{ background: '#0b0f19' }}>Semua Reputasi</option>
+                <option value="5" style={{ background: '#0b0f19' }}>⭐⭐⭐⭐⭐ (5 Bintang)</option>
+                <option value="4" style={{ background: '#0b0f19' }}>⭐⭐⭐⭐ (4 Bintang)</option>
+                <option value="3" style={{ background: '#0b0f19' }}>⭐⭐⭐ (3 Bintang)</option>
+                <option value="2" style={{ background: '#0b0f19' }}>⭐⭐ (2 Bintang)</option>
+                <option value="1" style={{ background: '#0b0f19' }}>⭐ (1 Bintang)</option>
               </select>
             </div>
           </div>
@@ -2800,7 +3110,7 @@ export default function AdminPanel({
           <div className="admin-table-container glass-panel" style={{ marginBottom: '40px' }}>
             {(() => {
               // 1. Calculate metrics and pre-filter by search & level
-              const creatorsList = users
+              const creatorsList = loadedCreators
                 .filter(u => u.role === 'user')
                 .map(u => ({
                   ...u,
@@ -2809,38 +3119,43 @@ export default function AdminPanel({
                 .filter(c => {
                   const matchSearch = c.username.toLowerCase().includes(marketplaceSearch.toLowerCase()) || 
                                       (c.organizerName || '').toLowerCase().includes(marketplaceSearch.toLowerCase());
-                  const matchLevel = marketplaceLevelFilter === 'All' || c.metrics.level === marketplaceLevelFilter;
+                  const matchLevel = marketplaceLevelFilter === 'All' || String(c.metrics.stars) === marketplaceLevelFilter;
                   return matchSearch && matchLevel;
                 });
 
               if (creatorsList.length === 0) {
                 return (
                   <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    Belum ada Content Creator yang cocok dengan pencarian dan filter tingkat level saat ini.
+                    Belum ada Content Creator yang cocok dengan pencarian dan filter reputasi saat ini.
                   </div>
                 );
               }
 
               return (
-                <div style={{ overflowX: 'auto' }}>
+                <>
+                  <div style={{ overflowX: 'auto' }}>
                   <table className="admin-table">
                     <thead>
                       <tr>
                         <th>Content Creator</th>
-                        <th>Level / Tier</th>
+                        <th>Reputasi</th>
                         <th>Akumulasi Poin</th>
                         <th style={{ textAlign: 'center' }}>Total Karya</th>
-                        <th style={{ textAlign: 'center' }}>Total Views</th>
-                        <th style={{ textAlign: 'center' }}>Prestasi Juara</th>
                         <th style={{ textAlign: 'center' }}>Aksi Kolaborasi</th>
                       </tr>
                     </thead>
                     <tbody>
                       {creatorsList.map(creator => {
-                        const creatorAvatar = creator.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(creator.username)}`;
+                        const creatorAvatar = creator.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(creator.username)}&backgroundColor=262626&textColor=ffffff`;
                         
                         return (
-                          <tr key={creator.username} className="table-row-hover">
+                          <tr 
+                            key={creator.username} 
+                            className="table-row-hover"
+                            onClick={() => setViewingCreatorProfile(creator)}
+                            style={{ cursor: 'pointer' }}
+                            title="Klik untuk Lihat Detail Profil & Portofolio"
+                          >
                             <td>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <img 
@@ -2851,32 +3166,33 @@ export default function AdminPanel({
                                     height: '38px',
                                     borderRadius: '50%',
                                     objectFit: 'cover',
-                                    border: `2px solid ${creator.metrics.levelColor}`,
+                                    border: '2px solid rgba(255,255,255,0.08)',
                                     background: 'rgba(255,255,255,0.02)'
                                   }}
                                 />
-                                <strong style={{ color: 'white', fontSize: '0.92rem' }}>@{creator.username}</strong>
+                                 <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem' }}>
+                                   @{creator.username}
+                                 </span>
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ display: 'inline-flex', alignItems: 'center' }} title={`${creator.metrics.stars} Bintang`}>
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <Star 
+                                    key={i} 
+                                    size={14} 
+                                    fill={i < creator.metrics.stars ? "#ffffff" : "none"} 
+                                    stroke={i < creator.metrics.stars ? "#ffffff" : "rgba(255,255,255,0.2)"} 
+                                    style={{ marginRight: '2px' }} 
+                                  />
+                                ))}
                               </div>
                             </td>
                             <td>
                               <span style={{
-                                fontSize: '0.7rem',
-                                padding: '3px 10px',
-                                borderRadius: '12px',
-                                fontWeight: 'bold',
-                                color: creator.metrics.levelColor,
-                                background: creator.metrics.levelBg,
-                                border: creator.metrics.levelBorder,
-                                display: 'inline-block'
-                              }}>
-                                {creator.metrics.level}
-                              </span>
-                            </td>
-                            <td>
-                              <span style={{
-                                background: 'rgba(251, 191, 36, 0.05)',
-                                border: '1px solid rgba(251, 191, 36, 0.15)',
-                                color: '#fbbf24',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                color: '#ffffff',
                                 padding: '4px 10px',
                                 borderRadius: '6px',
                                 fontSize: '0.78rem',
@@ -2892,36 +3208,17 @@ export default function AdminPanel({
                             <td style={{ textAlign: 'center', color: 'white', fontWeight: '600' }}>
                               {creator.metrics.submissionsCount} Karya
                             </td>
-                            <td style={{ textAlign: 'center', color: '#c084fc', fontWeight: '600' }}>
-                              {creator.metrics.totalViews.toLocaleString('id-ID')} Views
-                            </td>
-                            <td style={{ textAlign: 'center' }}>
-                              {creator.metrics.winsCount > 0 ? (
-                                <span style={{
-                                  background: 'rgba(251, 191, 36, 0.15)',
-                                  border: '1px solid rgba(251, 191, 36, 0.3)',
-                                  color: '#fbbf24',
-                                  padding: '3px 8px',
-                                  borderRadius: '6px',
-                                  fontSize: '0.75rem',
-                                  fontWeight: 'bold'
-                                }}>
-                                  Juara ({creator.metrics.winsCount}x)
-                                </span>
-                              ) : (
-                                <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>0</span>
-                              )}
-                            </td>
                             <td style={{ textAlign: 'center' }}>
                               <button
                                 className="btn btn-primary"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setSelectedMarketplaceCreator(creator.username);
                                   const myEvents = events.filter(e => e.creator === currentUser.username && e.paymentStatus === 'paid');
                                   if (myEvents.length > 0) setOfferEventId(myEvents[0].id);
                                 }}
                                 style={{
-                                  padding: '6px 14px',
+                                  padding: '6px 16px',
                                   borderRadius: '8px',
                                   fontSize: '0.8rem',
                                   fontWeight: '700',
@@ -2935,7 +3232,7 @@ export default function AdminPanel({
                                 }}
                               >
                                 <Send size={12} />
-                                <span>Ajak Kerja Sama</span>
+                                <span>Kirim Penawaran</span>
                               </button>
                             </td>
                           </tr>
@@ -2944,6 +3241,51 @@ export default function AdminPanel({
                     </tbody>
                   </table>
                 </div>
+                {hasMoreCreators && (
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', padding: '20px 0', borderTop: '1px solid var(--border-color)' }}>
+                    <button 
+                      onClick={() => loadMoreCreators(false)} 
+                      disabled={isLoadingMoreCreators}
+                      style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '50%',
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        cursor: isLoadingMoreCreators ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isLoadingMoreCreators) {
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                          e.currentTarget.style.color = '#ffffff';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.15)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                      }}
+                    >
+                      {isLoadingMoreCreators ? (
+                        <Clock size={16} className="animate-spin" />
+                      ) : (
+                        <ChevronDown size={20} />
+                      )}
+                    </button>
+                  </div>
+                )}
+                </>
               );
             })()}
           </div>
@@ -2951,7 +3293,7 @@ export default function AdminPanel({
           {/* Collab Offers Sent Monitoring */}
           <div className="add-affiliate-card glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
             <h3 style={{ marginBottom: '16px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontWeight: '700' }}>
-              <ExternalLink size={18} style={{ color: '#c084fc' }} />
+              <ExternalLink size={18} style={{ color: 'white' }} />
               <span>Monitoring Penawaran Kerja Sama</span>
             </h3>
             
@@ -3007,48 +3349,397 @@ export default function AdminPanel({
             })()}
           </div>
 
+          {/* Creator Profile & Portfolio Modal */}
+          {viewingCreatorProfile && (() => {
+            const metrics = calculateCreatorMetrics(viewingCreatorProfile.username);
+            const creatorMovies = movies.filter(m => m.uploader?.toLowerCase() === viewingCreatorProfile.username.toLowerCase());
+            const creatorSubmissions = eventSubmissions.filter(s => s.username?.toLowerCase() === viewingCreatorProfile.username.toLowerCase());
+            const creatorAvatar = viewingCreatorProfile.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(viewingCreatorProfile.username)}&backgroundColor=262626&textColor=ffffff`;
+
+            return createPortal(
+              <div 
+                className="admin-modal-overlay d-flex-center animate-fade-in" 
+                style={{ 
+                  zIndex: 99999, 
+                  position: 'fixed', 
+                  top: 0, 
+                  left: 0, 
+                  right: 0, 
+                  bottom: 0, 
+                  background: 'rgba(5, 8, 16, 0.85)', 
+                  backdropFilter: 'blur(12px)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '20px'
+                }}
+                onClick={() => setViewingCreatorProfile(null)}
+              >
+                <div 
+                  className="glass-panel animate-scale-in" 
+                  style={{ 
+                    maxWidth: '850px', 
+                    width: '100%', 
+                    maxHeight: '90vh', 
+                    overflowY: 'auto', 
+                    borderRadius: 'var(--radius-lg)', 
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    background: '#090d16',
+                    boxShadow: '0 24px 64px rgba(0, 0, 0, 0.6)',
+                    position: 'relative'
+                  }} 
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Top Close Button */}
+                  <button 
+                    onClick={() => setViewingCreatorProfile(null)}
+                    style={{
+                      position: 'absolute',
+                      top: '16px',
+                      right: '16px',
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid var(--border-color)',
+                      color: 'var(--text-secondary)',
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 10
+                    }}
+                  >
+                    <X size={18} />
+                  </button>
+
+                  {/* Profile Cover Banner */}
+                  <div style={{
+                    height: '140px',
+                    background: 'linear-gradient(135deg, #18181b 0%, #09090b 100%)',
+                    position: 'relative',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+                  }} />
+
+                  {/* Profile Header Block */}
+                  <div style={{ padding: '0 32px 32px 32px', position: 'relative', marginTop: '-60px' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', flexWrap: 'wrap', marginBottom: '24px' }}>
+                      <img 
+                        src={creatorAvatar} 
+                        alt={viewingCreatorProfile.username} 
+                        style={{
+                          width: '120px',
+                          height: '120px',
+                          borderRadius: '50%',
+                          border: '4px solid #020202',
+                          boxShadow: '0 12px 28px rgba(0, 0, 0, 0.4)',
+                          background: '#0c101b',
+                          objectFit: 'cover'
+                        }}
+                      />
+                      <div style={{ flex: 1, minWidth: '200px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                          <h2 style={{ fontSize: '1.6rem', fontWeight: 'bold', color: 'white', margin: 0 }}>@{viewingCreatorProfile.username}</h2>
+                          <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star 
+                                key={i} 
+                                size={16} 
+                                fill={i < metrics.stars ? "#ffffff" : "none"} 
+                                stroke={i < metrics.stars ? "#ffffff" : "rgba(255,255,255,0.2)"} 
+                                style={{ marginRight: '2px' }} 
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <p style={{ color: 'var(--text-muted)', margin: '0 0 8px 0', fontSize: '0.92rem' }}>
+                          {viewingCreatorProfile.organizerName || 'Nama Lengkap Belum Diisi'}
+                        </p>
+                        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                          {viewingCreatorProfile.email && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <strong>Email:</strong> {viewingCreatorProfile.email}
+                            </span>
+                          )}
+                          {viewingCreatorProfile.organizerPhone && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <strong>Telp:</strong> {viewingCreatorProfile.organizerPhone}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bio Description */}
+                    <div style={{ 
+                      background: 'rgba(255, 255, 255, 0.02)', 
+                      border: '1px solid rgba(255, 255, 255, 0.04)',
+                      padding: '16px 20px', 
+                      borderRadius: '12px',
+                      color: 'var(--text-secondary)',
+                      fontSize: '0.9rem',
+                      lineHeight: '1.5',
+                      marginBottom: '32px'
+                    }}>
+                      <h4 style={{ margin: '0 0 8px 0', color: 'white', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bio / Deskripsi</h4>
+                      <p style={{ margin: 0 }}>{viewingCreatorProfile.organizerDescription || 'Pembuat konten belum menambahkan biografi atau deskripsi profil.'}</p>
+                    </div>
+
+                    {/* Key Metrics Dashboard */}
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', 
+                      gap: '16px',
+                      marginBottom: '36px'
+                    }}>
+                      {[
+                        { label: 'Total Karya', value: `${metrics.submissionsCount} Film`, color: '#ffffff' },
+                        { label: 'Total Views', value: `${metrics.totalViews.toLocaleString('id-ID')} Views`, color: '#ffffff' },
+                        { label: 'Juara Event', value: `${metrics.winsCount}x Juara`, color: '#ffffff' },
+                        { label: 'Reputasi Poin', value: `${metrics.points.toLocaleString('id-ID')} Pts`, color: '#ffffff' }
+                      ].map((item, idx) => (
+                        <div key={idx} style={{
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          border: '1px solid rgba(255, 255, 255, 0.05)',
+                          borderRadius: '12px',
+                          padding: '16px',
+                          textAlign: 'center'
+                        }}>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>{item.label}</span>
+                          <strong style={{ fontSize: '1.15rem', color: item.color, fontWeight: '700' }}>{item.value}</strong>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Portfolio/Karya List */}
+                    <div style={{ marginBottom: '36px' }}>
+                      <h3 style={{ fontSize: '1.15rem', color: 'white', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>
+                        Portofolio Film ({creatorMovies.length})
+                      </h3>
+                      {creatorMovies.length > 0 ? (
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                          gap: '16px'
+                        }}>
+                          {creatorMovies.map(movie => (
+                            <div key={movie.id} style={{
+                              background: 'rgba(255, 255, 255, 0.02)',
+                              border: '1px solid rgba(255, 255, 255, 0.05)',
+                              borderRadius: '10px',
+                              overflow: 'hidden',
+                              display: 'flex',
+                              flexDirection: 'column'
+                            }}>
+                              <div style={{ width: '100%', height: '120px', background: '#070a13', position: 'relative' }}>
+                                <img 
+                                  src={movie.thumbnail || movie.imageUrl || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=3540&auto=format&fit=crop'} 
+                                  alt={movie.title} 
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                                <span style={{
+                                  position: 'absolute',
+                                  bottom: '8px',
+                                  right: '8px',
+                                  background: 'rgba(0,0,0,0.75)',
+                                  color: 'white',
+                                  fontSize: '0.7rem',
+                                  padding: '2px 6px',
+                                  borderRadius: '4px',
+                                  fontWeight: 'bold'
+                                }}>
+                                  {movie.category || 'Film Pendek'}
+                                </span>
+                              </div>
+                              <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                <h4 style={{ color: 'white', fontSize: '0.88rem', fontWeight: 'bold', margin: '0 0 8px 0', lineBreak: 'anywhere' }}>{movie.title}</h4>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                  <span>{movie.views ? movie.views.toLocaleString('id-ID') : 0} Views</span>
+                                  <span>{movie.likes ? movie.likes.length : 0} Suka</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ padding: '24px', textAlign: 'center', background: 'rgba(255,255,255,0.01)', border: '1px dashed rgba(255,255,255,0.05)', borderRadius: '10px', color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+                          Belum ada karya film yang diunggah ke portal.
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Event Submissions List */}
+                    <div style={{ marginBottom: '24px' }}>
+                      <h3 style={{ fontSize: '1.15rem', color: 'white', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>
+                        Keikutsertaan Event & Kompetisi ({creatorSubmissions.length})
+                      </h3>
+                      {creatorSubmissions.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          {creatorSubmissions.map((sub, idx) => {
+                            const eventTarget = events.find(e => e.id === sub.eventId);
+                            return (
+                              <div key={idx} style={{
+                                background: 'rgba(255, 255, 255, 0.02)',
+                                border: '1px solid rgba(255, 255, 255, 0.05)',
+                                borderRadius: '10px',
+                                padding: '14px 20px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                                gap: '12px'
+                              }}>
+                                <div>
+                                  <h4 style={{ color: 'white', fontSize: '0.88rem', fontWeight: 'bold', margin: '0 0 4px 0' }}>
+                                    {eventTarget ? eventTarget.title : 'Event Kompetisi'}
+                                  </h4>
+                                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                    Karya: <a href={sub.videoUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary-color)', textDecoration: 'underline' }}>{sub.title || 'Lihat Video'}</a>
+                                  </span>
+                                </div>
+                                <span style={{
+                                  fontSize: '0.72rem',
+                                  padding: '3px 8px',
+                                  borderRadius: '6px',
+                                  fontWeight: 'bold',
+                                  background: sub.isWinner ? 'rgba(251, 191, 36, 0.15)' : 'rgba(255,255,255,0.05)',
+                                  border: sub.isWinner ? '1px solid rgba(251, 191, 36, 0.3)' : '1px solid rgba(255,255,255,0.1)',
+                                  color: sub.isWinner ? '#fbbf24' : 'var(--text-secondary)'
+                                }}>
+                                  {sub.isWinner ? `Pemenang` : `Partisipan`}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div style={{ padding: '24px', textAlign: 'center', background: 'rgba(255,255,255,0.01)', border: '1px dashed rgba(255,255,255,0.05)', borderRadius: '10px', color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+                          Belum terdaftar di event kompetisi apa pun.
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action buttons */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '36px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '20px' }}>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setViewingCreatorProfile(null)}
+                        style={{ padding: '10px 24px', borderRadius: '8px', fontSize: '0.88rem', fontWeight: 'bold' }}
+                      >
+                        Tutup
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => {
+                          const username = viewingCreatorProfile.username;
+                          setViewingCreatorProfile(null);
+                          setSelectedMarketplaceCreator(username);
+                          const myEvents = events.filter(e => e.creator === currentUser.username && e.paymentStatus === 'paid');
+                          if (myEvents.length > 0) setOfferEventId(myEvents[0].id);
+                        }}
+                        style={{
+                          padding: '10px 24px',
+                          borderRadius: '8px',
+                          fontSize: '0.88rem',
+                          fontWeight: 'bold',
+                          background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+                          border: 'none',
+                          color: 'white',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <Send size={14} />
+                        <span>Kirim Penawaran</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>,
+              document.body
+            );
+          })()}
+
           {/* Send Offer Modal */}
-          {selectedMarketplaceCreator && (
+          {selectedMarketplaceCreator && createPortal(
             <div style={{
               position: 'fixed',
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'rgba(0, 0, 0, 0.6)',
-              backdropFilter: 'blur(8px)',
-              zIndex: 9999,
+              background: '#020202',
+              zIndex: 99999,
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '16px'
+              alignItems: 'stretch',
+              justifyContent: 'stretch',
+              padding: 0
             }} onClick={() => setSelectedMarketplaceCreator(null)}>
               <div 
-                className="glass-panel" 
+                className="glass-panel animate-scale-in" 
                 style={{
-                  width: '100%',
-                  maxWidth: '480px',
-                  padding: '30px',
-                  borderRadius: '16px',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  textAlign: 'left'
+                  width: '100vw',
+                  height: '100vh',
+                  maxHeight: '100vh',
+                  overflowY: 'auto',
+                  padding: '40px 24px',
+                  background: '#020202',
+                  textAlign: 'left',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center'
                 }} 
                 onClick={(e) => e.stopPropagation()}
               >
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Send size={20} style={{ color: '#c084fc' }} />
-                  <span>Ajak Kerja Sama @{selectedMarketplaceCreator}</span>
-                </h3>
+                <div style={{ width: '100%', maxWidth: '640px' }}>
+                  {/* Close Button */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+                    <button 
+                      onClick={() => setSelectedMarketplaceCreator(null)}
+                      style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: 'var(--text-secondary)',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <XCircle size={18} />
+                    </button>
+                  </div>
+
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Send size={20} style={{ color: '#ffffff' }} />
+                    <span>Kirim Penawaran ke @{selectedMarketplaceCreator}</span>
+                  </h3>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-                  Kirim penawaran budget khusus untuk mengundang creator ini bergabung dalam event Anda.
+                  Kirim penawaran budget khusus untuk mengundang creator ini mendaftar sebagai peserta event Anda.
                 </p>
 
                 {(() => {
                   const myEvents = events.filter(e => e.creator === currentUser.username && e.paymentStatus === 'paid');
                   if (myEvents.length === 0) {
                     return (
-                      <div style={{ padding: '20px', textAlign: 'center', color: '#f87171', fontSize: '0.88rem', background: 'rgba(239,68,68,0.06)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.15)' }}>
-                        Anda belum memiliki Event yang Aktif & Terbayar. Silakan buat dan bayar event terlebih dahulu sebelum mengajak kerja sama.
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ padding: '24px 20px', textAlign: 'center', color: '#f87171', fontSize: '0.88rem', background: 'rgba(239,68,68,0.06)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.15)', lineHeight: '1.5' }}>
+                          Anda belum memiliki Event yang Aktif & Terbayar. Silakan buat dan bayar event terlebih dahulu sebelum mengirimkan penawaran.
+                        </div>
+                        <button 
+                          className="btn btn-secondary" 
+                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem' }}
+                          onClick={() => setSelectedMarketplaceCreator(null)}
+                        >
+                          Tutup
+                        </button>
                       </div>
                     );
                   }
@@ -3126,7 +3817,7 @@ export default function AdminPanel({
                             setOfferEventId('');
                             setOfferBudget('');
                             setOfferMessage('');
-                            alert(`Berhasil mengirimkan penawaran kerja sama kepada @${selectedMarketplaceCreator}!`);
+                            alert(`Berhasil mengirimkan penawaran kepada @${selectedMarketplaceCreator}!`);
                           }}
                         >
                           Kirim Penawaran
@@ -3135,8 +3826,10 @@ export default function AdminPanel({
                     </div>
                   );
                 })()}
+                </div>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
         </div>
       ) : adminSubTab === 'event-payment' ? (
@@ -3190,31 +3883,37 @@ export default function AdminPanel({
                   <div style={{ textAlign: 'center', marginTop: '20px', paddingBottom: '20px' }}>
                     <button
                       onClick={() => setVisiblePaymentsCount(prev => prev + 10)}
-                      className="btn"
+                      title="Muat Lebih Banyak"
                       style={{
-                        padding: '10px 24px',
-                        background: 'rgba(255, 255, 255, 0.03)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        color: 'white',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        fontSize: '0.88rem',
-                        fontWeight: '600',
-                        transition: 'all 0.2s',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '8px'
+                        justifyContent: 'center',
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '50%',
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        cursor: 'pointer',
+                        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
-                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                        e.currentTarget.style.color = '#ffffff';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.15)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
                         e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
                       }}
                     >
-                      <span>Muat Lebih Banyak</span>
+                      <ChevronDown size={20} />
                     </button>
                   </div>
                 )}
@@ -3422,15 +4121,7 @@ export default function AdminPanel({
         </div>
       ) : adminSubTab === 'membership' && currentUser && currentUser.role === 'superadmin' ? (
         <div className="membership-manager-section animate-fade-in">
-          {/* Form to Manage Membership Settings */}
-          <div className="add-affiliate-card glass-panel" style={{ padding: '20px', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
-            <h3 style={{ marginBottom: '4px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={18} className="accent-text" style={{ color: 'var(--accent)' }} />
-              <span>Pengaturan Premium Membership</span>
-            </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-              Atur tautan pembelian WhatsApp admin, harga berlangganan bulanan, dan rekening pembayaran yang ditampilkan kepada pengguna ketika mengeklik episode terkunci.
-            </p>
+          <div className="add-affiliate-card glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '16px' }}>
               <div className="form-group" style={{ margin: 0 }}>
                 <label style={{ fontSize: '0.8rem', marginBottom: '4px', display: 'block', color: 'var(--text-secondary)' }}>WhatsApp Link Admin</label>
@@ -3641,452 +4332,951 @@ export default function AdminPanel({
         </div>
       ) : adminSubTab === 'users' && currentUser && currentUser.role === 'superadmin' ? (
         <div className="users-manager-section animate-fade-in">
-          {/* Form to Add New User */}
-          <div className="add-affiliate-card glass-panel" style={{ padding: '20px', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
-            <h3 style={{ marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <User size={18} className="accent-text" style={{ color: 'var(--primary)' }} />
-              <span>Tambah User Baru</span>
-            </h3>
-            <form 
-              onSubmit={(e) => {
-                e.preventDefault();
-                const username = e.target.elements.newUsername.value.trim();
-                const password = e.target.elements.newPassword.value.trim();
-                const role = e.target.elements.newRole.value;
-                const activeDaysInput = e.target.elements.newActiveDays ? e.target.elements.newActiveDays.value : '';
-                
-                if (!username || !password) {
-                  alert('Username dan password wajib diisi!');
-                  return;
-                }
-                
-                if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-                  alert('Username sudah digunakan oleh user lain!');
-                  return;
-                }
-                
-                const days = activeDaysInput ? parseInt(activeDaysInput, 10) : 30;
-                const expiresAt = (role === 'member' || role === 'pro') ? Date.now() + days * 24 * 60 * 60 * 1000 : null;
-                const newUser = {
-                  id: Date.now().toString(),
-                  username,
-                  password,
-                  role,
-                  premiumExpiresAt: expiresAt
-                };
-                
-                setUsers([...users, newUser]);
-                e.target.reset();
-              }}
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', alignItems: 'flex-end' }}
-            >
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontSize: '0.8rem', marginBottom: '4px' }}>Username</label>
-                <input 
-                  type="text" 
-                  name="newUsername" 
-                  placeholder="Masukkan username" 
-                  required 
-                  style={{ width: '100%', padding: '8px 12px' }}
-                />
-              </div>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontSize: '0.8rem', marginBottom: '4px' }}>Password</label>
-                <input 
-                  type="password" 
-                  name="newPassword" 
-                  placeholder="Masukkan password" 
-                  required 
-                  style={{ width: '100%', padding: '8px 12px' }}
-                />
-              </div>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontSize: '0.8rem', marginBottom: '4px' }}>Role</label>
-                <select name="newRole" style={{ width: '100%', padding: '8px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}>
-                  <option value="user">User Biasa</option>
-                  <option value="member">Premium Member (Bebas Iklan + Semua Eps)</option>
-                  <option value="panitia">Panitia (Event Creator)</option>
-                  <option value="staf">Staf (Akses Admin Panel Terbatas)</option>
-                  <option value="superadmin">Superadmin (Akses Semua Fitur)</option>
-                </select>
-              </div>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontSize: '0.8rem', marginBottom: '4px' }}>Masa Aktif (Hari)</label>
-                <input 
-                  type="number" 
-                  name="newActiveDays" 
-                  placeholder="30 (Khusus Member)" 
-                  style={{ width: '100%', padding: '8px 12px' }}
-                />
-              </div>
-              <button type="submit" className="btn btn-primary" style={{ padding: '10px 20px', height: '40px', justifyContent: 'center' }}>
-                <Plus size={16} />
-                <span>Tambah User</span>
-              </button>
-            </form>
-          </div>
 
-          {/* Users List Table */}
-          <div className="admin-table-container glass-panel">
-            {users.length > 0 ? (
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: '80px' }}>No</th>
-                    <th>Username</th>
-                    <th>Password</th>
-                    <th>Role / Jabatan</th>
-                    <th>Masa Aktif</th>
-                    <th style={{ textAlign: 'center', width: '120px' }}>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user, idx) => {
-                    const isSelf = user.username.toLowerCase() === currentUser.username.toLowerCase();
-                    let roleBadgeColor = 'var(--text-secondary)';
-                    let roleBadgeBg = 'rgba(255, 255, 255, 0.05)';
-                    
-                    if (user.role === 'superadmin') {
-                      roleBadgeColor = '#ef4444';
-                      roleBadgeBg = 'rgba(239, 68, 68, 0.1)';
-                    } else if (user.role === 'staf') {
-                      roleBadgeColor = '#f59e0b';
-                      roleBadgeBg = 'rgba(245, 158, 11, 0.1)';
-                    } else if (user.role === 'panitia') {
-                      roleBadgeColor = '#8b5cf6';
-                      roleBadgeBg = 'rgba(139, 92, 246, 0.1)';
-                    } else if (user.role === 'member') {
-                      roleBadgeColor = '#3b82f6';
-                      roleBadgeBg = 'rgba(59, 130, 246, 0.1)';
-                    } else if (user.role === 'user') {
-                      roleBadgeColor = '#94a3b8';
-                      roleBadgeBg = 'rgba(148, 163, 184, 0.1)';
+
+          {/* LIST SCREEN/PAGE */}
+          <>
+              {/* Search & Filter Toolbar */}
+              <div className="admin-toolbar glass-panel" style={{ 
+                marginBottom: '24px', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                gap: '16px', 
+                flexWrap: 'wrap',
+                padding: '16px 20px'
+              }}>
+                <div className="admin-search-wrapper" style={{ flex: '1 1 300px', margin: 0 }}>
+                  <Search size={18} className="search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Cari username..."
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                  />
+                  {userSearch && (
+                    <button className="clear-btn" onClick={() => setUserSearch('')}>
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {[
+                    { id: 'all', label: 'Semua Pengguna' },
+                    { id: 'internal', label: 'Tim Internal' },
+                    { id: 'panitia', label: 'Panitia' },
+                    { id: 'external', label: 'Pelanggan / Member' }
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setUserFilter(tab.id)}
+                      style={{
+                        padding: '8px 16px',
+                        background: userFilter === tab.id ? 'rgba(124, 58, 237, 0.15)' : 'rgba(255,255,255,0.03)',
+                        border: userFilter === tab.id ? '1px solid rgba(124, 58, 237, 0.3)' : '1px solid var(--border-color)',
+                        color: userFilter === tab.id ? 'white' : 'var(--text-secondary)',
+                        borderRadius: '20px',
+                        fontSize: '0.82rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Users List Table */}
+              <div className="admin-table-container glass-panel">
+                {(() => {
+                  const filteredUsers = loadedUsers.filter(user => {
+                    // 1. Search Query
+                    if (userSearch && !user.username.toLowerCase().includes(userSearch.toLowerCase())) {
+                      return false;
                     }
-                    
-                    return (
-                      <tr key={user.id} className="table-row-hover">
-                        <td>{idx + 1}</td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: isSelf ? 'bold' : 'normal' }}>
-                            <span>{user.username}</span>
-                            {isSelf && <span style={{ fontSize: '0.7rem', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '10px', color: 'var(--text-muted)' }}>Anda</span>}
-                          </div>
-                        </td>
-                        <td>
-                          <code className="code-badge">{user.password}</code>
-                        </td>
-                        <td>
-                          <span 
-                            style={{ 
-                              color: roleBadgeColor, 
-                              background: roleBadgeBg, 
-                              padding: '4px 10px', 
-                              borderRadius: '20px', 
-                              fontSize: '0.75rem', 
-                              fontWeight: '600',
-                              border: `1px solid ${roleBadgeColor}30`,
-                              textTransform: 'uppercase'
-                            }}
-                          >
-                            {user.role}
-                          </span>
-                        </td>
-                        <td>
-                          {getActivePeriodLabel(user)}
-                        </td>
-                        <td>
-                          <div className="table-actions">
-                            <button 
-                              className="action-btn edit" 
-                              onClick={() => setEditingUser(user)}
-                              style={{ color: 'var(--primary-color)', cursor: 'pointer' }}
-                              title="Edit User"
-                            >
-                              <Edit size={16} />
-                            </button>
-                            <button 
-                              className="action-btn delete" 
-                              onClick={() => {
-                                if (isSelf) {
-                                  alert('Anda tidak bisa menghapus akun Anda sendiri!');
-                                  return;
-                                }
-                                if (confirm(`Hapus user "${user.username}"?`)) {
-                                  setUsers(users.filter(u => u.id !== user.id));
-                                }
+                    // 2. Filter Tab
+                    const isInternal = ['superadmin', 'staf', 'moderator', 'editor'].includes(user.role) || (customRoles.some(r => r.id === user.role) && user.role !== 'panitia');
+                    const isPanitiaRole = user.role === 'panitia';
+                    const isExternal = ['member', 'user'].includes(user.role);
+
+                    if (userFilter === 'internal') return isInternal;
+                    if (userFilter === 'panitia') return isPanitiaRole;
+                    if (userFilter === 'external') return isExternal;
+                    return true;
+                  });
+
+              return filteredUsers.length > 0 ? (
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '80px' }}>No</th>
+                      <th>Username</th>
+                      <th>Password</th>
+                      <th>Role / Jabatan</th>
+                      <th>Masa Aktif</th>
+                      {currentUser.role === 'superadmin' && (
+                        <th style={{ textAlign: 'center', width: '120px' }}>Aksi</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((user, idx) => {
+                      const isSelf = user.username.toLowerCase() === currentUser.username.toLowerCase();
+                      const customRole = customRoles.find(r => r.id === user.role);
+                      const roleName = customRole ? customRole.name : user.role;
+                      
+                      let roleBadgeColor = 'var(--text-secondary)';
+                      let roleBadgeBg = 'rgba(255, 255, 255, 0.05)';
+                      
+                      if (user.role === 'superadmin') {
+                        roleBadgeColor = '#ef4444';
+                        roleBadgeBg = 'rgba(239, 68, 68, 0.1)';
+                      } else if (user.role === 'staf') {
+                        roleBadgeColor = '#f59e0b';
+                        roleBadgeBg = 'rgba(245, 158, 11, 0.1)';
+                      } else if (user.role === 'panitia') {
+                        roleBadgeColor = '#8b5cf6';
+                        roleBadgeBg = 'rgba(139, 92, 246, 0.1)';
+                      } else if (user.role === 'moderator') {
+                        roleBadgeColor = '#10b981';
+                        roleBadgeBg = 'rgba(16, 185, 129, 0.1)';
+                      } else if (user.role === 'editor') {
+                        roleBadgeColor = '#06b6d4';
+                        roleBadgeBg = 'rgba(6, 182, 212, 0.1)';
+                      } else if (user.role === 'member') {
+                        roleBadgeColor = '#3b82f6';
+                        roleBadgeBg = 'rgba(59, 130, 246, 0.1)';
+                      } else if (user.role === 'user') {
+                        roleBadgeColor = '#94a3b8';
+                        roleBadgeBg = 'rgba(148, 163, 184, 0.1)';
+                      } else if (customRole) {
+                        roleBadgeColor = '#ec4899';
+                        roleBadgeBg = 'rgba(236, 72, 153, 0.1)';
+                      }
+                      
+                      return (
+                        <tr key={user.id} className="table-row-hover">
+                          <td>{idx + 1}</td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: isSelf ? 'bold' : 'normal' }}>
+                              <span>{user.username}</span>
+                              {isSelf && <span style={{ fontSize: '0.7rem', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '10px', color: 'var(--text-muted)' }}>Anda</span>}
+                              {(['superadmin', 'staf', 'moderator', 'editor'].includes(user.role) || (customRoles.some(r => r.id === user.role) && user.role !== 'panitia')) && (
+                                <span style={{ fontSize: '0.65rem', background: 'rgba(124, 58, 237, 0.12)', border: '1px solid rgba(124, 58, 237, 0.25)', padding: '1px 5px', borderRadius: '4px', color: '#c084fc', fontWeight: 'bold' }}>Internal</span>
+                              )}
+                              {user.role === 'panitia' && (
+                                <span style={{ fontSize: '0.65rem', background: 'rgba(139, 92, 246, 0.12)', border: '1px solid rgba(139, 92, 246, 0.25)', padding: '1px 5px', borderRadius: '4px', color: '#a78bfa', fontWeight: 'bold' }}>Panitia</span>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <code className="code-badge">{user.password}</code>
+                          </td>
+                          <td>
+                            <span 
+                              style={{ 
+                                color: roleBadgeColor, 
+                                background: roleBadgeBg, 
+                                padding: '4px 10px', 
+                                borderRadius: '20px', 
+                                fontSize: '0.75rem', 
+                                fontWeight: '600',
+                                border: `1px solid ${roleBadgeColor}30`,
+                                textTransform: 'uppercase'
                               }}
-                              disabled={isSelf}
-                              style={{ opacity: isSelf ? 0.3 : 1, cursor: isSelf ? 'not-allowed' : 'pointer' }}
                             >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            ) : (
-              <div className="admin-empty-state">
-                <User size={48} className="icon" />
-                <h3>Belum ada user</h3>
+                              {roleName}
+                            </span>
+                          </td>
+                          <td>
+                            {getActivePeriodLabel(user)}
+                          </td>
+                          {currentUser.role === 'superadmin' && (
+                            <td>
+                              <div className="table-actions">
+                                <button 
+                                  className="action-btn edit" 
+                                  onClick={() => setEditingUser(user)}
+                                  disabled={currentUser.role === 'staf' && user.role === 'superadmin'}
+                                  style={{ color: 'var(--primary-color)', cursor: (currentUser.role === 'staf' && user.role === 'superadmin') ? 'not-allowed' : 'pointer', opacity: (currentUser.role === 'staf' && user.role === 'superadmin') ? 0.3 : 1 }}
+                                  title={currentUser.role === 'staf' && user.role === 'superadmin' ? 'Staf tidak dapat mengedit Superadmin' : 'Edit User'}
+                                >
+                                  <Edit size={16} />
+                                </button>
+                                <button 
+                                  className="action-btn delete" 
+                                  onClick={() => {
+                                    if (isSelf) {
+                                      alert('Anda tidak bisa menghapus akun Anda sendiri!');
+                                      return;
+                                    }
+                                    if (confirm(`Hapus user "${user.username}"?`)) {
+                                      setUsers(users.filter(u => u.id !== user.id));
+                                      setLoadedUsers(loadedUsers.filter(u => u.id !== user.id));
+                                    }
+                                  }}
+                                  disabled={isSelf || (currentUser.role === 'staf' && user.role === 'superadmin')}
+                                  style={{ opacity: (isSelf || (currentUser.role === 'staf' && user.role === 'superadmin')) ? 0.3 : 1, cursor: (isSelf || (currentUser.role === 'staf' && user.role === 'superadmin')) ? 'not-allowed' : 'pointer' }}
+                                  title={isSelf ? 'Tidak bisa menghapus diri sendiri' : currentUser.role === 'staf' && user.role === 'superadmin' ? 'Staf tidak dapat menghapus Superadmin' : 'Hapus User'}
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="admin-empty-state">
+                  <User size={48} className="icon" />
+                  <h3>Belum ada user yang cocok</h3>
+                </div>
+              );
+            })()}
+            {hasMoreUsers && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', padding: '20px 0', borderTop: '1px solid var(--border-color)' }}>
+                <button 
+                  onClick={() => loadMoreUsers(false)} 
+                  disabled={isLoadingMoreUsers}
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    padding: '10px 24px', 
+                    fontSize: '0.85rem', 
+                    fontWeight: '600',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '30px',
+                    cursor: isLoadingMoreUsers ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoadingMoreUsers) {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.18)';
+                      e.currentTarget.style.color = '#ffffff';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.15)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                  }}
+                >
+                  {isLoadingMoreUsers ? (
+                    <Clock size={16} className="animate-spin" />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
+                  <span>{isLoadingMoreUsers ? 'Memuat Data...' : 'Muat Lebih Banyak'}</span>
+                </button>
               </div>
             )}
           </div>
+          </>
+
+          {/* Add User Modal Overlay */}
+          {userViewMode === 'add' && createPortal(
+            <div className="admin-modal-overlay animate-fade-in" style={{ zIndex: 10000 }} onClick={() => setUserViewMode('list')}>
+              <div className="admin-modal glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 24px', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                <div style={{ width: '100%', maxWidth: '640px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'white' }}>
+                      <Plus size={20} style={{ color: '#ffffff' }} />
+                      <span>Tambah Pengguna Baru</span>
+                    </h3>
+                    <button 
+                      onClick={() => setUserViewMode('list')}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                    >
+                      <XCircle size={22} />
+                    </button>
+                  </div>
+
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const username = e.target.elements.newUsername.value.trim();
+                      const password = e.target.elements.newPassword.value.trim();
+                      const role = e.target.elements.newRole.value;
+                      const activeDaysInput = e.target.elements.newActiveDays ? e.target.elements.newActiveDays.value : '';
+                      
+                      if (!username || !password) {
+                        alert('Username dan password wajib diisi!');
+                        return;
+                      }
+                      
+                      if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                        alert('Username sudah digunakan oleh user lain!');
+                        return;
+                      }
+                      
+                      const permissions = getDefaultPermissions(role, customRoles);
+                      const days = activeDaysInput ? parseInt(activeDaysInput, 10) : 30;
+                      const expiresAt = (role === 'member' || role === 'pro') ? Date.now() + days * 24 * 60 * 60 * 1000 : null;
+                      const newUser = {
+                        id: Date.now().toString(),
+                        username,
+                        password,
+                        role,
+                        permissions,
+                        premiumExpiresAt: expiresAt
+                      };
+                      
+                      setUsers([...users, newUser]);
+                      setLoadedUsers([newUser, ...loadedUsers]);
+                      e.target.reset();
+                      alert(`User "${username}" berhasil ditambahkan!`);
+                      setUserViewMode('list');
+                    }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+                  >
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ fontSize: '0.85rem', marginBottom: '8px', display: 'block', color: 'var(--text-secondary)' }}>Username / Email</label>
+                      <input 
+                        type="text" 
+                        name="newUsername" 
+                        placeholder="Masukkan username atau email" 
+                        required 
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ fontSize: '0.85rem', marginBottom: '8px', display: 'block', color: 'var(--text-secondary)' }}>Password</label>
+                      <input 
+                        type="password" 
+                        name="newPassword" 
+                        placeholder="Masukkan password akun baru" 
+                        required 
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ fontSize: '0.85rem', marginBottom: '8px', display: 'block', color: 'var(--text-secondary)' }}>Role / Peran</label>
+                      <select 
+                        name="newRole" 
+                        style={{ width: '100%', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: 'white', padding: '12px 16px' }}
+                      >
+                        <option value="user">User Biasa</option>
+                        <option value="member">Premium Member</option>
+                        {customRoles.map((role) => (
+                          <option key={role.id} value={role.id}>{role.name}</option>
+                        ))}
+                        {currentUser.role === 'superadmin' && <option value="superadmin">Superadmin</option>}
+                      </select>
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ fontSize: '0.85rem', marginBottom: '8px', display: 'block', color: 'var(--text-secondary)' }}>Masa Aktif Premium (Hari)</label>
+                      <input 
+                        type="number" 
+                        name="newActiveDays" 
+                        placeholder="30 (Hanya berlaku untuk Premium Member)" 
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', gap: '16px', marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+                      <button 
+                        type="submit" 
+                        className="btn btn-primary" 
+                        style={{ flex: 1, justifyContent: 'center' }}
+                      >
+                        <Plus size={16} />
+                        <span>Tambah Pengguna</span>
+                      </button>
+                      <button 
+                        type="button" 
+                        className="btn btn-secondary" 
+                        onClick={() => setUserViewMode('list')}
+                        style={{ flex: 1, justifyContent: 'center' }}
+                      >
+                        <span>Batal</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
 
           {/* Edit User Modal Overlay */}
           {editingUser && (
-            <div className="admin-modal-overlay d-flex-center animate-fade-in" style={{ zIndex: 10000 }}>
-              <div className="admin-confirm-modal glass-panel" style={{ maxWidth: '400px', textAlign: 'left' }} onClick={(e) => e.stopPropagation()}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                    <Edit size={20} className="accent-text" style={{ color: 'var(--primary)' }} />
-                    <span>Edit User</span>
-                  </h3>
-                  <button 
-                    onClick={() => setEditingUser(null)}
-                    style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
+            <div className="admin-modal-overlay animate-fade-in" style={{ zIndex: 10000 }} onClick={() => setEditingUser(null)}>
+                <div className="admin-modal glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 24px', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                  <div style={{ width: '100%', maxWidth: '640px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'white' }}>
+                        <Edit size={20} className="accent-text" style={{ color: '#ffffff' }} />
+                        <span>Edit User</span>
+                      </h3>
+                    <button 
+                      onClick={() => setEditingUser(null)}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                    >
+                      <XCircle size={22} />
+                    </button>
+                  </div>
 
-                <form 
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const formData = new FormData(e.target);
-                    const username = formData.get('editUsername').trim();
-                    const password = formData.get('editPassword');
-                    const role = formData.get('editRole');
-                    const activeDaysInput = formData.get('editActiveDays');
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.target);
+                      const username = formData.get('editUsername').trim();
+                      const password = formData.get('editPassword');
+                      const role = formData.get('editRole');
+                      const activeDaysInput = formData.get('editActiveDays');
 
-                    if (!username || !password) {
-                      alert('Username dan Password wajib diisi!');
-                      return;
-                    }
+                      if (!username || !password) {
+                        alert('Username dan Password wajib diisi!');
+                        return;
+                      }
 
-                    // Check duplicate username if name changed
-                    if (username.toLowerCase() !== editingUser.username.toLowerCase() && 
-                        users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-                      alert('Username sudah digunakan oleh user lain!');
-                      return;
-                    }
+                      // Check duplicate username if name changed
+                      if (username.toLowerCase() !== editingUser.username.toLowerCase() && 
+                          users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                        alert('Username sudah digunakan oleh user lain!');
+                        return;
+                      }
 
-                    let expiresAt = null;
-                    if (role === 'member') {
-                      if (activeDaysInput) {
-                        const days = parseInt(activeDaysInput, 10);
+                      let expiresAt = null;
+                      if (role === 'member') {
+                        const days = activeDaysInput ? parseInt(activeDaysInput) : 30;
                         expiresAt = Date.now() + days * 24 * 60 * 60 * 1000;
+                      } else if (role === 'user' && editingUser.role === 'member') {
+                        expiresAt = null; // Downgrade
                       } else {
                         expiresAt = editingUser.premiumExpiresAt || (Date.now() + 30 * 24 * 60 * 60 * 1000);
                       }
-                    }
 
-                    const updatedUser = {
-                      ...editingUser,
-                      username,
-                      password,
-                      role,
-                      premiumExpiresAt: expiresAt
-                    };
+                      const updatedUser = {
+                        ...editingUser,
+                        username,
+                        password,
+                        role,
+                        premiumExpiresAt: expiresAt
+                      };
 
-                    // Save user list
-                    const newUsersList = users.map(u => u.id === editingUser.id ? updatedUser : u);
-                    setUsers(newUsersList);
-                    setEditingUser(null);
-                    
-                    alert('User berhasil diperbarui!');
-                  }}
-                  className="modal-form"
-                  style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-                >
-                  <div className="form-group">
-                    <label style={{ fontSize: '0.8rem', marginBottom: '4px', display: 'block' }}>Username</label>
-                    <input 
-                      type="text" 
-                      name="editUsername" 
-                      defaultValue={editingUser.username}
-                      required 
-                      style={{ width: '100%', padding: '10px 14px' }}
-                    />
-                  </div>
+                      setUsers(users.map(u => u.id === editingUser.id ? updatedUser : u));
+                      setLoadedUsers(loadedUsers.map(u => u.id === editingUser.id ? updatedUser : u));
+                      setEditingUser(null);
+                    }}
+                    className="modal-form"
+                    style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+                  >
+                    <div className="form-group">
+                      <label style={{ fontSize: '0.8rem', marginBottom: '4px', display: 'block' }}>Username</label>
+                      <input 
+                        type="text" 
+                        name="editUsername" 
+                        defaultValue={editingUser.username}
+                        required 
+                        style={{ width: '100%' }}
+                      />
+                    </div>
 
-                  <div className="form-group">
-                    <label style={{ fontSize: '0.8rem', marginBottom: '4px', display: 'block' }}>Password</label>
-                    <input 
-                      type="text" 
-                      name="editPassword" 
-                      defaultValue={editingUser.password}
-                      required 
-                      style={{ width: '100%', padding: '10px 14px' }}
-                    />
-                  </div>
+                    <div className="form-group">
+                      <label style={{ fontSize: '0.8rem', marginBottom: '4px', display: 'block' }}>Password</label>
+                      <input 
+                        type="text" 
+                        name="editPassword" 
+                        defaultValue={editingUser.password}
+                        required 
+                        style={{ width: '100%' }}
+                      />
+                    </div>
 
-                  <div className="form-group">
-                    <label style={{ fontSize: '0.8rem', marginBottom: '4px', display: 'block' }}>Role</label>
-                    <select 
-                      name="editRole" 
-                      defaultValue={editingUser.role}
-                      disabled={editingUser.username.toLowerCase() === currentUser.username.toLowerCase()} // Disable changing own role to prevent lockout
-                      style={{ width: '100%', padding: '10px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
-                    >
-                      <option value="user">User Biasa</option>
-                      <option value="member">Premium Member (Bebas Iklan + Semua Eps)</option>
-                      <option value="panitia">Panitia (Event Creator)</option>
-                      <option value="staf">Staf (Akses Admin Panel Terbatas)</option>
-                      <option value="superadmin">Superadmin (Akses Semua Fitur)</option>
-                    </select>
-                    {editingUser.username.toLowerCase() === currentUser.username.toLowerCase() && (
+                    <div className="form-group">
+                      <label style={{ fontSize: '0.8rem', marginBottom: '4px', display: 'block' }}>Role</label>
+                      <select 
+                        name="editRole" 
+                        defaultValue={editingUser.role}
+                        disabled={editingUser.username.toLowerCase() === currentUser.username.toLowerCase() || (currentUser.role === 'staf' && editingUser.role === 'superadmin')} // Disable changing own role, or staff changing superadmin role
+                        style={{ width: '100%', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: 'white', padding: '12px 14px' }}
+                      >
+                        <option value="user">User Biasa</option>
+                        <option value="member">Premium Member (Bebas Iklan + Semua Eps)</option>
+                        {customRoles.map((role) => (
+                          <option key={role.id} value={role.id}>{role.name}</option>
+                        ))}
+                        {(currentUser.role === 'superadmin' || editingUser.role === 'superadmin') && <option value="superadmin">Superadmin (Akses Semua Fitur)</option>}
+                      </select>
+                      {editingUser.username.toLowerCase() === currentUser.username.toLowerCase() && (
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                          Anda tidak dapat mengubah role Anda sendiri untuk mencegah kehilangan akses.
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="form-group">
+                      <label style={{ fontSize: '0.8rem', marginBottom: '4px', display: 'block' }}>Masa Aktif (Hari Tersisa)</label>
+                      <input 
+                        type="number" 
+                        name="editActiveDays" 
+                        defaultValue={editingUser.premiumExpiresAt ? Math.max(0, Math.ceil((editingUser.premiumExpiresAt - Date.now()) / (1000 * 60 * 60 * 24))) : 30}
+                        style={{ width: '100%' }}
+                      />
                       <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                        Anda tidak dapat mengubah role Anda sendiri untuk mencegah kehilangan akses.
+                        Hanya berlaku jika role diatur ke Premium Member.
                       </span>
-                    )}
-                  </div>
+                    </div>
 
-                  <div className="form-group">
-                    <label style={{ fontSize: '0.8rem', marginBottom: '4px', display: 'block' }}>Masa Aktif (Hari Tersisa)</label>
-                    <input 
-                      type="number" 
-                      name="editActiveDays" 
-                      defaultValue={editingUser.premiumExpiresAt ? Math.max(0, Math.ceil((editingUser.premiumExpiresAt - Date.now()) / (1000 * 60 * 60 * 24))) : 30}
-                      style={{ width: '100%', padding: '10px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
-                    />
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                      Hanya berlaku jika role diatur ke Premium Member.
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
-                    <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
-                      <span>Simpan Perubahan</span>
-                    </button>
-                    <button type="button" className="btn btn-secondary" onClick={() => setEditingUser(null)} style={{ flex: 1, justifyContent: 'center' }}>
-                      <span>Batal</span>
-                    </button>
-                  </div>
-                </form>
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+                      <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
+                        <span>Simpan Perubahan</span>
+                      </button>
+                      <button type="button" className="btn btn-secondary" onClick={() => setEditingUser(null)} style={{ flex: 1, justifyContent: 'center' }}>
+                        <span>Batal</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           )}
         </div>
-      ) : adminSubTab === 'withdrawals' ? (
-        <div className="withdrawals-manager-section animate-fade-in">
-          <div className="add-affiliate-card glass-panel" style={{ padding: '20px', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
-            <h3 style={{ marginBottom: '4px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Wallet size={18} className="accent-text" style={{ color: '#a78bfa' }} />
-              <span>Verifikasi Penarikan Saldo</span>
-            </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              Tinjau pengajuan pencairan saldo dari dompet kreator peserta. Pastikan Anda telah mentransfer nominal ke nomor tujuan sebelum menyetujui.
-            </p>
-          </div>
+      ) : adminSubTab === 'roles' && currentUser && currentUser.role === 'superadmin' ? (
+        <div className="roles-manager-section animate-fade-in">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+            {/* Form to Create Custom Role */}
+            <div className="add-affiliate-card glass-panel" style={{ padding: '20px', borderRadius: 'var(--radius-md)', margin: 0 }}>
+              <h3 style={{ marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Award size={18} className="accent-text" style={{ color: editingRole ? '#38bdf8' : '#ec4899' }} />
+                <span>{editingRole ? 'Edit Role Custom' : 'Buat Role Custom Baru'}</span>
+              </h3>
+              <form 
+                key={editingRole ? editingRole.id : 'new'}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const roleName = e.target.elements.roleName.value.trim();
+                  if (!roleName) {
+                    alert('Nama role wajib diisi!');
+                    return;
+                  }
+                  
+                  const isDuplicate = customRoles.some(r => 
+                    r.name.toLowerCase() === roleName.toLowerCase() && 
+                    (!editingRole || r.id !== editingRole.id)
+                  );
+                  if (isDuplicate || ['superadmin', 'member', 'user'].includes(roleName.toLowerCase())) {
+                    alert('Nama role sudah digunakan atau dilindungi!');
+                    return;
+                  }
+                  
+                  const checkboxes = e.target.querySelectorAll('input[name="rolePermissions"]:checked');
+                  const permissions = Array.from(checkboxes).map(cb => cb.value);
+                  
+                  if (editingRole) {
+                    setCustomRoles(customRoles.map(r => 
+                      r.id === editingRole.id ? { ...r, name: roleName, permissions } : r
+                    ));
+                    setEditingRole(null);
+                    alert(`Role "${roleName}" berhasil diperbarui!`);
+                  } else {
+                    const newRole = {
+                      id: 'role_' + Date.now(),
+                      name: roleName,
+                      permissions
+                    };
+                    setCustomRoles([...customRoles, newRole]);
+                    e.target.reset();
+                    alert(`Role "${roleName}" berhasil dibuat! Sekarang role ini dapat dipilih pada form Tambah/Edit User.`);
+                  }
+                }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+              >
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label style={{ fontSize: '0.8rem', marginBottom: '4px', display: 'block' }}>Nama Role</label>
+                  <input 
+                    type="text" 
+                    name="roleName" 
+                    placeholder="Contoh: Editor Junior" 
+                    defaultValue={editingRole ? editingRole.name : ''}
+                    required 
+                    style={{ width: '100%', padding: '8px 12px' }}
+                  />
+                </div>
 
-          <div className="admin-table-container glass-panel">
-            {withdrawals.length > 0 ? (
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Peserta</th>
-                    <th>Metode Transfer</th>
-                    <th>Nomor Rekening / HP</th>
-                    <th>Nama Penerima</th>
-                    <th style={{ textAlign: 'right' }}>Nominal</th>
-                    <th>Tanggal Pengajuan</th>
-                    <th>Status</th>
-                    <th style={{ textAlign: 'center', width: '240px' }}>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {withdrawals.map((wd) => {
-                    let statusColor = '#94a3b8';
-                    let statusBg = 'rgba(148, 163, 184, 0.1)';
-                    if (wd.status === 'approved') {
-                      statusColor = '#22c55e';
-                      statusBg = 'rgba(34, 197, 94, 0.1)';
-                    } else if (wd.status === 'rejected') {
-                      statusColor = '#ef4444';
-                      statusBg = 'rgba(239, 68, 68, 0.1)';
-                    } else if (wd.status === 'pending') {
-                      statusColor = '#eab308';
-                      statusBg = 'rgba(234, 179, 8, 0.1)';
-                    }
+                <div style={{ marginTop: '4px' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '6px', display: 'block', color: 'var(--text-secondary)' }}>Akses Fitur Bawaan Role:</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+                    {[
+                      { id: 'movies', label: 'Kelola Film' },
+                      { id: 'affiliates', label: 'Link Afiliasi' },
+                      { id: 'membership', label: 'Pengaturan Premium' },
+                      { id: 'confirmations', label: 'Pemasukan Saldo' },
+                      { id: 'withdrawals', label: 'Penarikan Saldo' },
+                      { id: 'finance-report', label: 'Laporan Keuangan' },
+                      { id: 'users', label: 'Kelola Pengguna' },
+                      { id: 'event-dashboard', label: 'Dashboard Event' },
+                      { id: 'event-manage', label: 'Kelola Event' },
+                      { id: 'event-payment', label: 'Payment Event' },
+                      { id: 'creator-marketplace', label: 'Marketplace Creator' }
+                    ].map((item) => {
+                      const isChecked = editingRole ? editingRole.permissions.includes(item.id) : false;
+                      return (
+                        <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', cursor: 'pointer', background: 'rgba(255,255,255,0.01)', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                          <input 
+                            type="checkbox" 
+                            name="rolePermissions" 
+                            value={item.id}
+                            defaultChecked={isChecked}
+                          />
+                          <span>{item.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                    return (
-                      <tr key={wd.id} className="table-row-hover">
-                        <td><strong style={{ color: 'white' }}>{wd.username}</strong></td>
-                        <td>
-                          <span style={{ fontSize: '0.8rem', background: 'rgba(124, 58, 237, 0.1)', color: '#c084fc', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
-                            {wd.method}
-                          </span>
-                        </td>
-                        <td><code style={{ color: '#38bdf8', fontSize: '0.9rem' }}>{wd.account}</code></td>
-                        <td><span style={{ color: 'white', fontWeight: '500' }}>{wd.name}</span></td>
-                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'white' }}>
-                          Rp {wd.amount?.toLocaleString('id-ID')}
-                        </td>
-                        <td style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                          {new Date(wd.requestedAt).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </td>
-                        <td>
-                          <span style={{ fontSize: '0.78rem', padding: '3px 10px', borderRadius: '12px', fontWeight: '600', color: statusColor, background: statusBg }}>
-                            {wd.status === 'approved' ? 'Sukses' : wd.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
-                          </span>
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          {wd.status === 'pending' ? (
-                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                              <button 
-                                className="btn btn-secondary btn-sm" 
-                                onClick={() => handleApproveWithdrawal(wd.id)}
-                                style={{ padding: '6px 12px', fontSize: '0.78rem', color: '#22c55e', borderColor: 'rgba(34, 197, 94, 0.2)', background: 'rgba(34, 197, 94, 0.05)' }}
-                              >
-                                Setujui & Cairkan
-                              </button>
-                              <button 
-                                className="btn btn-text btn-sm" 
-                                onClick={() => handleRejectWithdrawal(wd)}
-                                style={{ padding: '6px 12px', fontSize: '0.78rem', color: '#ef4444' }}
-                              >
-                                Tolak
-                              </button>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                  {editingRole && (
+                    <button 
+                      type="button" 
+                      className="btn" 
+                      onClick={() => setEditingRole(null)}
+                      style={{ flex: 1, padding: '10px 20px', height: '40px', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer' }}
+                    >
+                      Batal
+                    </button>
+                  )}
+                  <button type="submit" className="btn btn-primary" style={{ flex: 2, padding: '10px 20px', height: '40px', justifyContent: 'center' }}>
+                    {editingRole ? <Check size={16} /> : <Plus size={16} />}
+                    <span>{editingRole ? 'Simpan Perubahan' : 'Buat Role Custom'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* List of Custom Roles */}
+            <div className="add-affiliate-card glass-panel" style={{ padding: '20px', borderRadius: 'var(--radius-md)', margin: 0, display: 'flex', flexDirection: 'column' }}>
+              <h3 style={{ marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Users size={18} className="accent-text" style={{ color: '#8b5cf6' }} />
+                <span>Daftar Custom Role</span>
+              </h3>
+              
+              <div style={{ flex: 1, overflowY: 'auto', maxHeight: '350px', paddingRight: '8px' }}>
+                {customRoles.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {customRoles.map((role) => {
+                      const isBuiltIn = ['staf', 'panitia', 'moderator', 'editor'].includes(role.id);
+                      return (
+                        <div key={role.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <strong style={{ color: 'white', fontSize: '0.9rem' }}>{role.name}</strong>
+                              <span style={{ fontSize: '0.62rem', background: isBuiltIn ? 'rgba(56, 189, 248, 0.1)' : 'rgba(236, 72, 153, 0.1)', color: isBuiltIn ? '#38bdf8' : '#ec4899', padding: '1px 5px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                {isBuiltIn ? 'Bawaan' : 'Kustom'}
+                              </span>
                             </div>
-                          ) : (
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                              Fitur ({role.permissions.length}): {role.permissions.join(', ')}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '6px' }}>
                             <button 
-                              className="action-btn delete"
-                              title="Hapus Catatan"
-                              onClick={() => {
-                                if (confirm('Hapus catatan penarikan ini dari riwayat?')) {
-                                  setWithdrawals(withdrawals.filter(w => w.id !== wd.id));
-                                }
-                              }}
-                              style={{ display: 'inline-flex', alignSelf: 'center' }}
+                              className="btn btn-text" 
+                              onClick={() => setEditingRole(role)}
+                              style={{ color: 'var(--primary-color)', padding: '4px 8px', fontSize: '0.75rem', cursor: 'pointer' }}
                             >
-                              <Trash2 size={16} />
+                              Edit
                             </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            ) : (
-              <div className="admin-empty-state">
-                <Wallet size={48} className="icon" />
-                <h3>Belum ada pengajuan penarikan</h3>
-                <p>Semua permintaan pencairan dana oleh peserta akan ditampilkan di sini.</p>
+                            {!isBuiltIn && (
+                              <button 
+                                className="btn btn-text" 
+                                onClick={() => {
+                                  if (confirm(`Apakah Anda yakin ingin menghapus role "${role.name}"? Pengguna dengan role ini akan dikembalikan hak akses defaultnya.`)) {
+                                    setCustomRoles(customRoles.filter(r => r.id !== role.id));
+                                    if (editingRole && editingRole.id === role.id) {
+                                      setEditingRole(null);
+                                    }
+                                  }
+                                }}
+                                style={{ color: '#ef4444', padding: '4px 8px', fontSize: '0.75rem', cursor: 'pointer' }}
+                              >
+                                Hapus
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', padding: '20px' }}>
+                    Belum ada role custom.
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
-      ) : adminSubTab === 'confirmations' && currentUser && currentUser.role === 'superadmin' ? (() => {
+      ) : adminSubTab === 'withdrawals' && currentUser && ['superadmin', 'staf', 'moderator'].includes(currentUser.role) ? (() => {
+        const filteredWithdrawals = withdrawals.filter(wd => {
+          if (withdrawalStatusFilter !== 'all' && wd.status !== withdrawalStatusFilter) return false;
+          
+          if (withdrawalStartDate) {
+            const startMs = new Date(withdrawalStartDate + 'T00:00:00').getTime();
+            if (!wd.requestedAt || new Date(wd.requestedAt).getTime() < startMs) return false;
+          }
+          if (withdrawalEndDate) {
+            const endMs = new Date(withdrawalEndDate + 'T23:59:59').getTime();
+            if (!wd.requestedAt || new Date(wd.requestedAt).getTime() > endMs) return false;
+          }
+
+          if (withdrawalSearch.trim() !== '') {
+            const query = withdrawalSearch.toLowerCase();
+            return (
+              wd.username?.toLowerCase().includes(query) ||
+              wd.name?.toLowerCase().includes(query) ||
+              wd.account?.toLowerCase().includes(query) ||
+              wd.method?.toLowerCase().includes(query) ||
+              wd.amount?.toString().includes(query)
+            );
+          }
+          return true;
+        });
+
+        return (
+          <div className="withdrawals-manager-section animate-fade-in">
+            {/* Search & Filter Bar */}
+            <div className="admin-toolbar-panel">
+              {/* Search Bar */}
+              <div style={{ position: 'relative', width: '100%', maxWidth: '360px', flex: 1 }}>
+                <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  value={withdrawalSearch}
+                  onChange={(e) => setWithdrawalSearch(e.target.value)}
+                  placeholder="Cari berdasarkan nama, rekening, metode..."
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px 8px 36px',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '20px',
+                    color: 'white',
+                    fontSize: '0.82rem',
+                    outline: 'none'
+                  }}
+                />
+                {withdrawalSearch && (
+                  <button
+                    onClick={() => setWithdrawalSearch('')}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Filter Dropdown */}
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Dari:</span>
+                  <input 
+                    type="date" 
+                    value={withdrawalStartDate} 
+                    onChange={(e) => setWithdrawalStartDate(e.target.value)} 
+                    style={{
+                      padding: '4px 8px',
+                      background: '#0f172a',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '6px',
+                      color: 'white',
+                      fontSize: '0.8rem',
+                      outline: 'none'
+                    }}
+                  />
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>S/D:</span>
+                  <input 
+                    type="date" 
+                    value={withdrawalEndDate} 
+                    onChange={(e) => setWithdrawalEndDate(e.target.value)} 
+                    style={{
+                      padding: '4px 8px',
+                      background: '#0f172a',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '6px',
+                      color: 'white',
+                      fontSize: '0.8rem',
+                      outline: 'none'
+                    }}
+                  />
+                  {(withdrawalStartDate || withdrawalEndDate) && (
+                    <button 
+                      onClick={() => { setWithdrawalStartDate(''); setWithdrawalEndDate(''); }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#ef4444',
+                        cursor: 'pointer',
+                        fontSize: '0.78rem',
+                        fontWeight: 'bold',
+                        padding: '2px 6px'
+                      }}
+                    >
+                      Reset Tgl
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Status:</span>
+                  <select
+                    value={withdrawalStatusFilter}
+                    onChange={(e) => setWithdrawalStatusFilter(e.target.value)}
+                    style={{
+                      padding: '6px 12px',
+                      background: '#0f172a',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '0.82rem',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="all">Semua Status</option>
+                  <option value="pending">Menunggu</option>
+                  <option value="approved">Sukses</option>
+                  <option value="rejected">Ditolak</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+            <div className="admin-table-container glass-panel">
+              {filteredWithdrawals.length > 0 ? (
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Peserta</th>
+                      <th>Metode Transfer</th>
+                      <th>Penerima / Rekening</th>
+                      <th style={{ textAlign: 'right' }}>Nominal</th>
+                      <th>Tanggal Pengajuan</th>
+                      <th>Status</th>
+                      <th style={{ textAlign: 'center', width: '240px' }}>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredWithdrawals.map((wd) => {
+                      let statusColor = '#94a3b8';
+                      let statusBg = 'rgba(148, 163, 184, 0.1)';
+                      if (wd.status === 'approved') {
+                        statusColor = '#22c55e';
+                        statusBg = 'rgba(34, 197, 94, 0.1)';
+                      } else if (wd.status === 'rejected') {
+                        statusColor = '#ef4444';
+                        statusBg = 'rgba(239, 68, 68, 0.1)';
+                      } else if (wd.status === 'pending') {
+                        statusColor = '#eab308';
+                        statusBg = 'rgba(234, 179, 8, 0.1)';
+                      }
+
+                      return (
+                        <tr key={wd.id} className="table-row-hover">
+                          <td><strong style={{ color: 'white' }}>{wd.username}</strong></td>
+                          <td>
+                            <span style={{ fontSize: '0.8rem', background: 'rgba(255, 255, 255, 0.06)', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.15)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                              {wd.method}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <span style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem' }}>{wd.name}</span>
+                              <code style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{wd.account}</code>
+                            </div>
+                          </td>
+                          <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'white' }}>
+                            Rp {wd.amount?.toLocaleString('id-ID')}
+                          </td>
+                          <td style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            {new Date(wd.requestedAt).toLocaleDateString('id-ID', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </td>
+                          <td>
+                            <span 
+                              style={{ 
+                                fontSize: '0.72rem', 
+                                padding: '4px 10px', 
+                                borderRadius: '20px', 
+                                fontWeight: 'bold', 
+                                textTransform: 'uppercase',
+                                color: statusColor,
+                                background: statusBg,
+                                border: `1px solid ${statusColor}30`
+                              }}
+                            >
+                              {wd.status === 'approved' ? 'SUKSES' : wd.status === 'rejected' ? 'DITOLAK' : 'MENUNGGU'}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            {wd.status === 'pending' ? (
+                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                <button 
+                                  className="btn btn-sm" 
+                                  onClick={() => handleApproveWithdrawal(wd.id)}
+                                  style={{ padding: '6px 12px', fontSize: '0.78rem', color: '#020202', background: '#ffffff', border: '1px solid #ffffff', fontWeight: 'bold', borderRadius: '8px' }}
+                                >
+                                  Setujui & Cairkan
+                                </button>
+                                <button 
+                                  className="btn btn-sm" 
+                                  onClick={() => handleRejectWithdrawal(wd)}
+                                  style={{ padding: '6px 12px', fontSize: '0.78rem', color: '#ffffff', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '8px' }}
+                                >
+                                  Tolak
+                                </button>
+                              </div>
+                            ) : (
+                              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>-</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="admin-empty-state" style={{ padding: '40px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                  <Wallet size={48} className="icon" style={{ color: 'var(--text-muted)' }} />
+                  <h3>Tidak ada data penarikan</h3>
+                  <p>Tidak ada pengajuan penarikan dana yang cocok dengan pencarian Anda.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()
+      : adminSubTab === 'confirmations' && currentUser && ['superadmin', 'staf', 'moderator'].includes(currentUser.role) ? (() => {
         // Construct a unified list of both premium membership activations and event payments
         const allConfirmations = [
           ...confirmations.map(c => ({
@@ -4117,20 +5307,177 @@ export default function AdminPanel({
 
         const sortedConfirmations = [...allConfirmations].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
+        const filteredConfirmations = sortedConfirmations.filter(conf => {
+          if (confirmationStatusFilter !== 'all' && conf.status !== confirmationStatusFilter) return false;
+          if (confirmationTypeFilter !== 'all') {
+            if (confirmationTypeFilter === 'premium' && conf.isEventPayment) return false;
+            if (confirmationTypeFilter === 'event' && !conf.isEventPayment) return false;
+          }
+
+          if (confirmationStartDate) {
+            const startMs = new Date(confirmationStartDate + 'T00:00:00').getTime();
+            if (!conf.timestamp || new Date(conf.timestamp).getTime() < startMs) return false;
+          }
+          if (confirmationEndDate) {
+            const endMs = new Date(confirmationEndDate + 'T23:59:59').getTime();
+            if (!conf.timestamp || new Date(conf.timestamp).getTime() > endMs) return false;
+          }
+
+          if (confirmationSearch.trim() !== '') {
+            const query = confirmationSearch.toLowerCase();
+            return (
+              conf.username?.toLowerCase().includes(query) ||
+              conf.userId?.toLowerCase().includes(query) ||
+              conf.planName?.toLowerCase().includes(query) ||
+              conf.senderName?.toLowerCase().includes(query) ||
+              conf.bankName?.toLowerCase().includes(query) ||
+              (conf.eventTitle && conf.eventTitle.toLowerCase().includes(query))
+            );
+          }
+          return true;
+        });
+
         return (
           <div className="confirmations-manager-section animate-fade-in">
-            <div className="add-affiliate-card glass-panel" style={{ padding: '20px', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
-              <h3 style={{ marginBottom: '4px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Check size={18} className="accent-text" style={{ color: 'var(--primary)' }} />
-                <span>Verifikasi Bukti Pembayaran</span>
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Daftar semua permintaan aktivasi premium membership oleh member dan pendaftaran biaya event oleh panitia yang mengirimkan bukti transfer.
-              </p>
+            {/* Search & Filter Bar */}
+            <div className="admin-toolbar-panel">
+              {/* Search Bar */}
+              <div style={{ position: 'relative', width: '100%', maxWidth: '320px', flex: 1 }}>
+                <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  value={confirmationSearch}
+                  onChange={(e) => setConfirmationSearch(e.target.value)}
+                  placeholder="Cari berdasarkan nama, bank, event..."
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px 8px 36px',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '20px',
+                    color: 'white',
+                    fontSize: '0.82rem',
+                    outline: 'none'
+                  }}
+                />
+                {confirmationSearch && (
+                  <button
+                    onClick={() => setConfirmationSearch('')}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Filter Row */}
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Dari:</span>
+                  <input 
+                    type="date" 
+                    value={confirmationStartDate} 
+                    onChange={(e) => setConfirmationStartDate(e.target.value)} 
+                    style={{
+                      padding: '4px 8px',
+                      background: '#0f172a',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '6px',
+                      color: 'white',
+                      fontSize: '0.8rem',
+                      outline: 'none'
+                    }}
+                  />
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>S/D:</span>
+                  <input 
+                    type="date" 
+                    value={confirmationEndDate} 
+                    onChange={(e) => setConfirmationEndDate(e.target.value)} 
+                    style={{
+                      padding: '4px 8px',
+                      background: '#0f172a',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '6px',
+                      color: 'white',
+                      fontSize: '0.8rem',
+                      outline: 'none'
+                    }}
+                  />
+                  {(confirmationStartDate || confirmationEndDate) && (
+                    <button 
+                      onClick={() => { setConfirmationStartDate(''); setConfirmationEndDate(''); }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#ef4444',
+                        cursor: 'pointer',
+                        fontSize: '0.78rem',
+                        fontWeight: 'bold',
+                        padding: '2px 6px'
+                      }}
+                    >
+                      Reset Tgl
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Jenis:</span>
+                  <select
+                    value={confirmationTypeFilter}
+                    onChange={(e) => setConfirmationTypeFilter(e.target.value)}
+                    style={{
+                      padding: '6px 12px',
+                      background: '#0f172a',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '0.82rem',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="all">Semua Jenis</option>
+                    <option value="premium">Premium Membership</option>
+                    <option value="event">Pembayaran Event</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Status:</span>
+                  <select
+                    value={confirmationStatusFilter}
+                    onChange={(e) => setConfirmationStatusFilter(e.target.value)}
+                    style={{
+                      padding: '6px 12px',
+                      background: '#0f172a',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '0.82rem',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="all">Semua Status</option>
+                    <option value="pending">Menunggu</option>
+                    <option value="approved">Disetujui</option>
+                    <option value="rejected">Ditolak</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div className="admin-table-container glass-panel">
-              {sortedConfirmations.length > 0 ? (
+              {filteredConfirmations.length > 0 ? (
                 <table className="admin-table">
                   <thead>
                     <tr>
@@ -4146,7 +5493,7 @@ export default function AdminPanel({
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedConfirmations.map((conf, idx) => {
+                    {filteredConfirmations.map((conf, idx) => {
                       let statusColor = '#94a3b8';
                       let statusBg = 'rgba(148, 163, 184, 0.1)';
                       if (conf.status === 'approved') {
@@ -4167,7 +5514,7 @@ export default function AdminPanel({
                             <div style={{ fontWeight: '600' }}>{conf.username}</div>
                             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ID: {conf.userId}</span>
                             {conf.isEventPayment && (
-                              <div style={{ fontSize: '0.75rem', color: '#a78bfa', marginTop: '4px', fontWeight: 'bold' }}>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 'bold' }}>
                                 Event: {conf.eventTitle}
                               </div>
                             )}
@@ -4175,13 +5522,13 @@ export default function AdminPanel({
                           <td>
                             <span 
                               style={{ 
-                                color: conf.planId === 'pro' ? '#a78bfa' : conf.isEventPayment ? '#fbbf24' : '#94a3b8', 
-                                background: conf.planId === 'pro' ? 'rgba(124, 58, 237, 0.15)' : conf.isEventPayment ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255,255,255,0.05)', 
+                                color: '#ffffff', 
+                                background: 'rgba(255, 255, 255, 0.06)', 
                                 padding: '3px 8px', 
                                 borderRadius: '4px', 
                                 fontSize: '0.75rem', 
                                 fontWeight: 'bold',
-                                border: conf.planId === 'pro' ? '1px solid rgba(124, 58, 237, 0.3)' : conf.isEventPayment ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid var(--border-color)',
+                                border: '1px solid rgba(255, 255, 255, 0.15)',
                                 textTransform: 'uppercase'
                               }}
                             >
@@ -4193,7 +5540,7 @@ export default function AdminPanel({
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{conf.bankName}</span>
                           </td>
                           <td>
-                            <span style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>{conf.amount}</span>
+                            <span style={{ color: '#ffffff', fontWeight: 'bold' }}>{conf.amount}</span>
                           </td>
                           <td style={{ textAlign: 'center' }}>
                             {conf.receiptImg ? (
@@ -4224,17 +5571,17 @@ export default function AdminPanel({
                           <td>
                             <span 
                               style={{ 
-                                color: statusColor, 
-                                background: statusBg, 
+                                fontSize: '0.72rem', 
                                 padding: '4px 10px', 
                                 borderRadius: '20px', 
-                                fontSize: '0.72rem', 
                                 fontWeight: 'bold',
-                                border: `1px solid ${statusColor}30`,
-                                textTransform: 'uppercase'
+                                textTransform: 'uppercase',
+                                color: statusColor,
+                                background: statusBg,
+                                border: `1px solid ${statusColor}30`
                               }}
                             >
-                              {conf.status === 'approved' ? 'Disetujui' : conf.status === 'rejected' ? 'Ditolak' : 'Tertunda'}
+                              {conf.status === 'approved' ? 'DISETUJUI' : conf.status === 'rejected' ? 'DITOLAK' : 'TERTUNDA'}
                             </span>
                           </td>
                           <td>
@@ -4296,26 +5643,7 @@ export default function AdminPanel({
                                   </button>
                                 </>
                               ) : (
-                                <button 
-                                  className="action-btn delete"
-                                  title="Hapus catatan konfirmasi"
-                                  onClick={() => {
-                                    if (confirm('Hapus catatan konfirmasi ini?')) {
-                                      if (conf.isEventPayment) {
-                                        setEvents(events.map(evt => {
-                                          if (evt.id === conf.targetId) {
-                                            return { ...evt, proofReceipt: '', proofName: '', proofBank: '', paymentStatus: 'pending' };
-                                          }
-                                          return evt;
-                                        }));
-                                      } else {
-                                        setConfirmations(confirmations.filter(c => c.id !== conf.id));
-                                      }
-                                    }
-                                  }}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>-</span>
                               )}
                             </div>
                           </td>
@@ -4325,10 +5653,224 @@ export default function AdminPanel({
                   </tbody>
                 </table>
               ) : (
-                <div className="admin-empty-state">
-                  <Check size={48} className="icon" />
-                  <h3>Belum ada pembayaran</h3>
-                  <p>Semua bukti transfer pembayaran yang dikirimkan oleh pengguna/panitia akan muncul di sini.</p>
+                <div className="admin-empty-state" style={{ padding: '40px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                  <Check size={48} className="icon" style={{ color: 'var(--text-muted)' }} />
+                  <h3>Tidak ada data pembayaran</h3>
+                  <p>Tidak ada pemasukan/pembayaran saldo yang cocok dengan kriteria pencarian Anda.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()
+      : adminSubTab === 'finance-report' && currentUser && ['superadmin', 'staf', 'moderator'].includes(currentUser.role) ? (() => {
+        // Safe parsing of currency strings
+        const parseAmount = (amtStr) => {
+          if (!amtStr) return 0;
+          if (typeof amtStr === 'number') return amtStr;
+          const clean = amtStr.replace(/[^0-9]/g, '');
+          return parseInt(clean, 10) || 0;
+        };
+
+        // Calculations
+        // Premium Income
+        const premiumIncome = confirmations
+          .filter(c => c.status === 'approved')
+          .reduce((acc, c) => acc + parseAmount(c.amount), 0);
+
+        // Event Payments Income (budget + fee)
+        const eventPaidList = events.filter(evt => evt.paymentStatus === 'paid');
+        const eventBudgetPaid = eventPaidList.reduce((acc, evt) => acc + (evt.campaignBudget || 0), 0);
+        const eventFeesPaid = eventPaidList.reduce((acc, evt) => acc + (evt.adminFee || 0), 0);
+        const eventTotalIncome = eventBudgetPaid + eventFeesPaid;
+
+        // Total Pemasukan
+        const totalIncome = premiumIncome + eventTotalIncome;
+
+        // Escrow funds (event paid but winners not released yet)
+        const escrowFund = events
+          .filter(evt => evt.paymentStatus === 'paid' && !evt.winnersReleased)
+          .reduce((acc, evt) => acc + (evt.campaignBudget || 0), 0);
+
+        // Net System Profit (Premium + Admin Fees)
+        const netSystemProfit = premiumIncome + eventFeesPaid;
+
+        // Expenses (Approved Withdrawals)
+        const totalWithdrawals = withdrawals
+          .filter(w => w.status === 'approved')
+          .reduce((acc, w) => acc + (w.amount || 0), 0);
+
+        // Active user wallets balance total
+        const totalUserBalances = users.reduce((acc, u) => acc + (u.walletBalance || 0), 0);
+
+        // Transactions List for report
+        const transactionList = [
+          ...confirmations
+            .filter(c => c.status === 'approved')
+            .map(c => ({
+              id: c.id,
+              date: c.timestamp,
+              type: 'Pemasukan (Premium)',
+              username: c.username,
+              desc: `Premium Membership - Paket ${c.planName || 'BASIC'}`,
+              amount: parseAmount(c.amount),
+              isIncome: true
+            })),
+          ...events
+            .filter(evt => evt.paymentStatus === 'paid')
+            .map(evt => ({
+              id: `evt_${evt.id}`,
+              date: evt.paymentSubmittedAt || evt.createdAt || Date.now(),
+              type: 'Pemasukan (Event)',
+              username: evt.creator || 'Panitia',
+              desc: `Event: ${evt.title} (Budget: Rp ${evt.campaignBudget?.toLocaleString('id-ID')} + Admin Fee: Rp ${evt.adminFee?.toLocaleString('id-ID')})`,
+              amount: (evt.campaignBudget || 0) + (evt.adminFee || 0),
+              isIncome: true
+            })),
+          ...withdrawals
+            .filter(w => w.status === 'approved')
+            .map(w => ({
+              id: w.id,
+              date: w.requestedAt || Date.now(),
+              type: 'Pengeluaran (Penarikan)',
+              username: w.username,
+              desc: `Withdrawal ke ${w.method} (${w.account}) a.n ${w.name}`,
+              amount: w.amount || 0,
+              isIncome: false
+            }))
+        ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        return (
+          <div className="finance-report-section animate-fade-in" style={{ color: 'white' }}>
+            {/* Financial Overview Cards */}
+            <div className="admin-dashboard-grid finance-grid">
+              
+              {/* Card 1: Total Pemasukan */}
+              <div className="admin-stat-card glass-panel" style={{ background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%)', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
+                <div className="stat-content">
+                  <span className="stat-label" style={{ color: 'var(--text-secondary)' }}>Total Pemasukan Bersih</span>
+                  <span className="stat-value" style={{ color: '#22c55e', fontSize: '1.8rem', fontWeight: 'bold' }}>
+                    Rp {totalIncome.toLocaleString('id-ID')}
+                  </span>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Premium: Rp {premiumIncome.toLocaleString('id-ID')} | Event: Rp {eventTotalIncome.toLocaleString('id-ID')}
+                  </div>
+                </div>
+                <div className="stat-icon-wrapper" style={{ background: 'rgba(34, 197, 94, 0.2)', color: '#22c55e' }}>
+                  <TrendingUp size={24} />
+                </div>
+              </div>
+
+              {/* Card 2: Keuntungan Bersih Sistem */}
+              <div className="admin-stat-card glass-panel" style={{ background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%)', border: '1px solid rgba(167, 139, 250, 0.2)' }}>
+                <div className="stat-content">
+                  <span className="stat-label" style={{ color: 'var(--text-secondary)' }}>Keuntungan Bersih Sistem</span>
+                  <span className="stat-value" style={{ color: '#c084fc', fontSize: '1.8rem', fontWeight: 'bold' }}>
+                    Rp {netSystemProfit.toLocaleString('id-ID')}
+                  </span>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Premium: Rp {premiumIncome.toLocaleString('id-ID')} | Admin Fee Event: Rp {eventFeesPaid.toLocaleString('id-ID')}
+                  </div>
+                </div>
+                <div className="stat-icon-wrapper" style={{ background: 'rgba(167, 139, 250, 0.2)', color: '#c084fc' }}>
+                  <Award size={24} />
+                </div>
+              </div>
+
+              {/* Card 3: Dana Escrow Event */}
+              <div className="admin-stat-card glass-panel" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%)', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+                <div className="stat-content">
+                  <span className="stat-label" style={{ color: 'var(--text-secondary)' }}>Dana Escrow (Rekber Kontes)</span>
+                  <span className="stat-value" style={{ color: '#fbbf24', fontSize: '1.8rem', fontWeight: 'bold' }}>
+                    Rp {escrowFund.toLocaleString('id-ID')}
+                  </span>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Sedang ditahan sistem untuk pemenang event berjalan
+                  </div>
+                </div>
+                <div className="stat-icon-wrapper" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}>
+                  <ShieldCheck size={24} />
+                </div>
+              </div>
+
+              {/* Card 4: Total Penarikan & Saldo Pengguna */}
+              <div className="admin-stat-card glass-panel" style={{ background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                <div className="stat-content">
+                  <span className="stat-label" style={{ color: 'var(--text-secondary)' }}>Total Pencairan / Saldo User</span>
+                  <span className="stat-value" style={{ color: '#f87171', fontSize: '1.8rem', fontWeight: 'bold' }}>
+                    Rp {totalWithdrawals.toLocaleString('id-ID')}
+                  </span>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Saldo Pengguna: Rp {totalUserBalances.toLocaleString('id-ID')}
+                  </div>
+                </div>
+                <div className="stat-icon-wrapper" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#f87171' }}>
+                  <Wallet size={24} />
+                </div>
+              </div>
+
+            </div>
+
+            {/* Detailed Transaction History */}
+            <div className="admin-table-container glass-panel" style={{ padding: '24px', borderRadius: '12px' }}>
+              <div className="table-header-flex">
+                <h3 style={{ color: 'white', fontSize: '1.1rem', margin: 0, fontWeight: 'bold' }}>Histori Transaksi Keuangan</h3>
+                <button 
+                  className="btn btn-secondary btn-sm no-print" 
+                  onClick={() => window.print()}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '6px 14px' }}
+                >
+                  Cetak Laporan
+                </button>
+              </div>
+
+              {transactionList.length > 0 ? (
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Tanggal</th>
+                      <th>Tipe Transaksi</th>
+                      <th>User / Instansi</th>
+                      <th>Keterangan</th>
+                      <th style={{ textAlign: 'right' }}>Nominal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactionList.map((tx) => (
+                      <tr key={tx.id} className="table-row-hover">
+                        <td style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                          {new Date(tx.date).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </td>
+                        <td>
+                          <span style={{ 
+                            fontSize: '0.72rem', 
+                            padding: '3px 8px', 
+                            borderRadius: '12px', 
+                            fontWeight: 'bold',
+                            color: tx.isIncome ? '#22c55e' : '#f87171',
+                            background: tx.isIncome ? 'rgba(34, 197, 94, 0.1)' : 'rgba(248, 113, 113, 0.1)'
+                          }}>
+                            {tx.type}
+                          </span>
+                        </td>
+                        <td><strong style={{ color: 'white' }}>{tx.username}</strong></td>
+                        <td><span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{tx.desc}</span></td>
+                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: tx.isIncome ? '#22c55e' : '#f87171' }}>
+                          {tx.isIncome ? '+' : '-'} Rp {tx.amount.toLocaleString('id-ID')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  Belum ada catatan transaksi keuangan.
                 </div>
               )}
             </div>
@@ -4365,7 +5907,7 @@ export default function AdminPanel({
                 <span className="stat-value">{avgRating} <span className="stat-sub">/10</span></span>
               </div>
               <div className="stat-icon-wrapper p-accent">
-                <Star fill="#f59e0b" color="#f59e0b" size={20} />
+                <Star fill="#ffffff" color="#ffffff" size={20} />
               </div>
             </div>
 
@@ -4547,31 +6089,37 @@ export default function AdminPanel({
                   <div style={{ textAlign: 'center', marginTop: '20px', paddingBottom: '20px' }}>
                     <button
                       onClick={() => setVisibleMoviesCount(prev => prev + 12)}
-                      className="btn"
+                      title="Muat Lebih Banyak"
                       style={{
-                        padding: '10px 24px',
-                        background: 'rgba(255, 255, 255, 0.03)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        color: 'white',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        fontSize: '0.88rem',
-                        fontWeight: '600',
-                        transition: 'all 0.2s',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '8px'
+                        justifyContent: 'center',
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '50%',
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        cursor: 'pointer',
+                        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
-                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                        e.currentTarget.style.color = '#ffffff';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.15)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
                         e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
                       }}
                     >
-                      <span>Muat Lebih Banyak</span>
+                      <ChevronDown size={20} />
                     </button>
                   </div>
                 )}
@@ -4588,20 +6136,19 @@ export default function AdminPanel({
       )}
 
       {/* CRUD Form Modal */}
-      {isModalOpen && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal glass-panel animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>
-                <Sparkles size={18} className="accent-text" />
-                <span>{editingMovie ? 'Edit Informasi Film' : 'Tambah Film Baru'}</span>
-              </h3>
-              <button className="close-btn" onClick={() => setIsModalOpen(false)}>
-                <X size={20} />
-              </button>
-            </div>
+      {isModalOpen && createPortal(
+        <div className="admin-modal-overlay animate-fade-in" style={{ zIndex: 10000 }} onClick={() => setIsModalOpen(false)}>
+          <div className="admin-modal glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 24px', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ width: '100%', maxWidth: '640px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+                <h3 style={{ margin: 0, color: 'white', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Sparkles size={18} className="accent-text" />
+                  <span>{editingMovie ? 'Edit Informasi Film' : 'Tambah Film Baru'}</span>
+                </h3>
+                <button onClick={() => setIsModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><XCircle size={22} /></button>
+              </div>
 
-            <form onSubmit={handleFormSubmit} className="modal-form">
+              <form onSubmit={handleFormSubmit} className="modal-form" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {formError && (
                 <div className="form-error-banner">
                   <AlertTriangle size={16} />
@@ -4876,9 +6423,11 @@ export default function AdminPanel({
                   <span>Simpan Perubahan</span>
                 </button>
               </div>
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete Confirmation Modal */}
@@ -4961,103 +6510,119 @@ export default function AdminPanel({
 
       {/* Karya Submission Preview Modal Overlay */}
       {previewSubmission && createPortal(
-        <div className="admin-modal-overlay d-flex-center animate-fade-in" style={{ zIndex: 10100 }} onClick={() => setPreviewSubmission(null)}>
-          <div className="admin-confirm-modal glass-panel" style={{ maxWidth: '600px', width: '95%', padding: '24px', textAlign: 'left' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, color: 'white', fontSize: '1.2rem', fontWeight: 'bold' }}>Detail Karya Peserta</h3>
-              <button onClick={() => setPreviewSubmission(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={20} /></button>
-            </div>
-            
-            {/* Social Media Card layout */}
-            <div style={{ 
-              background: '#090d16', 
-              border: '1px solid var(--border-color)', 
-              borderRadius: '12px', 
-              padding: '20px', 
-              marginBottom: '20px',
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              {/* Brand Indicator Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ 
-                    fontSize: '0.72rem', 
-                    fontWeight: 'bold', 
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px',
-                    padding: '4px 10px',
-                    borderRadius: '20px',
-                    color: 'white',
-                    background: 
-                      previewSubmission.platform?.toLowerCase() === 'youtube' ? '#ff0000' :
-                      previewSubmission.platform?.toLowerCase() === 'tiktok' ? 'linear-gradient(45deg, #fe2c55, #25f4ee)' :
-                      previewSubmission.platform?.toLowerCase() === 'instagram' ? 'linear-gradient(45deg, #f09433, #dc2743, #bc1888)' : '#475569'
-                  }}>
-                    {previewSubmission.platform || 'Link Eksternal'}
-                  </span>
-                </div>
-                <button 
-                  onClick={() => window.open(previewSubmission.videoUrl, '_blank')}
-                  className="btn btn-primary"
-                  style={{ 
-                    display: 'inline-flex', 
-                    alignItems: 'center', 
-                    gap: '8px', 
-                    padding: '8px 16px', 
-                    fontSize: '0.82rem',
-                    borderRadius: '20px'
-                  }}
-                >
-                  <ExternalLink size={14} />
-                  <span>Buka Tautan Karya</span>
-                </button>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: '#020202',
+          zIndex: 10100,
+          overflowY: 'auto',
+          padding: '40px 24px',
+          color: 'var(--text-primary)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }} className="animate-fade-in" onClick={() => setPreviewSubmission(null)}>
+          <div className="admin-modal glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#020202', border: 'none', boxShadow: 'none' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ width: '100%', maxWidth: '640px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+                <h3 style={{ margin: 0, color: 'white', fontSize: '1.2rem', fontWeight: 'bold' }}>Detail Karya Peserta</h3>
+                <button onClick={() => setPreviewSubmission(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><XCircle size={22} /></button>
               </div>
-
-              {/* Title & Description of Work */}
-              <h4 style={{ color: 'white', fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 6px 0' }}>{previewSubmission.title}</h4>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.5', margin: '0 0 16px 0' }}>{previewSubmission.description}</p>
-
-              {/* Metrics Grid */}
+              
+              {/* Social Media Card layout */}
               <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(3, 1fr)', 
-                gap: '12px', 
-                background: 'rgba(255, 255, 255, 0.02)', 
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-                borderRadius: '8px',
-                padding: '12px',
-                textAlign: 'center'
+                background: 'rgba(255,255,255,0.02)', 
+                border: '1px solid var(--border-color)', 
+                borderRadius: '12px', 
+                padding: '20px', 
+                marginBottom: '20px',
+                position: 'relative',
+                overflow: 'hidden'
               }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#a78bfa', fontSize: '0.8rem', marginBottom: '4px' }}>
-                    <Eye size={14} />
-                    <span>Views</span>
+                {/* Brand Indicator Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ 
+                      fontSize: '0.72rem', 
+                      fontWeight: 'bold', 
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      padding: '4px 10px',
+                      borderRadius: '20px',
+                      color: 'white',
+                      background: 
+                        previewSubmission.platform?.toLowerCase() === 'youtube' ? '#ff0000' :
+                        previewSubmission.platform?.toLowerCase() === 'tiktok' ? 'linear-gradient(45deg, #fe2c55, #25f4ee)' :
+                        previewSubmission.platform?.toLowerCase() === 'instagram' ? 'linear-gradient(45deg, #f09433, #dc2743, #bc1888)' : '#475569'
+                    }}>
+                      {previewSubmission.platform || 'Link Eksternal'}
+                    </span>
                   </div>
-                  <strong style={{ color: 'white', fontSize: '1.1rem' }}>{(previewSubmission.views || 0).toLocaleString('id-ID')}</strong>
+                  <button 
+                    onClick={() => window.open(previewSubmission.videoUrl, '_blank')}
+                    className="btn btn-primary"
+                    style={{ 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: '8px', 
+                      padding: '8px 16px', 
+                      fontSize: '0.82rem',
+                      borderRadius: '20px'
+                    }}
+                  >
+                    <ExternalLink size={14} />
+                    <span>Buka Tautan Karya</span>
+                  </button>
                 </div>
-                <div style={{ borderLeft: '1px solid var(--border-color)', borderRight: '1px solid var(--border-color)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#ec4899', fontSize: '0.8rem', marginBottom: '4px' }}>
-                    <Heart size={14} />
-                    <span>Likes</span>
+
+                {/* Title & Description of Work */}
+                <h4 style={{ color: 'white', fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 6px 0' }}>{previewSubmission.title}</h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.5', margin: '0 0 16px 0' }}>{previewSubmission.description}</p>
+
+                {/* Metrics Grid */}
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(3, 1fr)', 
+                  gap: '12px', 
+                  background: 'rgba(255, 255, 255, 0.02)', 
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  textAlign: 'center'
+                }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#a78bfa', fontSize: '0.8rem', marginBottom: '4px' }}>
+                      <Eye size={14} />
+                      <span>Views</span>
+                    </div>
+                    <strong style={{ color: 'white', fontSize: '1.1rem' }}>{(previewSubmission.views || 0).toLocaleString('id-ID')}</strong>
                   </div>
-                  <strong style={{ color: 'white', fontSize: '1.1rem' }}>{(previewSubmission.likes || 0).toLocaleString('id-ID')}</strong>
-                </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#3b82f6', fontSize: '0.8rem', marginBottom: '4px' }}>
-                    <MessageSquare size={14} />
-                    <span>Comments</span>
+                  <div style={{ borderLeft: '1px solid var(--border-color)', borderRight: '1px solid var(--border-color)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#ec4899', fontSize: '0.8rem', marginBottom: '4px' }}>
+                      <Heart size={14} />
+                      <span>Likes</span>
+                    </div>
+                    <strong style={{ color: 'white', fontSize: '1.1rem' }}>{(previewSubmission.likes || 0).toLocaleString('id-ID')}</strong>
                   </div>
-                  <strong style={{ color: 'white', fontSize: '1.1rem' }}>{(previewSubmission.comments || 0).toLocaleString('id-ID')}</strong>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#3b82f6', fontSize: '0.8rem', marginBottom: '4px' }}>
+                      <MessageSquare size={14} />
+                      <span>Comments</span>
+                    </div>
+                    <strong style={{ color: 'white', fontSize: '1.1rem' }}>{(previewSubmission.comments || 0).toLocaleString('id-ID')}</strong>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Submitter & Contest details */}
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '6px', background: 'rgba(255,255,255,0.01)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-              <p style={{ margin: 0 }}><strong>Sineas / Peserta:</strong> <span style={{ color: 'white' }}>{previewSubmission.participantName}</span></p>
-              <p style={{ margin: 0 }}><strong>Kategori Kompetisi:</strong> <span style={{ color: 'white' }}>{previewSubmission.eventTitle}</span></p>
-              <p style={{ margin: 0 }}><strong>Tautan Asli:</strong> <a href={previewSubmission.videoUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#a78bfa', textDecoration: 'underline', wordBreak: 'break-all' }}>{previewSubmission.videoUrl}</a></p>
+              {/* Submitter & Contest details */}
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '6px', background: 'rgba(255,255,255,0.01)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                <p style={{ margin: 0 }}><strong>Sineas / Peserta:</strong> <span style={{ color: 'white' }}>{previewSubmission.participantName}</span></p>
+                <p style={{ margin: 0 }}><strong>Kategori Kompetisi:</strong> <span style={{ color: 'white' }}>{previewSubmission.eventTitle}</span></p>
+                <p style={{ margin: 0 }}><strong>Tautan Asli:</strong> <a href={previewSubmission.videoUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#a78bfa', textDecoration: 'underline', wordBreak: 'break-all' }}>{previewSubmission.videoUrl}</a></p>
+              </div>
             </div>
           </div>
         </div>,
@@ -5066,30 +6631,46 @@ export default function AdminPanel({
 
       {/* Judging Submission Modal Overlay */}
       {judgingSubmission && createPortal(
-        <div className="admin-modal-overlay d-flex-center animate-fade-in" style={{ zIndex: 10100 }} onClick={() => setJudgingSubmission(null)}>
-          <div className="admin-confirm-modal glass-panel" style={{ maxWidth: '420px', width: '90%', padding: '24px', textAlign: 'left' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, color: 'white' }}>Penjurian Karya</h3>
-              <button onClick={() => setJudgingSubmission(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={20} /></button>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: '#020202',
+          zIndex: 10100,
+          overflowY: 'auto',
+          padding: '40px 24px',
+          color: 'var(--text-primary)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }} className="animate-fade-in" onClick={() => setJudgingSubmission(null)}>
+          <div className="admin-modal glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#020202', border: 'none', boxShadow: 'none' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ width: '100%', maxWidth: '640px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+                <h3 style={{ margin: 0, color: 'white', fontSize: '1.25rem', fontWeight: 'bold' }}>Penjurian Karya</h3>
+                <button onClick={() => setJudgingSubmission(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><XCircle size={22} /></button>
+              </div>
+              <form onSubmit={handleJudgingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  <p style={{ marginBottom: '4px' }}><strong>Judul Karya:</strong> {judgingSubmission.title}</p>
+                  <p style={{ margin: 0 }}><strong>Peserta:</strong> {judgingSubmission.participantName}</p>
+                </div>
+                <div className="form-group">
+                  <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-primary)' }}>Skor Penjurian (1 - 100)</label>
+                  <input type="number" min="1" max="100" required value={judgingScore} onChange={(e) => setJudgingScore(e.target.value)} placeholder="Masukkan skor angka" style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white' }} />
+                </div>
+                <div className="form-group">
+                  <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-primary)' }}>Ulasan / Masukan Juri</label>
+                  <textarea rows="4" value={judgingFeedback} onChange={(e) => setJudgingFeedback(e.target.value)} placeholder="Tulis masukan konstruktif untuk peserta..." style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white', fontFamily: 'inherit' }}></textarea>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+                  <button type="button" className="btn btn-secondary" onClick={() => setJudgingSubmission(null)}>Batal</button>
+                  <button type="submit" className="btn btn-primary">Simpan Nilai</button>
+                </div>
+              </form>
             </div>
-            <form onSubmit={handleJudgingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                <p style={{ marginBottom: '4px' }}><strong>Judul Karya:</strong> {judgingSubmission.title}</p>
-                <p><strong>Peserta:</strong> {judgingSubmission.participantName}</p>
-              </div>
-              <div className="form-group">
-                <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-primary)' }}>Skor Penjurian (1 - 100)</label>
-                <input type="number" min="1" max="100" required value={judgingScore} onChange={(e) => setJudgingScore(e.target.value)} placeholder="Masukkan skor angka" style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white' }} />
-              </div>
-              <div className="form-group">
-                <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-primary)' }}>Ulasan / Masukan Juri</label>
-                <textarea rows="4" value={judgingFeedback} onChange={(e) => setJudgingFeedback(e.target.value)} placeholder="Tulis masukan konstruktif untuk peserta..." style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white', fontFamily: 'inherit' }}></textarea>
-              </div>
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setJudgingSubmission(null)}>Batal</button>
-                <button type="submit" className="btn btn-primary">Simpan Nilai</button>
-              </div>
-            </form>
           </div>
         </div>,
         document.body
@@ -5097,80 +6678,96 @@ export default function AdminPanel({
 
       {/* Transaction Authorization Confirmation Modal */}
       {authModal && createPortal(
-        <div className="admin-modal-overlay d-flex-center animate-fade-in" style={{ zIndex: 10200 }} onClick={() => { setAuthModal(null); setAuthPassword(''); setAuthError(''); }}>
-          <div className="admin-confirm-modal glass-panel" style={{ maxWidth: '440px', width: '95%', padding: '24px', textAlign: 'left', border: '1px solid rgba(248, 113, 113, 0.4)' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Wallet size={20} style={{ color: '#f87171' }} />
-                <span>{authModal.title || 'Otorisasi Transaksi'}</span>
-              </h3>
-              <button 
-                onClick={() => { setAuthModal(null); setAuthPassword(''); setAuthError(''); }} 
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: '#020202',
+          zIndex: 10200,
+          overflowY: 'auto',
+          padding: '40px 24px',
+          color: 'var(--text-primary)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }} className="animate-fade-in" onClick={() => { setAuthModal(null); setAuthPassword(''); setAuthError(''); }}>
+          <div className="admin-modal glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#020202', border: 'none', boxShadow: 'none' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ width: '100%', maxWidth: '640px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+                <h3 style={{ margin: 0, color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Wallet size={20} style={{ color: '#ffffff' }} />
+                  <span>{authModal.title || 'Otorisasi Transaksi'}</span>
+                </h3>
+                <button 
+                  onClick={() => { setAuthModal(null); setAuthPassword(''); setAuthError(''); }} 
+                  style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                >
+                  <XCircle size={22} />
+                </button>
+              </div>
+              
+              <div style={{ marginBottom: '20px' }}>
+                <p style={{ fontSize: '0.88rem', color: 'white', lineHeight: '1.5', margin: '0 0 12px 0' }}>
+                  {authModal.message}
+                </p>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
+                  Untuk alasan keamanan finansial, tindakan ini memerlukan verifikasi password akun Anda.
+                </p>
+              </div>
+
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (authPassword !== currentUser.password) {
+                    setAuthError('Password akun yang Anda masukkan salah!');
+                    return;
+                  }
+                  const onConfirmCallback = authModal.onConfirm;
+                  setAuthModal(null);
+                  setAuthPassword('');
+                  setAuthError('');
+                  onConfirmCallback();
+                }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
               >
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div style={{ marginBottom: '20px' }}>
-              <p style={{ fontSize: '0.88rem', color: 'white', lineHeight: '1.5', margin: '0 0 12px 0' }}>
-                {authModal.message}
-              </p>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
-                Untuk alasan keamanan finansial, tindakan ini memerlukan verifikasi password akun Anda.
-              </p>
-            </div>
+                <div className="form-group">
+                  <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: '500' }}>Password Konfirmasi</label>
+                  <input 
+                    type="password" 
+                    required 
+                    autoFocus
+                    value={authPassword} 
+                    onChange={(e) => {
+                      setAuthPassword(e.target.value);
+                      setAuthError('');
+                    }} 
+                    placeholder="Masukkan password akun Anda" 
+                    style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: authError ? '1px solid #ef4444' : '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
+                  />
+                  {authError && <p style={{ color: '#ef4444', fontSize: '0.78rem', margin: '4px 0 0 0' }}>{authError}</p>}
+                </div>
 
-            <form 
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (authPassword !== currentUser.password) {
-                  setAuthError('Password akun yang Anda masukkan salah!');
-                  return;
-                }
-                const onConfirmCallback = authModal.onConfirm;
-                setAuthModal(null);
-                setAuthPassword('');
-                setAuthError('');
-                onConfirmCallback();
-              }}
-              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-            >
-              <div className="form-group">
-                <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: '500' }}>Password Konfirmasi</label>
-                <input 
-                  type="password" 
-                  required 
-                  autoFocus
-                  value={authPassword} 
-                  onChange={(e) => {
-                    setAuthPassword(e.target.value);
-                    setAuthError('');
-                  }} 
-                  placeholder="Masukkan password akun Anda" 
-                  style={{ width: '100%', padding: '10px', background: '#0f172a', border: authError ? '1px solid #ef4444' : '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
-                />
-                {authError && <p style={{ color: '#ef4444', fontSize: '0.78rem', margin: '4px 0 0 0' }}>{authError}</p>}
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '4px' }}>
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
-                  onClick={() => { setAuthModal(null); setAuthPassword(''); setAuthError(''); }}
-                  style={{ padding: '8px 16px', borderRadius: '20px', fontSize: '0.85rem' }}
-                >
-                  Batal
-                </button>
-                <button 
-                  type="submit" 
-                  className="btn btn-primary"
-                  style={{ padding: '8px 20px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', background: 'linear-gradient(90deg, #f87171, #ef4444)', border: 'none' }}
-                >
-                  Konfirmasi Otorisasi
-                </button>
-              </div>
-            </form>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    onClick={() => { setAuthModal(null); setAuthPassword(''); setAuthError(''); }}
+                    style={{ padding: '8px 16px', borderRadius: '20px', fontSize: '0.85rem' }}
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary"
+                    style={{ padding: '8px 20px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}
+                  >
+                    Konfirmasi Otorisasi
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>,
         document.body
