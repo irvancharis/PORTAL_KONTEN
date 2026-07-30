@@ -477,23 +477,41 @@ export default function AdminPanel({
   }, [events]);
 
   React.useEffect(() => {
-    const isNotifNavigating = localStorage.getItem('portal-notif-navigating');
-    if (isNotifNavigating === 'true' && events.length > 0) {
-      const savedId = localStorage.getItem('portal-selected-manage-event-id');
-      const found = events.find(e => e.id === savedId);
-      if (found) {
-        setSelectedManageEvent(found);
-        localStorage.removeItem('portal-notif-navigating');
+    const handleNav = () => {
+      const isNotifNavigating = localStorage.getItem('portal-notif-navigating');
+      if (isNotifNavigating === 'true' && events.length > 0) {
+        const savedId = localStorage.getItem('portal-selected-manage-event-id');
+        const found = events.find(e => e.id === savedId);
+        if (found) {
+          setSelectedManageEvent(found);
+          localStorage.removeItem('portal-notif-navigating');
+        }
+        const savedTab = localStorage.getItem('portal-inner-manage-tab');
+        if (savedTab) {
+          setInnerManageTab(savedTab);
+        }
       }
-      const savedTab = localStorage.getItem('portal-inner-manage-tab');
-      if (savedTab) {
-        setInnerManageTab(savedTab);
+    };
+
+    handleNav();
+
+    window.addEventListener('popstate', handleNav);
+    return () => {
+      window.removeEventListener('popstate', handleNav);
+    };
+  }, [events]);
+
+  const lastTabRef = React.useRef(adminSubTab);
+  React.useEffect(() => {
+    if (lastTabRef.current !== adminSubTab) {
+      lastTabRef.current = adminSubTab;
+      const isNotifNavigating = localStorage.getItem('portal-notif-navigating');
+      if (isNotifNavigating !== 'true') {
+        setSelectedEventIdFilter('');
+        setSelectedManageEvent(null);
       }
-    } else if (isNotifNavigating !== 'true') {
-      setSelectedEventIdFilter('');
-      setSelectedManageEvent(null);
     }
-  }, [adminSubTab, events]);
+  }, [adminSubTab]);
 
   // Judging states
   const [judgingSubmission, setJudgingSubmission] = useState(null);
