@@ -6601,21 +6601,21 @@ export default function AdminPanel({
                   textAlign: 'center'
                 }}>
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#a78bfa', fontSize: '0.8rem', marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '4px' }}>
                       <Eye size={14} />
                       <span>Views</span>
                     </div>
                     <strong style={{ color: 'white', fontSize: '1.1rem' }}>{(previewSubmission.views || 0).toLocaleString('id-ID')}</strong>
                   </div>
                   <div style={{ borderLeft: '1px solid var(--border-color)', borderRight: '1px solid var(--border-color)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#ec4899', fontSize: '0.8rem', marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '4px' }}>
                       <Heart size={14} />
                       <span>Likes</span>
                     </div>
                     <strong style={{ color: 'white', fontSize: '1.1rem' }}>{(previewSubmission.likes || 0).toLocaleString('id-ID')}</strong>
                   </div>
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#3b82f6', fontSize: '0.8rem', marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '4px' }}>
                       <MessageSquare size={14} />
                       <span>Comments</span>
                     </div>
@@ -6628,7 +6628,7 @@ export default function AdminPanel({
               <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '6px', background: 'rgba(255,255,255,0.01)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                 <p style={{ margin: 0 }}><strong>Sineas / Peserta:</strong> <span style={{ color: 'white' }}>{previewSubmission.participantName}</span></p>
                 <p style={{ margin: 0 }}><strong>Kategori Kompetisi:</strong> <span style={{ color: 'white' }}>{previewSubmission.eventTitle}</span></p>
-                <p style={{ margin: 0 }}><strong>Tautan Asli:</strong> <a href={previewSubmission.videoUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#a78bfa', textDecoration: 'underline', wordBreak: 'break-all' }}>{previewSubmission.videoUrl}</a></p>
+                <p style={{ margin: 0 }}><strong>Tautan Asli:</strong> <a href={previewSubmission.videoUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'underline', wordBreak: 'break-all' }}>{previewSubmission.videoUrl}</a></p>
               </div>
             </div>
           </div>
