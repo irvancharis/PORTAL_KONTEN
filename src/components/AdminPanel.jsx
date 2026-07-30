@@ -476,15 +476,24 @@ export default function AdminPanel({
     }
   }, [events]);
 
-  const isFirstMount = React.useRef(true);
   React.useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-      return;
+    const isNotifNavigating = localStorage.getItem('portal-notif-navigating');
+    if (isNotifNavigating === 'true' && events.length > 0) {
+      const savedId = localStorage.getItem('portal-selected-manage-event-id');
+      const found = events.find(e => e.id === savedId);
+      if (found) {
+        setSelectedManageEvent(found);
+        localStorage.removeItem('portal-notif-navigating');
+      }
+      const savedTab = localStorage.getItem('portal-inner-manage-tab');
+      if (savedTab) {
+        setInnerManageTab(savedTab);
+      }
+    } else if (isNotifNavigating !== 'true') {
+      setSelectedEventIdFilter('');
+      setSelectedManageEvent(null);
     }
-    setSelectedEventIdFilter('');
-    setSelectedManageEvent(null);
-  }, [adminSubTab]);
+  }, [adminSubTab, events]);
 
   // Judging states
   const [judgingSubmission, setJudgingSubmission] = useState(null);

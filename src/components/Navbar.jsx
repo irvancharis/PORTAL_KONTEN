@@ -165,7 +165,9 @@ export default function Navbar({
             title: 'Pendaftaran Baru',
             message: `${p.name} mendaftar di ${p.eventTitle}`,
             timestamp: p.registeredAt || new Date().toISOString(),
-            tab: 'event-participants'
+            tab: 'event-participants',
+            eventId: p.eventId,
+            eventTitle: p.eventTitle
           });
         });
     }
@@ -181,7 +183,9 @@ export default function Navbar({
             title: 'Karya Baru Masuk',
             message: `${s.participantName} mengunggah "${s.title}"`,
             timestamp: s.submittedAt || new Date().toISOString(),
-            tab: 'event-submissions'
+            tab: 'event-submissions',
+            eventId: s.eventId,
+            eventTitle: s.eventTitle
           });
         });
     }
@@ -752,10 +756,19 @@ export default function Navbar({
                                     }
                                   } else {
                                     setActiveTab('admin');
-                                    if (onAdminSubTabChange) {
-                                      onAdminSubTabChange(notif.tab);
+                                    let targetTab = notif.tab;
+                                    if (notif.tab === 'event-participants' || notif.tab === 'event-submissions') {
+                                      targetTab = 'event-manage';
+                                      if (notif.eventId) {
+                                        localStorage.setItem('portal-selected-manage-event-id', notif.eventId);
+                                        localStorage.setItem('portal-inner-manage-tab', notif.tab === 'event-participants' ? 'participants' : 'submissions');
+                                        localStorage.setItem('portal-notif-navigating', 'true');
+                                      }
                                     }
-                                    window.history.pushState(null, '', `/admin/${notif.tab}`);
+                                    if (onAdminSubTabChange) {
+                                      onAdminSubTabChange(targetTab);
+                                    }
+                                    window.history.pushState(null, '', `/admin/${targetTab}`);
                                     window.dispatchEvent(new Event('popstate'));
                                   }
                                 }}
