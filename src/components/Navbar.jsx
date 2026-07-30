@@ -248,7 +248,9 @@ export default function Navbar({
             title: 'Pembayaran Event Pending',
             message: `Event "${e.title}" belum aktif. Harap selesaikan pembayaran biaya event & platform.`,
             timestamp: e.deadline || new Date().toISOString(),
-            tab: 'event-manage'
+            tab: 'event-manage',
+            eventId: e.id,
+            eventTitle: e.title
           });
         });
 
@@ -268,7 +270,9 @@ export default function Navbar({
             title: 'Pemenang Belum Ditentukan',
             message: `Event "${e.title}" telah berakhir. Segera tentukan pemenang kompetisi!`,
             timestamp: e.deadline || new Date().toISOString(),
-            tab: 'event-manage'
+            tab: 'event-manage',
+            eventId: e.id,
+            eventTitle: e.title
           });
         });
     }
@@ -757,11 +761,15 @@ export default function Navbar({
                                   } else {
                                     setActiveTab('admin');
                                     let targetTab = notif.tab;
-                                    if (notif.tab === 'event-participants' || notif.tab === 'event-submissions') {
+                                    if (notif.tab === 'event-participants' || notif.tab === 'event-submissions' || notif.type === 'event-winners' || notif.type === 'event-payment') {
                                       targetTab = 'event-manage';
                                       if (notif.eventId) {
                                         localStorage.setItem('portal-selected-manage-event-id', notif.eventId);
-                                        localStorage.setItem('portal-inner-manage-tab', notif.tab === 'event-participants' ? 'participants' : 'submissions');
+                                        localStorage.setItem('portal-inner-manage-tab', 
+                                          notif.tab === 'event-participants' ? 'participants' : 
+                                          notif.tab === 'event-submissions' ? 'submissions' : 
+                                          notif.type === 'event-winners' ? 'judging' : 'finance'
+                                        );
                                         localStorage.setItem('portal-notif-navigating', 'true');
                                       }
                                     }
