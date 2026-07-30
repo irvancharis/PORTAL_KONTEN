@@ -1866,7 +1866,9 @@ export default function App() {
                     : new Date().getTime() > new Date(e.deadline + 'T23:59:59').getTime()
                 ) : false;
                 return e.budgetMode === 'ranking' && e.paymentStatus === 'paid' && !e.winnersReleased && isDeadlinePassed;
-              }).length
+              }).length +
+              sidebarParticipants.filter(p => p.status === 'pending').length +
+              sidebarSubmissions.filter(s => s.score === null).length
             }
             customRoles={customRoles}
           />
