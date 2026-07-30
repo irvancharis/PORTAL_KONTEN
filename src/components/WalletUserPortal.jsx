@@ -193,8 +193,8 @@ export default function WalletUserPortal({
         padding: '32px', 
         borderRadius: 'var(--radius-md)', 
         marginBottom: '32px',
-        background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.15) 0%, rgba(15, 23, 42, 0.9) 100%)',
-        border: '1px solid rgba(167, 139, 250, 0.2)',
+        background: 'rgba(255, 255, 255, 0.02)',
+        border: '1px solid var(--border-color)',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -202,7 +202,7 @@ export default function WalletUserPortal({
         gap: '24px'
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#c084fc', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.85rem' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'white', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.85rem' }}>
             <Wallet size={18} />
             <span>Dompet Kreator</span>
           </div>
@@ -226,7 +226,8 @@ export default function WalletUserPortal({
             padding: '12px 28px',
             fontSize: '0.9rem',
             borderRadius: '30px',
-            background: 'linear-gradient(90deg, #a78bfa, #7c3aed)',
+            background: 'white',
+            color: 'black',
             border: 'none',
             fontWeight: 'bold'
           }}
@@ -238,7 +239,7 @@ export default function WalletUserPortal({
       {/* Metrics Cards Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         {/* Card 1: Saldo */}
-        <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px', border: '1px solid rgba(167, 139, 250, 0.15)', background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.05) 0%, rgba(15, 23, 42, 0.8) 100%)' }}>
+        <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'rgba(15, 23, 42, 0.6)' }}>
           <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Saldo Aktif (Dapat Ditarik)</span>
           <h2 style={{ fontSize: '1.8rem', color: 'white', fontWeight: 'bold', margin: '8px 0 0 0' }}>
             Rp {walletBalance.toLocaleString('id-ID')}

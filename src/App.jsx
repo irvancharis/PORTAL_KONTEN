@@ -1453,7 +1453,7 @@ export default function App() {
     
     if (selectedMovie && isPlaying && activeTab === 'discover') {
       // Nonton Film Page
-      const titleText = `Nonton ${selectedMovie.title} - Streaming Kualitas Tinggi | FILMO`;
+      const titleText = `${selectedMovie.title} - FILMO`;
       document.title = titleText;
       
       const descText = `Saksikan film "${selectedMovie.title}" secara instan tanpa iklan. Sinopsis: ${selectedMovie.description?.substring(0, 120) || 'Nonton streaming film berkualitas di FILMO.'}...`;
@@ -1488,7 +1488,7 @@ export default function App() {
       
       if (activeEvent) {
         // Event Detail Page
-        const titleText = `Kompetisi Video: ${activeEvent.title} | FILMO`;
+        const titleText = `${activeEvent.title} - FILMO`;
         document.title = titleText;
         
         const descText = `Ikuti kompetisi video "${activeEvent.title}" kategori ${activeEvent.category || 'UGC'}. Batas pendaftaran: ${activeEvent.deadline || 'Segera'}.`;
@@ -1521,29 +1521,29 @@ export default function App() {
         };
       } else {
         // General Events Page
-        document.title = 'Kompetisi & Event Kreatif Video | FILMO';
+        document.title = 'Event - FILMO';
         if (metaDesc) {
           metaDesc.setAttribute('content', 'Ikuti berbagai kompetisi event video kreatif (Short Film, Music Video, UGC, Dokumenter) dan raih total hadiah jutaan rupiah.');
         }
       }
     } else if (activeTab === 'wallet') {
-      document.title = 'Dompet & Penarikan Saldo | FILMO';
+      document.title = 'Dompet Saya - FILMO';
       if (metaDesc) {
         metaDesc.setAttribute('content', 'Kelola pendapatan Anda dari views video dan lakukan penarikan saldo dengan mudah di FILMO.');
       }
     } else if (activeTab === 'watchlist') {
-      document.title = 'Daftar Tontonan Saya | FILMO';
+      document.title = 'Daftar Tontonan - FILMO';
       if (metaDesc) {
         metaDesc.setAttribute('content', 'Simpan dan kelola film-film favorit Anda untuk ditonton nanti di FILMO.');
       }
     } else if (activeTab === 'history') {
-      document.title = 'Riwayat Menonton | FILMO';
+      document.title = 'Riwayat - FILMO';
       if (metaDesc) {
         metaDesc.setAttribute('content', 'Lihat riwayat film yang telah Anda tonton sebelumnya di FILMO.');
       }
     } else {
       // General Homepage / Discover
-      document.title = 'FILMO - Streaming Film & Kompetisi Event Kreatif';
+      document.title = 'FILMO';
       if (metaDesc) {
         metaDesc.setAttribute('content', 'Platform streaming film berkualitas tinggi tanpa iklan serta portal kompetisi event video kreatif dengan berbagai pilihan kategori dan hadiah menarik di FILMO.');
       }
