@@ -1,6 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, Search, Film, X, User, Sparkles, ChevronDown, LogOut, Bell } from 'lucide-react';
 
+const slugify = (text) => {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
+};
+
 export default function Navbar({
   searchQuery,
   setSearchQuery,
@@ -282,7 +295,9 @@ export default function Navbar({
           title,
           message: msg,
           timestamp: p.verifiedAt || p.registeredAt || new Date().toISOString(),
-          tab: 'user-events'
+          tab: 'user-events',
+          eventId: p.eventId,
+          eventTitle: p.eventTitle
         });
       });
 
@@ -296,7 +311,9 @@ export default function Navbar({
           title: 'Karya Telah Dinilai',
           message: `Karya film Anda "${s.title}" pada event "${s.eventTitle}" telah dinilai oleh Juri dengan skor ${s.score}/100.`,
           timestamp: s.submittedAt || new Date().toISOString(),
-          tab: 'user-events'
+          tab: 'user-events',
+          eventId: s.eventId,
+          eventTitle: s.eventTitle
         });
       });
 
@@ -320,7 +337,9 @@ export default function Navbar({
                 title: 'Kirim Karya Diperlukan',
                 message: `Anda belum mengirimkan karya untuk event "${p.eventTitle}". Batas waktu: ${formatIndonesianDate(evt.deadline)}.`,
                 timestamp: p.verifiedAt || p.registeredAt || new Date().toISOString(),
-                tab: 'user-events'
+                tab: 'user-events',
+                eventId: p.eventId,
+                eventTitle: p.eventTitle
               });
             }
           }
@@ -714,17 +733,31 @@ export default function Navbar({
                               <div 
                                 key={notif.id} 
                                 onClick={() => {
+                                  setIsNotificationOpen(false);
                                   if (notif.tab === 'wallet') {
                                     setActiveTab('wallet');
+                                    window.history.pushState(null, '', '/wallet');
+                                    window.dispatchEvent(new Event('popstate'));
                                   } else if (notif.tab === 'user-events') {
-                                    setActiveTab('events');
+                                    if (notif.eventId) {
+                                      const slug = slugify(notif.eventTitle || '');
+                                      const url = `/event/${slug}-${notif.eventId}`;
+                                      setActiveTab('events');
+                                      window.history.pushState(null, '', url);
+                                      window.dispatchEvent(new Event('popstate'));
+                                    } else {
+                                      setActiveTab('events');
+                                      window.history.pushState(null, '', '/events');
+                                      window.dispatchEvent(new Event('popstate'));
+                                    }
                                   } else {
                                     setActiveTab('admin');
                                     if (onAdminSubTabChange) {
                                       onAdminSubTabChange(notif.tab);
                                     }
+                                    window.history.pushState(null, '', `/admin/${notif.tab}`);
+                                    window.dispatchEvent(new Event('popstate'));
                                   }
-                                  setIsNotificationOpen(false);
                                 }}
                                 style={{ 
                                   padding: '12px', 
