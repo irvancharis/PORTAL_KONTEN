@@ -70,6 +70,19 @@ import {
   Trash2
 } from 'lucide-react';
 
+const slugify = (text) => {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
+};
+
 export default function App() {
   // Movie database state loaded from localStorage, fallback to movies.json
   const [movies, setMovies] = useState(() => {
@@ -95,6 +108,7 @@ export default function App() {
     return localStorage.getItem('portal-active-tab') || 'discover';
   }); // 'discover', 'watchlist', 'history', 'admin'
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(false);
   
   // Movie selection (watch page) states
   const [selectedMovie, setSelectedMovie] = useState(null);
@@ -1321,76 +1335,87 @@ export default function App() {
   const handleAdminSubTabChange = (subTabId) => {
     setAdminSubTab(subTabId);
     if (activeTab === 'admin') {
-      window.location.hash = `#admin/${subTabId}`;
+      window.history.pushState(null, '', `/admin/${subTabId}`);
     }
   };
 
-  // 1. Initial Hash Route for Tabs (runs immediately on mount or user change)
+  // 1. Initial Path Route for Tabs (runs immediately on mount or user change)
   useEffect(() => {
     if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role)) {
       setActiveTab('admin');
-      window.location.hash = `#admin/${adminSubTab}`;
+      window.history.replaceState(null, '', `/admin/${adminSubTab}`);
       return;
     }
-    const hash = window.location.hash;
-    if (hash) {
-      const parts = hash.replace('#', '').split('/');
-      const tabId = parts[0];
-      const subTabId = parts[1];
-      if (['discover', 'events', 'wallet', 'watchlist', 'history', 'admin'].includes(tabId)) {
-        if (tabId === 'admin') {
-          setActiveTab('discover');
-          window.location.hash = '';
-        } else {
-          setActiveTab(tabId);
-          if (tabId === 'admin' && subTabId) {
-            setAdminSubTab(subTabId);
+    const path = window.location.pathname;
+    if (path && path !== '/') {
+      if (path.startsWith('/event/')) {
+        setActiveTab('events');
+      } else if (path.startsWith('/play/')) {
+        setActiveTab('discover');
+      } else {
+        const parts = path.split('/');
+        const tabId = parts[1];
+        const subTabId = parts[2];
+        if (['discover', 'events', 'wallet', 'watchlist', 'history', 'admin'].includes(tabId)) {
+          if (tabId === 'admin') {
+            setActiveTab('discover');
+            window.history.replaceState(null, '', '/');
+          } else {
+            setActiveTab(tabId);
+            if (tabId === 'admin' && subTabId) {
+              setAdminSubTab(subTabId);
+            }
           }
         }
       }
     }
   }, [currentUser]);
 
-  // 2. Hash-based Router & Event Listener
+  // 2. Path-based Router & Event Listener
   useEffect(() => {
-    const handleHashRoute = () => {
-      const hash = window.location.hash;
+    const handlePathRoute = () => {
+      const path = window.location.pathname;
       
       // Enforce admin panel routing for admin users
       if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role)) {
         setActiveTab('admin');
         setIsPlaying(false);
         setSelectedMovie(null);
-        if (hash) {
-          const parts = hash.replace('#', '').split('/');
-          const tabId = parts[0];
-          const subTabId = parts[1];
+        if (path && path !== '/') {
+          const parts = path.split('/');
+          const tabId = parts[1];
+          const subTabId = parts[2];
           if (tabId === 'admin' && subTabId) {
             setAdminSubTab(subTabId);
           }
         } else {
-          window.location.hash = `#admin/${adminSubTab}`;
+          window.history.replaceState(null, '', `/admin/${adminSubTab}`);
         }
         return;
       }
 
-      if (hash) {
-        if (hash.startsWith('#play=')) {
-          const movieId = hash.replace('#play=', '').split('&')[0];
-          const foundMovie = movies.find(m => m.id === movieId);
+      if (path && path !== '/') {
+        if (path.startsWith('/play/')) {
+          const movieParam = path.replace('/play/', '').split('&')[0];
+          const foundMovie = movies.find(m => m.id === movieParam || movieParam.endsWith(m.id));
           if (foundMovie) {
             setSelectedMovie(foundMovie);
             setIsPlaying(true);
+            setActiveTab('discover');
           }
+        } else if (path.startsWith('/event/')) {
+          setActiveTab('events');
+          setIsPlaying(false);
+          setSelectedMovie(null);
         } else {
           // Parse tabId and subTabId
-          const parts = hash.replace('#', '').split('/');
-          const tabId = parts[0];
-          const subTabId = parts[1];
+          const parts = path.split('/');
+          const tabId = parts[1];
+          const subTabId = parts[2];
           if (['discover', 'events', 'wallet', 'watchlist', 'history', 'admin'].includes(tabId)) {
             if (tabId === 'admin') {
               setActiveTab('discover');
-              window.location.hash = '';
+              window.history.replaceState(null, '', '/');
             } else {
               setActiveTab(tabId);
               setIsPlaying(false);
@@ -1402,7 +1427,7 @@ export default function App() {
           }
         }
       } else {
-        // If hash is empty, return to discover/home
+        // If path is empty or root, return to discover/home
         setActiveTab('discover');
         setIsPlaying(false);
         setSelectedMovie(null);
@@ -1410,19 +1435,146 @@ export default function App() {
     };
 
     if (movies.length > 0) {
-      handleHashRoute();
+      handlePathRoute();
     }
-    window.addEventListener('hashchange', handleHashRoute);
-    return () => window.removeEventListener('hashchange', handleHashRoute);
+    window.addEventListener('popstate', handlePathRoute);
+    return () => window.removeEventListener('popstate', handlePathRoute);
   }, [movies, currentUser, adminSubTab]);
 
-  // Handle Tab Change and update URL hash
+  // 3. Dynamic SEO Title, Meta Description, and Structured JSON-LD Schema
+  useEffect(() => {
+    const metaDesc = document.querySelector('meta[name="description"]');
+    
+    // Remove old schema tag if exists
+    const oldSchema = document.getElementById('seo-structured-data');
+    if (oldSchema) oldSchema.remove();
+    
+    let schemaData = null;
+    
+    if (selectedMovie && isPlaying && activeTab === 'discover') {
+      // Nonton Film Page
+      const titleText = `Nonton ${selectedMovie.title} - Streaming Kualitas Tinggi | FILMO`;
+      document.title = titleText;
+      
+      const descText = `Saksikan film "${selectedMovie.title}" secara instan tanpa iklan. Sinopsis: ${selectedMovie.description?.substring(0, 120) || 'Nonton streaming film berkualitas di FILMO.'}...`;
+      if (metaDesc) {
+        metaDesc.setAttribute('content', descText);
+      }
+      
+      // JSON-LD Schema for Movie
+      schemaData = {
+        "@context": "https://schema.org",
+        "@type": "Movie",
+        "name": selectedMovie.title,
+        "description": selectedMovie.description || 'Nonton streaming film berkualitas di FILMO.',
+        "image": selectedMovie.poster || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=500&q=80',
+        "genre": selectedMovie.genre || [],
+        "dateCreated": selectedMovie.year || new Date().getFullYear(),
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": selectedMovie.rating || 8.0,
+          "bestRating": "10",
+          "worstRating": "1",
+          "ratingCount": 128
+        }
+      };
+    } else if (activeTab === 'events') {
+      const path = window.location.pathname;
+      let activeEvent = null;
+      if (path.startsWith('/event/')) {
+        const eventParam = path.replace('/event/', '').split('&')[0];
+        activeEvent = events.find(e => eventParam && (e.id === eventParam || eventParam.endsWith(e.id)));
+      }
+      
+      if (activeEvent) {
+        // Event Detail Page
+        const titleText = `Kompetisi Video: ${activeEvent.title} | FILMO`;
+        document.title = titleText;
+        
+        const descText = `Ikuti kompetisi video "${activeEvent.title}" kategori ${activeEvent.category || 'UGC'}. Batas pendaftaran: ${activeEvent.deadline || 'Segera'}.`;
+        if (metaDesc) {
+          metaDesc.setAttribute('content', descText);
+        }
+        
+        // JSON-LD Schema for Event
+        schemaData = {
+          "@context": "https://schema.org",
+          "@type": "Event",
+          "name": activeEvent.title,
+          "description": activeEvent.description || 'Ikuti kompetisi video kreatif di FILMO.',
+          "startDate": new Date().toISOString().split('T')[0],
+          "endDate": activeEvent.deadline || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          "eventStatus": "https://schema.org/EventScheduled",
+          "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+          "location": {
+            "@type": "VirtualLocation",
+            "url": window.location.href
+          },
+          "offers": {
+            "@type": "Offer",
+            "url": window.location.href,
+            "price": "0",
+            "priceCurrency": "IDR",
+            "availability": "https://schema.org/InStock",
+            "validFrom": new Date().toISOString().split('T')[0]
+          }
+        };
+      } else {
+        // General Events Page
+        document.title = 'Kompetisi & Event Kreatif Video | FILMO';
+        if (metaDesc) {
+          metaDesc.setAttribute('content', 'Ikuti berbagai kompetisi event video kreatif (Short Film, Music Video, UGC, Dokumenter) dan raih total hadiah jutaan rupiah.');
+        }
+      }
+    } else if (activeTab === 'wallet') {
+      document.title = 'Dompet & Penarikan Saldo | FILMO';
+      if (metaDesc) {
+        metaDesc.setAttribute('content', 'Kelola pendapatan Anda dari views video dan lakukan penarikan saldo dengan mudah di FILMO.');
+      }
+    } else if (activeTab === 'watchlist') {
+      document.title = 'Daftar Tontonan Saya | FILMO';
+      if (metaDesc) {
+        metaDesc.setAttribute('content', 'Simpan dan kelola film-film favorit Anda untuk ditonton nanti di FILMO.');
+      }
+    } else if (activeTab === 'history') {
+      document.title = 'Riwayat Menonton | FILMO';
+      if (metaDesc) {
+        metaDesc.setAttribute('content', 'Lihat riwayat film yang telah Anda tonton sebelumnya di FILMO.');
+      }
+    } else {
+      // General Homepage / Discover
+      document.title = 'FILMO - Streaming Film & Kompetisi Event Kreatif';
+      if (metaDesc) {
+        metaDesc.setAttribute('content', 'Platform streaming film berkualitas tinggi tanpa iklan serta portal kompetisi event video kreatif dengan berbagai pilihan kategori dan hadiah menarik di FILMO.');
+      }
+    }
+    
+    // Inject dynamic JSON-LD structured schema script
+    if (schemaData) {
+      const script = document.createElement('script');
+      script.id = 'seo-structured-data';
+      script.type = 'application/ld+json';
+      script.text = JSON.stringify(schemaData);
+      document.head.appendChild(script);
+    }
+  }, [selectedMovie, isPlaying, activeTab, events]);
+
+  // 4. Trigger top loading bar animation on page/tab/subtab changes
+  useEffect(() => {
+    setIsPageLoading(true);
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [activeTab, selectedMovie?.id, isPlaying, adminSubTab]);
+
+  // Handle Tab Change and update URL path
   function handleTabChange(tabId) {
     if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role)) {
       setActiveTab('admin');
       setIsPlaying(false);
       setSelectedMovie(null);
-      window.location.hash = `#admin/${adminSubTab}`;
+      window.history.pushState(null, '', `/admin/${adminSubTab}`);
       return;
     }
     
@@ -1430,12 +1582,11 @@ export default function App() {
     setIsPlaying(false);
     setSelectedMovie(null);
     if (tabId === 'discover') {
-      // Clear hash for discover/home
-      window.history.pushState("", document.title, window.location.pathname + window.location.search);
+      window.history.pushState(null, '', '/');
     } else if (tabId === 'admin') {
-      window.location.hash = `#admin/${adminSubTab}`;
+      window.history.pushState(null, '', `/admin/${adminSubTab}`);
     } else {
-      window.location.hash = `#${tabId}`;
+      window.history.pushState(null, '', `/${tabId}`);
     }
   }
 
@@ -1630,17 +1781,16 @@ export default function App() {
     setIsPlaying(true); // Auto play!
     addToHistory(movie);
     incrementMovieViews(movie); // Increment views!
-    window.location.hash = `#play=${movie.id}`; // Set URL hash!
+    const movieSlug = slugify(movie.title) + '-' + movie.id;
+    window.history.pushState(null, '', `/play/${movieSlug}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Close player and clear URL hash
+  // Close player and clear URL path
   const handleClosePlayer = () => {
     setIsPlaying(false);
     setSelectedMovie(null);
-    if (window.location.hash.startsWith('#play=')) {
-      window.history.pushState("", document.title, window.location.pathname + window.location.search);
-    }
+    window.history.pushState(null, '', '/');
   };
 
   // Format views to YouTube style
@@ -1665,6 +1815,7 @@ export default function App() {
 
   return (
     <div className={`app-container youtube-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      {isPageLoading && <div className="top-loading-bar" />}
       {/* Header */}
       <Navbar 
         searchQuery={searchQuery}
@@ -1685,8 +1836,8 @@ export default function App() {
         confirmations={confirmations}
         withdrawals={withdrawals}
         onAdminSubTabChange={handleAdminSubTabChange}
-        adminSubTab={adminSubTab}
         events={events}
+        customRoles={customRoles}
       />
 
       <div className="app-body-wrapper">

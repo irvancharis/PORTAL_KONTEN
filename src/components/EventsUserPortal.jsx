@@ -2,6 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Trophy, Calendar, Users, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown } from 'lucide-react';
 
+const slugify = (text) => {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
+};
+
 const formatIndonesianDate = (dateString) => {
   if (!dateString) return 'Hingga Budget Habis';
   try {
@@ -284,6 +297,31 @@ export default function EventsUserPortal({
   }, [searchQuery]);
   const [expandedJuknis, setExpandedJuknis] = useState({});
   const [selectedEvent, setSelectedEvent] = useState(null);
+
+  // URL Path Listener for Event Details (Allows direct link sharing)
+  useEffect(() => {
+    const handlePathCheck = () => {
+      const path = window.location.pathname;
+      if (path && path.startsWith('/event/')) {
+        const eventParam = path.replace('/event/', '');
+        const foundEvent = events.find(e => e.id === eventParam || eventParam.endsWith(e.id));
+        if (foundEvent) {
+          setSelectedEvent(foundEvent);
+        } else {
+          setSelectedEvent(null);
+        }
+      } else {
+        setSelectedEvent(null);
+      }
+    };
+
+    // Run once on mount
+    handlePathCheck();
+
+    // Listen for path changes
+    window.addEventListener('popstate', handlePathCheck);
+    return () => window.removeEventListener('popstate', handlePathCheck);
+  }, [events]);
 
   // Social Media Verification States
   const [verificationStep, setVerificationStep] = useState('input'); // 'input' | 'verify' | 'loading' | 'success' | 'expired' | 'failed'
@@ -750,7 +788,13 @@ export default function EventsUserPortal({
   };
 
   return (
-    <div className="events-portal-container animate-fade-in-up" style={{ padding: '24px', color: 'var(--text-primary)' }}>
+    <div className="events-portal-container animate-fade-in-up" style={{ 
+      padding: '24px 0', 
+      color: 'var(--text-primary)',
+      maxWidth: '1200px',
+      margin: '0 auto',
+      width: '100%'
+    }}>
       {selectedEvent ? (
         // ================= DEDICATED DETAIL PAGE VIEW =================
         (() => {
@@ -769,16 +813,19 @@ export default function EventsUserPortal({
 
           return (
             <div className="animate-fade-in" style={{
-              background: 'linear-gradient(135deg, rgba(17, 24, 39, 0.6) 0%, rgba(10, 15, 30, 0.8) 100%)', 
-              backdropFilter: 'blur(16px)', 
+              background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(9, 13, 22, 0.8) 100%)', 
+              backdropFilter: 'blur(20px)', 
               padding: '32px', 
               borderRadius: '24px', 
-              border: '1px solid rgba(255,255,255,0.05)',
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)'
+              border: '1px solid rgba(255,255,255,0.04)',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)'
             }}>
               {/* Back button */}
               <button 
-                onClick={() => setSelectedEvent(null)}
+                onClick={() => {
+                  window.history.pushState(null, '', '/events');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                }}
                 className="btn"
                 style={{
                   display: 'inline-flex',
@@ -792,15 +839,16 @@ export default function EventsUserPortal({
                   cursor: 'pointer',
                   fontSize: '0.85rem',
                   fontWeight: '600',
+                  marginTop: '16px',
                   marginBottom: '28px',
                   transition: 'all 0.3s ease',
                   outline: 'none'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(124, 58, 237, 0.1)';
-                  e.currentTarget.style.borderColor = 'rgba(124, 58, 237, 0.4)';
-                  e.currentTarget.style.color = '#c084fc';
-                  e.currentTarget.style.boxShadow = '0 0 15px rgba(124, 58, 237, 0.15)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                  e.currentTarget.style.color = '#ffffff';
+                  e.currentTarget.style.boxShadow = '0 0 15px rgba(255, 255, 255, 0.1)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
@@ -846,17 +894,17 @@ export default function EventsUserPortal({
                       fontWeight: '800', 
                       margin: '0 0 16px 0', 
                       letterSpacing: '-0.8px',
-                      background: 'linear-gradient(to right, #ffffff, #d8b4fe)',
+                      background: 'linear-gradient(to right, #ffffff, #e2e8f0)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent'
                     }}>{evt.title}</h2>
                     
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', marginBottom: '24px' }}>
-                      <Calendar size={16} style={{ color: '#a78bfa' }} />
+                      <Calendar size={16} style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
                       {evt.deadline ? (
                         <span>Batas Waktu Pendaftaran: <strong style={{ color: 'white' }}>{formatIndonesianDate(evt.deadline)}</strong></span>
                       ) : (
-                        <span>Batas Waktu Pendaftaran: <strong style={{ color: '#38bdf8' }}>Tanpa Batas Waktu (Selesai saat budget habis)</strong></span>
+                        <span>Batas Waktu Pendaftaran: <strong style={{ color: 'white' }}>Tanpa Batas Waktu (Selesai saat budget habis)</strong></span>
                       )}
                     </div>
                     
@@ -866,15 +914,14 @@ export default function EventsUserPortal({
                   {evt.juknis && (
                     <div style={{ 
                       padding: '24px',
-                      background: 'rgba(124, 58, 237, 0.01)',
-                      border: '1px solid rgba(167, 139, 250, 0.15)',
+                      background: 'rgba(255, 255, 255, 0.02)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
                       borderRadius: '16px',
                       fontSize: '0.88rem',
-                      boxShadow: 'inset 0 0 20px rgba(124, 58, 237, 0.02)',
                       textAlign: 'left'
                     }}>
-                      <strong style={{ color: '#c084fc', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
-                        <CheckCircle2 size={18} style={{ color: '#c084fc' }} />
+                      <strong style={{ color: 'white', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
+                        <CheckCircle2 size={18} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
                         <span>Petunjuk Teknis (Juknis)</span>
                       </strong>
                       <div style={{ color: 'rgba(255, 255, 255, 0.7)', whiteSpace: 'pre-wrap', lineHeight: '1.7' }}>{evt.juknis}</div>
@@ -886,11 +933,10 @@ export default function EventsUserPortal({
                     background: 'rgba(255, 255, 255, 0.01)',
                     border: '1px solid rgba(255, 255, 255, 0.06)',
                     borderRadius: '16px',
-                    textAlign: 'left',
-                    boxShadow: 'inset 0 0 20px rgba(255, 255, 255, 0.01)'
+                    textAlign: 'left'
                   }}>
-                    <strong style={{ color: '#a78bfa', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
-                      <Users size={18} style={{ color: '#a78bfa' }} />
+                    <strong style={{ color: 'white', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
+                      <Users size={18} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
                       <span>Detail Penyelenggara</span>
                     </strong>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px', paddingBottom: '14px', borderBottom: '1px dashed rgba(255,255,255,0.06)' }}>
@@ -902,7 +948,7 @@ export default function EventsUserPortal({
                           height: '48px',
                           borderRadius: '50%',
                           objectFit: 'cover',
-                          border: '2px solid rgba(167, 139, 250, 0.3)',
+                          border: '2px solid rgba(255, 255, 255, 0.2)',
                           background: 'rgba(255, 255, 255, 0.02)',
                           boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
                         }}
@@ -929,15 +975,14 @@ export default function EventsUserPortal({
                   {evt.budgetMode === 'ranking' && (
                     <div style={{
                       padding: '24px',
-                      background: 'rgba(251, 191, 36, 0.02)',
-                      border: '1px solid rgba(251, 191, 36, 0.15)',
+                      background: 'rgba(255, 255, 255, 0.01)',
+                      border: '1px solid rgba(255, 255, 255, 0.06)',
                       borderRadius: '16px',
                       textAlign: 'left',
-                      boxShadow: 'inset 0 0 20px rgba(251, 191, 36, 0.01)',
                       marginTop: '24px'
                     }}>
-                      <strong style={{ color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
-                        <Trophy size={18} style={{ color: '#fbbf24' }} />
+                      <strong style={{ color: 'white', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
+                        <Trophy size={18} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
                         <span>{new Date(evt.deadline) < new Date() ? 'Pemenang Kompetisi (Final)' : 'Klasemen Sementara (Real-time)'}</span>
                       </strong>
                       {(() => {
@@ -951,8 +996,7 @@ export default function EventsUserPortal({
                         return (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             {sortedSubs.map((sub, index) => {
-                              const rankLabels = ['🥇 Juara 1', '🥈 Juara 2', '🥉 Juara 3'];
-                              const rankColors = ['#fbbf24', '#cbd5e1', '#b45309'];
+                              const rankLabels = ['Juara I', 'Juara II', 'Juara III'];
                               const prizeAmounts = [evt.prize1, evt.prize2, evt.prize3];
                               
                               const isTop3 = index < 3;
@@ -966,17 +1010,17 @@ export default function EventsUserPortal({
                                     display: 'flex', 
                                     alignItems: 'center', 
                                     justifyContent: 'space-between',
-                                    background: isTop3 ? 'rgba(251, 191, 36, 0.04)' : 'rgba(255, 255, 255, 0.02)',
+                                    background: 'rgba(255, 255, 255, 0.02)',
                                     padding: '12px 16px',
                                     borderRadius: '10px',
-                                    border: isTop3 ? '1px solid rgba(251, 191, 36, 0.15)' : '1px solid rgba(255, 255, 255, 0.04)'
+                                    border: '1px solid rgba(255, 255, 255, 0.04)'
                                   }}
                                 >
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <span style={{ 
                                       fontSize: '0.82rem', 
                                       fontWeight: '700', 
-                                      color: isTop3 ? rankColors[index] : 'var(--text-muted)',
+                                      color: isTop3 ? 'white' : 'var(--text-muted)',
                                       width: '65px',
                                       display: 'inline-block'
                                     }}>
@@ -994,7 +1038,7 @@ export default function EventsUserPortal({
                                   </div>
                                   <div style={{ textAlign: 'right' }}>
                                     {isTop3 && prizeAmounts[index] > 0 && (
-                                      <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '0.85rem', marginBottom: '2px' }}>
+                                      <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', marginBottom: '2px' }}>
                                         Rp {prizeAmounts[index].toLocaleString('id-ID')}
                                       </div>
                                     )}
@@ -1019,68 +1063,75 @@ export default function EventsUserPortal({
                   {evt.campaignBudget > 0 && (
                     evt.budgetMode === 'ranking' ? (
                       <div style={{ 
-                        background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.03) 0%, rgba(15, 23, 42, 0.6) 100%)',
-                        border: '1px solid rgba(251, 191, 36, 0.18)',
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.01) 0%, rgba(15, 23, 42, 0.6) 100%)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
                         borderRadius: '16px',
                         overflow: 'hidden',
                         boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
                         fontSize: '0.85rem'
                       }}>
                         <div style={{
-                          background: 'linear-gradient(90deg, rgba(251, 191, 36, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%)',
-                          padding: '14px 20px',
+                          background: 'rgba(255, 255, 255, 0.02)',
+                          padding: '20px',
                           display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          borderBottom: '1px solid rgba(251, 191, 36, 0.1)'
+                          flexDirection: 'column',
+                          gap: '6px',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                          textAlign: 'left'
                         }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700', color: '#fbbf24', fontSize: '0.9rem' }}>
-                            <Trophy size={18} style={{ color: '#fbbf24' }} />
-                            <span>Total Hadiah (Prize Pool)</span>
-                          </div>
-                          <strong style={{ color: '#fbbf24', fontSize: '1.15rem', textShadow: '0 0 10px rgba(251, 191, 36, 0.2)' }}>Rp {evt.campaignBudget.toLocaleString('id-ID')}</strong>
+                          <span style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.5)', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                            Total Hadiah (Prize Pool)
+                          </span>
+                          <strong style={{ color: 'white', fontSize: '1.65rem', fontWeight: '800', lineHeight: 1 }}>
+                            Rp {evt.campaignBudget.toLocaleString('id-ID')}
+                          </strong>
                         </div>
                         
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '16px 20px', fontSize: '0.85rem', textAlign: 'left' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ color: '#fbbf24', fontWeight: '600' }}>🥇 Juara 1</span>
+                            <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontWeight: '600' }}>Juara I</span>
                             <strong style={{ color: 'white' }}>Rp {evt.prize1?.toLocaleString('id-ID')}</strong>
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '8px' }}>
-                            <span style={{ color: '#cbd5e1', fontWeight: '600' }}>🥈 Juara 2</span>
+                            <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontWeight: '600' }}>Juara II</span>
                             <strong style={{ color: 'white' }}>Rp {evt.prize2?.toLocaleString('id-ID')}</strong>
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '8px' }}>
-                            <span style={{ color: '#b45309', fontWeight: '600' }}>🥉 Juara 3</span>
+                            <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontWeight: '600' }}>Juara III</span>
                             <strong style={{ color: 'white' }}>Rp {evt.prize3?.toLocaleString('id-ID')}</strong>
                           </div>
                         </div>
                       </div>
                     ) : (
                       <div style={{ 
-                        background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.03) 0%, rgba(15, 23, 42, 0.6) 100%)',
-                        border: '1px solid rgba(34, 197, 94, 0.18)',
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.01) 0%, rgba(15, 23, 42, 0.6) 100%)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
                         borderRadius: '16px',
                         overflow: 'hidden',
                         boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
                         fontSize: '0.85rem'
                       }}>
                         <div style={{
-                          background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%)',
-                          padding: '14px 20px',
+                          background: 'rgba(255, 255, 255, 0.02)',
+                          padding: '20px',
                           display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          borderBottom: '1px solid rgba(34, 197, 94, 0.1)'
+                          flexDirection: 'column',
+                          gap: '6px',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                          textAlign: 'left'
                         }}>
-                          <span style={{ color: '#4ade80', fontWeight: '700', fontSize: '0.9rem' }}>Budget Campaign</span>
-                          <strong style={{ color: 'white', fontSize: '1.05rem' }}>Rp {evt.campaignBudget.toLocaleString('id-ID')}</strong>
+                          <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontWeight: '700', fontSize: '0.78rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                            Budget Campaign
+                          </span>
+                          <strong style={{ color: 'white', fontSize: '1.5rem', fontWeight: '800', lineHeight: 1 }}>
+                            Rp {evt.campaignBudget.toLocaleString('id-ID')}
+                          </strong>
                         </div>
                         
                         <div style={{ padding: '16px 20px', textAlign: 'left' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.82rem' }}>
                             <span style={{ color: 'var(--text-muted)' }}>Sisa Saldo</span>
-                            <span style={{ color: '#4ade80', fontWeight: 'bold' }}>Rp {getEventRemainingBudget(evt).toLocaleString('id-ID')}</span>
+                            <span style={{ color: 'white', fontWeight: 'bold' }}>Rp {getEventRemainingBudget(evt).toLocaleString('id-ID')}</span>
                           </div>
                           
                           {/* Budget Progress Bar */}
@@ -1088,13 +1139,13 @@ export default function EventsUserPortal({
                             <div style={{ 
                               width: `${(getEventRemainingBudget(evt) / evt.campaignBudget) * 100}%`, 
                               height: '100%', 
-                              background: 'linear-gradient(90deg, #22c55e, #4ade80)',
-                              boxShadow: '0 0 8px rgba(34, 197, 94, 0.4)'
+                              background: 'linear-gradient(90deg, #e2e8f0, #ffffff)',
+                              boxShadow: '0 0 8px rgba(255, 255, 255, 0.2)'
                             }}></div>
                           </div>
                           
-                          <div style={{ fontSize: '0.78rem', color: '#c084fc', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(167, 139, 250, 0.04)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(167, 139, 250, 0.15)' }}>
-                            <Award size={14} style={{ color: '#c084fc' }} />
+                          <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.7)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.02)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                            <Award size={14} style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
                             <span>Benefit: Rp {evt.benefitAmount?.toLocaleString('id-ID')} per {evt.benefitViewsStep?.toLocaleString('id-ID')} Views</span>
                           </div>
                         </div>
@@ -1192,24 +1243,24 @@ export default function EventsUserPortal({
                             style={{ 
                               width: '100%', 
                               justifyContent: 'center',
-                              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                              background: '#ffffff',
                               border: 'none',
                               padding: '14px 28px',
                               borderRadius: '30px',
                               fontSize: '0.92rem',
                               fontWeight: 'bold',
-                              color: 'white',
-                              boxShadow: '0 8px 24px rgba(239, 68, 68, 0.25)',
+                              color: '#000000',
+                              boxShadow: '0 8px 24px rgba(255, 255, 255, 0.1)',
                               transition: 'all 0.3s ease',
                               cursor: 'pointer'
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.transform = 'translateY(-2px)';
-                              e.currentTarget.style.boxShadow = '0 12px 30px rgba(239, 68, 68, 0.4)';
+                              e.currentTarget.style.boxShadow = '0 12px 30px rgba(255, 255, 255, 0.2)';
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.transform = 'translateY(0)';
-                              e.currentTarget.style.boxShadow = '0 8px 24px rgba(239, 68, 68, 0.25)';
+                              e.currentTarget.style.boxShadow = '0 8px 24px rgba(255, 255, 255, 0.1)';
                             }}
                           >
                             <span>Masuk untuk Mendaftar</span>
@@ -1225,24 +1276,24 @@ export default function EventsUserPortal({
                             style={{ 
                               width: '100%', 
                               justifyContent: 'center',
-                              background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
+                              background: '#ffffff',
                               border: 'none',
                               padding: '14px 28px',
                               borderRadius: '30px',
                               fontSize: '0.92rem',
                               fontWeight: 'bold',
-                              color: 'white',
-                              boxShadow: '0 8px 24px rgba(124, 58, 237, 0.25)',
+                              color: '#000000',
+                              boxShadow: '0 8px 24px rgba(255, 255, 255, 0.1)',
                               transition: 'all 0.3s ease',
                               cursor: 'pointer'
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.transform = 'translateY(-2px)';
-                              e.currentTarget.style.boxShadow = '0 12px 30px rgba(124, 58, 237, 0.4)';
+                              e.currentTarget.style.boxShadow = '0 12px 30px rgba(255, 255, 255, 0.2)';
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.transform = 'translateY(0)';
-                              e.currentTarget.style.boxShadow = '0 8px 24px rgba(124, 58, 237, 0.25)';
+                              e.currentTarget.style.boxShadow = '0 8px 24px rgba(255, 255, 255, 0.1)';
                             }}
                           >
                             <span>Daftar Kompetisi</span>
@@ -1394,7 +1445,6 @@ export default function EventsUserPortal({
             gap: '10px', 
             marginBottom: '24px' 
           }}>
-            <Trophy size={24} style={{ color: '#a78bfa' }} />
             <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
               Event & Kompetisi Kreatif
             </h1>
@@ -1523,7 +1573,9 @@ export default function EventsUserPortal({
                             <span 
                               onClick={() => {
                                 if (evt) {
-                                  setSelectedEvent(evt);
+                                  const eventSlug = slugify(evt.title) + '-' + evt.id;
+                                  window.history.pushState(null, '', '/event/' + eventSlug);
+                                  window.dispatchEvent(new PopStateEvent('popstate'));
                                 } else {
                                   alert('Detail event tidak ditemukan atau sudah dihapus.');
                                 }
@@ -1715,7 +1767,11 @@ export default function EventsUserPortal({
                   <div 
                     key={evt.id} 
                     className={`glass-panel event-portal-card ${userReg?.status === 'approved' ? 'registered-card' : ''}`}
-                    onClick={() => setSelectedEvent(evt)}
+                    onClick={() => {
+                      const eventSlug = slugify(evt.title) + '-' + evt.id;
+                      window.history.pushState(null, '', '/event/' + eventSlug);
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    }}
                     style={{ 
                       borderRadius: '12px', 
                       padding: '18px 24px', 

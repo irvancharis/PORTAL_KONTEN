@@ -768,7 +768,7 @@ export default function VideoPlayer({
         <div className="episode-selector-container glass-panel" style={{ marginTop: '16px', padding: '16px', borderRadius: 'var(--radius-md)' }}>
           <h4 style={{ marginBottom: '12px', fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span>Pilih Episode:</span>
-            <span className="accent-text" style={{ fontSize: '0.85rem', fontWeight: '400', background: 'rgba(124, 58, 237, 0.15)', padding: '2px 8px', borderRadius: '20px' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: '500', background: 'rgba(255, 255, 255, 0.08)', color: 'var(--text-secondary)', padding: '2px 8px', borderRadius: '20px' }}>
               {activeEpisode ? activeEpisode.title : ''}
             </span>
           </h4>
@@ -786,20 +786,23 @@ export default function VideoPlayer({
                     borderRadius: 'var(--radius-sm)', 
                     fontSize: '0.85rem',
                     border: isEpisodeLocked 
-                      ? '1px dashed rgba(239, 68, 68, 0.4)' 
+                      ? '1px dashed rgba(255, 255, 255, 0.15)' 
                       : (currentEpisodeIdx === idx ? 'none' : '1px solid var(--border-color)'),
                     background: currentEpisodeIdx === idx 
                       ? 'var(--primary-color)' 
                       : 'rgba(255,255,255,0.02)',
-                    color: isEpisodeLocked ? '#f87171' : 'var(--text-primary)',
-                    opacity: isEpisodeLocked ? 0.8 : 1,
+                    color: isEpisodeLocked 
+                      ? 'var(--text-muted)' 
+                      : (currentEpisodeIdx === idx ? '#020202' : 'var(--text-primary)'),
+                    opacity: isEpisodeLocked ? 0.6 : 1,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '4px'
+                    gap: '4px',
+                    cursor: 'pointer'
                   }}
                   onClick={() => {
                     if (isEpisodeLocked) {

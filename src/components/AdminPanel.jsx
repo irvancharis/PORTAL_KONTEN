@@ -1026,7 +1026,7 @@ export default function AdminPanel({
   const openAddModal = () => {
     setEditingMovie(null);
     setFormTitle('');
-    setFormId('');
+    setFormId(`mov_${Date.now()}`);
     setFormDescription('');
     setFormPoster('');
     setFormBackdrop('');
@@ -1077,14 +1077,6 @@ export default function AdminPanel({
   // Generate ID based on Title
   const handleTitleChange = (val) => {
     setFormTitle(val);
-    if (!editingMovie) {
-      // Auto generate id slugified
-      const slug = val
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
-      setFormId(slug);
-    }
   };
 
   // Genre selection toggles
@@ -1793,9 +1785,7 @@ export default function AdminPanel({
                               key={part.id} 
                               className="table-row-hover"
                               style={{
-                                background: part.status === 'approved' ? 'rgba(16, 185, 129, 0.08)' :
-                                            part.status === 'rejected' ? 'rgba(239, 68, 68, 0.08)' :
-                                            'rgba(245, 158, 11, 0.06)'
+                                background: 'rgba(255, 255, 255, 0.01)'
                               }}
                             >
                               <td>
@@ -1804,8 +1794,8 @@ export default function AdminPanel({
                               </td>
                               <td>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '0.78rem' }}>
-                                  <div><span style={{ color: 'var(--text-muted)' }}>Instagram:</span> <a href={part.instagramUrl} target="_blank" rel="noreferrer" style={{ color: '#a78bfa' }}>Profil Link</a></div>
-                                  {part.tiktokUrl && <div><span style={{ color: 'var(--text-muted)' }}>TikTok:</span> <a href={part.tiktokUrl} target="_blank" rel="noreferrer" style={{ color: '#a78bfa' }}>Profil Link</a></div>}
+                                  <div><span style={{ color: 'var(--text-muted)' }}>Instagram:</span> <a href={part.instagramUrl} target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline' }}>Profil Link</a></div>
+                                  {part.tiktokUrl && <div><span style={{ color: 'var(--text-muted)' }}>TikTok:</span> <a href={part.tiktokUrl} target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline' }}>Profil Link</a></div>}
                                 </div>
                               </td>
                               <td><span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'white' }}>{part.verificationCode || 'Manual (Legacy)'}</span></td>
@@ -1822,27 +1812,35 @@ export default function AdminPanel({
                               </td>
                               <td style={{ textAlign: 'center' }}>
                                 {part.status === 'pending' ? (
-                                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
                                     <button 
                                       className="btn btn-secondary btn-sm" 
                                       onClick={() => handleRejectParticipant(part.id)}
-                                      style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.2)' }}
+                                      style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.05)' }}
                                     >
                                       Tolak
                                     </button>
                                     <button 
                                       className="btn btn-primary btn-sm" 
                                       onClick={() => handleApproveParticipant(part.id)}
-                                      style={{ background: '#10b981', borderColor: '#10b981' }}
+                                      style={{ background: 'white', color: 'black', border: 'none', fontWeight: 'bold' }}
                                     >
                                       Setujui
                                     </button>
                                   </div>
                                 ) : (
                                   <button 
-                                    className="btn btn-text btn-sm" 
                                     onClick={() => handleResetParticipantStatus(part.id)}
-                                    style={{ color: '#f87171' }}
+                                    style={{ 
+                                      background: 'transparent', 
+                                      border: 'none', 
+                                      color: '#f87171', 
+                                      textDecoration: 'underline', 
+                                      cursor: 'pointer', 
+                                      fontSize: '0.8rem',
+                                      padding: '4px 8px',
+                                      fontWeight: '600'
+                                    }}
                                   >
                                     Batalkan
                                   </button>
@@ -1875,9 +1873,9 @@ export default function AdminPanel({
                     onClick={handleSyncAllSubmissions}
                     disabled={isSyncingAll}
                     className="btn btn-secondary btn-sm"
-                    style={{ padding: '8px 16px', borderRadius: '20px', color: '#c084fc', border: '1px solid rgba(167, 139, 250, 0.2)', background: 'rgba(167,139,250,0.05)' }}
+                    style={{ padding: '8px 16px', borderRadius: '20px', color: 'white', border: '1px solid rgba(255, 255, 255, 0.15)', background: 'rgba(255, 255, 255, 0.05)' }}
                   >
-                    <Sparkles size={14} style={{ color: '#c084fc', animation: isSyncingAll ? 'spin 1s linear infinite' : 'none', marginRight: '6px' }} />
+                    <Sparkles size={14} style={{ color: 'rgba(255, 255, 255, 0.7)', animation: isSyncingAll ? 'spin 1s linear infinite' : 'none', marginRight: '6px' }} />
                     {isSyncingAll ? 'Menghubungkan ke API...' : 'Grab Data Sosmed Event ini'}
                   </button>
                 </div>
@@ -1920,7 +1918,7 @@ export default function AdminPanel({
                               </td>
                               <td>
                                 <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', color: 'white', padding: '2px 8px', borderRadius: '12px', marginRight: '8px' }}>{sub.platform || 'YouTube'}</span>
-                                <a href={sub.videoUrl} target="_blank" rel="noreferrer" style={{ color: '#a78bfa', fontSize: '0.8rem' }}>Buka Video</a>
+                                <a href={sub.videoUrl} target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline', fontSize: '0.8rem' }}>Buka Video</a>
                               </td>
                               <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'white' }}>{sub.views?.toLocaleString('id-ID') || 0}</td>
                               <td style={{ textAlign: 'right', color: '#f43f5e' }}>❤️ {sub.likes?.toLocaleString('id-ID') || 0}</td>
@@ -1989,7 +1987,7 @@ export default function AdminPanel({
                                 <strong style={{ color: 'white' }}>{sub.title}</strong>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{sub.participantName}</div>
                               </td>
-                              <td><a href={sub.videoUrl} target="_blank" rel="noreferrer" style={{ color: '#a78bfa', fontSize: '0.8rem' }}>Buka Video</a></td>
+                              <td><a href={sub.videoUrl} target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline', fontSize: '0.8rem' }}>Buka Video</a></td>
                               <td style={{ textAlign: 'center', fontWeight: 'bold', color: sub.score !== null ? '#4ade80' : '#fbbf24' }}>
                                 {sub.score !== null ? `${sub.score} / 100` : 'Belum Dinilai'}
                               </td>
@@ -2004,7 +2002,7 @@ export default function AdminPanel({
                                     setJudgingScore(sub.score !== null ? sub.score.toString() : '');
                                     setJudgingFeedback(sub.feedback || '');
                                   }}
-                                  style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '20px', background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', border: 'none', fontWeight: 'bold' }}
+                                  style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '20px', background: 'white', color: 'black', border: 'none', fontWeight: 'bold' }}
                                 >
                                   {sub.score !== null ? 'Edit Nilai' : 'Beri Nilai'}
                                 </button>
@@ -6178,11 +6176,11 @@ export default function AdminPanel({
                       placeholder="spiderman-2"
                       value={formId}
                       onChange={(e) => setFormId(e.target.value)}
-                      disabled={!!editingMovie} // Disable ID change for edits
+                      disabled={true}
                       required
                     />
                     <small className="form-tip">
-                      {editingMovie ? 'ID film tidak dapat diubah.' : 'ID ini akan digunakan di URL/Slug film.'}
+                      ID unik digenerate otomatis untuk keperluan sistem URL/Slug film.
                     </small>
                   </div>
                 </div>

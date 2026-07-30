@@ -21,7 +21,8 @@ export default function Navbar({
   withdrawals = [],
   onAdminSubTabChange,
   adminSubTab,
-  events = []
+  events = [],
+  customRoles = []
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -97,8 +98,41 @@ export default function Navbar({
       }
     };
 
-    const isPanitiaOrSuperadmin = currentUser.role === 'panitia' || currentUser.role === 'superadmin';
-    const isStafOrSuperadmin = currentUser.role === 'staf' || currentUser.role === 'superadmin';
+    const userPerms = currentUser.permissions || [];
+    
+    // Check if user has a specific permission
+    const hasPermission = (permId) => {
+      if (currentUser.role === 'superadmin') return true;
+      
+      const role = currentUser.role?.toLowerCase();
+      const lookupRole = role === 'staff' ? 'staf' : role;
+      
+      // Check custom roles list first
+      const customRole = customRoles.find(r => 
+        r.id?.toLowerCase() === lookupRole || 
+        r.name?.toLowerCase() === lookupRole
+      );
+      if (customRole) {
+        return customRole.permissions.includes(permId);
+      }
+
+      if (userPerms.includes(permId)) return true;
+      
+      if (lookupRole === 'staf') {
+        return ['movies', 'affiliates', 'confirmations', 'withdrawals', 'finance-report'].includes(permId);
+      }
+      if (lookupRole === 'panitia') {
+        return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'].includes(permId);
+      }
+      if (lookupRole === 'moderator') {
+        return ['confirmations', 'withdrawals', 'finance-report'].includes(permId);
+      }
+      if (lookupRole === 'editor') {
+        return ['movies', 'affiliates'].includes(permId);
+      }
+      return false;
+    };
+
     const isPanitia = currentUser.role === 'panitia';
     const myEvents = isPanitia 
       ? events.filter(e => e.creator === currentUser.username) 
@@ -108,7 +142,7 @@ export default function Navbar({
     // === ADMIN / PANITIA / STAF NOTIFICATIONS ===
 
     // 1. Pending participants
-    if (isPanitiaOrSuperadmin) {
+    if (hasPermission('event-manage')) {
       eventParticipants
         .filter(p => p.status === 'pending' && (!isPanitia || myEventIds.includes(p.eventId)))
         .forEach(p => {
@@ -124,7 +158,7 @@ export default function Navbar({
     }
 
     // 2. Pending submissions
-    if (isPanitiaOrSuperadmin) {
+    if (hasPermission('event-manage')) {
       eventSubmissions
         .filter(s => s.score === null && (!isPanitia || myEventIds.includes(s.eventId)))
         .forEach(s => {
@@ -140,7 +174,7 @@ export default function Navbar({
     }
 
     // 3. Pending confirmations
-    if (isStafOrSuperadmin) {
+    if (hasPermission('confirmations')) {
       confirmations
         .filter(c => c.status === 'pending')
         .forEach(c => {
@@ -154,7 +188,7 @@ export default function Navbar({
           });
         });
 
-      if (currentUser.role === 'superadmin') {
+      if (currentUser.role === 'superadmin' || hasPermission('confirmations')) {
         events
           .filter(e => e.paymentStatus === 'pending_verification')
           .forEach(e => {
@@ -171,7 +205,7 @@ export default function Navbar({
     }
 
     // 4. Pending withdrawals
-    if (isStafOrSuperadmin) {
+    if (hasPermission('withdrawals')) {
       withdrawals
         .filter(w => w.status === 'pending')
         .forEach(w => {
@@ -187,7 +221,7 @@ export default function Navbar({
     }
 
     // 5. Pending event payments (belum bayar biaya event) & pending winner releases (completed)
-    if (isPanitiaOrSuperadmin) {
+    if (hasPermission('event-manage')) {
       myEvents
         .filter(e => e.paymentStatus !== 'paid')
         .forEach(e => {

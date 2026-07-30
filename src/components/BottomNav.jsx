@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Bookmark, History, LayoutDashboard, Calendar, Wallet, Users, Film, TrendingUp } from 'lucide-react';
+import { Home, Bookmark, History, LayoutDashboard, Calendar, Wallet, Users, Film, TrendingUp, Trophy } from 'lucide-react';
 
 export default function BottomNav({
   activeTab,
@@ -72,6 +72,14 @@ export default function BottomNav({
       >
         <Home size={20} />
         <span>Beranda</span>
+      </button>
+
+      <button 
+        className={`bottom-nav-item ${activeTab === 'events' ? 'active' : ''}`}
+        onClick={() => handleNav('events')}
+      >
+        <Trophy size={20} />
+        <span>Event</span>
       </button>
 
       <button 

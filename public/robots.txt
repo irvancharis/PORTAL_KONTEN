@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /play/
+Allow: /event/
+Disallow: /admin/
+Disallow: /admin/*
+Disallow: /wallet
+Disallow: /wallet/*
+Disallow: /watchlist
+Disallow: /watchlist/*
+Disallow: /history
+Disallow: /history/*
+
+Sitemap: https://jamkosong.web.app/sitemap.xml

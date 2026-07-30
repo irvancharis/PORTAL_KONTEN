@@ -6,9 +6,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [
     react(),
-    VitePWA({
+  VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'inline',
+      injectRegister: 'script',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         cleanupOutdatedCaches: true,
@@ -18,7 +18,7 @@ export default defineConfig({
       manifest: {
         name: 'FILMO Premium',
         short_name: 'FILMO',
-        description: 'Streaming film Google Drive berkualitas tinggi tanpa iklan di FILMO.',
+        description: 'Platform streaming film berkualitas tinggi tanpa iklan dan portal kompetisi event video kreatif di FILMO.',
         theme_color: '#090d16',
         background_color: '#090d16',
         display: 'standalone',
@@ -40,5 +40,26 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor-react';
+            }
+            if (id.includes('firebase')) {
+              return 'vendor-firebase';
+            }
+            if (id.includes('lucide-react')) {
+              return 'vendor-lucide';
+            }
+            return 'vendor-others';
+          }
+        }
+      }
+    }
+  }
 })
