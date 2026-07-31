@@ -515,6 +515,8 @@ export default function App() {
   const [organizerPhone, setOrganizerPhone] = useState('');
   const [organizerDescription, setOrganizerDescription] = useState('');
   const [organizerAvatar, setOrganizerAvatar] = useState('');
+  const [userCategory, setUserCategory] = useState('Videografer');
+  const [userPortfolio, setUserPortfolio] = useState('');
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
@@ -654,12 +656,13 @@ export default function App() {
       setLoginError('Konfirmasi password tidak cocok!');
       return;
     }
-    if (registerRole === 'panitia') {
-      if (!organizerName.trim() || !organizerPhone.trim()) {
-        setLoginError('Nama instansi/komunitas dan No. Telepon wajib diisi!');
-        return;
-      }
+    if (!organizerName.trim() || !organizerPhone.trim()) {
+      setLoginError('Nama Lengkap / Instansi dan No. Telepon / WhatsApp wajib diisi!');
+      return;
     }
+
+    const category = userCategory || 'Videografer';
+    const portfolio = userPortfolio.trim();
 
     if (isFirebaseConfigured() && auth) {
       try {
@@ -670,14 +673,14 @@ export default function App() {
           username: email.split('@')[0],
           email: email.toLowerCase(),
           password,
-          role: registerRole,
+          role: 'user', // unified role
           walletBalance: 0,
-          ...(registerRole === 'panitia' ? {
-            organizerName: organizerName.trim(),
-            organizerPhone: organizerPhone.trim(),
-            organizerDescription: organizerDescription.trim(),
-            organizerAvatar: organizerAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(organizerName.trim())}&backgroundColor=262626&textColor=ffffff`
-          } : {})
+          organizerName: organizerName.trim(),
+          organizerPhone: organizerPhone.trim(),
+          organizerDescription: organizerDescription.trim(),
+          organizerAvatar: organizerAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(organizerName.trim())}&backgroundColor=262626&textColor=ffffff`,
+          userCategory: category,
+          userPortfolio: portfolio
         };
         await saveFirestoreUser(newUser);
         setIsLoginModalOpen(false);
@@ -688,6 +691,8 @@ export default function App() {
         setOrganizerPhone('');
         setOrganizerDescription('');
         setOrganizerAvatar('');
+        setUserCategory('Videografer');
+        setUserPortfolio('');
         setLoginError('');
       } catch (err) {
         console.error("Firebase registration failed:", err);
@@ -708,13 +713,13 @@ export default function App() {
         id: `usr_${Date.now()}`,
         username: emailOrUser,
         password,
-        role: registerRole,
-        ...(registerRole === 'panitia' ? {
-          organizerName: organizerName.trim(),
-          organizerPhone: organizerPhone.trim(),
-          organizerDescription: organizerDescription.trim(),
-          organizerAvatar: organizerAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(organizerName.trim())}&backgroundColor=262626&textColor=ffffff`
-        } : {})
+        role: 'user', // unified role
+        organizerName: organizerName.trim(),
+        organizerPhone: organizerPhone.trim(),
+        organizerDescription: organizerDescription.trim(),
+        organizerAvatar: organizerAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(organizerName.trim())}&backgroundColor=262626&textColor=ffffff`,
+        userCategory: category,
+        userPortfolio: portfolio
       };
       await handleSetUsers(prev => [...prev, newUser]);
       setCurrentUser(newUser);
@@ -726,6 +731,8 @@ export default function App() {
       setOrganizerPhone('');
       setOrganizerDescription('');
       setOrganizerAvatar('');
+      setUserCategory('Videografer');
+      setUserPortfolio('');
       setLoginError('');
     }
   };
@@ -2598,7 +2605,7 @@ export default function App() {
             alignItems: 'center', 
             margin: 'auto 0', 
             width: '100%', 
-            maxWidth: loginModalMode === 'register' && registerRole === 'panitia' ? '680px' : '400px'
+            maxWidth: loginModalMode === 'register' ? '680px' : '400px'
           }}>
           {/* Logo Brand Header */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
@@ -2613,7 +2620,7 @@ export default function App() {
             className="login-card glass-panel" 
             style={{
               width: '100%',
-              maxWidth: loginModalMode === 'register' && registerRole === 'panitia' ? '680px' : '400px',
+              maxWidth: loginModalMode === 'register' ? '680px' : '400px',
               padding: '32px 28px',
               borderRadius: '16px',
               background: '#020202',
@@ -2716,269 +2723,10 @@ export default function App() {
                   </div>
                 </>
               ) : (
-                // REGISTER MODE
-                registerRole === 'panitia' ? (
-                  // TWO COLUMNS FOR PANITIA REGISTER
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', width: '100%' }}>
-                    {/* Left Column: Account Details */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label htmlFor="loginUsername" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Alamat Email</label>
-                        <input 
-                          type="email"
-                          id="loginUsername" 
-                          ref={usernameInputRef}
-                          placeholder="Masukkan alamat email aktif"
-                          value={loginUsername}
-                          onChange={(e) => setLoginUsername(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            background: 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: 'var(--text-primary)',
-                            outline: 'none',
-                            fontSize: '0.9rem'
-                          }}
-                          required
-                        />
-                      </div>
-
-                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label htmlFor="loginPassword" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Password</label>
-                        <input 
-                          type="password" 
-                          id="loginPassword" 
-                          placeholder="Masukkan password"
-                          value={loginPassword}
-                          onChange={(e) => setLoginPassword(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            background: 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: 'var(--text-primary)',
-                            outline: 'none',
-                            fontSize: '0.9rem'
-                          }}
-                          required
-                        />
-                      </div>
-
-                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label htmlFor="registerConfirm" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Konfirmasi Password</label>
-                        <input 
-                          type="password" 
-                          id="registerConfirm" 
-                          placeholder="Konfirmasi password Anda"
-                          value={registerConfirmPassword}
-                          onChange={(e) => setRegisterConfirmPassword(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            background: 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: 'var(--text-primary)',
-                            outline: 'none',
-                            fontSize: '0.9rem'
-                          }}
-                          required
-                        />
-                      </div>
-
-                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label htmlFor="registerRole" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Daftar Sebagai</label>
-                        <select
-                          id="registerRole"
-                          value={registerRole}
-                          onChange={(e) => setRegisterRole(e.target.value)}
-                          disabled={loginModalLockedRole !== null}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            background: loginModalLockedRole !== null ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: loginModalLockedRole !== null ? 'var(--text-muted)' : 'var(--text-primary)',
-                            fontFamily: 'var(--font-sans)',
-                            fontSize: '0.9rem',
-                            outline: 'none',
-                            cursor: loginModalLockedRole !== null ? 'not-allowed' : 'default'
-                          }}
-                        >
-                          <option value="user" style={{ background: '#020202' }}>Regular User / Content Creator</option>
-                          <option value="panitia" style={{ background: '#020202' }}>Panitia / Event Creator</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Right Column: Organizer Details */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderLeft: '1px dashed rgba(255,255,255,0.08)', paddingLeft: '24px' }}>
-                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label htmlFor="organizerName" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Nama / Instansi / Komunitas</label>
-                        <input 
-                          type="text" 
-                          id="organizerName"
-                          placeholder="Masukkan nama penyelenggara / komunitas"
-                          value={organizerName}
-                          onChange={(e) => setOrganizerName(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            background: 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: 'var(--text-primary)',
-                            outline: 'none',
-                            fontSize: '0.9rem'
-                          }}
-                          required
-                        />
-                      </div>
-
-                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label htmlFor="organizerPhone" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>No. Telepon / WhatsApp</label>
-                        <input 
-                          type="tel" 
-                          id="organizerPhone"
-                          placeholder="Contoh: 08123456789"
-                          value={organizerPhone}
-                          onChange={(e) => setOrganizerPhone(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            background: 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: 'var(--text-primary)',
-                            outline: 'none',
-                            fontSize: '0.9rem'
-                          }}
-                          required
-                        />
-                      </div>
-
-                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label htmlFor="organizerDescription" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Deskripsi Penyelenggara (Opsional)</label>
-                        <textarea 
-                          id="organizerDescription"
-                          rows="4"
-                          placeholder="Tuliskan deskripsi singkat instansi / komunitas Anda..."
-                          value={organizerDescription}
-                          onChange={(e) => setOrganizerDescription(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            background: 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: 'var(--text-primary)',
-                            outline: 'none',
-                            fontSize: '0.9rem',
-                            resize: 'none',
-                            fontFamily: 'inherit',
-                            height: '110px'
-                          }}
-                        />
-                      </div>
-
-                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Upload Logo / Avatar (Opsional)</label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          {organizerAvatar ? (
-                            <div style={{ position: 'relative', display: 'inline-block' }}>
-                              <img 
-                                src={organizerAvatar} 
-                                alt="Preview" 
-                                style={{
-                                  width: '50px',
-                                  height: '50px',
-                                  borderRadius: '50%',
-                                  objectFit: 'cover',
-                                  border: '2px solid rgba(124, 58, 237, 0.5)'
-                                }}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setOrganizerAvatar('')}
-                                style={{
-                                  position: 'absolute',
-                                  top: '-4px',
-                                  right: '-4px',
-                                  background: '#ef4444',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '50%',
-                                  width: '18px',
-                                  height: '18px',
-                                  fontSize: '10px',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontWeight: 'bold'
-                                }}
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          ) : (
-                            <div style={{
-                              width: '50px',
-                              height: '50px',
-                              borderRadius: '50%',
-                              background: 'rgba(255, 255, 255, 0.04)',
-                              border: '1px dashed var(--border-color)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'var(--text-muted)',
-                              fontSize: '0.75rem'
-                            }}>
-                              No Img
-                            </div>
-                          )}
-                          <label style={{
-                            flex: 1,
-                            padding: '10px 14px',
-                            background: 'rgba(124, 58, 237, 0.1)',
-                            border: '1px dashed rgba(124, 58, 237, 0.3)',
-                            borderRadius: '8px',
-                            color: '#c084fc',
-                            cursor: 'pointer',
-                            textAlign: 'center',
-                            fontSize: '0.85rem',
-                            fontWeight: '600',
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(124, 58, 237, 0.18)';
-                            e.currentTarget.style.borderColor = '#c084fc';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(124, 58, 237, 0.1)';
-                            e.currentTarget.style.borderColor = 'rgba(124, 58, 237, 0.3)';
-                          }}
-                          >
-                            Pilih File Gambar
-                            <input 
-                              type="file"
-                              accept="image/*"
-                              onChange={handleAvatarFileChange}
-                              style={{ display: 'none' }}
-                            />
-                          </label>
-                        </div>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Maks. 500 KB (Format: JPG, PNG, WEBP)</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  // SINGLE COLUMN FOR USER REGISTER
-                  <>
+                // REGISTER MODE: UNIFIED PROFILE & PORTFOLIO FORM
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', width: '100%' }}>
+                  {/* Left Column: Account Details & Contact */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <label htmlFor="loginUsername" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Alamat Email</label>
                       <input 
@@ -3047,31 +2795,216 @@ export default function App() {
                     </div>
 
                     <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <label htmlFor="registerRole" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Daftar Sebagai</label>
-                      <select
-                        id="registerRole"
-                        value={registerRole}
-                        onChange={(e) => setRegisterRole(e.target.value)}
-                        disabled={loginModalLockedRole !== null}
+                      <label htmlFor="organizerPhone" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>No. Telepon / WhatsApp</label>
+                      <input 
+                        type="tel" 
+                        id="organizerPhone"
+                        placeholder="Contoh: 08123456789"
+                        value={organizerPhone}
+                        onChange={(e) => setOrganizerPhone(e.target.value)}
                         style={{
                           width: '100%',
                           padding: '10px 12px',
-                          background: loginModalLockedRole !== null ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.04)',
+                          background: 'rgba(255, 255, 255, 0.04)',
                           border: '1px solid var(--border-color)',
                           borderRadius: 'var(--radius-sm)',
-                          color: loginModalLockedRole !== null ? 'var(--text-muted)' : 'var(--text-primary)',
+                          color: 'var(--text-primary)',
+                          outline: 'none',
+                          fontSize: '0.9rem'
+                        }}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Right Column: Profile & Asset Portfolio */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderLeft: '1px dashed rgba(255,255,255,0.08)', paddingLeft: '24px' }}>
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label htmlFor="organizerName" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Nama Lengkap / Instansi / Komunitas</label>
+                      <input 
+                        type="text" 
+                        id="organizerName"
+                        placeholder="Nama profil / penyelenggara / instansi"
+                        value={organizerName}
+                        onChange={(e) => setOrganizerName(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
+                          outline: 'none',
+                          fontSize: '0.9rem'
+                        }}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label htmlFor="userCategory" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Keahlian / Kategori Utama</label>
+                      <select
+                        id="userCategory"
+                        value={userCategory}
+                        onChange={(e) => setUserCategory(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
                           fontFamily: 'var(--font-sans)',
                           fontSize: '0.9rem',
-                          outline: 'none',
-                          cursor: loginModalLockedRole !== null ? 'not-allowed' : 'default'
+                          outline: 'none'
                         }}
                       >
-                        <option value="user" style={{ background: '#020202' }}>Regular User / Content Creator</option>
-                        <option value="panitia" style={{ background: '#020202' }}>Panitia / Event Creator</option>
+                        <option value="Videografer" style={{ background: '#020202' }}>Videografer</option>
+                        <option value="Content Creator" style={{ background: '#020202' }}>Content Creator</option>
+                        <option value="Animator" style={{ background: '#020202' }}>Animator</option>
+                        <option value="Script Writer" style={{ background: '#020202' }}>Script Writer</option>
+                        <option value="Aktor / Aktris" style={{ background: '#020202' }}>Aktor / Aktris</option>
+                        <option value="Penyelenggara Event" style={{ background: '#020202' }}>Penyelenggara Event</option>
+                        <option value="Lainnya" style={{ background: '#020202' }}>Lainnya</option>
                       </select>
                     </div>
-                  </>
-                )
+
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label htmlFor="userPortfolio" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Link Portofolio Utama</label>
+                      <input 
+                        type="url" 
+                        id="userPortfolio"
+                        placeholder="Contoh: https://youtube.com/@channelAnda"
+                        value={userPortfolio}
+                        onChange={(e) => setUserPortfolio(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
+                          outline: 'none',
+                          fontSize: '0.9rem'
+                        }}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label htmlFor="organizerDescription" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Deskripsi Singkat / Bio (Opsional)</label>
+                      <textarea 
+                        id="organizerDescription"
+                        rows="2"
+                        placeholder="Tuliskan bio atau profil singkat Anda..."
+                        value={organizerDescription}
+                        onChange={(e) => setOrganizerDescription(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
+                          outline: 'none',
+                          fontSize: '0.9rem',
+                          resize: 'none',
+                          fontFamily: 'inherit',
+                          height: '56px'
+                        }}
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Upload Logo / Avatar (Opsional)</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {organizerAvatar ? (
+                          <div style={{ position: 'relative', display: 'inline-block' }}>
+                            <img 
+                              src={organizerAvatar} 
+                              alt="Preview" 
+                              style={{
+                                width: '50px',
+                                height: '50px',
+                                borderRadius: '50%',
+                                objectFit: 'cover',
+                                border: '2px solid rgba(255, 255, 255, 0.2)'
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setOrganizerAvatar('')}
+                              style={{
+                                position: 'absolute',
+                                top: '-4px',
+                                right: '-4px',
+                                background: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '18px',
+                                height: '18px',
+                                fontSize: '10px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <div style={{
+                            width: '50px',
+                            height: '50px',
+                            borderRadius: '50%',
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.7rem',
+                            color: 'var(--text-muted)',
+                            border: '1px dashed var(--border-color)'
+                          }}>
+                            No Img
+                          </div>
+                        )}
+                        <label style={{
+                          flex: 1,
+                          padding: '10px 14px',
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px dashed rgba(255, 255, 255, 0.2)',
+                          borderRadius: '8px',
+                          color: '#ffffff',
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                        }}
+                        >
+                          Pilih File Gambar
+                          <input 
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarFileChange}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+                      </div>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Maks. 500 KB (Format: JPG, PNG, WEBP)</span>
+                    </div>
+                  </div>
+                </div>
               )}
 
               <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '8px', padding: '10px' }}>
