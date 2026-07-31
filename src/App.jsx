@@ -50,7 +50,10 @@ import {
   deleteFirestoreWithdrawal,
   getFirestoreOffers,
   saveFirestoreOffer,
-  deleteFirestoreOffer
+  deleteFirestoreOffer,
+  getFirestoreFinancialJournals,
+  saveFirestoreFinancialJournal,
+  deleteFirestoreFinancialJournal
 } from './firebase';
 import { 
   Bookmark, 
@@ -359,13 +362,65 @@ export default function App() {
 
   // Financial journals state for manual income/expense inputs
   const [financialJournals, setFinancialJournals] = useState(() => {
+    if (isFirebaseConfigured()) return [];
     const saved = localStorage.getItem('portal-financial-journals');
     return saved ? JSON.parse(saved) : [];
   });
 
-  useEffect(() => {
-    localStorage.setItem('portal-financial-journals', JSON.stringify(financialJournals));
-  }, [financialJournals]);
+  const handleSetFinancialJournals = async (newJournals) => {
+    if (isFirebaseConfigured()) {
+      if (typeof newJournals === 'function') {
+        setFinancialJournals(prev => {
+          const updated = newJournals(prev);
+          (async () => {
+            if (updated.length < prev.length) {
+              const remainingIds = updated.map(j => j.id);
+              const deleted = prev.filter(j => !remainingIds.includes(j.id));
+              for (const j of deleted) {
+                await deleteFirestoreFinancialJournal(j.id);
+              }
+            } else {
+              for (const j of updated) {
+                const existing = prev.find(old => old.id === j.id);
+                if (!existing || JSON.stringify(existing) !== JSON.stringify(j)) {
+                  await saveFirestoreFinancialJournal(j);
+                }
+              }
+            }
+          })();
+          return updated;
+        });
+      } else {
+        const prev = financialJournals;
+        setFinancialJournals(newJournals);
+        if (newJournals.length < prev.length) {
+          const remainingIds = newJournals.map(j => j.id);
+          const deleted = prev.filter(j => !remainingIds.includes(j.id));
+          for (const j of deleted) {
+            await deleteFirestoreFinancialJournal(j.id);
+          }
+        } else {
+          for (const j of newJournals) {
+            const existing = prev.find(old => old.id === j.id);
+            if (!existing || JSON.stringify(existing) !== JSON.stringify(j)) {
+              await saveFirestoreFinancialJournal(j);
+            }
+          }
+        }
+      }
+    } else {
+      if (typeof newJournals === 'function') {
+        setFinancialJournals(prev => {
+          const updated = newJournals(prev);
+          localStorage.setItem('portal-financial-journals', JSON.stringify(updated));
+          return updated;
+        });
+      } else {
+        setFinancialJournals(newJournals);
+        localStorage.setItem('portal-financial-journals', JSON.stringify(newJournals));
+      }
+    }
+  };
 
   // Payment confirmations state
   const [confirmations, setConfirmations] = useState(() => {
@@ -801,7 +856,8 @@ export default function App() {
             dbSubmissions,
             dbWithdrawals,
             dbOffers,
-            dbUsers
+            dbUsers,
+            dbFinancialJournals
           ] = await Promise.all([
             getFirestoreMovies(),
             getFirestoreConfirmations(),
@@ -810,7 +866,8 @@ export default function App() {
             getFirestoreEventSubmissions(),
             getFirestoreWithdrawals(),
             getFirestoreOffers(),
-            getFirestoreUsers()
+            getFirestoreUsers(),
+            getFirestoreFinancialJournals()
           ]);
  
           if (dbMovies) setMovies(dbMovies);
@@ -833,6 +890,7 @@ export default function App() {
           if (dbWithdrawals) setWithdrawals(dbWithdrawals);
           if (dbOffers) setOffers(dbOffers);
           if (dbUsers) setUsers(dbUsers);
+          if (dbFinancialJournals) setFinancialJournals(dbFinancialJournals);
 
         } catch (err) {
           console.error("Firestore initialization failed:", err);
@@ -2005,7 +2063,7 @@ export default function App() {
               customRoles={customRoles}
               setCustomRoles={setCustomRoles}
               financialJournals={financialJournals}
-              setFinancialJournals={setFinancialJournals}
+              setFinancialJournals={handleSetFinancialJournals}
             />
           ) : activeTab === 'wallet' ? (
             <WalletUserPortal 

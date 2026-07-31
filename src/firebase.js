@@ -423,6 +423,45 @@ export const deleteFirestoreOffer = async (offerId) => {
   }
 };
 
+// Financial Journals CRUD
+export const getFirestoreFinancialJournals = async () => {
+  if (!db) return null;
+  try {
+    const querySnapshot = await getDocs(collection(db, "financialJournals"));
+    const list = [];
+    querySnapshot.forEach((doc) => {
+      list.push({ id: doc.id, ...doc.data() });
+    });
+    return list;
+  } catch (e) {
+    console.error("Error fetching financialJournals from Firestore:", e);
+    return null;
+  }
+};
+
+export const saveFirestoreFinancialJournal = async (journal) => {
+  if (!db) return false;
+  try {
+    const { id, ...data } = journal;
+    await setDoc(doc(db, "financialJournals", id), data);
+    return true;
+  } catch (e) {
+    console.error("Error saving financialJournal to Firestore:", e);
+    return false;
+  }
+};
+
+export const deleteFirestoreFinancialJournal = async (journalId) => {
+  if (!db) return false;
+  try {
+    await deleteDoc(doc(db, "financialJournals", journalId));
+    return true;
+  } catch (e) {
+    console.error("Error deleting financialJournal from Firestore:", e);
+    return false;
+  }
+};
+
 export { 
   db, 
   auth, 
