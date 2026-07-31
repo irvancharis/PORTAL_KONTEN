@@ -3264,6 +3264,12 @@ export default function AdminPanel({
                                       (c.organizerName || '').toLowerCase().includes(marketplaceSearch.toLowerCase());
                   const matchLevel = marketplaceLevelFilter === 'All' || String(c.metrics.stars) === marketplaceLevelFilter;
                   return matchSearch && matchLevel;
+                })
+                .sort((a, b) => {
+                  if (b.metrics.stars !== a.metrics.stars) {
+                    return b.metrics.stars - a.metrics.stars;
+                  }
+                  return b.metrics.points - a.metrics.points;
                 });
 
               if (creatorsList.length === 0) {
