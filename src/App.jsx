@@ -71,7 +71,13 @@ import {
   X,
   Play,
   AlertTriangle,
-  Trash2
+  Trash2,
+  LogOut,
+  Edit,
+  Phone,
+  Mail,
+  Globe,
+  Sparkles
 } from 'lucide-react';
 
 const slugify = (text) => {
@@ -2196,6 +2202,234 @@ export default function App() {
               minWithdrawalAmount={minWithdrawalAmount}
               withdrawalFeePercent={withdrawalFeePercent}
             />
+          ) : activeTab === 'profile' ? (
+            <div className="profile-view-container animate-fade-in" style={{ padding: '24px', maxWidth: '800px', margin: '0 auto', color: '#ffffff' }}>
+              {/* Profile Header Card */}
+              <div className="glass-panel" style={{ padding: '32px', borderRadius: '24px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', marginBottom: '24px' }}>
+                <div style={{ position: 'absolute', top: '24px', right: '24px' }}>
+                  <button 
+                    onClick={handleOpenEditProfile}
+                    style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '8px 16px', borderRadius: '20px', color: '#ffffff', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; }}
+                  >
+                    <Edit size={14} />
+                    <span>Edit Profil</span>
+                  </button>
+                </div>
+
+                {/* Avatar */}
+                <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '16px', border: '4px solid rgba(255, 255, 255, 0.1)' }}>
+                  {currentUser?.organizerAvatar ? (
+                    <img src={currentUser.organizerAvatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                  ) : (
+                    currentUser?.username?.charAt(0)
+                  )}
+                </div>
+
+                <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 8px 0' }}>{currentUser?.organizerName || currentUser?.username}</h2>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'rgba(255, 255, 255, 0.05)', padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.08)', fontWeight: 'bold' }}>
+                    {currentUser?.role === 'member' ? 'Premium Member' : currentUser?.role === 'superadmin' ? 'Superadmin' : currentUser?.role === 'staf' ? 'Staff' : currentUser?.role === 'panitia' ? 'Panitia' : currentUser?.role === 'moderator' ? 'Moderator' : currentUser?.role === 'editor' ? 'Editor' : 'Regular User'}
+                  </span>
+                  {currentUser?.isCommunity && (
+                    <span style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'rgba(255,200,0,0.1)', padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(255,200,0,0.2)', fontWeight: 'bold' }}>
+                      Komunitas
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Profile Details Container */}
+              <div className="glass-panel" style={{ padding: '28px', borderRadius: '24px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '24px' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 8px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Detail Data Profil</h3>
+                
+                {/* Email */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                    <Mail size={16} />
+                    <span style={{ fontSize: '0.85rem' }}>Email</span>
+                  </div>
+                  <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.email || '-'}</span>
+                </div>
+
+                {/* WhatsApp */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                    <Phone size={16} />
+                    <span style={{ fontSize: '0.85rem' }}>WhatsApp / HP</span>
+                  </div>
+                  <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.organizerPhone || '-'}</span>
+                </div>
+
+                {/* Kategori Kreator */}
+                {!currentUser?.isCommunity && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                      <User size={16} />
+                      <span style={{ fontSize: '0.85rem' }}>Kategori Kreator</span>
+                    </div>
+                    <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.userCategory || '-'}</span>
+                  </div>
+                )}
+
+                {/* Link Portofolio */}
+                {!currentUser?.isCommunity && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                      <Globe size={16} />
+                      <span style={{ fontSize: '0.85rem' }}>Link Portofolio</span>
+                    </div>
+                    {currentUser?.userPortfolio ? (
+                      <a href={currentUser.userPortfolio} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'underline' }}>
+                        Buka Link Portofolio
+                      </a>
+                    ) : (
+                      <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Belum Diisi</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Jumlah Anggota (Community only) */}
+                {currentUser?.isCommunity && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                      <User size={16} />
+                      <span style={{ fontSize: '0.85rem' }}>Jumlah Anggota Aktif</span>
+                    </div>
+                    <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.activeMembersCount || '-'} Orang</span>
+                  </div>
+                )}
+
+                {/* Deskripsi */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Bio / Deskripsi Singkat</span>
+                  <p style={{ fontSize: '0.9rem', margin: 0, lineHeight: '1.6', background: 'rgba(255, 255, 255, 0.01)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                    {currentUser?.organizerDescription || 'Belum ada deskripsi profil.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Creator & Admin Panels Hub */}
+              {(() => {
+                const getAdminPermissions = (role) => {
+                  if (!role) return [];
+                  const normalizedRole = role.toLowerCase();
+                  const lookupRole = normalizedRole === 'staff' ? 'staf' : normalizedRole;
+
+                  if (lookupRole === 'superadmin') {
+                    return [
+                      'event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace', 'finance-report',
+                      'movies', 'users', 'roles', 'membership', 'gdrive', 'firebase'
+                    ];
+                  }
+                  if (lookupRole === 'staf') {
+                    return ['movies', 'finance-report', 'event-payment', 'creator-marketplace'];
+                  }
+                  if (lookupRole === 'panitia' || lookupRole === 'user') {
+                    return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'];
+                  }
+                  if (lookupRole === 'moderator') {
+                    return ['finance-report', 'event-payment'];
+                  }
+                  if (lookupRole === 'editor') {
+                    return ['movies'];
+                  }
+                  return [];
+                };
+
+                const permissions = getAdminPermissions(currentUser?.role);
+                const adminTabs = [
+                  { id: 'creator-marketplace', label: 'Marketplace Creator' },
+                  { id: 'event-payment', label: 'Verifikasi Pembayaran' },
+                  { id: 'finance-report', label: 'Laporan Keuangan' },
+                  { id: 'movies', label: 'Kelola Film' },
+                  { id: 'users', label: 'Kelola Pengguna' },
+                  { id: 'roles', label: 'Kelola Role' },
+                  { id: 'membership', label: 'Pengaturan Premium' },
+                  { id: 'gdrive', label: 'Google Drive API Key' },
+                  { id: 'firebase', label: 'Koneksi Firebase' }
+                ].filter(tab => permissions.includes(tab.id));
+
+                if (adminTabs.length > 0) {
+                  return (
+                    <div className="glass-panel" style={{ padding: '28px', borderRadius: '24px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '24px' }}>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Panel Creator & Admin</h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                        {adminTabs.map(tab => (
+                          <button
+                            key={tab.id}
+                            onClick={() => {
+                              handleAdminSubTabChange(tab.id);
+                              setActiveTab('admin');
+                            }}
+                            style={{
+                              padding: '14px',
+                              background: 'rgba(255, 255, 255, 0.03)',
+                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                              borderRadius: '16px',
+                              color: '#ffffff',
+                              fontWeight: '600',
+                              fontSize: '0.85rem',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                              textAlign: 'center'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                            }}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Logout Button */}
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '32px' }}>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    width: '100%',
+                    maxWidth: '300px',
+                    padding: '12px 24px',
+                    fontSize: '0.9rem',
+                    color: '#ffffff',
+                    background: '#ef4444',
+                    border: 'none',
+                    borderRadius: '30px',
+                    cursor: 'pointer',
+                    fontWeight: '700',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(239, 68, 68, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.2)';
+                  }}
+                >
+                  <LogOut size={16} />
+                  <span>Keluar dari Akun</span>
+                </button>
+              </div>
+            </div>
           ) : activeTab === 'events' ? (
             <EventsUserPortal 
               currentUser={currentUser}
