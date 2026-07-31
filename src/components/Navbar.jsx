@@ -468,130 +468,136 @@ export default function Navbar({
                 transformOrigin: 'top left'
               }}
             >
-              {currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role) ? (
-                <>
-                  <div style={{ paddingBottom: '6px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Menu Admin</span>
-                  </div>
-                  {(() => {
-                    const getAdminPermissions = (role) => {
-                      if (!role) return [];
-                      const normalizedRole = role.toLowerCase();
-                      const lookupRole = normalizedRole === 'staff' ? 'staf' : normalizedRole;
+              {/* Menu Utama */}
+              <div style={{ paddingBottom: '6px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '4px' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Menu Utama</span>
+              </div>
+              {[
+                { id: 'discover', label: 'Beranda' },
+                { id: 'events', label: 'Event' },
+                { id: 'wallet', label: 'Dompet Saya', requiresUser: true }
+              ]
+                .filter(tab => !tab.requiresUser || currentUser)
+                .map(tab => {
+                  const isTabActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      style={{
+                        padding: '10px 14px',
+                        background: isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                        border: isTabActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '10px',
+                        color: 'white',
+                        fontWeight: '600',
+                        fontSize: '0.82rem',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        width: '100%'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)';
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
 
-                      if (lookupRole === 'superadmin') {
-                        return [
-                          'event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace', 'finance-report',
-                          'movies', 'users', 'roles', 'membership', 'gdrive', 'firebase'
-                        ];
-                      }
-                      if (lookupRole === 'staf') {
-                        return ['movies', 'finance-report', 'event-payment', 'creator-marketplace'];
-                      }
-                      if (lookupRole === 'panitia' || lookupRole === 'user') {
-                        return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'];
-                      }
-                      if (lookupRole === 'moderator') {
-                        return ['finance-report', 'event-payment'];
-                      }
-                      if (lookupRole === 'editor') {
-                        return ['movies'];
-                      }
-                      return [];
-                    };
+              {/* Menu Creator & Admin (If logged in and has access to admin/creator tabs) */}
+              {currentUser && (() => {
+                const getAdminPermissions = (role) => {
+                  if (!role) return [];
+                  const normalizedRole = role.toLowerCase();
+                  const lookupRole = normalizedRole === 'staff' ? 'staf' : normalizedRole;
 
-                    const permissions = getAdminPermissions(currentUser.role);
+                  if (lookupRole === 'superadmin') {
                     return [
-                      { id: 'event-payment', label: 'Verifikasi Pembayaran' },
-                      { id: 'creator-marketplace', label: 'Marketplace Creator' },
-                      { id: 'finance-report', label: 'Laporan Keuangan' },
-                      { id: 'movies', label: 'Kelola Film' },
-                      { id: 'users', label: 'Kelola Pengguna' },
-                      { id: 'roles', label: 'Kelola Role' },
-                      { id: 'membership', label: 'Pengaturan Premium' },
-                      { id: 'gdrive', label: 'Google Drive API Key' },
-                      { id: 'firebase', label: 'Koneksi Firebase' }
-                    ].filter(tab => permissions.includes(tab.id)).map(tab => {
-                      const isTabActive = adminSubTab === tab.id;
-                      return (
-                        <button
-                          key={tab.id}
-                          onClick={() => {
-                            if (onAdminSubTabChange) onAdminSubTabChange(tab.id);
-                            setIsMobileMenuOpen(false);
-                          }}
-                          style={{
-                            padding: '10px 14px',
-                            background: isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-                            border: isTabActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.08)',
-                            borderRadius: '10px',
-                            color: 'white',
-                            fontWeight: '600',
-                            fontSize: '0.82rem',
-                            textAlign: 'left',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            width: '100%'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)';
-                          }}
-                        >
-                          {tab.label}
-                        </button>
-                      );
-                    });
-                  })()}
-                </>
-              ) : (
-                <>
-                  <div style={{ paddingBottom: '6px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Menu Utama</span>
-                  </div>
-                  {[
-                    { id: 'discover', label: 'Beranda' },
-                    { id: 'events', label: 'Event Kompetisi' },
-                    { id: 'wallet', label: 'Dompet Saya', requiresUser: true }
-                  ]
-                    .filter(tab => !tab.requiresUser || currentUser)
-                    .map(tab => {
-                      const isTabActive = activeTab === tab.id;
-                      return (
-                        <button
-                          key={tab.id}
-                          onClick={() => {
-                            setActiveTab(tab.id);
-                            setIsMobileMenuOpen(false);
-                          }}
-                          style={{
-                            padding: '10px 14px',
-                            background: isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-                            border: isTabActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.08)',
-                            borderRadius: '10px',
-                            color: 'white',
-                            fontWeight: '600',
-                            fontSize: '0.82rem',
-                            textAlign: 'left',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            width: '100%'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)';
-                          }}
-                        >
-                          {tab.label}
-                        </button>
-                      );
-                    })}
-                </>
-              )}
+                      'event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace', 'finance-report',
+                      'movies', 'users', 'roles', 'membership', 'gdrive', 'firebase'
+                    ];
+                  }
+                  if (lookupRole === 'staf') {
+                    return ['movies', 'finance-report', 'event-payment', 'creator-marketplace'];
+                  }
+                  if (lookupRole === 'panitia' || lookupRole === 'user') {
+                    return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'];
+                  }
+                  if (lookupRole === 'moderator') {
+                    return ['finance-report', 'event-payment'];
+                  }
+                  if (lookupRole === 'editor') {
+                    return ['movies'];
+                  }
+                  return [];
+                };
+
+                const permissions = getAdminPermissions(currentUser.role);
+                const adminTabs = [
+                  { id: 'event-payment', label: 'Verifikasi Pembayaran' },
+                  { id: 'creator-marketplace', label: 'Marketplace Creator' },
+                  { id: 'finance-report', label: 'Laporan Keuangan' },
+                  { id: 'movies', label: 'Kelola Film' },
+                  { id: 'users', label: 'Kelola Pengguna' },
+                  { id: 'roles', label: 'Kelola Role' },
+                  { id: 'membership', label: 'Pengaturan Premium' },
+                  { id: 'gdrive', label: 'Google Drive API Key' },
+                  { id: 'firebase', label: 'Koneksi Firebase' }
+                ].filter(tab => permissions.includes(tab.id));
+
+                if (adminTabs.length > 0) {
+                  return (
+                    <>
+                      <div style={{ marginTop: '10px', paddingBottom: '6px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Menu Creator & Admin</span>
+                      </div>
+                      {adminTabs.map(tab => {
+                        const isTabActive = activeTab === 'admin' && adminSubTab === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => {
+                              if (onAdminSubTabChange) onAdminSubTabChange(tab.id);
+                              setActiveTab('admin');
+                              setIsMobileMenuOpen(false);
+                            }}
+                            style={{
+                              padding: '10px 14px',
+                              background: isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                              border: isTabActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.08)',
+                              borderRadius: '10px',
+                              color: 'white',
+                              fontWeight: '600',
+                              fontSize: '0.82rem',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                              width: '100%'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)';
+                            }}
+                          >
+                            {tab.label}
+                          </button>
+                        );
+                      })}
+                    </>
+                  );
+                }
+                return null;
+              })()}
             </div>
           )}
           
