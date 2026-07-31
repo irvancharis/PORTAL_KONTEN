@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
-import AdminSidebar from './components/AdminSidebar';
 import BottomNav from './components/BottomNav';
 import MovieCard from './components/MovieCard';
 import VideoPlayer from './components/VideoPlayer';
@@ -2127,8 +2126,8 @@ export default function App() {
         <main className="main-content">
           {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && activeTab !== 'admin' && (
             <div style={{
-              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%)',
-              borderBottom: '1px solid rgba(245, 158, 11, 0.2)',
+              background: 'rgba(255, 255, 255, 0.03)',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
               padding: '12px 24px',
               display: 'flex',
               justifyContent: 'space-between',
@@ -2141,7 +2140,7 @@ export default function App() {
               boxSizing: 'border-box'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <AlertTriangle size={16} color="#fbbf24" style={{ flexShrink: 0 }} />
+                <AlertTriangle size={16} color="#ffffff" style={{ flexShrink: 0 }} />
                 <span>
                   <strong>Lengkapi Profil Kreator Anda!</strong> Silakan isi nama lengkap, nomor WhatsApp, keahlian, dan link portofolio utama Anda agar bisa mendaftar event kompetisi.
                 </span>
@@ -2268,32 +2267,7 @@ export default function App() {
                  <div className="watch-video-details">
                     <div className="watch-title-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '12px' }}>
                       <h1 className="watch-title" style={{ margin: 0 }}>{selectedMovie.title}</h1>
-                      <button 
-                        className={`btn ${watchlist.includes(selectedMovie.id) ? 'btn-primary' : 'btn-secondary'}`}
-                        onClick={() => toggleWatchlist(selectedMovie)}
-                        style={{ 
-                          display: 'inline-flex', 
-                          alignItems: 'center', 
-                          gap: '8px', 
-                          padding: '10px 20px', 
-                          borderRadius: '30px',
-                          fontSize: '0.88rem',
-                          fontWeight: '600',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {watchlist.includes(selectedMovie.id) ? (
-                          <>
-                            <BookmarkCheck size={16} fill="currentColor" />
-                            <span>Tersimpan di Daftar Tontonan</span>
-                          </>
-                        ) : (
-                          <>
-                            <Bookmark size={16} />
-                            <span>Simpan ke Daftar Tontonan</span>
-                          </>
-                        )}
-                      </button>
+
                     </div>
                   
                   {/* Actions & Channel Row */}

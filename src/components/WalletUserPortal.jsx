@@ -117,8 +117,21 @@ export default function WalletUserPortal({
     status: wd.status // 'pending' or 'approved'
   }));
 
+  // 4. Debits from event payments (deposits) made by this user (organizer)
+  const debitEventPayments = events.filter(evt => 
+    evt.creator?.toLowerCase() === currentUser.username.toLowerCase() &&
+    (evt.paymentStatus === 'paid' || evt.paymentStatus === 'pending_verification')
+  ).map(evt => ({
+    id: `evt_pay_${evt.id}`,
+    date: evt.deadline ? new Date(evt.deadline).toISOString() : new Date().toISOString(),
+    description: `Pembayaran Event: ${evt.title}`,
+    type: 'debit',
+    amount: (evt.campaignBudget || 0) + (evt.adminFee || 0),
+    status: evt.paymentStatus === 'paid' ? 'approved' : 'pending'
+  }));
+
   // Combine & Sort Transactions
-  const allTransactions = [...creditSubs, ...creditPrizes, ...debitWithdrawals].sort((a, b) => 
+  const allTransactions = [...creditSubs, ...creditPrizes, ...debitWithdrawals, ...debitEventPayments].sort((a, b) => 
     new Date(b.date) - new Date(a.date)
   );
 

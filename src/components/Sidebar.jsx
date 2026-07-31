@@ -40,15 +40,11 @@ export default function Sidebar({
     generalMenuItems.push({ id: 'wallet', label: 'Dompet Saya', icon: Wallet });
   }
 
-  generalMenuItems.push(
-    { id: 'watchlist', label: 'Daftar Tontonan', icon: Bookmark, badge: watchlistCount },
-    { id: 'history', label: 'Riwayat', icon: History }
-  );
+
 
   const eventMenuItems = [
     { id: 'event-dashboard', label: 'Dashboard Event', icon: LayoutDashboard },
     { id: 'event-manage', label: 'Kelola Event', icon: Calendar },
-    { id: 'event-payment', label: 'Payment', icon: Wallet },
     { id: 'creator-marketplace', label: 'Marketplace Creator', icon: Users }
   ];
 

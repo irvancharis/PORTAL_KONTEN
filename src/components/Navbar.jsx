@@ -556,9 +556,7 @@ export default function Navbar({
                   {[
                     { id: 'discover', label: 'Beranda' },
                     { id: 'events', label: 'Event Kompetisi' },
-                    { id: 'wallet', label: 'Dompet Saya', requiresUser: true },
-                    { id: 'watchlist', label: 'Daftar Tontonan' },
-                    { id: 'history', label: 'Riwayat Nonton' }
+                    { id: 'wallet', label: 'Dompet Saya', requiresUser: true }
                   ]
                     .filter(tab => !tab.requiresUser || currentUser)
                     .map(tab => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Bookmark, History, LayoutDashboard, Calendar, Wallet, Users, Film, TrendingUp, Trophy } from 'lucide-react';
+import { Home, LayoutDashboard, Calendar, Wallet, Users, Film, TrendingUp, Trophy } from 'lucide-react';
 
 export default function BottomNav({
   activeTab,
@@ -26,7 +26,6 @@ export default function BottomNav({
         return [
           { id: 'event-dashboard', label: 'Dashboard', icon: LayoutDashboard },
           { id: 'event-manage', label: 'Kelola Event', icon: Calendar },
-          { id: 'event-payment', label: 'Pembayaran', icon: Wallet },
           { id: 'creator-marketplace', label: 'Marketplace', icon: Users }
         ];
       }
@@ -83,21 +82,15 @@ export default function BottomNav({
         <span>Event</span>
       </button>
 
-      <button 
-        className={`bottom-nav-item ${activeTab === 'watchlist' ? 'active' : ''}`}
-        onClick={() => handleNav('watchlist')}
-      >
-        <Bookmark size={20} />
-        <span>Tontonan</span>
-      </button>
-
-      <button 
-        className={`bottom-nav-item ${activeTab === 'history' ? 'active' : ''}`}
-        onClick={() => handleNav('history')}
-      >
-        <History size={20} />
-        <span>Riwayat</span>
-      </button>
+      {currentUser && (
+        <button 
+          className={`bottom-nav-item ${activeTab === 'wallet' ? 'active' : ''}`}
+          onClick={() => handleNav('wallet')}
+        >
+          <Wallet size={20} />
+          <span>Dompet Saya</span>
+        </button>
+      )}
     </nav>
   );
 }
