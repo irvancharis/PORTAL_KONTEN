@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Trophy, Calendar, Users, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Trophy, Calendar, Users, User, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown } from 'lucide-react';
 
 const slugify = (text) => {
   if (!text) return '';
