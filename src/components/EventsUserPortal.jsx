@@ -834,9 +834,9 @@ export default function EventsUserPortal({
               <AlertTriangle size={20} color="#ffffff" />
             </div>
             <div>
-              <h4 style={{ margin: '0 0 4px 0', color: '#ffffff', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Kreator Belum Lengkap!</h4>
+              <h4 style={{ margin: '0 0 4px 0', color: '#ffffff', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
               <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.5' }}>
-                Silakan lengkapi nama lengkap, nomor WhatsApp, keahlian, dan link portofolio Anda terlebih dahulu agar dapat mendaftar sebagai peserta event.
+                lengkapi profil Anda terlebih dahulu agar dapat mendaftar sebagai peserta event.
               </p>
             </div>
           </div>
