@@ -238,6 +238,7 @@ export default function AdminPanel({
   // Financial Report sorting states
   const [financeSortField, setFinanceSortField] = useState('date');
   const [financeSortDirection, setFinanceSortDirection] = useState('desc');
+  const [financeMonthFilter, setFinanceMonthFilter] = useState('All'); // 'All' or 'YYYY-MM'
 
   // Payment local states
   const [visiblePaymentsCount, setVisiblePaymentsCount] = useState(10);
@@ -6220,19 +6221,40 @@ export default function AdminPanel({
           );
         };
 
-        // Calculations derived entirely from the financialJournals collection
+        // Extract unique months from unfiltered financialJournals list for filter dropdown
+        const availableMonths = Array.from(new Set(
+          financialJournals
+            .filter(j => j.date)
+            .map(j => j.date.substring(0, 7))
+        )).sort((a, b) => b.localeCompare(a)); // Sort newest month first
+
+        const formatMonthYear = (myStr) => {
+          if (!myStr) return '';
+          const [year, month] = myStr.split('-');
+          const monthNames = [
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+          ];
+          return `${monthNames[parseInt(month, 10) - 1]} ${year}`;
+        };
+
+        const filteredJournals = financeMonthFilter === 'All'
+          ? financialJournals
+          : financialJournals.filter(j => j.date && j.date.substring(0, 7) === financeMonthFilter);
+
+        // Calculations derived entirely from the filteredJournals collection
         // 1. Premium Income (inbound journals not from events and not manual journals)
-        const premiumIncome = financialJournals
+        const premiumIncome = filteredJournals
           .filter(j => j.type === 'in' && !j.id.startsWith('evt_') && !j.id.startsWith('journal_'))
           .reduce((acc, j) => acc + (j.amount || 0), 0);
 
         // 2. Event Payments Income (inbound journals starting with 'evt_')
-        const eventTotalIncome = financialJournals
+        const eventTotalIncome = filteredJournals
           .filter(j => j.type === 'in' && j.id.startsWith('evt_'))
           .reduce((acc, j) => acc + (j.amount || 0), 0);
 
         // Extract event admin fees from the global events matching paid journals
-        const eventFeesPaid = financialJournals
+        const eventFeesPaid = filteredJournals
           .filter(j => j.type === 'in' && j.id.startsWith('evt_'))
           .reduce((acc, j) => {
             const evtId = j.id.replace('evt_', '');
@@ -6241,10 +6263,10 @@ export default function AdminPanel({
           }, 0);
 
         // 3. Manual journals income & expense
-        const manualIncome = financialJournals
+        const manualIncome = filteredJournals
           .filter(j => j.type === 'in' && j.id.startsWith('journal_'))
           .reduce((acc, j) => acc + (j.amount || 0), 0);
-        const manualExpense = financialJournals
+        const manualExpense = filteredJournals
           .filter(j => j.type === 'out' && j.id.startsWith('journal_'))
           .reduce((acc, j) => acc + (j.amount || 0), 0);
 
@@ -6260,7 +6282,7 @@ export default function AdminPanel({
         const netSystemProfit = premiumIncome + eventFeesPaid + manualIncome - manualExpense;
 
         // Expenses (Withdrawals + Manual Expenses)
-        const totalWithdrawals = financialJournals
+        const totalWithdrawals = filteredJournals
           .filter(j => j.type === 'out')
           .reduce((acc, j) => acc + (j.amount || 0), 0);
 
@@ -6268,7 +6290,7 @@ export default function AdminPanel({
         const totalUserBalances = users.reduce((acc, u) => acc + (u.walletBalance || 0), 0);
 
         // Transactions List for report mapped directly from the single source of truth
-        const transactionList = financialJournals.map(j => {
+        const transactionList = filteredJournals.map(j => {
           let typeLabel = '';
           if (j.id.startsWith('evt_')) {
             typeLabel = 'Pemasukan (Event)';
@@ -6320,7 +6342,31 @@ export default function AdminPanel({
 
         return (
           <div className="finance-report-section animate-fade-in" style={{ color: 'white' }}>
-            {/* Financial Overview Cards */}
+            {/* Filter Bar */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '20px', gap: '8px' }} className="no-print">
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Filter Laporan Bulanan:</span>
+              <select 
+                value={financeMonthFilter}
+                onChange={(e) => setFinanceMonthFilter(e.target.value)}
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: 'white',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontSize: '0.8rem',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="All" style={{ background: '#0b0f19' }}>Semua Periode</option>
+                {availableMonths.map(my => (
+                  <option key={my} value={my} style={{ background: '#0b0f19' }}>
+                    {formatMonthYear(my)}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="admin-dashboard-grid finance-grid">
               
               {/* Card 1: Total Pemasukan */}
