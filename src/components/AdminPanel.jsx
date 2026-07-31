@@ -162,7 +162,9 @@ export default function AdminPanel({
   withdrawalFeePercent = 0,
   setWithdrawalFeePercent,
   customRoles = [],
-  setCustomRoles
+  setCustomRoles,
+  financialJournals = [],
+  setFinancialJournals
 }) {
   const isPanitia = currentUser && currentUser.role === 'panitia';
   const myEvents = isPanitia 
@@ -222,6 +224,13 @@ export default function AdminPanel({
   const [showBulkOfferModal, setShowBulkOfferModal] = useState(false);
   const [bulkOfferEventId, setBulkOfferEventId] = useState('');
   const [bulkOfferMessage, setBulkOfferMessage] = useState('');
+
+  // Financial Journal states
+  const [showJournalModal, setShowJournalModal] = useState(false);
+  const [journalType, setJournalType] = useState('in'); // 'in' | 'out'
+  const [journalAmount, setJournalAmount] = useState('');
+  const [journalDesc, setJournalDesc] = useState('');
+  const [journalDate, setJournalDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   // Payment local states
   const [visiblePaymentsCount, setVisiblePaymentsCount] = useState(10);
@@ -6178,21 +6187,29 @@ export default function AdminPanel({
         const eventFeesPaid = eventPaidList.reduce((acc, evt) => acc + (evt.adminFee || 0), 0);
         const eventTotalIncome = eventBudgetPaid + eventFeesPaid;
 
+        // Manual journals income & expense
+        const manualIncome = financialJournals
+          .filter(j => j.type === 'in')
+          .reduce((acc, j) => acc + (j.amount || 0), 0);
+        const manualExpense = financialJournals
+          .filter(j => j.type === 'out')
+          .reduce((acc, j) => acc + (j.amount || 0), 0);
+
         // Total Pemasukan
-        const totalIncome = premiumIncome + eventTotalIncome;
+        const totalIncome = premiumIncome + eventTotalIncome + manualIncome;
 
         // Escrow funds (event paid but winners not released yet)
         const escrowFund = events
           .filter(evt => evt.paymentStatus === 'paid' && !evt.winnersReleased)
           .reduce((acc, evt) => acc + (evt.campaignBudget || 0), 0);
 
-        // Net System Profit (Premium + Admin Fees)
-        const netSystemProfit = premiumIncome + eventFeesPaid;
+        // Net System Profit (Premium + Admin Fees + Manual Income - Manual Expense)
+        const netSystemProfit = premiumIncome + eventFeesPaid + manualIncome - manualExpense;
 
-        // Expenses (Approved Withdrawals)
+        // Expenses (Approved Withdrawals + Manual Expenses)
         const totalWithdrawals = withdrawals
           .filter(w => w.status === 'approved')
-          .reduce((acc, w) => acc + (w.amount || 0), 0);
+          .reduce((acc, w) => acc + (w.amount || 0), 0) + manualExpense;
 
         // Active user wallets balance total
         const totalUserBalances = users.reduce((acc, u) => acc + (u.walletBalance || 0), 0);
@@ -6231,7 +6248,16 @@ export default function AdminPanel({
               desc: `Withdrawal ke ${w.method} (${w.account}) a.n ${w.name}`,
               amount: w.amount || 0,
               isIncome: false
-            }))
+            })),
+          ...financialJournals.map(j => ({
+            id: j.id,
+            date: j.date,
+            type: j.type === 'in' ? 'Jurnal Saldo Masuk' : 'Jurnal Saldo Keluar',
+            username: j.operator || 'Staff',
+            desc: j.desc,
+            amount: j.amount || 0,
+            isIncome: j.type === 'in'
+          }))
         ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
         return (
@@ -6307,15 +6333,54 @@ export default function AdminPanel({
 
             {/* Detailed Transaction History */}
             <div className="admin-table-container glass-panel" style={{ padding: '24px', borderRadius: '12px' }}>
-              <div className="table-header-flex">
+              <div className="table-header-flex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                 <h3 style={{ color: 'white', fontSize: '1.1rem', margin: 0, fontWeight: 'bold' }}>Histori Transaksi Keuangan</h3>
-                <button 
-                  className="btn btn-secondary btn-sm no-print" 
-                  onClick={() => window.print()}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '6px 14px' }}
-                >
-                  Cetak Laporan
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {(currentUser?.role === 'staf' || currentUser?.role === 'superadmin') && (
+                    <button 
+                      className="btn btn-primary btn-sm no-print" 
+                      onClick={() => {
+                        setJournalType('in');
+                        setJournalAmount('');
+                        setJournalDesc('');
+                        setJournalDate(new Date().toISOString().split('T')[0]);
+                        setShowJournalModal(true);
+                      }}
+                      style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '6px', 
+                        fontSize: '0.8rem', 
+                        padding: '6px 14px',
+                        background: '#ffffff',
+                        border: '1px solid #ffffff',
+                        color: '#020202',
+                        fontWeight: '700',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Plus size={14} />
+                      <span>Tambah Jurnal Keuangan</span>
+                    </button>
+                  )}
+                  <button 
+                    className="btn btn-secondary btn-sm no-print" 
+                    onClick={() => window.print()}
+                    style={{ 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: '6px', 
+                      fontSize: '0.8rem', 
+                      padding: '6px 14px',
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: 'white',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Cetak Laporan
+                  </button>
+                </div>
               </div>
 
               {transactionList.length > 0 ? (
@@ -6368,6 +6433,176 @@ export default function AdminPanel({
                 </div>
               )}
             </div>
+
+            {showJournalModal && createPortal(
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: '#020202',
+                zIndex: 99999,
+                display: 'flex',
+                alignItems: 'stretch',
+                justifyContent: 'stretch',
+                padding: 0
+              }} onClick={() => setShowJournalModal(false)}>
+                <div 
+                  className="glass-panel animate-scale-in" 
+                  style={{
+                    width: '100vw',
+                    height: '100vh',
+                    maxHeight: '100vh',
+                    overflowY: 'auto',
+                    padding: '40px 24px',
+                    background: '#020202',
+                    textAlign: 'left',
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center'
+                  }} 
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div style={{ width: '100%', maxWidth: '640px' }}>
+                    {/* Close Button */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+                      <button 
+                        onClick={() => setShowJournalModal(false)}
+                        style={{
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          color: 'var(--text-secondary)',
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <XCircle size={18} />
+                      </button>
+                    </div>
+
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Plus size={20} style={{ color: '#ffffff' }} />
+                      <span>Tambah Jurnal Keuangan</span>
+                    </h3>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                      Gunakan formulir ini untuk mencatat transaksi saldo masuk atau saldo keluar secara manual ke dalam sistem.
+                    </p>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div className="form-group">
+                        <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Jenis Jurnal</label>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                          <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', background: journalType === 'in' ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)', border: journalType === 'in' ? '1px solid #ffffff' : '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}>
+                            <input 
+                              type="radio" 
+                              name="journalType" 
+                              value="in" 
+                              checked={journalType === 'in'} 
+                              onChange={() => setJournalType('in')}
+                              style={{ accentColor: '#ffffff' }}
+                            />
+                            <span>Saldo Masuk (Pemasukan)</span>
+                          </label>
+                          <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', background: journalType === 'out' ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)', border: journalType === 'out' ? '1px solid #ffffff' : '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}>
+                            <input 
+                              type="radio" 
+                              name="journalType" 
+                              value="out" 
+                              checked={journalType === 'out'} 
+                              onChange={() => setJournalType('out')}
+                              style={{ accentColor: '#ffffff' }}
+                            />
+                            <span>Saldo Keluar (Pengeluaran)</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Nominal Transaksi (Rp)</label>
+                        <input 
+                          type="number" 
+                          placeholder="Contoh: 50000"
+                          value={journalAmount}
+                          onChange={(e) => setJournalAmount(e.target.value)}
+                          style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.85rem', outline: 'none' }}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Tanggal Transaksi</label>
+                        <input 
+                          type="date" 
+                          value={journalDate}
+                          onChange={(e) => setJournalDate(e.target.value)}
+                          style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.85rem', outline: 'none' }}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Keterangan Jurnal</label>
+                        <textarea 
+                          placeholder="Tulis keterangan transaksi keuangan di sini secara detail..." 
+                          value={journalDesc}
+                          onChange={(e) => setJournalDesc(e.target.value)}
+                          style={{ width: '100%', height: '100px', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.85rem', outline: 'none', resize: 'none' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+                        <button 
+                          className="btn" 
+                          style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer' }}
+                          onClick={() => setShowJournalModal(false)}
+                        >
+                          Batal
+                        </button>
+                        <button 
+                          className="btn btn-primary" 
+                          style={{ flex: 1, background: '#ffffff', border: '1px solid #ffffff', color: '#020202', fontWeight: 'bold', cursor: 'pointer' }}
+                          onClick={() => {
+                            const amt = parseInt(journalAmount, 10);
+                            if (isNaN(amt) || amt <= 0) {
+                              alert('Silakan masukkan nominal transaksi yang valid!');
+                              return;
+                            }
+                            if (!journalDesc.trim()) {
+                              alert('Silakan isi keterangan jurnal!');
+                              return;
+                            }
+
+                            const newJournal = {
+                              id: 'journal_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                              type: journalType,
+                              amount: amt,
+                              desc: journalDesc.trim(),
+                              date: new Date(journalDate).toISOString(),
+                              operator: currentUser?.username || 'Staff',
+                              createdAt: new Date().toISOString()
+                            };
+
+                            setFinancialJournals(prev => [newJournal, ...prev]);
+                            setShowJournalModal(false);
+                            setJournalAmount('');
+                            setJournalDesc('');
+                            alert('Jurnal keuangan berhasil dicatat!');
+                          }}
+                        >
+                          Simpan Jurnal
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>,
+              document.body
+            )}
           </div>
         );
       })()

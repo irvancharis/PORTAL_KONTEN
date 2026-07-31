@@ -342,6 +342,16 @@ export default function App() {
     localStorage.setItem('portal-admin-sub-tab', adminSubTab);
   }, [adminSubTab]);
 
+  // Financial journals state for manual income/expense inputs
+  const [financialJournals, setFinancialJournals] = useState(() => {
+    const saved = localStorage.getItem('portal-financial-journals');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('portal-financial-journals', JSON.stringify(financialJournals));
+  }, [financialJournals]);
+
   // Payment confirmations state
   const [confirmations, setConfirmations] = useState(() => {
     if (isFirebaseConfigured()) return [];
@@ -1979,6 +1989,8 @@ export default function App() {
               setWithdrawalFeePercent={setWithdrawalFeePercent}
               customRoles={customRoles}
               setCustomRoles={setCustomRoles}
+              financialJournals={financialJournals}
+              setFinancialJournals={setFinancialJournals}
             />
           ) : activeTab === 'wallet' ? (
             <WalletUserPortal 
