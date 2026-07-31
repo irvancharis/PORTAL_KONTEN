@@ -1064,6 +1064,95 @@ export default function Navbar({
 
 
 
+                  {currentUser && (() => {
+                    const getAdminPermissions = (role) => {
+                      if (!role) return [];
+                      const normalizedRole = role.toLowerCase();
+                      const lookupRole = normalizedRole === 'staff' ? 'staf' : normalizedRole;
+
+                      if (lookupRole === 'superadmin') {
+                        return [
+                          'event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace', 'finance-report',
+                          'movies', 'users', 'roles', 'membership', 'gdrive', 'firebase'
+                        ];
+                      }
+                      if (lookupRole === 'staf') {
+                        return ['movies', 'finance-report', 'event-payment', 'creator-marketplace'];
+                      }
+                      if (lookupRole === 'panitia' || lookupRole === 'user') {
+                        return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'];
+                      }
+                      if (lookupRole === 'moderator') {
+                        return ['finance-report', 'event-payment'];
+                      }
+                      if (lookupRole === 'editor') {
+                        return ['movies'];
+                      }
+                      return [];
+                    };
+
+                    const permissions = getAdminPermissions(currentUser.role);
+                    const adminTabs = [
+                      { id: 'event-payment', label: 'Verifikasi Pembayaran' },
+                      { id: 'creator-marketplace', label: 'Marketplace Creator' },
+                      { id: 'finance-report', label: 'Laporan Keuangan' },
+                      { id: 'movies', label: 'Kelola Film' },
+                      { id: 'users', label: 'Kelola Pengguna' },
+                      { id: 'roles', label: 'Kelola Role' },
+                      { id: 'membership', label: 'Pengaturan Premium' },
+                      { id: 'gdrive', label: 'Google Drive API Key' },
+                      { id: 'firebase', label: 'Koneksi Firebase' }
+                    ].filter(tab => permissions.includes(tab.id));
+
+                    if (adminTabs.length > 0) {
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', marginBottom: '12px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '8px' }}>
+                          <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '2px', paddingLeft: '4px' }}>Creator & Admin</span>
+                          {adminTabs.map(tab => {
+                            const isTabActive = activeTab === 'admin' && adminSubTab === tab.id;
+                            return (
+                              <button
+                                key={tab.id}
+                                onClick={() => {
+                                  if (onAdminSubTabChange) onAdminSubTabChange(tab.id);
+                                  setActiveTab('admin');
+                                  setIsDropdownOpen(false);
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  fontSize: '0.78rem',
+                                  color: isTabActive ? '#ffffff' : 'var(--text-secondary)',
+                                  background: isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                                  border: 'none',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  fontWeight: '600',
+                                  textAlign: 'left',
+                                  transition: 'all 0.2s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                                  e.currentTarget.style.color = '#ffffff';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = isTabActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent';
+                                  e.currentTarget.style.color = isTabActive ? '#ffffff' : 'var(--text-secondary)';
+                                }}
+                              >
+                                {tab.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   {/* Logout Button */}
                   <button 
                     onClick={() => {

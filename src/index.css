@@ -1254,7 +1254,7 @@ select option {
     display: none !important;
   }
   .menu-toggle-btn {
-    display: flex !important;
+    display: none !important;
   }
   .bottom-nav {
     display: flex; /* Show bottom-nav on mobile */
