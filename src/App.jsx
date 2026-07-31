@@ -2090,21 +2090,18 @@ export default function App() {
 
       <div className="app-body-wrapper">
         {/* Left Sidebar (Desktop) */}
-        {!isMobile && (activeTab === 'admin' ? (
-          <AdminSidebar 
-            adminSubTab={adminSubTab}
-            setAdminSubTab={handleAdminSubTabChange}
+        {!isMobile && (
+          <Sidebar 
+            activeTab={activeTab}
+            setActiveTab={handleTabChange}
+            setSelectedGenre={setSelectedGenre}
             isCollapsed={isSidebarCollapsed}
             setIsCollapsed={setIsSidebarCollapsed}
+            watchlistCount={watchlist.length}
             currentUser={currentUser}
-            onBackToPortal={() => handleTabChange('discover')}
-            pendingParticipantsCount={sidebarParticipants.filter(p => p.status === 'pending').length}
-            pendingSubmissionsCount={sidebarSubmissions.filter(s => s.score === null).length}
-            pendingConfirmationsCount={
-              confirmations.filter(c => c.status === 'pending').length +
-              sidebarEvents.filter(e => e.paymentStatus === 'pending_verification').length
-            }
-            pendingWithdrawalsCount={withdrawals.filter(w => w.status === 'pending').length}
+            adminSubTab={adminSubTab}
+            setAdminSubTab={handleAdminSubTabChange}
+            customRoles={customRoles}
             pendingEventsCount={
               sidebarEvents.filter(e => e.paymentStatus !== 'paid').length +
               sidebarEvents.filter(e => {
@@ -2118,19 +2115,13 @@ export default function App() {
               sidebarParticipants.filter(p => p.status === 'pending').length +
               sidebarSubmissions.filter(s => s.score === null).length
             }
-            customRoles={customRoles}
+            pendingConfirmationsCount={
+              confirmations.filter(c => c.status === 'pending').length +
+              sidebarEvents.filter(e => e.paymentStatus === 'pending_verification').length
+            }
+            pendingWithdrawalsCount={withdrawals.filter(w => w.status === 'pending').length}
           />
-        ) : (
-          <Sidebar 
-            activeTab={activeTab}
-            setActiveTab={handleTabChange}
-            setSelectedGenre={setSelectedGenre}
-            isCollapsed={isSidebarCollapsed}
-            setIsCollapsed={setIsSidebarCollapsed}
-            watchlistCount={watchlist.length}
-            currentUser={currentUser}
-          />
-        ))}
+        )}
 
         {/* Main Content Area */}
         <main className="main-content">
