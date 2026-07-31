@@ -3842,7 +3842,6 @@ export default function AdminPanel({
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
                   Undang content creator ini untuk bergabung sebagai peserta dalam event kompetisi Anda.
                 </p>
- 
                 {(() => {
                   const myEvents = events.filter(e => e.creator === currentUser.username && e.paymentStatus === 'paid');
                   if (myEvents.length === 0) {
@@ -3861,17 +3860,40 @@ export default function AdminPanel({
                       </div>
                     );
                   }
+
+                  const eligibleEvents = myEvents.filter(e => {
+                    const isParticipant = eventParticipants.some(p => p.eventId === e.id && p.username.toLowerCase() === selectedMarketplaceCreator.toLowerCase());
+                    const hasActiveOffer = offers.some(o => o.eventId === e.id && o.recipient.toLowerCase() === selectedMarketplaceCreator.toLowerCase() && (o.status === 'pending' || o.status === 'accepted'));
+                    return !isParticipant && !hasActiveOffer;
+                  });
+
+                  if (eligibleEvents.length === 0) {
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ padding: '24px 20px', textAlign: 'center', color: '#fbbf24', fontSize: '0.88rem', background: 'rgba(245,158,11,0.06)', borderRadius: '8px', border: '1px solid rgba(245,158,11,0.15)', lineHeight: '1.5' }}>
+                          Semua event aktif Anda telah ditawarkan atau diikuti oleh <strong>@{selectedMarketplaceCreator}</strong>.
+                        </div>
+                        <button 
+                          className="btn btn-secondary" 
+                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem' }}
+                          onClick={() => setSelectedMarketplaceCreator(null)}
+                        >
+                          Tutup
+                        </button>
+                      </div>
+                    );
+                  }
  
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div className="form-group">
                         <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Pilih Event Anda</label>
                         <select 
-                          value={offerEventId} 
+                          value={offerEventId || eligibleEvents[0]?.id || ''} 
                           onChange={(e) => setOfferEventId(e.target.value)}
                           style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.85rem', outline: 'none' }}
                         >
-                          {myEvents.map(e => (
+                          {eligibleEvents.map(e => (
                             <option key={e.id} value={e.id}>{e.title}</option>
                           ))}
                         </select>
@@ -3899,16 +3921,17 @@ export default function AdminPanel({
                           className="btn btn-primary" 
                           style={{ flex: 1, cursor: 'pointer' }}
                           onClick={() => {
-                            if (!offerEventId) {
+                            const activeEventId = offerEventId || eligibleEvents[0]?.id;
+                            if (!activeEventId) {
                               alert('Silakan pilih event!');
                               return;
                             }
-                            const selectedEvt = events.find(e => e.id === offerEventId);
+                            const selectedEvt = events.find(e => e.id === activeEventId);
                             const newOffer = {
                               id: 'offer_' + Date.now(),
                               sender: currentUser.username,
                               recipient: selectedMarketplaceCreator,
-                              eventId: offerEventId,
+                              eventId: activeEventId,
                               eventTitle: selectedEvt?.title || 'Event Pilihan',
                               budget: 0,
                               message: offerMessage,
