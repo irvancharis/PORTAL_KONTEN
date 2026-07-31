@@ -1621,24 +1621,6 @@ export default function App() {
   useEffect(() => {
     const handlePathRoute = () => {
       const path = window.location.pathname;
-      
-      // Enforce admin panel routing for admin users
-      if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role)) {
-        setActiveTab('admin');
-        setIsPlaying(false);
-        setSelectedMovie(null);
-        if (path && path !== '/') {
-          const parts = path.split('/');
-          const tabId = parts[1];
-          const subTabId = parts[2];
-          if (tabId === 'admin' && subTabId) {
-            setAdminSubTab(subTabId);
-          }
-        } else {
-          window.history.replaceState(null, '', `/admin/${adminSubTab}`);
-        }
-        return;
-      }
 
       if (path && path !== '/') {
         if (path.startsWith('/play/')) {
@@ -1653,27 +1635,47 @@ export default function App() {
           setActiveTab('events');
           setIsPlaying(false);
           setSelectedMovie(null);
-        } else {
-          // Parse tabId and subTabId
-          const parts = path.split('/');
-          const tabId = parts[1];
-          const subTabId = parts[2];
-          if (['discover', 'events', 'wallet', 'watchlist', 'history', 'admin'].includes(tabId)) {
-            if (tabId === 'admin') {
-              setActiveTab('discover');
-              window.history.replaceState(null, '', '/');
-            } else {
-              setActiveTab(tabId);
-              setIsPlaying(false);
-              setSelectedMovie(null);
-              if (tabId === 'admin' && subTabId) {
-                setAdminSubTab(subTabId);
-              }
+        } else if (path.startsWith('/creator/') || path === '/creator') {
+          if (currentUser) {
+            setActiveTab('admin');
+            setIsPlaying(false);
+            setSelectedMovie(null);
+            const subTabId = path.replace('/creator/', '').replace('/creator', '');
+            if (subTabId) {
+              setAdminSubTab(subTabId);
             }
+          } else {
+            setActiveTab('discover');
+            window.history.replaceState(null, '', '/');
+          }
+        } else if (path.startsWith('/admin/') || path === '/admin') {
+          if (currentUser) {
+            setActiveTab('admin');
+            setIsPlaying(false);
+            setSelectedMovie(null);
+            const subTabId = path.replace('/admin/', '').replace('/admin', '');
+            if (subTabId) {
+              setAdminSubTab(subTabId);
+            }
+            window.history.replaceState(null, '', `/creator/${subTabId || adminSubTab}`);
+          } else {
+            setActiveTab('discover');
+            window.history.replaceState(null, '', '/');
+          }
+        } else {
+          // Parse regular tabs: discover, events, wallet
+          const tabId = path.replace('/', '');
+          if (['discover', 'events', 'wallet'].includes(tabId)) {
+            setActiveTab(tabId);
+            setIsPlaying(false);
+            setSelectedMovie(null);
+          } else {
+            setActiveTab('discover');
+            window.history.replaceState(null, '', '/');
           }
         }
       } else {
-        // If path is empty or root, return to discover/home
+        // Root path
         setActiveTab('discover');
         setIsPlaying(false);
         setSelectedMovie(null);
@@ -1816,11 +1818,25 @@ export default function App() {
 
   // Handle Tab Change and update URL path
   function handleTabChange(tabId) {
-    if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role)) {
+    const adminSubTabs = [
+      'event-dashboard', 'event-manage', 'creator-marketplace', 
+      'movies', 'affiliates', 'membership', 'confirmations', 'withdrawals', 'finance-report', 'users', 'roles'
+    ];
+
+    if (adminSubTabs.includes(tabId)) {
+      setActiveTab('admin');
+      setAdminSubTab(tabId);
+      setIsPlaying(false);
+      setSelectedMovie(null);
+      window.history.pushState(null, '', `/creator/${tabId}`);
+      return;
+    }
+
+    if (tabId === 'admin') {
       setActiveTab('admin');
       setIsPlaying(false);
       setSelectedMovie(null);
-      window.history.pushState(null, '', `/admin/${adminSubTab}`);
+      window.history.pushState(null, '', `/creator/${adminSubTab}`);
       return;
     }
     
@@ -1829,8 +1845,6 @@ export default function App() {
     setSelectedMovie(null);
     if (tabId === 'discover') {
       window.history.pushState(null, '', '/');
-    } else if (tabId === 'admin') {
-      window.history.pushState(null, '', `/admin/${adminSubTab}`);
     } else {
       window.history.pushState(null, '', `/${tabId}`);
     }

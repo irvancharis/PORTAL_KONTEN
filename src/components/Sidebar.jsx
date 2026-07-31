@@ -110,8 +110,7 @@ export default function Sidebar({
 
   const handleNav = (itemId, isAdminSubTab = false) => {
     if (isAdminSubTab) {
-      setActiveTab('admin');
-      setAdminSubTab(itemId);
+      setActiveTab(itemId);
     } else {
       setActiveTab(itemId);
       setSelectedGenre(null);
