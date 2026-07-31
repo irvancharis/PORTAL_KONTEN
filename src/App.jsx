@@ -160,7 +160,7 @@ export default function App() {
   const [customRoles, setCustomRoles] = useState(() => {
     const saved = localStorage.getItem('portal-custom-roles');
     return saved ? JSON.parse(saved) : [
-      { id: 'staf', name: 'Staf', permissions: ['movies', 'affiliates', 'confirmations', 'withdrawals'] },
+      { id: 'staf', name: 'Staf', permissions: ['movies', 'affiliates', 'confirmations', 'withdrawals', 'finance-report'] },
       { id: 'panitia', name: 'Panitia', permissions: ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'] },
       { id: 'moderator', name: 'Moderator', permissions: ['confirmations', 'withdrawals'] },
       { id: 'editor', name: 'Editor', permissions: ['movies', 'affiliates'] }
@@ -169,6 +169,21 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('portal-custom-roles', JSON.stringify(customRoles));
+  }, [customRoles]);
+
+  // Migration to ensure 'staf' custom role has 'finance-report' permission
+  useEffect(() => {
+    let changed = false;
+    const updated = customRoles.map(role => {
+      if (role.id === 'staf' && !role.permissions.includes('finance-report')) {
+        changed = true;
+        return { ...role, permissions: [...role.permissions, 'finance-report'] };
+      }
+      return role;
+    });
+    if (changed) {
+      setCustomRoles(updated);
+    }
   }, [customRoles]);
 
   // Event creator states
