@@ -232,6 +232,10 @@ export default function AdminPanel({
   const [journalDesc, setJournalDesc] = useState('');
   const [journalDate, setJournalDate] = useState(() => new Date().toISOString().split('T')[0]);
 
+  // Financial Report sorting states
+  const [financeSortField, setFinanceSortField] = useState('date');
+  const [financeSortDirection, setFinanceSortDirection] = useState('desc');
+
   // Payment local states
   const [visiblePaymentsCount, setVisiblePaymentsCount] = useState(10);
 
@@ -6181,6 +6185,36 @@ export default function AdminPanel({
           return parseInt(clean, 10) || 0;
         };
 
+        const handleSort = (field) => {
+          if (financeSortField === field) {
+            setFinanceSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+          } else {
+            setFinanceSortField(field);
+            setFinanceSortDirection('desc');
+          }
+        };
+
+        const renderSortHeader = (label, field, alignRight = false) => {
+          const isActive = financeSortField === field;
+          const arrow = isActive ? (financeSortDirection === 'asc' ? ' ↑' : ' ↓') : ' ↕';
+          return (
+            <th 
+              onClick={() => handleSort(field)} 
+              style={{ 
+                cursor: 'pointer', 
+                userSelect: 'none', 
+                color: isActive ? 'white' : 'var(--text-secondary)',
+                textAlign: alignRight ? 'right' : 'left'
+              }}
+            >
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: alignRight ? 'flex-end' : 'flex-start', width: '100%', gap: '4px' }}>
+                <span>{label}</span>
+                <span style={{ fontSize: '0.72rem', opacity: isActive ? 1 : 0.4 }}>{arrow}</span>
+              </div>
+            </th>
+          );
+        };
+
         // Calculations
         // Premium Income
         const premiumIncome = confirmations
@@ -6264,7 +6298,25 @@ export default function AdminPanel({
             amount: j.amount || 0,
             isIncome: j.type === 'in'
           }))
-        ].sort((a, b) => new Date(b.date) - new Date(a.date));
+        ].sort((a, b) => {
+          let fieldA = a[financeSortField];
+          let fieldB = b[financeSortField];
+
+          if (financeSortField === 'date') {
+            fieldA = new Date(a.date).getTime();
+            fieldB = new Date(b.date).getTime();
+          } else if (financeSortField === 'amount') {
+            fieldA = a.amount;
+            fieldB = b.amount;
+          } else {
+            fieldA = String(fieldA || '').toLowerCase();
+            fieldB = String(fieldB || '').toLowerCase();
+          }
+
+          if (fieldA < fieldB) return financeSortDirection === 'asc' ? -1 : 1;
+          if (fieldA > fieldB) return financeSortDirection === 'asc' ? 1 : -1;
+          return 0;
+        });
 
         return (
           <div className="finance-report-section animate-fade-in" style={{ color: 'white' }}>
@@ -6393,11 +6445,11 @@ export default function AdminPanel({
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Tanggal</th>
-                      <th>Tipe Transaksi</th>
-                      <th>User / Instansi</th>
-                      <th>Keterangan</th>
-                      <th style={{ textAlign: 'right' }}>Nominal</th>
+                      {renderSortHeader('Tanggal', 'date')}
+                      {renderSortHeader('Tipe Transaksi', 'type')}
+                      {renderSortHeader('User / Instansi', 'username')}
+                      {renderSortHeader('Keterangan', 'desc')}
+                      {renderSortHeader('Nominal', 'amount', true)}
                     </tr>
                   </thead>
                   <tbody>
