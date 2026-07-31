@@ -2134,6 +2134,49 @@ export default function App() {
 
         {/* Main Content Area */}
         <main className="main-content">
+          {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && activeTab !== 'admin' && (
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%)',
+              borderBottom: '1px solid rgba(245, 158, 11, 0.2)',
+              padding: '12px 24px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '12px',
+              color: '#ffffff',
+              fontSize: '0.82rem',
+              width: '100%',
+              boxSizing: 'border-box'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertTriangle size={16} color="#fbbf24" style={{ flexShrink: 0 }} />
+                <span>
+                  <strong>Lengkapi Profil Kreator Anda!</strong> Silakan isi nama lengkap, nomor WhatsApp, keahlian, dan link portofolio utama Anda agar bisa mendaftar event kompetisi.
+                </span>
+              </div>
+              <button
+                onClick={handleOpenEditProfile}
+                style={{
+                  background: '#ffffff',
+                  border: 'none',
+                  borderRadius: '20px',
+                  color: '#020202',
+                  padding: '5px 12px',
+                  fontWeight: '700',
+                  fontSize: '0.78rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#e5e5e5'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#ffffff'}
+              >
+                Lengkapi Profil
+              </button>
+            </div>
+          )}
           {activeTab === 'admin' && currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role) ? (
             <AdminPanel 
               movies={movies} 
