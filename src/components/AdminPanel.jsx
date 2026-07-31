@@ -6109,6 +6109,8 @@ export default function AdminPanel({
                                     onClick={() => {
                                       if (conf.isEventPayment) {
                                         if (confirm(`Setujui pembayaran dari panitia "${conf.username}" untuk event "${conf.eventTitle}"?`)) {
+                                          const updatedConfs = confirmations.map(c => c.id === conf.id ? { ...c, status: 'approved' } : c);
+                                          setConfirmations(updatedConfs);
                                           setEvents(events.map(evt => {
                                             if (evt.id === conf.targetId) {
                                               return { ...evt, paymentStatus: 'paid' };
@@ -6218,24 +6220,32 @@ export default function AdminPanel({
           );
         };
 
-        // Calculations
-        // Premium Income
-        const premiumIncome = confirmations
-          .filter(c => c.status === 'approved')
-          .reduce((acc, c) => acc + parseAmount(c.amount), 0);
+        // Calculations derived entirely from the financialJournals collection
+        // 1. Premium Income (inbound journals not from events and not manual journals)
+        const premiumIncome = financialJournals
+          .filter(j => j.type === 'in' && !j.id.startsWith('evt_') && !j.id.startsWith('journal_'))
+          .reduce((acc, j) => acc + (j.amount || 0), 0);
 
-        // Event Payments Income (budget + fee)
-        const eventPaidList = events.filter(evt => evt.paymentStatus === 'paid');
-        const eventBudgetPaid = eventPaidList.reduce((acc, evt) => acc + (evt.campaignBudget || 0), 0);
-        const eventFeesPaid = eventPaidList.reduce((acc, evt) => acc + (evt.adminFee || 0), 0);
-        const eventTotalIncome = eventBudgetPaid + eventFeesPaid;
+        // 2. Event Payments Income (inbound journals starting with 'evt_')
+        const eventTotalIncome = financialJournals
+          .filter(j => j.type === 'in' && j.id.startsWith('evt_'))
+          .reduce((acc, j) => acc + (j.amount || 0), 0);
 
-        // Manual journals income & expense
+        // Extract event admin fees from the global events matching paid journals
+        const eventFeesPaid = financialJournals
+          .filter(j => j.type === 'in' && j.id.startsWith('evt_'))
+          .reduce((acc, j) => {
+            const evtId = j.id.replace('evt_', '');
+            const evt = events.find(e => e.id === evtId);
+            return acc + (evt?.adminFee || 0);
+          }, 0);
+
+        // 3. Manual journals income & expense
         const manualIncome = financialJournals
-          .filter(j => j.type === 'in')
+          .filter(j => j.type === 'in' && j.id.startsWith('journal_'))
           .reduce((acc, j) => acc + (j.amount || 0), 0);
         const manualExpense = financialJournals
-          .filter(j => j.type === 'out')
+          .filter(j => j.type === 'out' && j.id.startsWith('journal_'))
           .reduce((acc, j) => acc + (j.amount || 0), 0);
 
         // Total Pemasukan
@@ -6249,59 +6259,46 @@ export default function AdminPanel({
         // Net System Profit (Premium + Admin Fees + Manual Income - Manual Expense)
         const netSystemProfit = premiumIncome + eventFeesPaid + manualIncome - manualExpense;
 
-        // Expenses (Approved Withdrawals + Manual Expenses)
-        const totalWithdrawals = withdrawals
-          .filter(w => w.status === 'approved')
-          .reduce((acc, w) => acc + (w.amount || 0), 0) + manualExpense;
+        // Expenses (Withdrawals + Manual Expenses)
+        const totalWithdrawals = financialJournals
+          .filter(j => j.type === 'out')
+          .reduce((acc, j) => acc + (j.amount || 0), 0);
 
         // Active user wallets balance total
         const totalUserBalances = users.reduce((acc, u) => acc + (u.walletBalance || 0), 0);
 
-        // Transactions List for report
-        const transactionList = [
-          ...confirmations
-            .filter(c => c.status === 'approved')
-            .map(c => ({
-              id: c.id,
-              date: c.timestamp,
-              type: 'Pemasukan (Premium)',
-              username: c.username,
-              desc: `Premium Membership - Paket ${c.planName || 'BASIC'}`,
-              amount: parseAmount(c.amount),
-              isIncome: true
-            })),
-          ...events
-            .filter(evt => evt.paymentStatus === 'paid')
-            .map(evt => ({
-              id: `evt_${evt.id}`,
-              date: evt.paymentSubmittedAt || evt.createdAt || Date.now(),
-              type: 'Pemasukan (Event)',
-              username: evt.creator || 'Panitia',
-              desc: `Event: ${evt.title} (Budget: Rp ${evt.campaignBudget?.toLocaleString('id-ID')} + Admin Fee: Rp ${evt.adminFee?.toLocaleString('id-ID')})`,
-              amount: (evt.campaignBudget || 0) + (evt.adminFee || 0),
-              isIncome: true
-            })),
-          ...withdrawals
-            .filter(w => w.status === 'approved')
-            .map(w => ({
-              id: w.id,
-              date: w.requestedAt || Date.now(),
-              type: 'Pengeluaran (Penarikan)',
-              username: w.username,
-              desc: `Withdrawal ke ${w.method} (${w.account}) a.n ${w.name}`,
-              amount: w.amount || 0,
-              isIncome: false
-            })),
-          ...financialJournals.map(j => ({
+        // Transactions List for report mapped directly from the single source of truth
+        const transactionList = financialJournals.map(j => {
+          let typeLabel = '';
+          if (j.id.startsWith('evt_')) {
+            typeLabel = 'Pemasukan (Event)';
+          } else if (j.id.startsWith('journal_')) {
+            typeLabel = j.type === 'in' ? 'Jurnal Saldo Masuk' : 'Jurnal Saldo Keluar';
+          } else if (j.type === 'in') {
+            typeLabel = 'Pemasukan (Premium)';
+          } else {
+            typeLabel = 'Pengeluaran (Penarikan)';
+          }
+
+          // Extract username from description if system auto-generated
+          let displayUser = j.operator || 'System';
+          if (j.operator === 'System (Auto)' || !j.operator) {
+            const matchUser = j.desc.match(/\(User:\s*([^)]+)\)/);
+            if (matchUser && matchUser[1]) {
+              displayUser = matchUser[1];
+            }
+          }
+
+          return {
             id: j.id,
             date: j.date,
-            type: j.type === 'in' ? 'Jurnal Saldo Masuk' : 'Jurnal Saldo Keluar',
-            username: j.operator || 'Staff',
+            type: typeLabel,
+            username: displayUser,
             desc: j.desc,
             amount: j.amount || 0,
             isIncome: j.type === 'in'
-          }))
-        ].sort((a, b) => {
+          };
+        }).sort((a, b) => {
           let fieldA = a[financeSortField];
           let fieldB = b[financeSortField];
 

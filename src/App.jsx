@@ -905,6 +905,77 @@ export default function App() {
     initFirestore();
   }, [currentUser]);
 
+  // General Ledger sync and auto-migration trigger
+  useEffect(() => {
+    if (isLoadingDB) return;
+
+    let updatedJournals = [...financialJournals];
+    let changed = false;
+
+    // Helper to check if journal already exists
+    const hasJournal = (id) => updatedJournals.some(j => j.id === id || j.id === `evt_${id}`);
+
+    // 1. Auto-journal approved confirmations
+    confirmations.forEach(c => {
+      if (c.status === 'approved' && !hasJournal(c.id)) {
+        const parseAmount = (amtStr) => {
+          if (!amtStr) return 0;
+          if (typeof amtStr === 'number') return amtStr;
+          const clean = amtStr.replace(/[^0-9]/g, '');
+          return parseInt(clean, 10) || 0;
+        };
+
+        updatedJournals.push({
+          id: c.id,
+          type: 'in',
+          amount: parseAmount(c.amount),
+          desc: `Premium Membership - Paket ${c.planName || 'BASIC'} (User: ${c.username})`,
+          date: new Date(c.timestamp || Date.now()).toISOString(),
+          operator: 'System (Auto)',
+          createdAt: new Date().toISOString()
+        });
+        changed = true;
+      }
+    });
+
+    // 2. Auto-journal paid events
+    events.forEach(evt => {
+      if (evt.paymentStatus === 'paid' && !hasJournal(evt.id)) {
+        const amount = (evt.campaignBudget || 0) + (evt.adminFee || 0);
+        updatedJournals.push({
+          id: `evt_${evt.id}`,
+          type: 'in',
+          amount: amount,
+          desc: `Event: ${evt.title} (Budget: Rp ${evt.campaignBudget?.toLocaleString('id-ID')} + Admin Fee: Rp ${evt.adminFee?.toLocaleString('id-ID')})`,
+          date: new Date(evt.paymentSubmittedAt || evt.createdAt || Date.now()).toISOString(),
+          operator: 'System (Auto)',
+          createdAt: new Date().toISOString()
+        });
+        changed = true;
+      }
+    });
+
+    // 3. Auto-journal approved withdrawals
+    withdrawals.forEach(w => {
+      if (w.status === 'approved' && !hasJournal(w.id)) {
+        updatedJournals.push({
+          id: w.id,
+          type: 'out',
+          amount: w.amount || 0,
+          desc: `Withdrawal ke ${w.method} (${w.account}) a.n ${w.name} (User: ${w.username})`,
+          date: new Date(w.requestedAt || Date.now()).toISOString(),
+          operator: 'System (Auto)',
+          createdAt: new Date().toISOString()
+        });
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      handleSetFinancialJournals(updatedJournals);
+    }
+  }, [confirmations, events, withdrawals, financialJournals, isLoadingDB]);
+
   // Listen to Firebase Auth state changes
   useEffect(() => {
     if (!isFirebaseConfigured() || !auth) return;
