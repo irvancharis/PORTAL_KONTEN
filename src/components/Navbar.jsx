@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, Search, Film, X, User, Sparkles, ChevronDown, LogOut, Bell } from 'lucide-react';
+import { Menu, Search, Film, X, User, Sparkles, ChevronDown, LogOut, Bell, Edit } from 'lucide-react';
 
 const slugify = (text) => {
   if (!text) return '';
@@ -963,7 +963,32 @@ export default function Navbar({
                       {currentUser.username.charAt(0)}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontWeight: '700', color: 'white', fontSize: '0.9rem' }}>{currentUser.username}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontWeight: '700', color: 'white', fontSize: '0.9rem' }}>{currentUser.username}</span>
+                        <button
+                          onClick={() => {
+                            setIsDropdownOpen(false);
+                            if (onEditProfileClick) onEditProfileClick();
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--text-secondary)',
+                            cursor: 'pointer',
+                            padding: '2px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '4px',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                          onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+                          title="Edit Profil & Portofolio"
+                        >
+                          <Edit size={12} />
+                        </button>
+                      </div>
                       <span 
                         style={{ 
                           fontSize: '0.68rem', 
@@ -1037,41 +1062,7 @@ export default function Navbar({
                     </button>
                   )}
 
-                  {/* Edit Profil Button */}
-                  <button 
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      if (onEditProfileClick) onEditProfileClick();
-                    }}
-                    style={{ 
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      width: '100%',
-                      padding: '10px 14px', 
-                      fontSize: '0.8rem',
-                      color: '#ffffff',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      borderRadius: '10px',
-                      cursor: 'pointer',
-                      fontWeight: '600',
-                      transition: 'all 0.2s ease',
-                      marginBottom: '8px'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                    }}
-                  >
-                    <User size={14} style={{ color: 'white' }} />
-                    <span>Edit Profil & Portofolio</span>
-                  </button>
+
 
                   {/* Logout Button */}
                   <button 
