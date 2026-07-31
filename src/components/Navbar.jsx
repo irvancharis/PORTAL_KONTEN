@@ -142,7 +142,7 @@ export default function Navbar({
       if (lookupRole === 'staf') {
         return ['movies', 'affiliates', 'confirmations', 'withdrawals', 'finance-report'].includes(permId);
       }
-      if (lookupRole === 'panitia') {
+      if (lookupRole === 'panitia' || lookupRole === 'user') {
         return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'].includes(permId);
       }
       if (lookupRole === 'moderator') {
@@ -154,7 +154,7 @@ export default function Navbar({
       return false;
     };
 
-    const isPanitia = currentUser.role === 'panitia';
+    const isPanitia = currentUser.role === 'panitia' || currentUser.role === 'user';
     const myEvents = isPanitia 
       ? events.filter(e => e.creator === currentUser.username) 
       : events;
@@ -467,7 +467,7 @@ export default function Navbar({
                 transformOrigin: 'top left'
               }}
             >
-              {currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role) ? (
+              {currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role) ? (
                 <>
                   <div style={{ paddingBottom: '6px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '4px' }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Menu Admin</span>
@@ -487,7 +487,7 @@ export default function Navbar({
                       if (lookupRole === 'staf') {
                         return ['movies', 'finance-report', 'event-payment', 'creator-marketplace'];
                       }
-                      if (lookupRole === 'panitia') {
+                      if (lookupRole === 'panitia' || lookupRole === 'user') {
                         return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'];
                       }
                       if (lookupRole === 'moderator') {

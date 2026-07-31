@@ -166,7 +166,8 @@ export default function App() {
       { id: 'staf', name: 'Staf', permissions: ['movies', 'affiliates', 'confirmations', 'withdrawals', 'finance-report'] },
       { id: 'panitia', name: 'Panitia', permissions: ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'] },
       { id: 'moderator', name: 'Moderator', permissions: ['confirmations', 'withdrawals'] },
-      { id: 'editor', name: 'Editor', permissions: ['movies', 'affiliates'] }
+      { id: 'editor', name: 'Editor', permissions: ['movies', 'affiliates'] },
+      { id: 'user', name: 'User / Creator', permissions: ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'] }
     ];
   });
 
@@ -174,16 +175,22 @@ export default function App() {
     localStorage.setItem('portal-custom-roles', JSON.stringify(customRoles));
   }, [customRoles]);
 
-  // Migration to ensure 'staf' custom role has 'finance-report' permission
+  // Migration to ensure 'staf' custom role has 'finance-report' permission and 'user' role exists
   useEffect(() => {
     let changed = false;
-    const updated = customRoles.map(role => {
+    let updated = customRoles.map(role => {
       if (role.id === 'staf' && !role.permissions.includes('finance-report')) {
         changed = true;
         return { ...role, permissions: [...role.permissions, 'finance-report'] };
       }
       return role;
     });
+
+    if (!updated.some(role => role.id === 'user')) {
+      updated.push({ id: 'user', name: 'User / Creator', permissions: ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'] });
+      changed = true;
+    }
+
     if (changed) {
       setCustomRoles(updated);
     }
@@ -2006,7 +2013,7 @@ export default function App() {
     return views;
   };
 
-  const isPanitia = currentUser && currentUser.role === 'panitia';
+  const isPanitia = currentUser && (currentUser.role === 'panitia' || currentUser.role === 'user');
   const sidebarEvents = isPanitia 
     ? events.filter(e => e.creator === currentUser.username) 
     : events;
@@ -2091,7 +2098,7 @@ export default function App() {
 
         {/* Main Content Area */}
         <main className="main-content">
-          {activeTab === 'admin' && currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role) ? (
+          {activeTab === 'admin' && currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role) ? (
             <AdminPanel 
               movies={movies} 
               setMovies={handleSetMovies} 

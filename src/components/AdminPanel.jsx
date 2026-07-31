@@ -110,7 +110,7 @@ const getDefaultPermissions = (role, customRoles = []) => {
   if (lookupRole === 'staf') {
     return ['movies', 'affiliates', 'confirmations', 'withdrawals', 'finance-report'];
   }
-  if (lookupRole === 'panitia') {
+  if (lookupRole === 'panitia' || lookupRole === 'user') {
     return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'];
   }
   if (lookupRole === 'moderator') {
@@ -166,7 +166,7 @@ export default function AdminPanel({
   financialJournals = [],
   setFinancialJournals
 }) {
-  const isPanitia = currentUser && currentUser.role === 'panitia';
+  const isPanitia = currentUser && (currentUser.role === 'panitia' || currentUser.role === 'user');
   const myEvents = isPanitia 
     ? events.filter(e => e.creator === currentUser.username) 
     : events;
@@ -950,7 +950,7 @@ export default function AdminPanel({
     const evt = events.find(e => e.id === id);
     if (evt) {
       const status = getEventStatus(evt);
-      if (currentUser?.role === 'panitia' && status.label === 'Berjalan') {
+      if ((currentUser?.role === 'panitia' || currentUser?.role === 'user') && status.label === 'Berjalan') {
         alert('Akses Ditolak: Event yang sudah berjalan telah dikunci dan tidak dapat dihapus oleh Panitia.');
         return;
       }
@@ -964,7 +964,7 @@ export default function AdminPanel({
 
   const handleEditEvent = (evt) => {
     const status = getEventStatus(evt);
-    if (currentUser?.role === 'panitia' && status.label === 'Berjalan') {
+    if ((currentUser?.role === 'panitia' || currentUser?.role === 'user') && status.label === 'Berjalan') {
       alert('Akses Ditolak: Event yang sudah berjalan telah dikunci dan tidak dapat diubah/diedit oleh Panitia.');
       return;
     }
@@ -1457,7 +1457,7 @@ export default function AdminPanel({
           {/* Latest Activities / Informasi Terbaru Feed */}
           {(() => {
             const activities = [];
-            const isPanitia = currentUser && currentUser.role === 'panitia';
+            const isPanitia = currentUser && (currentUser.role === 'panitia' || currentUser.role === 'user');
             const isSuperadmin = currentUser && currentUser.role === 'superadmin';
 
             // 1. Participant registrations
@@ -3007,7 +3007,7 @@ export default function AdminPanel({
                         <tbody>
                           {filteredEvents.map((evt) => {
                             const status = getEventStatus(evt);
-                            const isLocked = currentUser?.role === 'panitia' && status.label === 'Berjalan';
+                            const isLocked = (currentUser?.role === 'panitia' || currentUser?.role === 'user') && status.label === 'Berjalan';
                             return (
                               <tr 
                                 key={evt.id} 

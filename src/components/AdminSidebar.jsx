@@ -72,7 +72,7 @@ export default function AdminSidebar({
     if (lookupRole === 'staf') {
       return ['movies', 'affiliates', 'confirmations', 'withdrawals', 'finance-report'];
     }
-    if (lookupRole === 'panitia') {
+    if (lookupRole === 'panitia' || lookupRole === 'user') {
       return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'];
     }
     if (lookupRole === 'moderator') {

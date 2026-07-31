@@ -24,7 +24,7 @@ export default function Sidebar({
     { id: 'history', label: 'Riwayat', icon: History }
   );
 
-  if (currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'staf' || currentUser.role === 'panitia')) {
+  if (currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'staf' || currentUser.role === 'panitia' || currentUser.role === 'user')) {
     menuItems.push({ id: 'admin', label: 'Admin Panel', icon: SlidersHorizontal });
   }
 

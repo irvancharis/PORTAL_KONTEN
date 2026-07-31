@@ -15,13 +15,14 @@ export default function BottomNav({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const isAdmin = currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role);
+  const isCurrentlyInAdminTab = activeTab === 'admin';
+  const isAdmin = currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role);
 
-  // If user is admin, show admin subtabs in bottom nav
-  if (isAdmin) {
+  // If user is admin, show admin subtabs in bottom nav (for regular user role, only when in admin tab)
+  if (isAdmin && (isCurrentlyInAdminTab || currentUser.role !== 'user')) {
     const getAdminNavItems = (role) => {
       const lookupRole = role.toLowerCase() === 'staff' ? 'staf' : role.toLowerCase();
-      if (lookupRole === 'panitia') {
+      if (lookupRole === 'panitia' || lookupRole === 'user') {
         return [
           { id: 'event-dashboard', label: 'Dashboard', icon: LayoutDashboard },
           { id: 'event-manage', label: 'Kelola Event', icon: Calendar },

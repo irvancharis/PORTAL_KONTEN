@@ -772,6 +772,7 @@ export default function EventsUserPortal({
       onLoginClick('register', 'panitia', true);
     } else if (
       currentUser.role === 'panitia' ||
+      currentUser.role === 'user' ||
       currentUser.role === 'staf' ||
       currentUser.role === 'superadmin'
     ) {
@@ -1621,7 +1622,7 @@ export default function EventsUserPortal({
           </div>
 
           {/* User Portal Tabs */}
-          {currentUser && currentUser.role === 'user' && (
+          {currentUser && (currentUser.role === 'user' || currentUser.role === 'panitia') && (
             <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px' }}>
               <button
                 onClick={() => setUserPortalTab('events')}
