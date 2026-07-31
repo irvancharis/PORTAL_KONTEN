@@ -845,7 +845,6 @@ export default function EventsUserPortal({
           </div>
           <button
             onClick={onEditProfileClick}
-            className="btn btn-primary"
             style={{
               padding: '8px 16px',
               fontSize: '0.82rem',
