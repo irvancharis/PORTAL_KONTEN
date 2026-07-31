@@ -36,10 +36,6 @@ export default function Sidebar({
     { id: 'events', label: 'Event', icon: Trophy }
   ];
 
-  if (currentUser) {
-    generalMenuItems.push({ id: 'wallet', label: 'Dompet Saya', icon: Wallet });
-  }
-
 
 
   const eventMenuItems = [
@@ -203,6 +199,9 @@ export default function Sidebar({
 
         {/* Event Creator Menu Items (Rendered inline without separator) */}
         {eventMenuItems.filter(item => hasPermission(item.id)).map(item => renderItem(item, true))}
+
+        {/* Dompet Saya (Rendered at the bottom of user options) */}
+        {currentUser && renderItem({ id: 'wallet', label: 'Dompet Saya', icon: Wallet }, false)}
 
         {/* Section: Admin Portal */}
         {showAdminSection && (
