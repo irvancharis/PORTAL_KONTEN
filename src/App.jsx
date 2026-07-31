@@ -3179,8 +3179,8 @@ export default function App() {
                             cursor: loginModalLockedRole !== null ? 'not-allowed' : 'default'
                           }}
                         >
-                          <option value="user" style={{ background: '#020202' }}>User / Kreator (Hanya Email & Password)</option>
-                          <option value="panitia" style={{ background: '#020202' }}>Komunitas / Instansi (Form Lengkap & Kelayakan)</option>
+                          <option value="user" style={{ background: '#020202' }}>User / Kreator</option>
+                          <option value="panitia" style={{ background: '#020202' }}>Komunitas / Instansi</option>
                         </select>
                       </div>
                     </div>
@@ -3456,8 +3456,8 @@ export default function App() {
                           cursor: loginModalLockedRole !== null ? 'not-allowed' : 'default'
                         }}
                       >
-                        <option value="user" style={{ background: '#020202' }}>User / Kreator (Hanya Email & Password)</option>
-                        <option value="panitia" style={{ background: '#020202' }}>Komunitas / Instansi (Form Lengkap & Kelayakan)</option>
+                        <option value="user" style={{ background: '#020202' }}>User / Kreator</option>
+                        <option value="panitia" style={{ background: '#020202' }}>Komunitas / Instansi</option>
                       </select>
                     </div>
                   </>
