@@ -271,6 +271,7 @@ export default function EventsUserPortal({
   currentUser,
   onLoginClick,
   onLogout,
+  onEditProfileClick,
   onCreateEventRedirect,
   events,
   eventParticipants,
@@ -813,6 +814,63 @@ export default function EventsUserPortal({
       margin: '0 auto',
       width: '100%'
     }}>
+      {/* Profile Completion Suggestion Banner */}
+      {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && (
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(255, 170, 0, 0.03) 0%, rgba(255, 120, 0, 0.03) 100%)',
+          border: '1px solid rgba(255, 170, 0, 0.2)',
+          borderRadius: '12px',
+          padding: '16px 20px',
+          marginBottom: '24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px',
+          textAlign: 'left'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '280px' }}>
+            <div style={{ background: 'rgba(255, 170, 0, 0.08)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <AlertTriangle size={20} color="#ffaa00" />
+            </div>
+            <div>
+              <h4 style={{ margin: '0 0 4px 0', color: '#ffaa00', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Kreator Belum Lengkap!</h4>
+              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.5' }}>
+                Silakan lengkapi nama lengkap, nomor WhatsApp, keahlian, dan link portofolio Anda terlebih dahulu agar dapat mendaftar sebagai peserta event.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onEditProfileClick}
+            className="btn btn-primary"
+            style={{
+              padding: '8px 16px',
+              fontSize: '0.82rem',
+              borderRadius: '20px',
+              fontWeight: 'bold',
+              background: '#ffffff',
+              color: '#020202',
+              border: '1px solid #ffffff',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#e5e5e5';
+              e.currentTarget.style.borderColor = '#e5e5e5';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#ffffff';
+              e.currentTarget.style.borderColor = '#ffffff';
+            }}
+          >
+            <User size={14} />
+            <span>Lengkapi Profil Sekarang</span>
+          </button>
+        </div>
+      )}
+
       {selectedEvent ? (
         // ================= DEDICATED DETAIL PAGE VIEW =================
         (() => {
@@ -1292,9 +1350,15 @@ export default function EventsUserPortal({
                           </button>
                         ) : !userReg ? (
                           // Logged In, Not Registered
-                          <button 
+                           <button 
                             className="btn btn-primary" 
                             onClick={() => {
+                              const isProfileIncomplete = !currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio;
+                              if (currentUser.role === 'user' && isProfileIncomplete) {
+                                alert('Profil & Portofolio Anda belum lengkap! Silakan lengkapi profil Anda terlebih dahulu untuk dapat mendaftar event.');
+                                if (onEditProfileClick) onEditProfileClick();
+                                return;
+                              }
                               setRegisteringEvent(evt);
                               setEmail(currentUser.username + '@gmail.com');
                             }}

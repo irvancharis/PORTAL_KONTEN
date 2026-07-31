@@ -28,6 +28,7 @@ export default function Navbar({
   onLoginClick,
   onLogout,
   onSubscribeClick,
+  onEditProfileClick,
   eventParticipants = [],
   eventSubmissions = [],
   confirmations = [],
@@ -1033,6 +1034,42 @@ export default function Navbar({
                       <span>Berlangganan Premium</span>
                     </button>
                   )}
+
+                  {/* Edit Profil Button */}
+                  <button 
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      if (onEditProfileClick) onEditProfileClick();
+                    }}
+                    style={{ 
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      padding: '10px 14px', 
+                      fontSize: '0.8rem',
+                      color: '#ffffff',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                      transition: 'all 0.2s ease',
+                      marginBottom: '8px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    }}
+                  >
+                    <User size={14} style={{ color: 'white' }} />
+                    <span>Edit Profil & Portofolio</span>
+                  </button>
 
                   {/* Logout Button */}
                   <button 
