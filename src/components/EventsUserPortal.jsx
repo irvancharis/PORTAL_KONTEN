@@ -365,28 +365,44 @@ export default function EventsUserPortal({
   const [workPlatform, setWorkPlatform] = useState('YouTube');
 
   const handleAcceptOffer = (off) => {
-    // 1. Update offer status to 'accepted'
-    setOffers(prev => prev.map(o => o.id === off.id ? { ...o, status: 'accepted' } : o));
-
-    // 2. Automatically register creator to the event (if not already registered)
+    // 1. Check if already registered
     const alreadyRegistered = eventParticipants.some(p => p.eventId === off.eventId && p.username.toLowerCase() === currentUser.username.toLowerCase());
-    
-    if (!alreadyRegistered) {
-      const newPart = {
-        id: 'part_' + Date.now(),
-        eventId: off.eventId,
-        name: currentUser.username,
-        username: currentUser.username,
-        email: currentUser.email || `${currentUser.username}@filmo.com`,
-        contact: `@${currentUser.username}`,
-        socialPlatform: 'instagram', // Default fallback
-        socialLink: `https://instagram.com/${currentUser.username}`,
-        status: 'approved',
-        verifiedAt: new Date().toISOString(),
-        registeredAt: new Date().toISOString()
-      };
-      setEventParticipants([...eventParticipants, newPart]);
+    if (alreadyRegistered) {
+      alert(`Anda sudah terdaftar sebagai peserta di event "${off.eventTitle}". Undangan lain untuk event yang sama otomatis ditolak.`);
+      setOffers(prev => prev.map(o => 
+        (o.id === off.id || (o.eventId === off.eventId && o.recipient.toLowerCase() === currentUser.username.toLowerCase() && o.status === 'pending'))
+          ? { ...o, status: 'declined' } 
+          : o
+      ));
+      return;
     }
+
+    // 2. Update this offer status to 'accepted', and decline all other pending offers for the same event addressed to this creator
+    setOffers(prev => prev.map(o => {
+      if (o.id === off.id) {
+        return { ...o, status: 'accepted' };
+      }
+      if (o.eventId === off.eventId && o.recipient.toLowerCase() === currentUser.username.toLowerCase() && o.status === 'pending') {
+        return { ...o, status: 'declined' };
+      }
+      return o;
+    }));
+
+    // 3. Automatically register creator to the event
+    const newPart = {
+      id: 'part_' + Date.now(),
+      eventId: off.eventId,
+      name: currentUser.username,
+      username: currentUser.username,
+      email: currentUser.email || `${currentUser.username}@filmo.com`,
+      contact: `@${currentUser.username}`,
+      socialPlatform: 'instagram', // Default fallback
+      socialLink: `https://instagram.com/${currentUser.username}`,
+      status: 'approved',
+      verifiedAt: new Date().toISOString(),
+      registeredAt: new Date().toISOString()
+    };
+    setEventParticipants([...eventParticipants, newPart]);
     
     alert(`Undangan kolaborasi untuk event "${off.eventTitle}" berhasil diterima! Anda telah otomatis terdaftar.`);
   };
@@ -1770,22 +1786,38 @@ export default function EventsUserPortal({
                         {/* Card Footer: Actions or status */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px' }}>
                           {off.status === 'pending' ? (
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                              <button
-                                onClick={() => handleDeclineOffer(off)}
-                                className="btn"
-                                style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'var(--text-secondary)', fontWeight: '700', cursor: 'pointer' }}
-                              >
-                                Tolak
-                              </button>
-                              <button
-                                onClick={() => handleAcceptOffer(off)}
-                                className="btn btn-primary"
-                                style={{ flex: 2, padding: '10px', borderRadius: '10px', background: '#ffffff', border: '#ffffff', color: '#020202', fontWeight: '700', cursor: 'pointer' }}
-                              >
-                                Terima Undangan
-                              </button>
-                            </div>
+                            (() => {
+                              const isRegistered = eventParticipants.some(p => p.eventId === off.eventId && p.username.toLowerCase() === currentUser.username.toLowerCase());
+                              return (
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                  <button
+                                    onClick={() => handleDeclineOffer(off)}
+                                    className="btn"
+                                    style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'var(--text-secondary)', fontWeight: '700', cursor: 'pointer' }}
+                                  >
+                                    Tolak
+                                  </button>
+                                  {isRegistered ? (
+                                    <button
+                                      disabled
+                                      className="btn"
+                                      style={{ flex: 2, padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)', fontWeight: '700', cursor: 'not-allowed' }}
+                                      title="Anda sudah terdaftar di event ini"
+                                    >
+                                      Sudah Terdaftar
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleAcceptOffer(off)}
+                                      className="btn btn-primary"
+                                      style={{ flex: 2, padding: '10px', borderRadius: '10px', background: '#ffffff', border: '#ffffff', color: '#020202', fontWeight: '700', cursor: 'pointer' }}
+                                    >
+                                      Terima Undangan
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })()
                           ) : (
                             <div style={{
                               textAlign: 'center',
