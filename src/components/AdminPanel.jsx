@@ -230,7 +230,10 @@ export default function AdminPanel({
   const [journalType, setJournalType] = useState('in'); // 'in' | 'out'
   const [journalAmount, setJournalAmount] = useState('');
   const [journalDesc, setJournalDesc] = useState('');
-  const [journalDate, setJournalDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [journalDate, setJournalDate] = useState(() => {
+    const tzOffset = new Date().getTimezoneOffset() * 60000;
+    return new Date(Date.now() - tzOffset).toISOString().slice(0, 16);
+  });
 
   // Financial Report sorting states
   const [financeSortField, setFinanceSortField] = useState('date');
@@ -6401,7 +6404,8 @@ export default function AdminPanel({
                         setJournalType('in');
                         setJournalAmount('');
                         setJournalDesc('');
-                        setJournalDate(new Date().toISOString().split('T')[0]);
+                        const tzOffset = new Date().getTimezoneOffset() * 60000;
+                        setJournalDate(new Date(Date.now() - tzOffset).toISOString().slice(0, 16));
                         setShowJournalModal(true);
                       }}
                       style={{ 
@@ -6594,9 +6598,29 @@ export default function AdminPanel({
                       </div>
 
                       <div className="form-group">
-                        <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Tanggal Transaksi</label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <label style={{ color: 'white', fontSize: '0.85rem', fontWeight: 'bold', margin: 0 }}>Tanggal & Waktu Transaksi</label>
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              const tzOffset = new Date().getTimezoneOffset() * 60000;
+                              setJournalDate(new Date(Date.now() - tzOffset).toISOString().slice(0, 16));
+                            }}
+                            style={{ 
+                              background: 'transparent', 
+                              border: 'none', 
+                              color: '#ffffff', 
+                              fontSize: '0.75rem', 
+                              textDecoration: 'underline', 
+                              cursor: 'pointer',
+                              padding: 0
+                            }}
+                          >
+                            Pilih Waktu Sekarang
+                          </button>
+                        </div>
                         <input 
-                          type="date" 
+                          type="datetime-local" 
                           value={journalDate}
                           onChange={(e) => setJournalDate(e.target.value)}
                           style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.85rem', outline: 'none' }}
