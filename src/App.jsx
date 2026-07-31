@@ -1623,7 +1623,7 @@ export default function App() {
       const path = window.location.pathname;
       
       // Enforce admin panel routing for admin users
-      if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role)) {
+      if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role)) {
         setActiveTab('admin');
         setIsPlaying(false);
         setSelectedMovie(null);
@@ -1816,7 +1816,7 @@ export default function App() {
 
   // Handle Tab Change and update URL path
   function handleTabChange(tabId) {
-    if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role)) {
+    if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role)) {
       setActiveTab('admin');
       setIsPlaying(false);
       setSelectedMovie(null);
