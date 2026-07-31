@@ -365,13 +365,18 @@ export default function WalletUserPortal({
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '4px',
-                        color: tx.status === 'approved' ? '#22c55e' : '#eab308',
-                        background: tx.status === 'approved' ? 'rgba(34, 197, 94, 0.08)' : 'rgba(234, 179, 8, 0.08)'
+                        color: tx.status === 'approved' ? '#22c55e' : tx.status === 'rejected' ? '#ef4444' : '#eab308',
+                        background: tx.status === 'approved' ? 'rgba(34, 197, 94, 0.08)' : tx.status === 'rejected' ? 'rgba(239, 68, 68, 0.08)' : 'rgba(234, 179, 8, 0.08)'
                       }}>
                         {tx.status === 'approved' ? (
                           <>
                             <CheckCircle2 size={12} />
                             <span>Selesai</span>
+                          </>
+                        ) : tx.status === 'rejected' ? (
+                          <>
+                            <XCircle size={12} />
+                            <span>Ditolak</span>
                           </>
                         ) : (
                           <>
