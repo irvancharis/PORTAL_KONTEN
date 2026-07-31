@@ -15,7 +15,8 @@ export default function WalletUserPortal({
   setUsers,
   withdrawals = [],
   setWithdrawals,
-  minWithdrawalAmount = 50000
+  minWithdrawalAmount = 50000,
+  withdrawalFeePercent = 0
 }) {
   const [isWdModalOpen, setIsWdModalOpen] = useState(false);
   const [wdAmount, setWdAmount] = useState(0);
@@ -111,6 +112,8 @@ export default function WalletUserPortal({
     description: `Penarikan Dana via ${wd.method} (${wd.account})`,
     type: 'debit',
     amount: wd.amount,
+    fee: wd.fee || 0,
+    netAmount: wd.netAmount || wd.amount,
     status: wd.status // 'pending' or 'approved'
   }));
 
@@ -119,19 +122,19 @@ export default function WalletUserPortal({
     new Date(b.date) - new Date(a.date)
   );
 
+  const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
+  const walletBalance = userProfile ? (userProfile.walletBalance || 0) : (currentUser ? (currentUser.walletBalance || 0) : 0);
+
   // Metrics
-  const totalIncome = [...creditSubs, ...creditPrizes].reduce((sum, item) => sum + (item.amount || 0), 0);
   const totalCompletedWd = debitWithdrawals.filter(w => w.status === 'approved').reduce((sum, item) => sum + (item.amount || 0), 0);
   const totalPendingWd = debitWithdrawals.filter(w => w.status === 'pending').reduce((sum, item) => sum + (item.amount || 0), 0);
-  
-  // Ledger-based robust balance calculation
-  const walletBalance = Math.max(0, totalIncome - totalPendingWd - totalCompletedWd);
+  const totalIncome = walletBalance + totalPendingWd + totalCompletedWd;
 
   // Handle Withdrawal Form Submit
   const handleWithdrawClick = (e) => {
     e.preventDefault();
     
-    if (wdPassword !== currentUser.password) {
+    if (currentUser.password !== 'firebase-auth-managed' && wdPassword !== currentUser.password) {
       alert('Verifikasi Gagal: Password akun yang Anda masukkan salah!');
       return;
     }
@@ -163,6 +166,8 @@ export default function WalletUserPortal({
     }));
 
     // 2. Add withdrawal request
+    const feeAmount = Math.round(amountToWithdraw * (withdrawalFeePercent || 0) / 100);
+    const netAmount = amountToWithdraw - feeAmount;
     const newWd = {
       id: `wd_${Date.now()}`,
       username: currentUser.username,
@@ -170,13 +175,15 @@ export default function WalletUserPortal({
       account: wdAccount,
       name: wdName,
       amount: amountToWithdraw,
+      fee: feeAmount,
+      netAmount: netAmount,
       status: 'pending',
       requestedAt: new Date().toISOString()
     };
     setWithdrawals([newWd, ...withdrawals]);
 
     setIsWdModalOpen(false);
-    alert(`Pengajuan penarikan dana Rp ${amountToWithdraw.toLocaleString('id-ID')} ke akun ${wdMethod} (${wdAccount} a.n ${wdName}) sukses diajukan. Mohon tunggu verifikasi admin!`);
+    alert(`Pengajuan penarikan dana Rp ${amountToWithdraw.toLocaleString('id-ID')} (Biaya Admin: Rp ${feeAmount.toLocaleString('id-ID')}, Bersih diterima: Rp ${netAmount.toLocaleString('id-ID')}) ke akun ${wdMethod} (${wdAccount} a.n ${wdName}) sukses diajukan. Mohon tunggu verifikasi admin!`);
   };
 
   // Filtered transactions
@@ -235,6 +242,8 @@ export default function WalletUserPortal({
           Tarik Saldo Dompet
         </button>
       </div>
+
+
 
       {/* Metrics Cards Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
@@ -339,7 +348,13 @@ export default function WalletUserPortal({
                       </span>
                     </td>
                     <td style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '0.92rem', color: tx.type === 'credit' ? '#4ade80' : '#f87171' }}>
-                      {tx.type === 'credit' ? '+' : '-'} Rp {tx.amount?.toLocaleString('id-ID')}
+                      <div>{tx.type === 'credit' ? '+' : '-'} Rp {tx.amount?.toLocaleString('id-ID')}</div>
+                      {tx.type === 'debit' && tx.fee > 0 && (
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '2px', fontWeight: 'normal' }}>
+                          Potongan: Rp {tx.fee.toLocaleString('id-ID')}<br />
+                          Diterima: Rp {tx.netAmount.toLocaleString('id-ID')}
+                        </div>
+                      )}
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       <span style={{
@@ -464,19 +479,37 @@ export default function WalletUserPortal({
                 <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                   Batas minimal penarikan: <strong>Rp {minWithdrawalAmount.toLocaleString('id-ID')}</strong>
                 </span>
+                <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Biaya Penarikan ({(withdrawalFeePercent || 0)}%):</span>
+                    <span style={{ color: 'white', fontWeight: 'bold' }}>
+                      {(withdrawalFeePercent || 0) > 0 ? `- Rp ${Math.round(wdAmount * withdrawalFeePercent / 100).toLocaleString('id-ID')}` : 'Gratis'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
+                    <span style={{ color: 'white' }}>Total Bersih Diterima:</span>
+                    <span style={{ color: 'white', fontSize: '0.98rem', borderBottom: '1px solid white', pb: '2px' }}>Rp {Math.max(0, wdAmount - Math.round(wdAmount * (withdrawalFeePercent || 0) / 100)).toLocaleString('id-ID')}</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="form-group" style={{ marginTop: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', color: '#ffffff', fontSize: '0.85rem', fontWeight: '600' }}>Verifikasi Keamanan: Password Akun</label>
-                <input 
-                  type="password" 
-                  required 
-                  value={wdPassword} 
-                  onChange={(e) => setWdPassword(e.target.value)} 
-                  placeholder="Masukkan password akun Anda untuk verifikasi" 
-                  style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
-                />
-              </div>
+              {currentUser.password !== 'firebase-auth-managed' ? (
+                <div className="form-group" style={{ marginTop: '12px' }}>
+                  <label style={{ display: 'block', marginBottom: '6px', color: '#ffffff', fontSize: '0.85rem', fontWeight: '600' }}>Verifikasi Keamanan: Password Akun</label>
+                  <input 
+                    type="password" 
+                    required 
+                    value={wdPassword} 
+                    onChange={(e) => setWdPassword(e.target.value)} 
+                    placeholder="Masukkan password akun Anda untuk verifikasi" 
+                    style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
+                  />
+                </div>
+              ) : (
+                <div style={{ marginTop: '12px', padding: '12px', background: '#ffffff', borderRadius: '8px', fontSize: '0.82rem', color: '#000000', lineHeight: '1.4', fontWeight: '500' }}>
+                  <strong>Verifikasi Keamanan:</strong> Akun Anda terverifikasi menggunakan <strong>Google Auth</strong>. Penarikan dapat langsung dilanjutkan dengan aman tanpa password tambahan.
+                </div>
+              )}
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
                 <button 

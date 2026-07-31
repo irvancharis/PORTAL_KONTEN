@@ -19,6 +19,8 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider, 
   signOut,
   onAuthStateChanged,
@@ -649,9 +651,17 @@ export default function App() {
     }
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      setIsLoginModalOpen(false);
-      setLoginError('');
+      // Use redirect on mobile/Safari iOS to avoid popup block/stuck promise issues
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                       (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+      
+      if (isMobile) {
+        await signInWithRedirect(auth, provider);
+      } else {
+        await signInWithPopup(auth, provider);
+        setIsLoginModalOpen(false);
+        setLoginError('');
+      }
     } catch (err) {
       console.error("Google Login failed:", err);
       setLoginError('Google Sign-In gagal: ' + err.message);
@@ -722,7 +732,8 @@ export default function App() {
               premiumPrice: dbSettings?.premiumPrice || 'Rp 29.000 / Bulan',
               paymentInstructions: dbSettings?.paymentInstructions || '- Bank BCA: 1234567890 a.n. FILMO\n- DANA: 081234567890 a.n. Admin\n- OVO: 081234567890',
               minWithdrawalAmount: dbSettings?.minWithdrawalAmount || 50000,
-              eventAdminFee: dbSettings?.eventAdminFee || 0
+              eventAdminFee: dbSettings?.eventAdminFee || 0,
+              withdrawalFeePercent: dbSettings?.withdrawalFeePercent || 0
             };
             await saveFirestoreSettings(initialSettings);
             dbSettings = initialSettings;
@@ -750,6 +761,9 @@ export default function App() {
             if (dbSettings.eventAdminFee !== undefined) {
               setEventAdminFee(dbSettings.eventAdminFee);
             }
+            if (dbSettings.withdrawalFeePercent !== undefined) {
+              setWithdrawalFeePercent(dbSettings.withdrawalFeePercent);
+            }
           }
 
           // Fetch all other collections once to populate state initially (heavy optimization)
@@ -761,7 +775,8 @@ export default function App() {
             dbParticipants,
             dbSubmissions,
             dbWithdrawals,
-            dbOffers
+            dbOffers,
+            dbUsers
           ] = await Promise.all([
             getFirestoreMovies(),
             getFirestoreConfirmations(),
@@ -769,7 +784,8 @@ export default function App() {
             getFirestoreEventParticipants(),
             getFirestoreEventSubmissions(),
             getFirestoreWithdrawals(),
-            getFirestoreOffers()
+            getFirestoreOffers(),
+            getFirestoreUsers()
           ]);
  
           if (dbMovies) setMovies(dbMovies);
@@ -791,6 +807,7 @@ export default function App() {
           if (dbSubmissions) setEventSubmissions(dbSubmissions);
           if (dbWithdrawals) setWithdrawals(dbWithdrawals);
           if (dbOffers) setOffers(dbOffers);
+          if (dbUsers) setUsers(dbUsers);
 
         } catch (err) {
           console.error("Firestore initialization failed:", err);
@@ -808,6 +825,19 @@ export default function App() {
   // Listen to Firebase Auth state changes
   useEffect(() => {
     if (!isFirebaseConfigured() || !auth) return;
+
+    // Check redirect result (needed for mobile/Safari redirect flows)
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          console.log("Firebase redirect login success:", result.user.email);
+        }
+      })
+      .catch((err) => {
+        console.error("Firebase redirect login failed:", err);
+        setLoginError('Google Sign-In gagal: ' + err.message);
+        setIsLoginModalOpen(true);
+      });
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -835,6 +865,17 @@ export default function App() {
         }
 
         setCurrentUser(matchedUser);
+        
+        // Auto-close modal and reset fields upon login detection
+        setIsLoginModalOpen(false);
+        setLoginUsername('');
+        setLoginPassword('');
+        setRegisterConfirmPassword('');
+        setOrganizerName('');
+        setOrganizerPhone('');
+        setOrganizerDescription('');
+        setOrganizerAvatar('');
+        setLoginError('');
       } else {
         const savedUser = JSON.parse(localStorage.getItem('portal-current-user') || 'null');
         if (savedUser && savedUser.password === 'firebase-auth-managed') {
@@ -1185,6 +1226,7 @@ export default function App() {
         paymentInstructions,
         minWithdrawalAmount,
         eventAdminFee,
+        withdrawalFeePercent,
         dbInitialized: true
       });
       if (success) {
@@ -1240,6 +1282,11 @@ export default function App() {
     return saved ? parseInt(saved) : 0;
   });
 
+  const [withdrawalFeePercent, setWithdrawalFeePercent] = useState(() => {
+    const saved = localStorage.getItem('portal-withdrawal-fee-percent');
+    return saved ? parseInt(saved) : 0;
+  });
+
   // Save Membership & Subscription Settings to localStorage when modified
   useEffect(() => {
     localStorage.setItem('portal-whatsapp-admin', whatsappAdmin);
@@ -1260,6 +1307,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('portal-event-admin-fee', eventAdminFee.toString());
   }, [eventAdminFee]);
+
+  useEffect(() => {
+    localStorage.setItem('portal-withdrawal-fee-percent', withdrawalFeePercent.toString());
+  }, [withdrawalFeePercent]);
 
   // Save activeTab to localStorage when modified
   useEffect(() => {
@@ -1924,6 +1975,8 @@ export default function App() {
               setMinWithdrawalAmount={setMinWithdrawalAmount}
               eventAdminFee={eventAdminFee}
               setEventAdminFee={setEventAdminFee}
+              withdrawalFeePercent={withdrawalFeePercent}
+              setWithdrawalFeePercent={setWithdrawalFeePercent}
               customRoles={customRoles}
               setCustomRoles={setCustomRoles}
             />
@@ -1937,6 +1990,7 @@ export default function App() {
               withdrawals={withdrawals}
               setWithdrawals={handleSetWithdrawals}
               minWithdrawalAmount={minWithdrawalAmount}
+              withdrawalFeePercent={withdrawalFeePercent}
             />
           ) : activeTab === 'events' ? (
             <EventsUserPortal 

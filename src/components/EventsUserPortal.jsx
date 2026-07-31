@@ -388,12 +388,12 @@ export default function EventsUserPortal({
       setEventParticipants([...eventParticipants, newPart]);
     }
     
-    alert(`Tawaran kolaborasi untuk event "${off.eventTitle}" berhasil diterima! Anda telah otomatis terdaftar.`);
+    alert(`Undangan kolaborasi untuk event "${off.eventTitle}" berhasil diterima! Anda telah otomatis terdaftar.`);
   };
 
   const handleDeclineOffer = (off) => {
     setOffers(prev => prev.map(o => o.id === off.id ? { ...o, status: 'declined' } : o));
-    alert(`Tawaran kolaborasi untuk event "${off.eventTitle}" ditolak.`);
+    alert(`Undangan kolaborasi untuk event "${off.eventTitle}" ditolak.`);
   };
 
   // Move from input handle step to show code instruction step
@@ -712,7 +712,8 @@ export default function EventsUserPortal({
       status: 'submitted',
       submittedAt: new Date().toISOString(),
       score: null,
-      feedback: ''
+      feedback: '',
+      paidBenefit: 0
     };
 
     setEventSubmissions([...eventSubmissions, newSub]);
@@ -1211,24 +1212,31 @@ export default function EventsUserPortal({
                               );
                             })()}
                             
-                            {userSub.score !== null ? (
-                              <div style={{ background: 'rgba(139, 92, 246, 0.08)', border: '1px solid rgba(139, 92, 246, 0.2)', padding: '12px', borderRadius: '8px', marginTop: '10px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                  <span style={{ fontSize: '0.78rem', color: '#c084fc', fontWeight: '600' }}>Hasil Penjurian</span>
-                                  <span style={{ fontSize: '1.05rem', color: '#a78bfa', fontWeight: 'bold' }}>{userSub.score} / 100</span>
-                                </div>
-                                {userSub.feedback && (
-                                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.4' }}>
-                                    "{userSub.feedback}"
-                                  </p>
-                                )}
-                              </div>
-                            ) : (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#fbbf24', background: 'rgba(245, 158, 11, 0.05)', padding: '6px 8px', borderRadius: '4px' }}>
-                                <Clock size={14} />
-                                <span>Sedang Dinilai oleh Juri</span>
-                              </div>
-                            )}
+                             {evt.budgetMode === 'views' ? (
+                               userSub.score === null && (
+                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#38bdf8', background: 'rgba(56, 189, 248, 0.05)', padding: '6px 8px', borderRadius: '4px' }}>
+                                   <Clock size={14} />
+                                   <span>Menunggu Sinkronisasi Views & Pembayaran</span>
+                                 </div>
+                               )
+                             ) : userSub.score !== null ? (
+                               <div style={{ background: 'rgba(139, 92, 246, 0.08)', border: '1px solid rgba(139, 92, 246, 0.2)', padding: '12px', borderRadius: '8px', marginTop: '10px' }}>
+                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                   <span style={{ fontSize: '0.78rem', color: '#c084fc', fontWeight: '600' }}>Hasil Penjurian</span>
+                                   <span style={{ fontSize: '1.05rem', color: '#a78bfa', fontWeight: 'bold' }}>{userSub.score} / 100</span>
+                                 </div>
+                                 {userSub.feedback && (
+                                   <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.4' }}>
+                                     "{userSub.feedback}"
+                                   </p>
+                                 )}
+                               </div>
+                             ) : (
+                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#fbbf24', background: 'rgba(245, 158, 11, 0.05)', padding: '6px 8px', borderRadius: '4px' }}>
+                                 <Clock size={14} />
+                                 <span>Sedang Dinilai oleh Juri</span>
+                               </div>
+                             )}
                           </div>
                         )}
                       </div>
@@ -1522,36 +1530,51 @@ export default function EventsUserPortal({
                                 </div>
                                 
                                 <div style={{ flex: 1 }}>
-                                  <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userSub ? 'white' : 'var(--text-muted)', fontWeight: 'bold' }}>
-                                    Tahap 3: Penilaian Juri & Hasil
-                                  </h4>
-                                  
-                                  {!userSub && (
-                                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                                      Menunggu pengiriman karya video Anda.
-                                    </p>
-                                  )}
-                                  
-                                  {userSub && userSub.score === null && (
-                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#fbbf24', background: 'rgba(245, 158, 11, 0.05)', padding: '6px 12px', borderRadius: '20px', marginTop: '6px' }}>
-                                      <Clock size={12} />
-                                      <span>Sedang Dinilai oleh Juri</span>
-                                    </div>
-                                  )}
-                                  
-                                  {userSub && userSub.score !== null && (
-                                    <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)', padding: '10px 12px', borderRadius: '8px', marginTop: '8px', fontSize: '0.8rem' }}>
-                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                        <span style={{ fontSize: '0.75rem', color: '#4ade80', fontWeight: '600' }}>Skor Akhir</span>
-                                        <span style={{ fontSize: '1rem', color: '#22c55e', fontWeight: 'bold' }}>{userSub.score} / 100</span>
-                                      </div>
-                                      {userSub.feedback && (
-                                        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.4' }}>
-                                          "{userSub.feedback}"
-                                        </p>
-                                      )}
-                                    </div>
-                                  )}
+                                   <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userSub ? 'white' : 'var(--text-muted)', fontWeight: 'bold' }}>
+                                     {evt.budgetMode === 'views' ? 'Tahap 3: Pembayaran Otomatis & Hasil' : 'Tahap 3: Penilaian Juri & Hasil'}
+                                   </h4>
+                                   
+                                   {!userSub && (
+                                     <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                       Menunggu pengiriman karya video Anda.
+                                     </p>
+                                   )}
+                                   
+                                   {userSub && userSub.score === null && (
+                                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: evt.budgetMode === 'views' ? '#38bdf8' : '#fbbf24', background: evt.budgetMode === 'views' ? 'rgba(56, 189, 248, 0.05)' : 'rgba(245, 158, 11, 0.05)', padding: '6px 12px', borderRadius: '20px', marginTop: '6px' }}>
+                                       <Clock size={12} />
+                                       <span>{evt.budgetMode === 'views' ? 'Menunggu Sinkronisasi Views & Pembayaran' : 'Sedang Dinilai oleh Juri'}</span>
+                                     </div>
+                                   )}
+                                   
+                                   {userSub && userSub.score !== null && (
+                                     <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)', padding: '10px 12px', borderRadius: '8px', marginTop: '8px', fontSize: '0.8rem' }}>
+                                       {evt.budgetMode === 'views' ? (
+                                         <>
+                                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                             <span style={{ fontSize: '0.75rem', color: '#4ade80', fontWeight: '600' }}>Status Pembayaran</span>
+                                             <span style={{ fontSize: '0.9rem', color: '#22c55e', fontWeight: 'bold' }}>Otomatis Cair</span>
+                                           </div>
+                                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                                             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Total Payout Masuk</span>
+                                             <strong style={{ color: 'white', fontSize: '0.9rem' }}>Rp {(userSub.paidBenefit || 0).toLocaleString('id-ID')}</strong>
+                                           </div>
+                                         </>
+                                       ) : (
+                                         <>
+                                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                             <span style={{ fontSize: '0.75rem', color: '#4ade80', fontWeight: '600' }}>Skor Akhir</span>
+                                             <span style={{ fontSize: '1rem', color: '#22c55e', fontWeight: 'bold' }}>{userSub.score} / 100</span>
+                                           </div>
+                                           {userSub.feedback && (
+                                             <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.4' }}>
+                                               "{userSub.feedback}"
+                                             </p>
+                                           )}
+                                         </>
+                                       )}
+                                     </div>
+                                   )}
                                 </div>
                               </div>
 
@@ -1588,8 +1611,8 @@ export default function EventsUserPortal({
                 onClick={() => setUserPortalTab('events')}
                 style={{
                   padding: '10px 20px',
-                  background: userPortalTab === 'events' ? 'rgba(124, 58, 237, 0.15)' : 'transparent',
-                  border: userPortalTab === 'events' ? '1px solid rgba(124, 58, 237, 0.3)' : '1px solid transparent',
+                  background: userPortalTab === 'events' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                  border: userPortalTab === 'events' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
                   color: userPortalTab === 'events' ? 'white' : 'var(--text-secondary)',
                   borderRadius: '30px',
                   fontSize: '0.88rem',
@@ -1605,8 +1628,8 @@ export default function EventsUserPortal({
                 onClick={() => setUserPortalTab('offers')}
                 style={{
                   padding: '10px 20px',
-                  background: userPortalTab === 'offers' ? 'rgba(124, 58, 237, 0.15)' : 'transparent',
-                  border: userPortalTab === 'offers' ? '1px solid rgba(124, 58, 237, 0.3)' : '1px solid transparent',
+                  background: userPortalTab === 'offers' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                  border: userPortalTab === 'offers' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
                   color: userPortalTab === 'offers' ? 'white' : 'var(--text-secondary)',
                   borderRadius: '30px',
                   fontSize: '0.88rem',
@@ -1619,22 +1642,21 @@ export default function EventsUserPortal({
                   outline: 'none'
                 }}
               >
-                <span>Tawaran Kerja Sama</span>
+                <span>Undangan Kolaborasi</span>
                 {(() => {
                   const pendingCount = (offers || []).filter(o => o.recipient.toLowerCase() === currentUser.username.toLowerCase() && o.status === 'pending').length;
                   if (pendingCount > 0) {
                     return (
                       <span style={{
-                        background: '#ef4444',
-                        color: 'white',
+                        background: '#ffffff',
+                        color: '#020202',
                         fontSize: '0.72rem',
                         fontWeight: 'bold',
                         padding: '1px 6px',
                         borderRadius: '10px',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 0 6px rgba(239, 68, 68, 0.6)'
+                        justifyContent: 'center'
                       }}>
                         {pendingCount}
                       </span>
@@ -1650,11 +1672,11 @@ export default function EventsUserPortal({
             <div className="collab-offers-view animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
               <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <h3 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 'bold', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Trophy style={{ color: '#fbbf24' }} />
-                  <span>Daftar Tawaran Kerja Sama Penyelenggara</span>
+                  <Trophy style={{ color: '#ffffff' }} />
+                  <span>Daftar Undangan Kolaborasi Penyelenggara</span>
                 </h3>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
-                  Berikut adalah daftar ajakan kolaborasi eksklusif dari Panitia Event untuk Anda. Terima tawaran untuk langsung bergabung.
+                  Berikut adalah daftar undangan kolaborasi eksklusif dari Panitia Event untuk Anda. Terima undangan untuk langsung terdaftar sebagai peserta.
                 </p>
               </div>
 
@@ -1664,7 +1686,7 @@ export default function EventsUserPortal({
                   if (myOffers.length === 0) {
                     return (
                       <div style={{ gridColumn: '1 / -1', padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                        Belum ada tawaran kerja sama untuk akun Anda saat ini.
+                        Belum ada undangan kolaborasi untuk akun Anda saat ini.
                       </div>
                     );
                   }
@@ -1693,7 +1715,7 @@ export default function EventsUserPortal({
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                             <div>
                               <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block' }}>Pengirim</span>
-                              <strong style={{ color: '#c084fc', fontSize: '0.95rem' }}>@{off.sender}</strong>
+                              <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>@{off.sender}</strong>
                             </div>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{offerDate}</span>
                           </div>
@@ -1726,16 +1748,18 @@ export default function EventsUserPortal({
                           </div>
 
                           {/* Budget offered */}
-                          <div style={{
-                            background: 'rgba(52, 211, 153, 0.08)',
-                            border: '1px solid rgba(52, 211, 153, 0.2)',
-                            padding: '10px 14px',
-                            borderRadius: '10px',
-                            marginBottom: '14px'
-                          }}>
-                            <span style={{ fontSize: '0.72rem', color: '#34d399', display: 'block', fontWeight: 'bold' }}>TAWARAN BUDGET EKSKLUSIF</span>
-                            <strong style={{ fontSize: '1.25rem', color: '#10b981' }}>Rp {off.budget?.toLocaleString('id-ID')}</strong>
-                          </div>
+                          {(off.budget || 0) > 0 && (
+                            <div style={{
+                              background: 'rgba(255, 255, 255, 0.04)',
+                              border: '1px solid rgba(255, 255, 255, 0.1)',
+                              padding: '10px 14px',
+                              borderRadius: '10px',
+                              marginBottom: '14px'
+                            }}>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', display: 'block', fontWeight: 'bold' }}>TAWARAN BUDGET EKSKLUSIF</span>
+                              <strong style={{ fontSize: '1.25rem', color: '#ffffff' }}>Rp {off.budget?.toLocaleString('id-ID')}</strong>
+                            </div>
+                          )}
 
                           {/* Message content */}
                           <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '10px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.04)', fontStyle: 'italic', whiteSpace: 'pre-wrap' }}>
@@ -1750,16 +1774,16 @@ export default function EventsUserPortal({
                               <button
                                 onClick={() => handleDeclineOffer(off)}
                                 className="btn"
-                                style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#f87171', fontWeight: '700', cursor: 'pointer' }}
+                                style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'var(--text-secondary)', fontWeight: '700', cursor: 'pointer' }}
                               >
                                 Tolak
                               </button>
                               <button
                                 onClick={() => handleAcceptOffer(off)}
                                 className="btn btn-primary"
-                                style={{ flex: 2, padding: '10px', borderRadius: '10px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: 'none', color: 'white', fontWeight: '700', cursor: 'pointer' }}
+                                style={{ flex: 2, padding: '10px', borderRadius: '10px', background: '#ffffff', border: '#ffffff', color: '#020202', fontWeight: '700', cursor: 'pointer' }}
                               >
-                                Terima Tawaran
+                                Terima Undangan
                               </button>
                             </div>
                           ) : (
@@ -1769,11 +1793,11 @@ export default function EventsUserPortal({
                               borderRadius: '10px',
                               fontSize: '0.85rem',
                               fontWeight: 'bold',
-                              color: off.status === 'accepted' ? '#10b981' : '#ef4444',
-                              background: off.status === 'accepted' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
-                              border: off.status === 'accepted' ? '1px solid rgba(16, 185, 129, 0.15)' : '1px solid rgba(239, 68, 68, 0.15)'
+                              color: off.status === 'accepted' ? '#ffffff' : 'var(--text-muted)',
+                              background: off.status === 'accepted' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                              border: off.status === 'accepted' ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(255, 255, 255, 0.04)'
                             }}>
-                              {off.status === 'accepted' ? 'Tawaran Diterima' : 'Tawaran Ditolak'}
+                              {off.status === 'accepted' ? 'Undangan Diterima' : 'Undangan Ditolak'}
                             </div>
                           )}
                         </div>
@@ -2106,19 +2130,19 @@ export default function EventsUserPortal({
           left: 0,
           width: '100vw',
           height: '100vh',
-          background: '#090d16',
+          background: '#020202',
           zIndex: 99999,
           overflowY: 'auto',
           padding: '40px 24px',
           boxSizing: 'border-box'
         }} className="animate-fade-in">
-          <div className="glass-panel" style={{ maxWidth: '600px', margin: '0 auto', width: '100%', padding: '32px', textAlign: 'left', border: '1px solid rgba(167, 139, 250, 0.25)', borderRadius: '12px' }}>
+          <div className="glass-panel" style={{ maxWidth: '600px', margin: '0 auto', width: '100%', padding: '32px', textAlign: 'left', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }}>
             
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
               <div>
                 <h3 style={{ margin: 0, color: 'white', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.4rem', fontWeight: 'bold' }}>
-                  <ShieldCheck size={26} style={{ color: '#c084fc' }} />
+                  <ShieldCheck size={26} style={{ color: '#ffffff' }} />
                   <span>Verifikasi Akun Sosmed</span>
                 </h3>
                 <p style={{ margin: '6px 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
@@ -2155,9 +2179,9 @@ export default function EventsUserPortal({
                           gap: '10px',
                           padding: '14px 16px',
                           borderRadius: '8px',
-                          background: isSelected ? 'rgba(167, 139, 250, 0.12)' : 'rgba(255,255,255,0.02)',
-                          border: isSelected ? '1px solid #c084fc' : '1px solid var(--border-color)',
-                          color: isSelected ? '#c084fc' : 'var(--text-secondary)',
+                          background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255,255,255,0.02)',
+                          border: isSelected ? '1px solid #ffffff' : '1px solid var(--border-color)',
+                          color: isSelected ? '#ffffff' : 'var(--text-secondary)',
                           cursor: 'pointer',
                           fontWeight: '600',
                           fontSize: '0.9rem',
@@ -2165,7 +2189,7 @@ export default function EventsUserPortal({
                           outline: 'none'
                         }}
                       >
-                        <span style={{ color: isSelected ? '#c084fc' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: isSelected ? '#ffffff' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
                           {p.svg}
                         </span>
                         <span>{p.label}</span>
@@ -2174,10 +2198,10 @@ export default function EventsUserPortal({
                   })}
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.2)', padding: '12px 14px', borderRadius: '8px', marginBottom: '24px', fontSize: '0.82rem', color: '#f59e0b', lineHeight: '1.5' }}>
-                  <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span>
-                    <strong>PENTING:</strong> Akun sosial media ini wajib menjadi akun yang Anda gunakan untuk mempublikasikan video hasil karya kompetisi Anda nantinya.
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', background: '#ffffff', border: '1px solid #ffffff', padding: '14px 16px', borderRadius: '8px', marginBottom: '24px', fontSize: '0.85rem', color: '#000000', lineHeight: '1.5', boxShadow: '0 4px 20px rgba(255, 255, 255, 0.15)' }}>
+                  <AlertTriangle size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#000000' }} />
+                  <span style={{ fontWeight: '500' }}>
+                    <strong style={{ fontWeight: '800', textDecoration: 'underline' }}>PENTING:</strong> Akun sosial media ini wajib menjadi akun yang Anda gunakan untuk mempublikasikan video hasil karya kompetisi Anda nantinya.
                   </span>
                 </div>
 
@@ -2195,7 +2219,7 @@ export default function EventsUserPortal({
                   </div>
                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '12px' }}>
                     <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
-                    <button type="submit" className="btn btn-primary" style={{ background: 'linear-gradient(90deg, #c084fc, #a78bfa)', border: 'none', padding: '10px 20px' }}>Lanjut ke Verifikasi Kode</button>
+                    <button type="submit" className="btn btn-primary" style={{ padding: '10px 20px' }}>Lanjut ke Verifikasi Kode</button>
                   </div>
                 </form>
               </div>
@@ -2203,10 +2227,10 @@ export default function EventsUserPortal({
 
             {verificationStep === 'verify' && (
               <div>
-                <div style={{ background: 'rgba(167, 139, 250, 0.05)', border: '1px solid rgba(167, 139, 250, 0.15)', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
+                <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Kode Verifikasi Unik:</span>
-                    <span style={{ fontSize: '0.8rem', color: '#a78bfa', fontWeight: 'bold' }}>Sisa Waktu: {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}</span>
+                    <span style={{ fontSize: '0.8rem', color: '#ffffff', fontWeight: 'bold' }}>Sisa Waktu: {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}</span>
                   </div>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <div style={{ flex: 1, background: '#0f172a', border: '1px solid var(--border-color)', padding: '12px', borderRadius: '6px', fontSize: '1.2rem', fontWeight: 'bold', color: 'white', letterSpacing: '2px', textAlign: 'center' }}>
@@ -2228,29 +2252,29 @@ export default function EventsUserPortal({
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(167, 139, 250, 0.15)', color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>1</span>
+                    <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.1)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>1</span>
                     <span>Salin kode verifikasi unik di atas.</span>
                   </div>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(167, 139, 250, 0.15)', color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>2</span>
+                    <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.1)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>2</span>
                     <span>Buka profil {selectedPlatform.toUpperCase()} Anda (<strong>@{socialUrl.trim()}</strong>), tempelkan kode tersebut ke dalam <strong>Bio</strong> atau deskripsi profil Anda.</span>
                   </div>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(167, 139, 250, 0.15)', color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>3</span>
+                    <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.1)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>3</span>
                     <span>Setelah bio diperbarui, klik tombol <strong>"Verifikasi Akun Saya"</strong> di bawah untuk memindai akun secara real-time.</span>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                   <button type="button" className="btn btn-secondary" style={{ padding: '12px 20px' }} onClick={() => setVerificationStep('input')}>Kembali</button>
-                  <button type="button" className="btn btn-primary" style={{ background: 'linear-gradient(90deg, #c084fc, #a78bfa)', border: 'none', padding: '12px 24px', fontWeight: 'bold' }} onClick={() => handleCheckAccount()}>Verifikasi Akun Saya</button>
+                  <button type="button" className="btn btn-primary" style={{ padding: '12px 24px', fontWeight: 'bold' }} onClick={() => handleCheckAccount()}>Verifikasi Akun Saya</button>
                 </div>
               </div>
             )}
 
             {verificationStep === 'expired' && (
               <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', border: '2px solid #ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#ef4444' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.06)', border: '2px solid #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#ffffff' }}>
                   <Clock size={32} />
                 </div>
                 <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>Waktu Verifikasi Habis</h3>
@@ -2273,7 +2297,7 @@ export default function EventsUserPortal({
 
             {verificationStep === 'pending' && (
               <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(245, 158, 11, 0.1)', border: '2px solid #fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#fbbf24' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.06)', border: '2px solid #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#ffffff' }}>
                   <Clock size={32} />
                 </div>
                 <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>Pendaftaran Terkirim (Pending)</h3>
@@ -2290,7 +2314,7 @@ export default function EventsUserPortal({
                     setRegisteringEvent(null);
                     resetVerificationForm();
                   }}
-                  style={{ width: '100%', background: 'linear-gradient(90deg, #f59e0b, #d97706)', border: 'none', fontWeight: 'bold', padding: '12px' }}
+                  style={{ width: '100%', fontWeight: 'bold', padding: '12px' }}
                 >
                   Selesai
                 </button>
@@ -2299,7 +2323,7 @@ export default function EventsUserPortal({
 
             {verificationStep === 'loading' && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 16px', textAlign: 'center' }}>
-                <Loader2 className="spinner" size={48} style={{ color: '#c084fc', marginBottom: '24px', animation: 'spin 1s linear infinite' }} />
+                <Loader2 className="spinner" size={48} style={{ color: '#ffffff', marginBottom: '24px', animation: 'spin 1s linear infinite' }} />
                 <h4 style={{ color: 'white', marginBottom: '8px', fontSize: '1.1rem', fontWeight: '600' }}>Memindai Bio Profil {selectedPlatform.toUpperCase()}...</h4>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', maxWidth: '360px', margin: '0 auto', lineHeight: '1.5' }}>
                   Sedang menghubungi server {selectedPlatform.toUpperCase()} untuk memeriksa apakah kode <strong>{uniqueCode}</strong> tertera di bio akun <strong>@{socialUrl.trim()}</strong> Anda...
@@ -2309,7 +2333,7 @@ export default function EventsUserPortal({
 
             {verificationStep === 'success' && (
               <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', border: '2px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#10b981' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.06)', border: '2px solid #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#ffffff' }}>
                   <CheckCircle2 size={32} />
                 </div>
                 <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>Verifikasi Akun Sukses!</h3>
@@ -2323,7 +2347,7 @@ export default function EventsUserPortal({
                     setRegisteringEvent(null);
                     resetVerificationForm();
                   }}
-                  style={{ width: '100%', background: 'linear-gradient(90deg, #10b981, #059669)', border: 'none', fontWeight: 'bold', padding: '12px' }}
+                  style={{ width: '100%', fontWeight: 'bold', padding: '12px' }}
                 >
                   Mulai Kompetisi
                 </button>
@@ -2332,7 +2356,7 @@ export default function EventsUserPortal({
 
             {verificationStep === 'failed' && (
               <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', border: '2px solid #ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#ef4444' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.06)', border: '2px solid #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#ffffff' }}>
                   <XCircle size={32} />
                 </div>
                 <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>Akun Tidak Ditemukan</h3>
@@ -2352,12 +2376,12 @@ export default function EventsUserPortal({
                   </button>
                   <button 
                     type="button" 
-                    className="btn btn-primary" 
+                    className="btn btn-secondary" 
                     onClick={() => {
                       setRegisteringEvent(null);
                       resetVerificationForm();
                     }}
-                    style={{ flex: 1, background: 'linear-gradient(90deg, #ef4444, #dc2626)', border: 'none', fontWeight: 'bold', padding: '12px' }}
+                    style={{ flex: 1, fontWeight: 'bold', padding: '12px' }}
                   >
                     Batal
                   </button>

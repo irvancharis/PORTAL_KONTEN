@@ -683,6 +683,7 @@ export default function VideoPlayer({
                     key={`${currentEpisodeIdx}_${videoSrc}`}
                     ref={videoRef}
                     src={videoSrc}
+                    crossOrigin="anonymous"
                     autoPlay
                     playsInline
                     className="custom-video-element"

@@ -159,6 +159,8 @@ export default function AdminPanel({
   setMinWithdrawalAmount,
   eventAdminFee = 0,
   setEventAdminFee,
+  withdrawalFeePercent = 0,
+  setWithdrawalFeePercent,
   customRoles = [],
   setCustomRoles
 }) {
@@ -548,6 +550,8 @@ export default function AdminPanel({
         else if (lowerUrl.includes('threads.net')) platform = 'Threads';
         else if (!platform || platform === 'Lainnya') platform = 'Lainnya';
 
+        let nextSub = { ...sub, platform };
+
         if (platform === 'YouTube') {
           const videoId = extractYoutubeId(sub.videoUrl);
           if (videoId) {
@@ -555,13 +559,9 @@ export default function AdminPanel({
               const res = await fetch(`https://returnyoutubedislikeapi.com/votes?videoId=${videoId}`);
                if (res.ok) {
                  const data = await res.json();
-                 return {
-                   ...sub,
-                   platform,
-                   views: data.viewCount || sub.views || 0,
-                   likes: data.likes || sub.likes || 0,
-                   comments: data.likes ? Math.round(data.likes * 0.05) : sub.comments || 0
-                 };
+                 nextSub.views = data.viewCount || sub.views || 0;
+                 nextSub.likes = data.likes || sub.likes || 0;
+                 nextSub.comments = data.likes ? Math.round(data.likes * 0.05) : sub.comments || 0;
                }
             } catch (err) {
               console.error("Failed to fetch youtube statistics:", err);
@@ -570,21 +570,39 @@ export default function AdminPanel({
         }
 
         // Fallback for non-YouTube or failed fetch
-        const randomViews = Math.floor(Math.random() * 80000) + 12000;
-        const randomLikes = Math.floor(randomViews * (Math.random() * 0.10 + 0.05));
-        const randomComments = Math.floor(randomLikes * (Math.random() * 0.06 + 0.02));
+        if (!nextSub.views || nextSub.views === 0) {
+          const randomViews = Math.floor(Math.random() * 80000) + 12000;
+          const randomLikes = Math.floor(randomViews * (Math.random() * 0.10 + 0.05));
+          const randomComments = Math.floor(randomLikes * (Math.random() * 0.06 + 0.02));
+          nextSub.views = sub.views && sub.views > 0 ? sub.views : randomViews;
+          nextSub.likes = sub.likes && sub.likes > 0 ? sub.likes : randomLikes;
+          nextSub.comments = sub.comments && sub.comments > 0 ? sub.comments : randomComments;
+        }
 
-        return {
-          ...sub,
-          platform,
-          views: sub.views && sub.views > 0 ? sub.views : randomViews,
-          likes: sub.likes && sub.likes > 0 ? sub.likes : randomLikes,
-          comments: sub.comments && sub.comments > 0 ? sub.comments : randomComments
-        };
+        // Auto Payout & Auto Review for Pay Per View (views) mode
+        const evt = events.find(e => e.id === sub.eventId);
+        if (evt && evt.budgetMode === 'views') {
+          const step = evt.benefitViewsStep || 1000;
+          const payout = Math.floor(nextSub.views / step) * (evt.benefitAmount || 0);
+          
+          const oldPaid = sub.paidBenefit || 0;
+          const newPaid = payout;
+          if (newPaid > oldPaid) {
+            const diff = newPaid - oldPaid;
+            await handleTransferWallet(sub.username, diff);
+            nextSub.paidBenefit = newPaid;
+          } else {
+            nextSub.paidBenefit = oldPaid;
+          }
+          nextSub.status = 'reviewed';
+          nextSub.score = 100; // Auto 100 score for views mode
+        }
+
+        return nextSub;
       }));
 
       setEventSubmissions(updated);
-      alert(`Berhasil melakukan Grab & Sinkronisasi data real-time dari ${updated.length} tautan peserta!`);
+      alert(`Berhasil melakukan Grab & Sinkronisasi data real-time! Karya dengan mode Pay Per View otomatis dinilai dan benefit dicairkan ke wallet.`);
     } catch (e) {
       console.error("Sync failed:", e);
       alert("Gagal menyinkronkan data.");
@@ -621,7 +639,7 @@ export default function AdminPanel({
             prize2: isRanking ? (parseInt(eventPrize2) || 0) : 0,
             prize3: isRanking ? (parseInt(eventPrize3) || 0) : 0,
             paymentStatus: evt.paymentStatus || 'pending',
-            adminFee: evt.paymentStatus === 'paid' ? (evt.adminFee !== undefined ? evt.adminFee : 0) : (eventAdminFee || 0)
+            adminFee: evt.paymentStatus === 'paid' ? (evt.adminFee !== undefined ? evt.adminFee : 0) : Math.round((computedBudget * (eventAdminFee || 0)) / 100)
           };
         }
         return evt;
@@ -649,7 +667,7 @@ export default function AdminPanel({
         prize2: isRanking ? (parseInt(eventPrize2) || 0) : 0,
         prize3: isRanking ? (parseInt(eventPrize3) || 0) : 0,
         paymentStatus: 'pending',
-        adminFee: eventAdminFee || 0,
+        adminFee: Math.round((computedBudget * (eventAdminFee || 0)) / 100),
         organizerName: currentUser?.organizerName || currentUser?.username || 'Panitia Portal',
         organizerPhone: currentUser?.organizerPhone || '',
         organizerDescription: currentUser?.organizerDescription || '',
@@ -898,6 +916,14 @@ export default function AdminPanel({
   };
 
   const handleDeleteEvent = (id) => {
+    const evt = events.find(e => e.id === id);
+    if (evt) {
+      const status = getEventStatus(evt);
+      if (currentUser?.role === 'panitia' && status.label === 'Berjalan') {
+        alert('Akses Ditolak: Event yang sudah berjalan telah dikunci dan tidak dapat dihapus oleh Panitia.');
+        return;
+      }
+    }
     if (window.confirm('Apakah Anda yakin ingin menghapus event ini?')) {
       setEvents(events.filter(e => e.id !== id));
       setEventParticipants(prev => prev.filter(p => p.eventId !== id));
@@ -906,6 +932,11 @@ export default function AdminPanel({
   };
 
   const handleEditEvent = (evt) => {
+    const status = getEventStatus(evt);
+    if (currentUser?.role === 'panitia' && status.label === 'Berjalan') {
+      alert('Akses Ditolak: Event yang sudah berjalan telah dikunci dan tidak dapat diubah/diedit oleh Panitia.');
+      return;
+    }
     setEditingEventId(evt.id);
     setEventTitle(evt.title || '');
     setEventCategory(evt.category || 'Short Film');
@@ -947,7 +978,7 @@ export default function AdminPanel({
     if (!wd) return;
     setAuthModal({
       title: 'Otorisasi Persetujuan Penarikan',
-      message: `Apakah Anda yakin ingin menyetujui penarikan saldo sebesar Rp ${wd.amount.toLocaleString('id-ID')} ke akun ${wd.method} (${wd.account} a.n ${wd.name}) untuk peserta ${wd.username}?`,
+      message: `Apakah Anda yakin ingin menyetujui penarikan saldo sebesar Rp ${wd.amount.toLocaleString('id-ID')} (Biaya Admin: Rp ${(wd.fee || 0).toLocaleString('id-ID')}, Bersih ditransfer: Rp ${(wd.netAmount || wd.amount).toLocaleString('id-ID')}) ke akun ${wd.method} (${wd.account} a.n ${wd.name}) untuk peserta ${wd.username}?`,
       onConfirm: () => {
         setWithdrawals(prev => prev.map(w => w.id === wdId ? { ...w, status: 'approved' } : w));
         alert('Penarikan dana disetujui secara instan!');
@@ -1726,9 +1757,9 @@ export default function AdminPanel({
               {[
                 { id: 'participants', label: 'Pendaftaran Peserta', count: eventParticipants.filter(p => p.eventId === selectedManageEvent.id && p.status === 'pending').length },
                 { id: 'submissions', label: 'Monitoring Karya', count: eventSubmissions.filter(s => s.eventId === selectedManageEvent.id && s.score === null).length },
-                { id: 'judging', label: 'Penjurian & Pemenang', count: 0 },
+                selectedManageEvent.budgetMode !== 'views' && { id: 'judging', label: 'Penjurian & Pemenang', count: 0 },
                 { id: 'finance', label: 'Keuangan Event', count: 0 }
-              ].map(tab => {
+              ].filter(Boolean).map(tab => {
                 const isActive = innerManageTab === tab.id;
                 return (
                   <button
@@ -1896,15 +1927,17 @@ export default function AdminPanel({
                       style={{ width: '100%', padding: '8px 12px 8px 36px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '20px', color: 'white', fontSize: '0.82rem', outline: 'none' }}
                     />
                   </div>
-                  <button
-                    onClick={handleSyncAllSubmissions}
-                    disabled={isSyncingAll}
-                    className="btn btn-secondary btn-sm"
-                    style={{ padding: '8px 16px', borderRadius: '20px', color: 'white', border: '1px solid rgba(255, 255, 255, 0.15)', background: 'rgba(255, 255, 255, 0.05)' }}
-                  >
-                    <Sparkles size={14} style={{ color: 'rgba(255, 255, 255, 0.7)', animation: isSyncingAll ? 'spin 1s linear infinite' : 'none', marginRight: '6px' }} />
-                    {isSyncingAll ? 'Menghubungkan ke API...' : 'Grab Data Sosmed Event ini'}
-                  </button>
+                  {selectedManageEvent.budgetMode !== 'views' && (
+                    <button
+                      onClick={handleSyncAllSubmissions}
+                      disabled={isSyncingAll}
+                      className="btn btn-secondary btn-sm"
+                      style={{ padding: '8px 16px', borderRadius: '20px', color: 'white', border: '1px solid rgba(255, 255, 255, 0.15)', background: 'rgba(255, 255, 255, 0.05)' }}
+                    >
+                      <Sparkles size={14} style={{ color: 'rgba(255, 255, 255, 0.7)', animation: isSyncingAll ? 'spin 1s linear infinite' : 'none', marginRight: '6px' }} />
+                      {isSyncingAll ? 'Menghubungkan ke API...' : 'Grab Data Sosmed Event ini'}
+                    </button>
+                  )}
                 </div>
 
                 <div className="admin-table-container">
@@ -1916,6 +1949,14 @@ export default function AdminPanel({
                       sub.platform?.toLowerCase().includes(eventSubmissionsSearch.toLowerCase())
                     ));
 
+                    if (selectedManageEvent.budgetMode === 'views') {
+                      filtered.sort((a, b) => {
+                        const engA = (a.views || 0) + (a.likes || 0);
+                        const engB = (b.views || 0) + (b.likes || 0);
+                        return engB - engA;
+                      });
+                    }
+ 
                     if (filtered.length === 0) {
                       return (
                         <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
@@ -1923,7 +1964,7 @@ export default function AdminPanel({
                         </div>
                       );
                     }
-
+ 
                     return (
                       <table className="admin-table">
                         <thead>
@@ -1932,7 +1973,7 @@ export default function AdminPanel({
                             <th>Platform & Link Video</th>
                             <th style={{ textAlign: 'right' }}>Jumlah Views</th>
                             <th style={{ textAlign: 'right' }}>Jumlah Likes</th>
-                            <th style={{ textAlign: 'center' }}>Skor Juri</th>
+                            {selectedManageEvent.budgetMode !== 'views' && <th style={{ textAlign: 'center' }}>Skor Juri</th>}
                             <th style={{ textAlign: 'center', width: '120px' }}>Aksi</th>
                           </tr>
                         </thead>
@@ -1949,9 +1990,11 @@ export default function AdminPanel({
                               </td>
                               <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'white' }}>{sub.views?.toLocaleString('id-ID') || 0}</td>
                               <td style={{ textAlign: 'right', color: '#f43f5e' }}>❤️ {sub.likes?.toLocaleString('id-ID') || 0}</td>
-                              <td style={{ textAlign: 'center' }}>
-                                <span style={{ fontWeight: 'bold', color: sub.score !== null ? '#4ade80' : '#fbbf24' }}>{sub.score !== null ? `${sub.score}/100` : 'Belum Dinilai'}</span>
-                              </td>
+                              {selectedManageEvent.budgetMode !== 'views' && (
+                                <td style={{ textAlign: 'center' }}>
+                                  <span style={{ fontWeight: 'bold', color: sub.score !== null ? '#4ade80' : '#fbbf24' }}>{sub.score !== null ? `${sub.score}/100` : 'Belum Dinilai'}</span>
+                                </td>
+                              )}
                               <td style={{ textAlign: 'center' }}>
                                 <button className="btn btn-secondary btn-sm" onClick={() => setPreviewSubmission(sub)} style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '20px' }}>Pratinjau</button>
                               </td>
@@ -2319,6 +2362,30 @@ export default function AdminPanel({
                         </div>
                       </div>
                     )}
+
+                    {/* Platform Fee & Escrow Info */}
+                    {eventAdminFee > 0 && (
+                      <div style={{ marginTop: '16px', padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Total Budget Kampanye:</span>
+                          <strong style={{ color: 'white' }}>
+                            Rp {(eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))).toLocaleString('id-ID')}
+                          </strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform ({eventAdminFee}%):</span>
+                          <strong style={{ color: 'white' }}>
+                            + Rp {Math.round(((eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))) * eventAdminFee) / 100).toLocaleString('id-ID')}
+                          </strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
+                          <span style={{ color: 'white' }}>Total Deposit Escrow:</span>
+                          <strong style={{ color: 'white', fontSize: '0.92rem', borderBottom: '1px solid white', paddingBottom: '2px' }}>
+                            Rp {((eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))) + Math.round(((eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))) * eventAdminFee) / 100)).toLocaleString('id-ID')}
+                          </strong>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="form-group">
@@ -2409,12 +2476,12 @@ export default function AdminPanel({
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform:</span>
-                        <strong style={{ color: 'white' }}>Rp {(depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : eventAdminFee).toLocaleString('id-ID')}</strong>
+                        <strong style={{ color: 'white' }}>Rp {(depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100)).toLocaleString('id-ID')}</strong>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px', marginTop: '4px' }}>
                         <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>Total Pembayaran:</span>
                         <strong style={{ color: '#fbbf24', fontSize: '1.2rem' }}>
-                          Rp {((depositingEvent.campaignBudget || 0) + (depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : eventAdminFee)).toLocaleString('id-ID')}
+                          Rp {((depositingEvent.campaignBudget || 0) + (depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100))).toLocaleString('id-ID')}
                         </strong>
                       </div>
                     </div>
@@ -2907,16 +2974,19 @@ export default function AdminPanel({
                           </tr>
                         </thead>
                         <tbody>
-                          {filteredEvents.map((evt) => (
-                        <tr 
-                          key={evt.id} 
-                          className="table-row-hover"
-                          onClick={() => { setSelectedManageEvent(evt); setInnerManageTab('participants'); }}
-                          style={{
-                            cursor: 'pointer',
-                            background: 'rgba(255, 255, 255, 0.01)'
-                          }}
-                        >
+                          {filteredEvents.map((evt) => {
+                            const status = getEventStatus(evt);
+                            const isLocked = currentUser?.role === 'panitia' && status.label === 'Berjalan';
+                            return (
+                              <tr 
+                                key={evt.id} 
+                                className="table-row-hover"
+                                onClick={() => { setSelectedManageEvent(evt); setInnerManageTab('participants'); }}
+                                style={{
+                                  cursor: 'pointer',
+                                  background: 'rgba(255, 255, 255, 0.01)'
+                                }}
+                              >
                           <td>
                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                <strong style={{ color: 'white' }}>{evt.title}</strong>
@@ -3049,23 +3119,48 @@ export default function AdminPanel({
                               <button 
                                 className="action-btn" 
                                 onClick={(e) => { e.stopPropagation(); handleEditEvent(evt); }} 
-                                style={{ color: '#ffffff', cursor: 'pointer', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                title="Edit Event"
+                                disabled={isLocked}
+                                style={{ 
+                                  color: '#ffffff', 
+                                  cursor: isLocked ? 'not-allowed' : 'pointer', 
+                                  background: 'rgba(255, 255, 255, 0.05)', 
+                                  border: '1px solid rgba(255, 255, 255, 0.1)', 
+                                  padding: '6px', 
+                                  borderRadius: '6px', 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  justifyContent: 'center',
+                                  opacity: isLocked ? 0.3 : 1
+                                }}
+                                title={isLocked ? "Event berjalan dikunci (tidak bisa diedit)" : "Edit Event"}
                               >
                                 <Edit size={14} />
                               </button>
                               <button 
                                 className="action-btn" 
                                 onClick={(e) => { e.stopPropagation(); handleDeleteEvent(evt.id); }} 
-                                style={{ color: '#ffffff', cursor: 'pointer', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                title="Hapus Event"
+                                disabled={isLocked}
+                                style={{ 
+                                  color: '#ffffff', 
+                                  cursor: isLocked ? 'not-allowed' : 'pointer', 
+                                  background: 'rgba(255, 255, 255, 0.05)', 
+                                  border: '1px solid rgba(255, 255, 255, 0.1)', 
+                                  padding: '6px', 
+                                  borderRadius: '6px', 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  justifyContent: 'center',
+                                  opacity: isLocked ? 0.3 : 1
+                                }}
+                                title={isLocked ? "Event berjalan dikunci (tidak bisa dihapus)" : "Hapus Event"}
                               >
                                 <Trash2 size={14} />
                               </button>
                             </div>
                           </td>
                         </tr>
-                      ))}
+                            );
+                          })}
                     </tbody>
                   </table>
                     );
@@ -3319,7 +3414,7 @@ export default function AdminPanel({
           <div className="add-affiliate-card glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
             <h3 style={{ marginBottom: '16px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontWeight: '700' }}>
               <ExternalLink size={18} style={{ color: 'white' }} />
-              <span>Monitoring Penawaran Kerja Sama</span>
+              <span>Monitoring Undangan Kreator</span>
             </h3>
             
             {(() => {
@@ -3327,11 +3422,11 @@ export default function AdminPanel({
               if (myOffers.length === 0) {
                 return (
                   <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.88rem' }}>
-                    Belum ada tawaran kerja sama yang Anda kirimkan.
+                    Belum ada undangan kolaborasi yang Anda kirimkan.
                   </div>
                 );
               }
-
+ 
               return (
                 <div style={{ overflowX: 'auto' }}>
                   <table className="admin-table">
@@ -3339,7 +3434,6 @@ export default function AdminPanel({
                       <tr>
                         <th>Creator</th>
                         <th>Event</th>
-                        <th>Tawaran Budget</th>
                         <th>Pesan</th>
                         <th style={{ textAlign: 'center' }}>Status</th>
                       </tr>
@@ -3350,8 +3444,7 @@ export default function AdminPanel({
                           <tr key={off.id}>
                             <td><strong>@{off.recipient}</strong></td>
                             <td>{off.eventTitle}</td>
-                            <td><strong style={{ color: '#34d399' }}>Rp {off.budget?.toLocaleString('id-ID')}</strong></td>
-                            <td style={{ maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{off.message}</td>
+                            <td style={{ maxWidth: '350px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{off.message}</td>
                             <td style={{ textAlign: 'center' }}>
                               <span style={{
                                 padding: '4px 10px',
@@ -3744,19 +3837,19 @@ export default function AdminPanel({
 
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Send size={20} style={{ color: '#ffffff' }} />
-                    <span>Kirim Penawaran ke @{selectedMarketplaceCreator}</span>
+                    <span>Undang @{selectedMarketplaceCreator} ke Event Anda</span>
                   </h3>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-                  Kirim penawaran budget khusus untuk mengundang creator ini mendaftar sebagai peserta event Anda.
+                  Undang content creator ini untuk bergabung sebagai peserta dalam event kompetisi Anda.
                 </p>
-
+ 
                 {(() => {
                   const myEvents = events.filter(e => e.creator === currentUser.username && e.paymentStatus === 'paid');
                   if (myEvents.length === 0) {
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <div style={{ padding: '24px 20px', textAlign: 'center', color: '#f87171', fontSize: '0.88rem', background: 'rgba(239,68,68,0.06)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.15)', lineHeight: '1.5' }}>
-                          Anda belum memiliki Event yang Aktif & Terbayar. Silakan buat dan bayar event terlebih dahulu sebelum mengirimkan penawaran.
+                          Anda belum memiliki Event yang Aktif & Terbayar. Silakan buat dan bayar event terlebih dahulu sebelum mengirimkan undangan.
                         </div>
                         <button 
                           className="btn btn-secondary" 
@@ -3768,7 +3861,7 @@ export default function AdminPanel({
                       </div>
                     );
                   }
-
+ 
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div className="form-group">
@@ -3783,28 +3876,17 @@ export default function AdminPanel({
                           ))}
                         </select>
                       </div>
-
+ 
                       <div className="form-group">
-                        <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Tawaran Budget (Rp)</label>
-                        <input 
-                          type="number" 
-                          placeholder="Contoh: 500000" 
-                          value={offerBudget}
-                          onChange={(e) => setOfferBudget(e.target.value)}
-                          style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.85rem', outline: 'none' }}
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Pesan Penawaran / Ajakan</label>
+                        <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Pesan Undangan / Ajakan</label>
                         <textarea 
-                          placeholder="Tulis pesan ajakan atau penawaran detail di sini..." 
+                          placeholder="Tulis pesan ajakan atau undangan detail di sini..." 
                           value={offerMessage}
                           onChange={(e) => setOfferMessage(e.target.value)}
                           style={{ width: '100%', height: '100px', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.85rem', outline: 'none', resize: 'none' }}
                         />
                       </div>
-
+ 
                       <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
                         <button 
                           className="btn" 
@@ -3821,10 +3903,6 @@ export default function AdminPanel({
                               alert('Silakan pilih event!');
                               return;
                             }
-                            if (!offerBudget) {
-                              alert('Silakan masukkan budget!');
-                              return;
-                            }
                             const selectedEvt = events.find(e => e.id === offerEventId);
                             const newOffer = {
                               id: 'offer_' + Date.now(),
@@ -3832,7 +3910,7 @@ export default function AdminPanel({
                               recipient: selectedMarketplaceCreator,
                               eventId: offerEventId,
                               eventTitle: selectedEvt?.title || 'Event Pilihan',
-                              budget: parseInt(offerBudget) || 0,
+                              budget: 0,
                               message: offerMessage,
                               status: 'pending',
                               sentAt: new Date().toISOString()
@@ -3842,10 +3920,10 @@ export default function AdminPanel({
                             setOfferEventId('');
                             setOfferBudget('');
                             setOfferMessage('');
-                            alert(`Berhasil mengirimkan penawaran kepada @${selectedMarketplaceCreator}!`);
+                            alert(`Berhasil mengirimkan undangan kepada @${selectedMarketplaceCreator}!`);
                           }}
                         >
-                          Kirim Penawaran
+                          Kirim Undangan
                         </button>
                       </div>
                     </div>
@@ -4237,15 +4315,17 @@ export default function AdminPanel({
                   </span>
                 </div>
 
-                <div className="form-group" style={{ marginBottom: '24px' }}>
-                  <label style={{ fontSize: '0.85rem', marginBottom: '6px', display: 'block', color: 'white', fontWeight: 'bold' }}>Biaya Platform Pembuatan Event (IDR)</label>
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                  <label style={{ fontSize: '0.85rem', marginBottom: '6px', display: 'block', color: 'white', fontWeight: 'bold' }}>Biaya Platform Pembuatan Event (%)</label>
                   <input
-                    type="text"
-                    placeholder="Contoh: 50.000"
-                    value={eventAdminFee ? eventAdminFee.toLocaleString('id-ID') : ''}
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder="Contoh: 5"
+                    value={eventAdminFee || ''}
                     onChange={(e) => {
-                      const parsed = e.target.value.replace(/\D/g, '');
-                      setEventAdminFee(parsed ? parseInt(parsed) : 0);
+                      const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                      setEventAdminFee(val);
                     }}
                     style={{
                       width: '100%',
@@ -4259,7 +4339,35 @@ export default function AdminPanel({
                     }}
                   />
                   <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                    Biaya platform tetap yang akan ditambahkan pada total pembayaran ketika Event Creator mengaktifkan event.
+                    Persentase biaya platform yang akan dikenakan dari total budget ketika Event Creator membuat/mengaktifkan event.
+                  </span>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '24px' }}>
+                  <label style={{ fontSize: '0.85rem', marginBottom: '6px', display: 'block', color: 'white', fontWeight: 'bold' }}>Biaya Penarikan Saldo (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder="Contoh: 2"
+                    value={withdrawalFeePercent || ''}
+                    onChange={(e) => {
+                      const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                      setWithdrawalFeePercent(val);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(167, 139, 250, 0.3)',
+                      borderRadius: 'var(--radius-sm)',
+                      color: 'white',
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: '0.9rem'
+                    }}
+                  />
+                  <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    Persentase biaya admin yang dipotong otomatis dari nominal penarikan saldo peserta.
                   </span>
                 </div>
               </>
@@ -5235,8 +5343,14 @@ export default function AdminPanel({
                               <code style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{wd.account}</code>
                             </div>
                           </td>
-                          <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'white' }}>
-                            Rp {wd.amount?.toLocaleString('id-ID')}
+                          <td style={{ textAlign: 'right' }}>
+                            <strong style={{ color: 'white' }}>Rp {wd.amount?.toLocaleString('id-ID')}</strong>
+                            {wd.fee > 0 && (
+                              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                Fee: <span style={{ color: '#f43f5e' }}>-Rp {wd.fee.toLocaleString('id-ID')}</span><br />
+                                Net: <span style={{ color: '#4ade80', fontWeight: 'bold' }}>Rp {wd.netAmount.toLocaleString('id-ID')}</span>
+                              </div>
+                            )}
                           </td>
                           <td style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                             {new Date(wd.requestedAt).toLocaleDateString('id-ID', {

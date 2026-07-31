@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, AlertTriangle, Check, X, XCircle } from 'lucide-react';
+import { Sparkles, AlertTriangle, Check, X, XCircle, QrCode, Landmark, Wallet, Hourglass } from 'lucide-react';
 
 export default function PremiumModal({
   isOpen,
@@ -155,9 +155,9 @@ export default function PremiumModal({
 
         {hasPending ? (
           <div style={{ padding: '10px 0' }}>
-            <div style={{ color: '#eab308', marginBottom: '16px', display: 'inline-block' }}>
-              <div style={{ width: '56px', height: '56px', border: '3px dashed #eab308', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'spin 12s linear infinite' }}>
-                <span style={{ fontSize: '1.6rem' }}>⏳</span>
+            <div style={{ color: '#ffffff', marginBottom: '16px', display: 'inline-block' }}>
+              <div style={{ width: '56px', height: '56px', border: '2px dashed rgba(255, 255, 255, 0.4)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'spin 12s linear infinite' }}>
+                <Hourglass size={24} />
               </div>
             </div>
             <h3 style={{ fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '10px', color: 'white' }}>Menunggu Persetujuan Admin</h3>
@@ -165,7 +165,7 @@ export default function PremiumModal({
               Registrasi akun <strong>{currentUser.username}</strong> telah selesai! Saat ini admin sedang memproses bukti transfer pembayaran untuk mengaktifkan status Premium Anda.
             </p>
             
-            <div style={{ background: 'rgba(234, 179, 8, 0.06)', border: '1px solid rgba(234, 179, 8, 0.2)', borderRadius: 'var(--radius-sm)', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
+            <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 'var(--radius-sm)', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.82rem' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Nama Pengguna:</span>
                 <strong style={{ color: 'white' }}>{currentUser.username}</strong>
@@ -176,11 +176,11 @@ export default function PremiumModal({
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.82rem' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Jumlah Transfer:</span>
-                <strong style={{ color: '#4ade80' }}>{pendingConf?.amount}</strong>
+                <strong style={{ color: 'white' }}>{pendingConf?.amount}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Status Akun:</span>
-                <strong style={{ color: '#eab308' }}>MENUNGGU PERSETUJUAN</strong>
+                <strong style={{ color: 'white' }}>MENUNGGU PERSETUJUAN</strong>
               </div>
             </div>
 
@@ -199,7 +199,7 @@ export default function PremiumModal({
             {/* Header section */}
             <div style={{ marginBottom: '24px' }}>
               <div style={{ color: 'var(--primary-color)', marginBottom: '10px', display: 'inline-block' }}>
-                <Sparkles size={40} className="animate-pulse" style={{ color: '#a78bfa' }} />
+                <Sparkles size={40} className="animate-pulse" style={{ color: '#ffffff' }} />
               </div>
               <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: '0 0 6px 0' }}>Pilih Paket Langganan Premium</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: 0 }}>
@@ -218,8 +218,8 @@ export default function PremiumModal({
             {/* Step 1: Plans Grid Selector */}
             {checkoutStep === 'plans' && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div className="plan-card glass-panel pro-plan-glowing" style={{ padding: '28px 24px', borderRadius: 'var(--radius-md)', border: '2px solid #7c3aed', width: '100%', maxWidth: '360px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(239, 68, 68, 0.02) 100%)', boxShadow: '0 0 20px rgba(124, 58, 237, 0.15)', textAlign: 'left', marginBottom: '24px' }}>
-                  <div style={{ position: 'absolute', top: '12px', right: '-32px', background: 'linear-gradient(90deg, #7c3aed, #ef4444)', color: 'white', fontSize: '0.62rem', fontWeight: 'bold', padding: '4px 30px', transform: 'rotate(45deg)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div className="plan-card glass-panel" style={{ padding: '28px 24px', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255, 255, 255, 0.15)', width: '100%', maxWidth: '360px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', overflow: 'hidden', background: 'rgba(255, 255, 255, 0.02)', boxShadow: '0 4px 20px rgba(255, 255, 255, 0.05)', textAlign: 'left', marginBottom: '24px' }}>
+                  <div style={{ position: 'absolute', top: '12px', right: '-32px', background: '#ffffff', color: '#020202', fontSize: '0.62rem', fontWeight: 'bold', padding: '4px 30px', transform: 'rotate(45deg)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     PREMIUM
                   </div>
 
@@ -227,24 +227,24 @@ export default function PremiumModal({
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                       <span style={{ fontSize: '1.15rem', fontWeight: 'bold', color: 'white', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span>Paket PREMIUM</span>
-                        <Sparkles size={14} style={{ color: '#fbbf24' }} />
+                        <Sparkles size={14} style={{ color: '#ffffff' }} />
                       </span>
                     </div>
                     <div style={{ marginBottom: '16px' }}>
-                      <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#a78bfa' }}>{premiumPrice}</span>
+                      <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ffffff' }}>{premiumPrice}</span>
                     </div>
-                    <hr style={{ border: 'none', borderTop: '1px solid rgba(124, 58, 237, 0.2)', marginBottom: '16px' }} />
+                    <hr style={{ border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.12)', marginBottom: '16px' }} />
                     <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', fontSize: '0.88rem', display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text-secondary)' }}>
                       <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Check size={16} style={{ color: '#7c3aed' }} />
+                        <Check size={16} style={{ color: '#ffffff' }} />
                         <span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Akses Seluruh Episode & Film</span>
                       </li>
                       <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Check size={16} style={{ color: '#7c3aed' }} />
+                        <Check size={16} style={{ color: '#ffffff' }} />
                         <span>Kualitas 4K Ultra HD & 1080p</span>
                       </li>
                       <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Check size={16} style={{ color: '#7c3aed' }} />
+                        <Check size={16} style={{ color: '#ffffff' }} />
                         <span>100% Tanpa Iklan / Affiliate</span>
                       </li>
                     </ul>
@@ -265,11 +265,11 @@ export default function PremiumModal({
                       width: '100%', 
                       justifyContent: 'center', 
                       padding: '12px', 
-                      background: 'linear-gradient(90deg, #7c3aed, #ef4444)',
-                      border: 'none',
-                      color: 'white',
+                      background: '#ffffff',
+                      border: '1px solid #ffffff',
+                      color: '#020202',
                       fontWeight: '600',
-                      boxShadow: '0 4px 15px rgba(124, 58, 237, 0.3)'
+                      boxShadow: '0 4px 15px rgba(255, 255, 255, 0.15)'
                     }}
                   >
                     <span>{currentUser ? 'Berlangganan Sekarang' : 'Daftar & Berlangganan'}</span>
@@ -308,9 +308,9 @@ export default function PremiumModal({
                       setCheckoutStep('instructions');
                     }}
                     className="payment-method-card glass-panel"
-                    style={{ padding: '16px 12px', textAlign: 'center', border: '1px solid rgba(124, 58, 237, 0.4)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', background: 'rgba(124, 58, 237, 0.05)' }}
+                    style={{ padding: '16px 12px', textAlign: 'center', border: '1px solid #ffffff', borderRadius: 'var(--radius-sm)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center', background: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 4px 12px rgba(255, 255, 255, 0.05)' }}
                   >
-                    <span style={{ fontSize: '1.5rem' }}>📱</span>
+                    <QrCode size={24} style={{ color: '#ffffff' }} />
                     <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'white' }}>QRIS (Otomatis)</span>
                   </button>
 
@@ -320,9 +320,9 @@ export default function PremiumModal({
                       setCheckoutStep('instructions');
                     }}
                     className="payment-method-card glass-panel"
-                    style={{ padding: '16px 12px', textAlign: 'center', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}
+                    style={{ padding: '16px 12px', textAlign: 'center', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}
                   >
-                    <span style={{ fontSize: '1.5rem' }}>🏦</span>
+                    <Landmark size={24} style={{ color: '#ffffff' }} />
                     <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'white' }}>Transfer BCA</span>
                   </button>
 
@@ -332,9 +332,9 @@ export default function PremiumModal({
                       setCheckoutStep('instructions');
                     }}
                     className="payment-method-card glass-panel"
-                    style={{ padding: '16px 12px', textAlign: 'center', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}
+                    style={{ padding: '16px 12px', textAlign: 'center', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}
                   >
-                    <span style={{ fontSize: '1.5rem' }}>💵</span>
+                    <Wallet size={24} style={{ color: '#ffffff' }} />
                     <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'white' }}>DANA / OVO</span>
                   </button>
                 </div>
@@ -369,11 +369,11 @@ export default function PremiumModal({
                   <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '8px 0' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Total Pembayaran:</span>
-                    <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#4ade80' }}>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#ffffff' }}>
                       {formatAmountWithUnique(selectedPlan.price, uniqueCode)}
                     </span>
                   </div>
-                  <span style={{ display: 'block', fontSize: '0.72rem', color: '#f59e0b', marginTop: '6px', textAlign: 'center' }}>
+                  <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '6px', textAlign: 'center' }}>
                     💡 *Penting: Transfer nominal di atas secara tepat (termasuk 3 digit kode unik).*
                   </span>
                 </div>
@@ -385,9 +385,9 @@ export default function PremiumModal({
                 {/* QRIS specific scanner code layout */}
                 {selectedPayMethod.type === 'qris' ? (
                   <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                    <div style={{ background: '#fff', padding: '16px', borderRadius: '12px', display: 'inline-block', border: '2px solid #ef4444' }}>
+                    <div style={{ background: '#fff', padding: '16px', borderRadius: '12px', display: 'inline-block', border: '2px solid #000000' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #eee', paddingBottom: '4px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#1e3a8a' }}>QRIS</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#000000' }}>QRIS</span>
                         <span style={{ fontSize: '0.55rem', color: '#6b7280', fontWeight: 'bold' }}>NMID: ID100050809</span>
                       </div>
                       <div style={{ textAlign: 'center', marginBottom: '6px' }}>
@@ -408,7 +408,7 @@ export default function PremiumModal({
                         <rect x="2" y="82" width="16" height="16" fill="#fff" />
                         <rect x="5" y="85" width="10" height="10" fill="#111827" />
 
-                        <rect x="40" y="40" width="20" height="20" fill="#ef4444" rx="2" />
+                        <rect x="40" y="40" width="20" height="20" fill="#000000" rx="2" />
                         <text x="50" y="52" fill="#fff" fontSize="8" fontWeight="bold" textAnchor="middle">PM</text>
 
                         {/* Random pattern data dots */}

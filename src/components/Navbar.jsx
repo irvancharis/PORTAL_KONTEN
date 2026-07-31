@@ -40,6 +40,14 @@ export default function Navbar({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [dismissedNotifs, setDismissedNotifs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('portal-dismissed-notifications');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const userMenuRef = useRef(null);
   const notificationRef = useRef(null);
   const mobileMenuRef = useRef(null);
@@ -285,17 +293,20 @@ export default function Navbar({
     eventParticipants
       .filter(p => p.username.toLowerCase() === userLower)
       .forEach(p => {
+        const evt = events.find(e => e.id === p.eventId);
+        const displayEventTitle = evt ? evt.title : (p.eventTitle || 'Event');
+        
         let title = '';
         let msg = '';
         if (p.status === 'approved') {
           title = 'Pendaftaran Disetujui';
-          msg = `Selamat! Pendaftaran Anda di event "${p.eventTitle}" telah disetujui. Anda dapat mengirimkan karya sekarang.`;
+          msg = `Selamat! Pendaftaran Anda di event "${displayEventTitle}" telah disetujui. Anda dapat mengirimkan karya sekarang.`;
         } else if (p.status === 'rejected') {
           title = 'Pendaftaran Ditolak';
-          msg = `Maaf, pendaftaran Anda di event "${p.eventTitle}" ditolak. Silakan hubungi panitia.`;
+          msg = `Maaf, pendaftaran Anda di event "${displayEventTitle}" ditolak. Silakan hubungi panitia.`;
         } else {
           title = 'Pendaftaran Diproses';
-          msg = `Pendaftaran Anda di event "${p.eventTitle}" sedang dalam proses verifikasi oleh panitia.`;
+          msg = `Pendaftaran Anda di event "${displayEventTitle}" sedang dalam proses verifikasi oleh panitia.`;
         }
         list.push({
           id: `user_part_${p.id}`,
@@ -305,7 +316,7 @@ export default function Navbar({
           timestamp: p.verifiedAt || p.registeredAt || new Date().toISOString(),
           tab: 'user-events',
           eventId: p.eventId,
-          eventTitle: p.eventTitle
+          eventTitle: displayEventTitle
         });
       });
 
@@ -339,15 +350,16 @@ export default function Navbar({
                 : new Date().getTime() > new Date(evt.deadline + 'T23:59:59').getTime()
             ) : false;
             if (!isDeadlinePassed) {
+              const displayEventTitle = evt.title || p.eventTitle || 'Event';
               list.push({
                 id: `user_pend_sub_${p.id}`,
                 type: 'user-pending-submission',
                 title: 'Kirim Karya Diperlukan',
-                message: `Anda belum mengirimkan karya untuk event "${p.eventTitle}". Batas waktu: ${formatIndonesianDate(evt.deadline)}.`,
+                message: `Anda belum mengirimkan karya untuk event "${displayEventTitle}". Batas waktu: ${formatIndonesianDate(evt.deadline)}.`,
                 timestamp: p.verifiedAt || p.registeredAt || new Date().toISOString(),
                 tab: 'user-events',
                 eventId: p.eventId,
-                eventTitle: p.eventTitle
+                eventTitle: displayEventTitle
               });
             }
           }
@@ -380,7 +392,9 @@ export default function Navbar({
         });
       });
 
-    return list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    return list
+      .filter(n => !dismissedNotifs.includes(n.id))
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   };
 
   const notificationsList = getNotifications();
@@ -742,6 +756,12 @@ export default function Navbar({
                                 key={notif.id} 
                                 onClick={() => {
                                   setIsNotificationOpen(false);
+                                  // Mark notification as dismissed/read
+                                  setDismissedNotifs(prev => {
+                                    const updated = [...prev, notif.id];
+                                    localStorage.setItem('portal-dismissed-notifications', JSON.stringify(updated));
+                                    return updated;
+                                  });
                                   if (notif.tab === 'wallet') {
                                     setActiveTab('wallet');
                                     window.history.pushState(null, '', '/wallet');
