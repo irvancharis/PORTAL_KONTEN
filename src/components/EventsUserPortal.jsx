@@ -820,8 +820,8 @@ export default function EventsUserPortal({
       {/* Profile Completion Suggestion Banner */}
       {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && (
         <div style={{
-          background: 'rgba(255, 255, 255, 0.03)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
+          background: '#ffffff',
+          border: '1px solid #ffffff',
           borderRadius: '12px',
           padding: '16px 20px',
           marginBottom: '24px',
@@ -833,12 +833,12 @@ export default function EventsUserPortal({
           textAlign: 'left'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '280px' }}>
-            <div style={{ background: 'rgba(255, 255, 255, 0.08)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <AlertTriangle size={20} color="#ffffff" />
+            <div style={{ background: 'rgba(0, 0, 0, 0.06)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <AlertTriangle size={20} color="#020202" />
             </div>
             <div>
-              <h4 style={{ margin: '0 0 4px 0', color: '#ffffff', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
-              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.5' }}>
+              <h4 style={{ margin: '0 0 4px 0', color: '#020202', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
+              <p style={{ margin: 0, color: '#4b5563', fontSize: '0.82rem', lineHeight: '1.5' }}>
                 lengkapi profil Anda terlebih dahulu agar dapat mendaftar sebagai peserta event.
               </p>
             </div>
@@ -851,21 +851,21 @@ export default function EventsUserPortal({
               fontSize: '0.82rem',
               borderRadius: '20px',
               fontWeight: 'bold',
-              background: '#ffffff',
-              color: '#020202',
-              border: '1px solid #ffffff',
+              background: '#020202',
+              color: '#ffffff',
+              border: '1px solid #020202',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '6px'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#e5e5e5';
-              e.currentTarget.style.borderColor = '#e5e5e5';
+              e.currentTarget.style.background = '#1f2937';
+              e.currentTarget.style.borderColor = '#1f2937';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#ffffff';
-              e.currentTarget.style.borderColor = '#ffffff';
+              e.currentTarget.style.background = '#020202';
+              e.currentTarget.style.borderColor = '#020202';
             }}
           >
             <User size={14} />
