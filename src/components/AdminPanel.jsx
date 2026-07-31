@@ -176,6 +176,16 @@ export default function AdminPanel({
     ? eventSubmissions.filter(s => myEventIds.includes(s.eventId)) 
     : eventSubmissions;
 
+  const isCreatorFullyInvitedOrRegistered = (creatorUsername) => {
+    const myPaidEvents = events.filter(e => e.creator === currentUser?.username && e.paymentStatus === 'paid');
+    if (myPaidEvents.length === 0) return true;
+    return myPaidEvents.every(e => {
+      const isPart = eventParticipants.some(p => p.eventId === e.id && p.username.toLowerCase() === creatorUsername.toLowerCase());
+      const hasOffer = offers.some(o => o.eventId === e.id && o.recipient.toLowerCase() === creatorUsername.toLowerCase() && (o.status === 'pending' || o.status === 'accepted'));
+      return isPart || hasOffer;
+    });
+  };
+
   const hasPermission = (tabId) => {
     if (currentUser?.role === 'superadmin') return true;
     
@@ -208,6 +218,10 @@ export default function AdminPanel({
   const [marketplaceSearch, setMarketplaceSearch] = useState('');
   const [marketplaceLevelFilter, setMarketplaceLevelFilter] = useState('All');
   const [viewingCreatorProfile, setViewingCreatorProfile] = useState(null);
+  const [selectedCreatorUsernames, setSelectedCreatorUsernames] = useState([]);
+  const [showBulkOfferModal, setShowBulkOfferModal] = useState(false);
+  const [bulkOfferEventId, setBulkOfferEventId] = useState('');
+  const [bulkOfferMessage, setBulkOfferMessage] = useState('');
 
   // Payment local states
   const [visiblePaymentsCount, setVisiblePaymentsCount] = useState(10);
@@ -3253,10 +3267,96 @@ export default function AdminPanel({
 
               return (
                 <>
+                  {/* Bulk Actions Bar */}
+                  {selectedCreatorUsernames.length > 0 && (
+                    <div style={{ 
+                      marginBottom: '16px', 
+                      padding: '12px 20px', 
+                      background: 'rgba(255, 255, 255, 0.03)', 
+                      border: '1px dashed rgba(255, 255, 255, 0.15)', 
+                      borderRadius: '10px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: '12px'
+                    }}>
+                      <div style={{ color: 'white', fontSize: '0.88rem', fontWeight: '600' }}>
+                        <span style={{ background: '#ffffff', color: '#020202', padding: '2px 8px', borderRadius: '4px', marginRight: '8px', fontWeight: 'bold' }}>
+                          {selectedCreatorUsernames.length}
+                        </span>
+                        Creator Terpilih
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          className="btn"
+                          onClick={() => setSelectedCreatorUsernames([])}
+                          style={{ 
+                            padding: '6px 16px', 
+                            borderRadius: '8px', 
+                            fontSize: '0.8rem', 
+                            background: 'transparent', 
+                            border: '1px solid rgba(255,255,255,0.2)', 
+                            color: 'white',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Batal Pilihan
+                        </button>
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => {
+                            const myEvents = events.filter(e => e.creator === currentUser?.username && e.paymentStatus === 'paid');
+                            if (myEvents.length > 0) setBulkOfferEventId(myEvents[0].id);
+                            setBulkOfferMessage('');
+                            setShowBulkOfferModal(true);
+                          }}
+                          style={{ 
+                            padding: '6px 16px', 
+                            borderRadius: '8px', 
+                            fontSize: '0.8rem', 
+                            fontWeight: '700',
+                            background: '#ffffff', 
+                            border: '1px solid #ffffff', 
+                            color: '#020202',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Send size={12} />
+                          <span>Kirim Penawaran Masal</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <div style={{ overflowX: 'auto' }}>
                   <table className="admin-table">
                     <thead>
                       <tr>
+                        <th style={{ width: '40px', textAlign: 'center' }}>
+                          <input 
+                            type="checkbox"
+                            checked={creatorsList.length > 0 && creatorsList.every(c => isCreatorFullyInvitedOrRegistered(c.username) ? true : selectedCreatorUsernames.includes(c.username))}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                const eligibleOnes = creatorsList
+                                  .filter(c => !isCreatorFullyInvitedOrRegistered(c.username))
+                                  .map(c => c.username);
+                                setSelectedCreatorUsernames(prev => {
+                                  const combined = new Set([...prev, ...eligibleOnes]);
+                                  return Array.from(combined);
+                                });
+                              } else {
+                                const currentListUsernames = creatorsList.map(c => c.username);
+                                setSelectedCreatorUsernames(prev => prev.filter(uname => !currentListUsernames.includes(uname)));
+                              }
+                            }}
+                            style={{ cursor: 'pointer', accentColor: '#ffffff' }}
+                          />
+                        </th>
                         <th>Content Creator</th>
                         <th>Reputasi</th>
                         <th>Akumulasi Poin</th>
@@ -3267,6 +3367,8 @@ export default function AdminPanel({
                     <tbody>
                       {creatorsList.map(creator => {
                         const creatorAvatar = creator.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(creator.username)}&backgroundColor=262626&textColor=ffffff`;
+                        const isFullyInvited = isCreatorFullyInvitedOrRegistered(creator.username);
+                        const isChecked = selectedCreatorUsernames.includes(creator.username);
                         
                         return (
                           <tr 
@@ -3276,6 +3378,21 @@ export default function AdminPanel({
                             style={{ cursor: 'pointer' }}
                             title="Klik untuk Lihat Detail Profil & Portofolio"
                           >
+                            <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                              <input 
+                                type="checkbox"
+                                disabled={isFullyInvited}
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedCreatorUsernames(prev => [...prev, creator.username]);
+                                  } else {
+                                    setSelectedCreatorUsernames(prev => prev.filter(uname => uname !== creator.username));
+                                  }
+                                }}
+                                style={{ cursor: isFullyInvited ? 'not-allowed' : 'pointer', accentColor: '#ffffff' }}
+                              />
+                            </td>
                             <td>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <img 
@@ -3329,31 +3446,37 @@ export default function AdminPanel({
                               {creator.metrics.submissionsCount} Karya
                             </td>
                             <td style={{ textAlign: 'center' }}>
-                              <button
-                                className="btn btn-primary"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedMarketplaceCreator(creator.username);
-                                  const myEvents = events.filter(e => e.creator === currentUser.username && e.paymentStatus === 'paid');
-                                  if (myEvents.length > 0) setOfferEventId(myEvents[0].id);
-                                }}
-                                style={{
-                                  padding: '6px 16px',
-                                  borderRadius: '8px',
-                                  fontSize: '0.8rem',
-                                  fontWeight: '700',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
-                                  border: 'none',
-                                  color: 'white',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                <Send size={12} />
-                                <span>Kirim Penawaran</span>
-                              </button>
+                              {isFullyInvited ? (
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>
+                                  Sudah Ditawarkan
+                                </span>
+                              ) : (
+                                <button
+                                  className="btn btn-primary"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedMarketplaceCreator(creator.username);
+                                    const myEvents = events.filter(e => e.creator === currentUser?.username && e.paymentStatus === 'paid');
+                                    if (myEvents.length > 0) setOfferEventId(myEvents[0].id);
+                                  }}
+                                  style={{
+                                    padding: '6px 16px',
+                                    borderRadius: '8px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: '700',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    background: '#ffffff',
+                                    border: '1px solid #ffffff',
+                                    color: '#020202',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <Send size={12} />
+                                  <span>Kirim Penawaran</span>
+                                </button>
+                              )}
                             </td>
                           </tr>
                         );
@@ -3952,6 +4075,215 @@ export default function AdminPanel({
                     </div>
                   );
                 })()}
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+
+          {/* Send Bulk Offer Modal */}
+          {showBulkOfferModal && createPortal(
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: '#020202',
+              zIndex: 99999,
+              display: 'flex',
+              alignItems: 'stretch',
+              justifyContent: 'stretch',
+              padding: 0
+            }} onClick={() => setShowBulkOfferModal(false)}>
+              <div 
+                className="glass-panel animate-scale-in" 
+                style={{
+                  width: '100vw',
+                  height: '100vh',
+                  maxHeight: '100vh',
+                  overflowY: 'auto',
+                  padding: '40px 24px',
+                  background: '#020202',
+                  textAlign: 'left',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center'
+                }} 
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ width: '100%', maxWidth: '640px' }}>
+                  {/* Close Button */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+                    <button 
+                      onClick={() => setShowBulkOfferModal(false)}
+                      style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: 'var(--text-secondary)',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <XCircle size={18} />
+                    </button>
+                  </div>
+
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Send size={20} style={{ color: '#ffffff' }} />
+                    <span>Kirim Penawaran Masal ({selectedCreatorUsernames.length} Creator)</span>
+                  </h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                    Kirim undangan kolaborasi sekaligus kepada beberapa creator terpilih untuk bergabung dalam event kompetisi Anda.
+                  </p>
+
+                  {(() => {
+                    const myEvents = events.filter(e => e.creator === currentUser?.username && e.paymentStatus === 'paid');
+                    if (myEvents.length === 0) {
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                          <div style={{ padding: '24px 20px', textAlign: 'center', color: '#f87171', fontSize: '0.88rem', background: 'rgba(239,68,68,0.06)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.15)', lineHeight: '1.5' }}>
+                            Anda belum memiliki Event yang Aktif & Terbayar. Silakan buat dan bayar event terlebih dahulu sebelum mengirimkan undangan.
+                          </div>
+                          <button 
+                            className="btn btn-secondary" 
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem' }}
+                            onClick={() => setShowBulkOfferModal(false)}
+                          >
+                            Tutup
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    const activeEventId = bulkOfferEventId || myEvents[0].id;
+                    const selectedEvt = events.find(e => e.id === activeEventId);
+
+                    // Compute which of the selected creators are eligible for the chosen event
+                    const eligibleCreators = selectedCreatorUsernames.filter(uname => {
+                      const isPart = eventParticipants.some(p => p.eventId === activeEventId && p.username.toLowerCase() === uname.toLowerCase());
+                      const hasOffer = offers.some(o => o.eventId === activeEventId && o.recipient.toLowerCase() === uname.toLowerCase() && (o.status === 'pending' || o.status === 'accepted'));
+                      return !isPart && !hasOffer;
+                    });
+
+                    const ineligibleCreators = selectedCreatorUsernames.filter(uname => !eligibleCreators.includes(uname));
+
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div className="form-group">
+                          <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Pilih Event Anda</label>
+                          <select 
+                            value={activeEventId} 
+                            onChange={(e) => setBulkOfferEventId(e.target.value)}
+                            style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.85rem', outline: 'none' }}
+                          >
+                            {myEvents.map(e => (
+                              <option key={e.id} value={e.id}>{e.title}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* List eligible and ineligible creators */}
+                        <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                          <div style={{ marginBottom: '12px' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'white', fontWeight: 'bold', marginBottom: '6px' }}>
+                              Dapat Ditawarkan ({eligibleCreators.length}):
+                            </div>
+                            {eligibleCreators.length > 0 ? (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                {eligibleCreators.map(uname => (
+                                  <span key={uname} style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.08)', color: 'white', padding: '2px 8px', borderRadius: '4px' }}>
+                                    @{uname}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: '0.78rem', color: '#f87171', fontStyle: 'italic' }}>
+                                Tidak ada creator yang dapat ditawarkan untuk event ini (semua sudah ditawarkan atau terdaftar).
+                              </div>
+                            )}
+                          </div>
+
+                          {ineligibleCreators.length > 0 && (
+                            <div>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'bold', marginBottom: '6px' }}>
+                                Sudah Ditawarkan / Terdaftar ({ineligibleCreators.length}):
+                              </div>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                {ineligibleCreators.map(uname => (
+                                  <span key={uname} style={{ fontSize: '0.75rem', background: 'rgba(239,68,68,0.05)', color: '#f87171', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(239,68,68,0.1)' }}>
+                                    @{uname}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="form-group">
+                          <label style={{ display: 'block', marginBottom: '6px', color: 'white', fontSize: '0.85rem', fontWeight: 'bold' }}>Pesan Undangan / Ajakan</label>
+                          <textarea 
+                            placeholder="Tulis pesan ajakan atau undangan detail di sini..." 
+                            value={bulkOfferMessage}
+                            onChange={(e) => setBulkOfferMessage(e.target.value)}
+                            style={{ width: '100%', height: '100px', padding: '10px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.85rem', outline: 'none', resize: 'none' }}
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+                          <button 
+                            className="btn" 
+                            style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer' }}
+                            onClick={() => setShowBulkOfferModal(false)}
+                          >
+                            Batal
+                          </button>
+                          <button 
+                            className="btn btn-primary" 
+                            disabled={eligibleCreators.length === 0}
+                            style={{ 
+                              flex: 1, 
+                              cursor: eligibleCreators.length === 0 ? 'not-allowed' : 'pointer',
+                              background: eligibleCreators.length === 0 ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                              border: eligibleCreators.length === 0 ? '1px solid rgba(255,255,255,0.1)' : '1px solid #ffffff',
+                              color: eligibleCreators.length === 0 ? 'var(--text-muted)' : '#020202',
+                              fontWeight: '700'
+                            }}
+                            onClick={() => {
+                              if (eligibleCreators.length === 0) return;
+                              
+                              const newOffers = eligibleCreators.map(uname => ({
+                                id: 'offer_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                                sender: currentUser.username,
+                                recipient: uname,
+                                eventId: activeEventId,
+                                eventTitle: selectedEvt?.title || 'Event Pilihan',
+                                budget: 0,
+                                message: bulkOfferMessage,
+                                status: 'pending',
+                                sentAt: new Date().toISOString()
+                              }));
+
+                              setOffers(prev => [...prev, ...newOffers]);
+                              setShowBulkOfferModal(false);
+                              setSelectedCreatorUsernames([]);
+                              setBulkOfferEventId('');
+                              setBulkOfferMessage('');
+                              alert(`Berhasil mengirimkan undangan masal kepada ${eligibleCreators.length} creator!`);
+                            }}
+                          >
+                            Kirim Undangan Masal
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>,
