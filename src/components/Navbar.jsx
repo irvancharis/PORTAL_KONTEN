@@ -502,8 +502,6 @@ export default function Navbar({
 
                     const permissions = getAdminPermissions(currentUser.role);
                     return [
-                      { id: 'event-dashboard', label: 'Dashboard Event' },
-                      { id: 'event-manage', label: 'Kelola Event' },
                       { id: 'event-payment', label: 'Verifikasi Pembayaran' },
                       { id: 'creator-marketplace', label: 'Marketplace Creator' },
                       { id: 'finance-report', label: 'Laporan Keuangan' },

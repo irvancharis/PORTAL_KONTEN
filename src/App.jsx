@@ -2202,10 +2202,6 @@ export default function App() {
               onLoginClick={(mode, role, isLocked) => handleOpenLoginModal(mode, role, isLocked)}
               onLogout={handleLogout}
               onEditProfileClick={handleOpenEditProfile}
-              onCreateEventRedirect={() => {
-                handleTabChange('admin');
-                handleAdminSubTabChange('event-manage');
-              }}
               events={events}
               eventParticipants={eventParticipants}
               setEventParticipants={handleSetEventParticipants}
@@ -2215,6 +2211,53 @@ export default function App() {
               setUsers={handleSetUsers}
               offers={offers}
               setOffers={handleSetOffers}
+              renderEventManagement={(onSaveSuccess, autoOpenForm) => (
+                <AdminPanel 
+                  movies={movies} 
+                  setMovies={handleSetMovies} 
+                  affiliateLinks={affiliateLinks}
+                  setAffiliateLinks={handleSetAffiliateLinks}
+                  gdriveApiKey={gdriveApiKey}
+                  setGdriveApiKey={setGdriveApiKey}
+                  whatsappAdmin={whatsappAdmin}
+                  setWhatsappAdmin={setWhatsappAdmin}
+                  premiumPrice={premiumPrice}
+                  setPremiumPrice={setPremiumPrice}
+                  paymentInstructions={paymentInstructions}
+                  setPaymentInstructions={setPaymentInstructions}
+                  users={users}
+                  setUsers={handleSetUsers}
+                  currentUser={currentUser}
+                  onSaveSettings={handleSaveSettings}
+                  
+                  adminSubTab="event-manage"
+                  setAdminSubTab={() => {}}
+                  events={events}
+                  setEvents={handleSetEvents}
+                  eventParticipants={eventParticipants}
+                  setEventParticipants={handleSetEventParticipants}
+                  eventSubmissions={eventSubmissions}
+                  setEventSubmissions={handleSetEventSubmissions}
+                  withdrawals={withdrawals}
+                  setWithdrawals={handleSetWithdrawals}
+                  offers={offers}
+                  setOffers={handleSetOffers}
+                  handleTransferWallet={handleTransferWallet}
+                  minWithdrawalAmount={minWithdrawalAmount}
+                  setMinWithdrawalAmount={setMinWithdrawalAmount}
+                  eventAdminFee={eventAdminFee}
+                  setEventAdminFee={setEventAdminFee}
+                  withdrawalFeePercent={withdrawalFeePercent}
+                  setWithdrawalFeePercent={setWithdrawalFeePercent}
+                  customRoles={customRoles}
+                  setCustomRoles={setCustomRoles}
+                  financialJournals={financialJournals}
+                  setFinancialJournals={handleSetFinancialJournals}
+                  
+                  autoOpenCreateForm={autoOpenForm}
+                  onEventCreatedOrUpdated={onSaveSuccess}
+                />
+              )}
             />
           ) : selectedMovie && isPlaying ? (
             /* YOUTUBE WATCH PAGE LAYOUT */

@@ -282,7 +282,8 @@ export default function EventsUserPortal({
   setUsers,
   onPopulateDemoEvents,
   offers = [],
-  setOffers
+  setOffers,
+  renderEventManagement
 }) {
   const [registeringEvent, setRegisteringEvent] = useState(null); // Event model open for register
   const [showRoleWarning, setShowRoleWarning] = useState(false);
@@ -291,7 +292,8 @@ export default function EventsUserPortal({
   const [contact, setContact] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleEventsCount, setVisibleEventsCount] = useState(12);
-  const [userPortalTab, setUserPortalTab] = useState('events'); // 'events' or 'offers'
+  const [userPortalTab, setUserPortalTab] = useState('events'); // 'events', 'offers' or 'manage'
+  const [autoOpenForm, setAutoOpenForm] = useState(false);
 
   useEffect(() => {
     setVisibleEventsCount(12);
@@ -777,7 +779,8 @@ export default function EventsUserPortal({
       currentUser.role === 'staf' ||
       currentUser.role === 'superadmin'
     ) {
-      onCreateEventRedirect();
+      setUserPortalTab('manage');
+      setAutoOpenForm(true);
     } else {
       setShowRoleWarning(true);
     }
@@ -1686,8 +1689,8 @@ export default function EventsUserPortal({
           </div>
 
           {/* User Portal Tabs */}
-          {currentUser && (currentUser.role === 'user' || currentUser.role === 'panitia') && (
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px' }}>
+          {currentUser && (currentUser.role === 'user' || currentUser.role === 'panitia' || currentUser.role === 'superadmin' || currentUser.role === 'staf') && (
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px', overflowX: 'auto', width: '100%' }}>
               <button
                 onClick={() => setUserPortalTab('events')}
                 style={{
@@ -1700,10 +1703,32 @@ export default function EventsUserPortal({
                   fontWeight: '600',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
-                  outline: 'none'
+                  outline: 'none',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 Semua Event
+              </button>
+              <button
+                onClick={() => {
+                  setUserPortalTab('manage');
+                  setAutoOpenForm(false);
+                }}
+                style={{
+                  padding: '10px 20px',
+                  background: userPortalTab === 'manage' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                  border: userPortalTab === 'manage' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
+                  color: userPortalTab === 'manage' ? 'white' : 'var(--text-secondary)',
+                  borderRadius: '30px',
+                  fontSize: '0.88rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  outline: 'none',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                Kelola Event Saya
               </button>
               <button
                 onClick={() => setUserPortalTab('offers')}
@@ -1720,7 +1745,8 @@ export default function EventsUserPortal({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
-                  outline: 'none'
+                  outline: 'none',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 <span>Undangan Kolaborasi</span>
@@ -1903,6 +1929,13 @@ export default function EventsUserPortal({
                   });
                 })()}
               </div>
+            </div>
+          ) : userPortalTab === 'manage' ? (
+            <div className="event-management-view animate-fade-in" style={{ textAlign: 'left', width: '100%' }}>
+              {renderEventManagement && renderEventManagement(() => {
+                setAutoOpenForm(false);
+                setUserPortalTab('manage');
+              }, autoOpenForm)}
             </div>
           ) : (
             <>

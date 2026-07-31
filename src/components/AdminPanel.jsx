@@ -164,7 +164,9 @@ export default function AdminPanel({
   customRoles = [],
   setCustomRoles,
   financialJournals = [],
-  setFinancialJournals
+  setFinancialJournals,
+  autoOpenCreateForm = false,
+  onEventCreatedOrUpdated
 }) {
   const isPanitia = currentUser && (currentUser.role === 'panitia' || currentUser.role === 'user');
   const myEvents = isPanitia 
@@ -427,7 +429,7 @@ export default function AdminPanel({
   }, [users]);
 
   // Event creation form states
-  const [showEventForm, setShowEventForm] = useState(false);
+  const [showEventForm, setShowEventForm] = useState(autoOpenCreateForm);
   const [eventTitle, setEventTitle] = useState('');
   const [eventCategory, setEventCategory] = useState('Short Film');
   const [eventDeadline, setEventDeadline] = useState('');
@@ -708,6 +710,9 @@ export default function AdminPanel({
       setEvents([...events, newEvent]);
       setShowEventForm(false);
       alert('Event baru berhasil dibuat! Silakan selesaikan pembayaran biaya event di daftar event agar event aktif.');
+      if (onEventCreatedOrUpdated) {
+        onEventCreatedOrUpdated(newEvent);
+      }
     }
   };
 

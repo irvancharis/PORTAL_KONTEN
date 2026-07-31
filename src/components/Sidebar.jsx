@@ -43,8 +43,6 @@ export default function Sidebar({
 
 
   const eventMenuItems = [
-    { id: 'event-dashboard', label: 'Dashboard Event', icon: LayoutDashboard },
-    { id: 'event-manage', label: 'Kelola Event', icon: Calendar },
     { id: 'creator-marketplace', label: 'Marketplace Creator', icon: Users }
   ];
 
