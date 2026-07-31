@@ -201,18 +201,8 @@ export default function Sidebar({
         {/* General Portal Menu */}
         {generalMenuItems.map(item => renderItem(item, false))}
 
-        {/* Section: Event Management (Event Creator) */}
-        {showEventSection && (
-          <>
-            <div style={{ height: '8px' }} />
-            {!isCollapsed && (
-              <span style={{ fontSize: '0.68rem', fontWeight: 'bold', color: 'var(--text-muted)', textTransform: 'uppercase', padding: '8px 12px 4px 12px', letterSpacing: '0.5px' }}>
-                Event Creator
-              </span>
-            )}
-            {eventMenuItems.filter(item => hasPermission(item.id)).map(item => renderItem(item, true))}
-          </>
-        )}
+        {/* Event Creator Menu Items (Rendered inline without separator) */}
+        {eventMenuItems.filter(item => hasPermission(item.id)).map(item => renderItem(item, true))}
 
         {/* Section: Admin Portal */}
         {showAdminSection && (
