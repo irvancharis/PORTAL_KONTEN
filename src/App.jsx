@@ -2228,16 +2228,13 @@ export default function App() {
                 </div>
 
                 <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 8px 0' }}>{currentUser?.organizerName || currentUser?.username}</h2>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'rgba(255, 255, 255, 0.05)', padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.08)', fontWeight: 'bold' }}>
-                    {currentUser?.role === 'member' ? 'Premium Member' : currentUser?.role === 'superadmin' ? 'Superadmin' : currentUser?.role === 'staf' ? 'Staff' : currentUser?.role === 'panitia' ? 'Panitia' : currentUser?.role === 'moderator' ? 'Moderator' : currentUser?.role === 'editor' ? 'Editor' : 'Regular User'}
-                  </span>
-                  {currentUser?.isCommunity && (
+                {currentUser?.isCommunity && (
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'rgba(255,200,0,0.1)', padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(255,200,0,0.2)', fontWeight: 'bold' }}>
                       Komunitas
                     </span>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               {/* Profile Details Container */}

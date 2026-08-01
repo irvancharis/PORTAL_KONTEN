@@ -892,23 +892,8 @@ export default function Navbar({
                 >
                   {currentUser.username.charAt(0)}
                 </div>
-                <div className="desktop-only" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <div className="desktop-only" style={{ display: 'flex', alignItems: 'center' }}>
                    <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-primary)' }}>{currentUser.username}</span>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>
-                      {currentUser.role === 'member' 
-                        ? 'Premium Member' 
-                        : currentUser.role === 'superadmin' 
-                          ? 'Superadmin' 
-                          : currentUser.role === 'staf' 
-                            ? 'Staff' 
-                            : currentUser.role === 'panitia'
-                              ? 'Panitia'
-                              : currentUser.role === 'moderator'
-                                ? 'Moderator'
-                                : currentUser.role === 'editor'
-                                  ? 'Editor'
-                                  : 'Regular User'}
-                    </span>
                 </div>
               </button>
             </div>
