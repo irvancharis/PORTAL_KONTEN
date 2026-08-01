@@ -2715,61 +2715,60 @@ export default function App() {
 
                               if (allAgendas.length > 0) {
                                 return (
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '12px' }}>
-                                    {allAgendas.map((agenda) => {
-                                      const canViewDetails = agenda.publishTo === 'public' || isMember;
-                                      return (
-                                        <div key={agenda.id} style={{
-                                          background: 'rgba(255, 255, 255, 0.02)',
-                                          border: '1px solid rgba(255, 255, 255, 0.05)',
-                                          borderRadius: '12px',
-                                          padding: '16px',
-                                          display: 'flex',
-                                          flexDirection: 'column',
-                                          gap: '8px'
-                                        }}>
-                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
-                                            <div>
-                                              <span style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: 'bold' }}>{agenda.date} {agenda.time && `• Pukul ${agenda.time}`}</span>
-                                              <h4 style={{ color: 'white', margin: '4px 0 0 0', fontSize: '1rem', fontWeight: 'bold' }}>
-                                                {canViewDetails ? agenda.title : '🔒 [Agenda Khusus Anggota]'}
-                                              </h4>
-                                            </div>
-                                            <span style={{
-                                              fontSize: '0.75rem',
-                                              padding: '4px 10px',
-                                              borderRadius: '20px',
-                                              background: agenda.publishTo === 'public' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)',
-                                              color: agenda.publishTo === 'public' ? '#10b981' : '#3b82f6',
-                                              border: agenda.publishTo === 'public' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(59, 130, 246, 0.2)',
-                                              fontWeight: 'bold'
-                                            }}>
-                                              {agenda.publishTo === 'public' ? 'Publik' : 'Anggota'}
-                                            </span>
-                                          </div>
-
-                                          {canViewDetails ? (
-                                            <>
-                                              {agenda.description && (
-                                                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.5' }}>
-                                                  {agenda.description}
-                                                </p>
-                                              )}
-                                              {agenda.location && (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                                  <span style={{ color: 'var(--primary)' }}>📍</span>
-                                                  <span>Lokasi: {agenda.location}</span>
+                                  <div className="table-responsive" style={{ marginTop: '12px', overflowX: 'auto' }}>
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                      <thead>
+                                        <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                          <th style={{ padding: '12px 16px', color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.82rem', fontWeight: '600' }}>Waktu / Tanggal</th>
+                                          <th style={{ padding: '12px 16px', color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.82rem', fontWeight: '600' }}>Agenda / Keterangan</th>
+                                          <th style={{ padding: '12px 16px', color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.82rem', fontWeight: '600' }}>Lokasi</th>
+                                          <th style={{ padding: '12px 16px', color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.82rem', fontWeight: '600', textAlign: 'right' }}>Akses</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {allAgendas.map((agenda) => {
+                                          const canViewDetails = agenda.publishTo === 'public' || isMember;
+                                          return (
+                                            <tr key={agenda.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)', transition: 'background 0.2s' }}>
+                                              <td style={{ padding: '16px', whiteSpace: 'nowrap', fontSize: '0.85rem', color: 'white', verticalAlign: 'top' }}>
+                                                <strong style={{ display: 'block' }}>{agenda.date}</strong>
+                                                {agenda.time && <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.4)', marginTop: '2px' }}>Pukul {agenda.time}</div>}
+                                              </td>
+                                              <td style={{ padding: '16px', fontSize: '0.85rem', color: 'white', verticalAlign: 'top' }}>
+                                                <div style={{ fontWeight: 'bold', marginBottom: '4px', fontSize: '0.92rem' }}>
+                                                  {canViewDetails ? agenda.title : '🔒 [Agenda Khusus Anggota]'}
                                                 </div>
-                                              )}
-                                            </>
-                                          ) : (
-                                            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0, fontStyle: 'italic' }}>
-                                              Detail agenda ini hanya dapat dilihat oleh anggota resmi komunitas ini. Silakan bergabung untuk melihat info lengkap.
-                                            </p>
-                                          )}
-                                        </div>
-                                      );
-                                    })}
+                                                {canViewDetails ? (
+                                                  <div style={{ fontSize: '0.82rem', color: 'rgba(255, 255, 255, 0.5)', lineHeight: '1.5' }}>
+                                                    {agenda.description || '-'}
+                                                  </div>
+                                                ) : (
+                                                  <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.35)', fontStyle: 'italic' }}>
+                                                    Detail agenda hanya terlihat oleh anggota resmi komunitas ini.
+                                                  </div>
+                                                )}
+                                              </td>
+                                              <td style={{ padding: '16px', fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.6)', verticalAlign: 'top' }}>
+                                                {canViewDetails ? (agenda.location || '-') : '-'}
+                                              </td>
+                                              <td style={{ padding: '16px', whiteSpace: 'nowrap', verticalAlign: 'top', textAlign: 'right' }}>
+                                                <span style={{
+                                                  fontSize: '0.72rem',
+                                                  padding: '4px 10px',
+                                                  borderRadius: '20px',
+                                                  fontWeight: 'bold',
+                                                  background: agenda.publishTo === 'public' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                                                  color: agenda.publishTo === 'public' ? '#ffffff' : 'rgba(255, 255, 255, 0.6)',
+                                                  border: '1px solid rgba(255, 255, 255, 0.12)'
+                                                }}>
+                                                  {agenda.publishTo === 'public' ? 'Publik' : 'Anggota'}
+                                                </span>
+                                              </td>
+                                            </tr>
+                                          );
+                                        })}
+                                      </tbody>
+                                    </table>
                                   </div>
                                 );
                               }
