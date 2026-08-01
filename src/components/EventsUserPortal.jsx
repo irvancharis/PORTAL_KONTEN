@@ -1776,15 +1776,7 @@ export default function EventsUserPortal({
 
           {userPortalTab === 'offers' ? (
             <div className="collab-offers-view animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
-              <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <h3 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 'bold', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Trophy style={{ color: '#ffffff' }} />
-                  <span>Daftar Undangan Kolaborasi Penyelenggara</span>
-                </h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
-                  Berikut adalah daftar undangan kolaborasi eksklusif dari Panitia Event untuk Anda. Terima undangan untuk langsung terdaftar sebagai peserta.
-                </p>
-              </div>
+
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
                 {(() => {

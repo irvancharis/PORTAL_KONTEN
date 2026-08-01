@@ -2405,6 +2405,7 @@ export default function App() {
                   
                   autoOpenCreateForm={autoOpenForm}
                   onEventCreatedOrUpdated={onSaveSuccess}
+                  isEmbedded={true}
                 />
               )}
             />

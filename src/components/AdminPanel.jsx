@@ -166,7 +166,8 @@ export default function AdminPanel({
   financialJournals = [],
   setFinancialJournals,
   autoOpenCreateForm = false,
-  onEventCreatedOrUpdated
+  onEventCreatedOrUpdated,
+  isEmbedded = false
 }) {
   const isPanitia = currentUser && (currentUser.role === 'panitia' || currentUser.role === 'user');
   const myEvents = isPanitia 
@@ -1374,7 +1375,7 @@ export default function AdminPanel({
 
   return (
     <div className="admin-panel-container animate-fade-in-up">
-      {!(adminSubTab === 'event-manage' && selectedManageEvent) && (
+      {!isEmbedded && !(adminSubTab === 'event-manage' && selectedManageEvent) && (
         <div className="admin-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
             <h1 className="admin-page-title">{pageTitle}</h1>
