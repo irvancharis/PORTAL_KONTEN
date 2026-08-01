@@ -1806,6 +1806,22 @@ export default function App() {
           setActiveTab('events');
           setIsPlaying(false);
           setSelectedMovie(null);
+        } else if (path.startsWith('/community/')) {
+          setActiveTab('communities');
+          setIsPlaying(false);
+          setSelectedMovie(null);
+          const commParam = path.replace('/community/', '').split('&')[0];
+          const parts = commParam.split('-');
+          const lastPart = parts[parts.length - 1];
+          const foundComm = communities.find(c => c.id === commParam || c.id === lastPart || c.username?.toLowerCase() === commParam.toLowerCase());
+          if (foundComm) {
+            setSelectedCommunityId(foundComm.id);
+          }
+        } else if (path.startsWith('/communities')) {
+          setActiveTab('communities');
+          setIsPlaying(false);
+          setSelectedMovie(null);
+          setSelectedCommunityId(null);
         } else if (path.startsWith('/creator/') || path === '/creator') {
           if (currentUser) {
             setActiveTab('admin');
@@ -1834,14 +1850,18 @@ export default function App() {
             window.history.replaceState(null, '', '/');
           }
         } else {
-          // Parse regular tabs: discover, events, wallet, profile
+          // Parse regular tabs: discover, events, wallet, profile, communities
           const parts = path.split('/');
           const firstSegment = parts[1];
           if (firstSegment === 'events') {
             setActiveTab('events');
             setIsPlaying(false);
             setSelectedMovie(null);
-          } else if (['discover', 'wallet', 'profile'].includes(firstSegment)) {
+          } else if (firstSegment === 'community') {
+            setActiveTab('communities');
+            setIsPlaying(false);
+            setSelectedMovie(null);
+          } else if (['discover', 'wallet', 'profile', 'communities'].includes(firstSegment)) {
             setActiveTab(firstSegment);
             setIsPlaying(false);
             setSelectedMovie(null);
@@ -1863,7 +1883,7 @@ export default function App() {
     }
     window.addEventListener('popstate', handlePathRoute);
     return () => window.removeEventListener('popstate', handlePathRoute);
-  }, [movies, currentUser, adminSubTab]);
+  }, [movies, currentUser, adminSubTab, communities]);
 
   // 3. Dynamic SEO Title, Meta Description, and Structured JSON-LD Schema
   useEffect(() => {
@@ -2395,10 +2415,13 @@ export default function App() {
                 const isRegularUser = currentUser && !(currentUser.isCommunity || currentUser.role === 'panitia');
 
                 return (
-                  <div className="profile-view-container animate-fade-in">
+                  <div className="animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
                     {/* Back button */}
                     <button 
-                      onClick={() => setSelectedCommunityId(null)}
+                      onClick={() => {
+                        window.history.pushState(null, '', '/communities');
+                        window.dispatchEvent(new PopStateEvent('popstate'));
+                      }}
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -2595,7 +2618,11 @@ export default function App() {
                         <div 
                           key={comm.id}
                           className="glass-panel"
-                          onClick={() => setSelectedCommunityId(comm.id)}
+                          onClick={() => {
+                            const commSlug = slugify(comm.name || comm.username) + '-' + comm.id;
+                            window.history.pushState(null, '', '/community/' + commSlug);
+                            window.dispatchEvent(new PopStateEvent('popstate'));
+                          }}
                           style={{ 
                             borderRadius: '12px', 
                             padding: '18px 24px', 
@@ -2669,7 +2696,9 @@ export default function App() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedCommunityId(comm.id);
+                                const commSlug = slugify(comm.name || comm.username) + '-' + comm.id;
+                                window.history.pushState(null, '', '/community/' + commSlug);
+                                window.dispatchEvent(new PopStateEvent('popstate'));
                               }}
                               style={{
                                 display: 'inline-flex',
@@ -2934,8 +2963,9 @@ export default function App() {
                               <div style={{ display: 'flex', gap: '8px' }}>
                                 <button
                                   onClick={() => {
-                                    setSelectedCommunityId(comm.id);
-                                    handleTabChange('communities');
+                                    const commSlug = slugify(comm.name || comm.username) + '-' + comm.id;
+                                    window.history.pushState(null, '', '/community/' + commSlug);
+                                    window.dispatchEvent(new PopStateEvent('popstate'));
                                   }}
                                   style={{
                                     padding: '8px 16px',
