@@ -620,6 +620,7 @@ export default function App() {
   const [editProfileCategory, setEditProfileCategory] = useState('Videografer');
   const [editProfilePortfolio, setEditProfilePortfolio] = useState('');
   const [editProfileActiveMembers, setEditProfileActiveMembers] = useState('');
+  const [editProfileActivityImages, setEditProfileActivityImages] = useState('');
   const usernameInputRef = useRef(null);
 
   const handleOpenEditProfile = () => {
@@ -631,6 +632,7 @@ export default function App() {
     setEditProfileCategory(currentUser.userCategory || 'Videografer');
     setEditProfilePortfolio(currentUser.userPortfolio || '');
     setEditProfileActiveMembers(currentUser.activeMembersCount || '');
+    setEditProfileActivityImages(currentUser.activityImages ? currentUser.activityImages.join(', ') : '');
     setIsEditProfileModalOpen(true);
   };
 
@@ -2666,23 +2668,24 @@ export default function App() {
                             </p>
                           </div>
 
-                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Daftar Anggota ({current} Orang)</h3>
-                            {members.length > 0 ? (
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
-                                {members.map((m, idx) => (
-                                  <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.8rem', color: 'white' }}>
-                                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#ffffff', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                      {m.charAt(0)}
-                                    </div>
-                                    <span>{m}</span>
+                          {comm.activityImages && comm.activityImages.length > 0 && (
+                            <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
+                              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Foto Kegiatan & Dokumentasi</h3>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px', marginTop: '12px' }}>
+                                {comm.activityImages.map((imgUrl, imgIdx) => (
+                                  <div key={imgIdx} style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.08)', aspectRatio: '16/10', background: '#0c0c0c' }}>
+                                    <img 
+                                      src={imgUrl} 
+                                      alt={`Kegiatan ${imgIdx + 1}`} 
+                                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }} 
+                                      onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                                      onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                    />
                                   </div>
                                 ))}
                               </div>
-                            ) : (
-                              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Belum ada anggota yang bergabung.</p>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* Right Column */}
@@ -2751,6 +2754,24 @@ export default function App() {
                             })()}
 
 
+                          </div>
+
+                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Daftar Anggota ({current} Orang)</h3>
+                            {members.length > 0 ? (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                                {members.map((m, idx) => (
+                                  <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.8rem', color: 'white' }}>
+                                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#ffffff', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                      {m.charAt(0)}
+                                    </div>
+                                    <span>{m}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Belum ada anggota yang bergabung.</p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -3780,7 +3801,8 @@ export default function App() {
                     isCommunity: isComm,
                     joinedMembers: currentUser.joinedMembers || [],
                     userCategory: isComm ? 'Videografer' : editProfileCategory,
-                    userPortfolio: isComm ? '' : editProfilePortfolio.trim()
+                    userPortfolio: isComm ? '' : editProfilePortfolio.trim(),
+                    activityImages: isComm ? editProfileActivityImages.split(',').map(s => s.trim()).filter(Boolean) : []
                   };
 
                   // Update locally
@@ -3797,7 +3819,9 @@ export default function App() {
                       description: updatedUser.organizerDescription,
                       avatar: updatedUser.organizerAvatar,
                       activeMembersCount: updatedUser.activeMembersCount,
-                      joinedMembers: existingComm ? (existingComm.joinedMembers || []) : []
+                      joinedMembers: existingComm ? (existingComm.joinedMembers || []) : [],
+                      pendingMembers: existingComm ? (existingComm.pendingMembers || []) : [],
+                      activityImages: updatedUser.activityImages || []
                     };
                     
                     let updatedCommunities = [...communities];
@@ -3956,6 +3980,30 @@ export default function App() {
                     }}
                   />
                 </div>
+
+                {currentUser?.role === 'panitia' && (
+                  <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Foto Kegiatan / Dokumentasi Prestasi (URL Gambar, pisahkan dengan koma)</label>
+                    <textarea 
+                      value={editProfileActivityImages}
+                      onChange={(e) => setEditProfileActivityImages(e.target.value)}
+                      placeholder="Contoh: https://link1.com/img.jpg, https://link2.com/img.jpg"
+                      rows="2"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'var(--text-primary)',
+                        outline: 'none',
+                        fontSize: '0.9rem',
+                        resize: 'none',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                  </div>
+                )}
 
                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Avatar / Logo (Opsional)</label>
