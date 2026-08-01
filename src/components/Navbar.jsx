@@ -475,6 +475,7 @@ export default function Navbar({
               {[
                 { id: 'discover', label: 'Beranda' },
                 { id: 'events', label: 'Event' },
+                { id: 'communities', label: 'Komunitas' },
                 { id: 'wallet', label: 'Dompet Saya', requiresUser: true }
               ]
                 .filter(tab => !tab.requiresUser || currentUser)

@@ -122,6 +122,7 @@ export default function App() {
     return localStorage.getItem('portal-active-tab') || 'discover';
   }); // 'discover', 'watchlist', 'history', 'admin'
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [selectedCommunityId, setSelectedCommunityId] = useState(null);
   const [isPageLoading, setIsPageLoading] = useState(false);
   
   // Movie selection (watch page) states
@@ -1993,6 +1994,7 @@ export default function App() {
 
   // Handle Tab Change and update URL path
   function handleTabChange(tabId) {
+    setSelectedCommunityId(null);
     const adminSubTabs = [
       'event-dashboard', 'event-manage', 'creator-marketplace', 
       'movies', 'affiliates', 'membership', 'confirmations', 'withdrawals', 'finance-report', 'users', 'roles'
@@ -2371,6 +2373,262 @@ export default function App() {
               minWithdrawalAmount={minWithdrawalAmount}
               withdrawalFeePercent={withdrawalFeePercent}
             />
+          ) : activeTab === 'communities' ? (
+            (() => {
+              if (selectedCommunityId) {
+                const comm = communities.find(c => c.id === selectedCommunityId);
+                if (!comm) {
+                  return (
+                    <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                      Komunitas tidak ditemukan.
+                      <button onClick={() => setSelectedCommunityId(null)} className="btn btn-primary" style={{ marginTop: '12px' }}>Kembali</button>
+                    </div>
+                  );
+                }
+
+                const members = comm.joinedMembers || [];
+                const isJoined = currentUser && members.includes(currentUser.username);
+                const target = Number(comm.activeMembersCount || 0);
+                const current = members.length;
+                const isActive = current >= target;
+                const percentage = target > 0 ? (current / target) * 100 : 0;
+                const isRegularUser = currentUser && !(currentUser.isCommunity || currentUser.role === 'panitia');
+
+                return (
+                  <div className="profile-view-container animate-fade-in">
+                    <button 
+                      onClick={() => setSelectedCommunityId(null)}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        color: '#ffffff',
+                        fontSize: '0.8rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        marginBottom: '16px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      ← Kembali ke Daftar Komunitas
+                    </button>
+
+                    {/* Community Header Card */}
+                    <div className="profile-card-header glass-panel">
+                      <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '16px', border: '4px solid rgba(255, 255, 255, 0.1)' }}>
+                        {comm.avatar ? (
+                          <img src={comm.avatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                          comm.name?.charAt(0) || comm.username?.charAt(0)
+                        )}
+                      </div>
+
+                      <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 8px 0' }}>{comm.name || comm.username}</h2>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ 
+                          fontSize: '0.75rem', 
+                          padding: '4px 12px', 
+                          borderRadius: '20px', 
+                          fontWeight: 'bold',
+                          color: isActive ? '#10b981' : '#f59e0b', 
+                          background: isActive ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)'
+                        }}>
+                          {isActive ? 'AKTIF' : 'BELUM AKTIF'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Community Details */}
+                    <div className="profile-card-details glass-panel" style={{ marginTop: '24px' }}>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Detail Komunitas</h3>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                          <Phone size={16} />
+                          <span style={{ fontSize: '0.85rem' }}>WhatsApp / Hubungi</span>
+                        </div>
+                        {comm.phone ? (
+                          <a 
+                            href={`https://wa.me/${comm.phone.replace(/[^0-9]/g, '')}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            style={{ fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'underline' }}
+                          >
+                            Hubungi Komunitas
+                          </a>
+                        ) : (
+                          <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>-</span>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                          <User size={16} />
+                          <span style={{ fontSize: '0.85rem' }}>Target Anggota untuk Aktif</span>
+                        </div>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{target} Orang</span>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                          <Users size={16} />
+                          <span style={{ fontSize: '0.85rem' }}>Anggota Tergabung</span>
+                        </div>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{current} Orang</span>
+                      </div>
+
+                      {/* Keaktifan status progress bar */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '12px' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Kemajuan Target Keaktifan</span>
+                        <div style={{ width: '100%', marginTop: '4px' }}>
+                          <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                            <div style={{ 
+                              width: `${Math.min(100, percentage)}%`, 
+                              height: '100%', 
+                              background: isActive ? 'linear-gradient(90deg, #10b981, #34d399)' : 'linear-gradient(90deg, #f59e0b, #fbbf24)',
+                              transition: 'width 0.3s ease'
+                            }} />
+                          </div>
+                          {!isActive && (
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px', display: 'inline-block' }}>
+                              *Kurang {target - current} anggota untuk mencapai status aktif
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Bio */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '12px' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Bio / Deskripsi</span>
+                        <p style={{ fontSize: '0.9rem', margin: 0, lineHeight: '1.6', background: 'rgba(255, 255, 255, 0.01)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                          {comm.description || 'Belum ada deskripsi profil.'}
+                        </p>
+                      </div>
+
+                      {/* Joined members */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Daftar Anggota Komunitas</span>
+                        {members.length > 0 ? (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                            {members.map((m, idx) => (
+                              <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.8rem', color: 'white' }}>
+                                <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                  {m.charAt(0)}
+                                </div>
+                                <span>{m}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Belum ada anggota yang bergabung.</span>
+                        )}
+                      </div>
+
+                      {/* Join / Leave Button for regular users */}
+                      {isRegularUser && (
+                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                          <button
+                            onClick={() => handleToggleJoinCommunity(comm.username)}
+                            style={{
+                              padding: '12px 32px',
+                              fontSize: '0.9rem',
+                              fontWeight: 'bold',
+                              borderRadius: '30px',
+                              border: isJoined ? '1px solid rgba(239, 68, 68, 0.4)' : 'none',
+                              background: isJoined ? 'rgba(239, 68, 68, 0.05)' : 'white',
+                              color: isJoined ? '#ef4444' : 'black',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                              minWidth: '200px'
+                            }}
+                          >
+                            {isJoined ? 'Keluar Komunitas' : 'Join Komunitas'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="profile-view-container animate-fade-in">
+                  <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px' }}>
+                    <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: '0 0 8px 0' }}>Direktori Komunitas & Instansi</h2>
+                    <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', margin: 0 }}>
+                      Temukan komunitas kreatif pilihan dan bergabunglah untuk mengikuti event/kompetisi khusus anggota mereka.
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                    {communities.map(comm => {
+                      const members = comm.joinedMembers || [];
+                      const target = Number(comm.activeMembersCount || 0);
+                      const current = members.length;
+                      const isActive = current >= target;
+
+                      return (
+                        <div key={comm.id} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '220px', transition: 'transform 0.2s', border: '1px solid rgba(255,255,255,0.06)' }}>
+                          <div>
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '14px' }}>
+                              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                {comm.avatar ? (
+                                  <img src={comm.avatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                                ) : (
+                                  comm.name?.charAt(0) || comm.username?.charAt(0)
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <h3 style={{ fontSize: '1rem', fontWeight: 'bold', margin: '0 0 4px 0', color: 'white' }}>{comm.name || comm.username}</h3>
+                                <span style={{ 
+                                  fontSize: '0.68rem', 
+                                  padding: '2px 8px', 
+                                  borderRadius: '10px', 
+                                  fontWeight: 'bold',
+                                  alignSelf: 'flex-start',
+                                  color: isActive ? '#10b981' : '#f59e0b', 
+                                  background: isActive ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)'
+                                }}>
+                                  {isActive ? 'AKTIF' : 'BELUM AKTIF'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0 0 16px 0', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.5' }}>
+                              {comm.description || 'Belum ada deskripsi profil.'}
+                            </p>
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '12px' }}>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                              {current} / {target} Anggota
+                            </span>
+                            <button
+                              onClick={() => setSelectedCommunityId(comm.id)}
+                              style={{
+                                padding: '6px 14px',
+                                fontSize: '0.78rem',
+                                fontWeight: 'bold',
+                                borderRadius: '15px',
+                                border: 'none',
+                                background: 'white',
+                                color: 'black',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Detail & Gabung →
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()
           ) : activeTab === 'profile' ? (
             (() => {
               const isCurrentUserCommunity = currentUser?.isCommunity || currentUser?.role === 'panitia';
@@ -2548,20 +2806,30 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Join Komunitas Section (For regular users) */}
+              {/* Join Komunitas Section (For regular users - Show only joined communities) */}
               {!isCurrentUserCommunity && (
                 <div className="profile-card-details glass-panel" style={{ marginTop: '24px' }}>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Daftar Komunitas & Instansi</h3>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Komunitas Saya</h3>
                   {(() => {
-                    const communitiesList = communities;
+                    const communitiesList = communities.filter(c => (c.joinedMembers || []).includes(currentUser?.username));
                     if (communitiesList.length === 0) {
-                      return <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', margin: 0 }}>Belum ada komunitas terdaftar saat ini.</p>;
+                      return (
+                        <div style={{ padding: '16px 0', textAlign: 'center' }}>
+                          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', margin: '0 0 12px 0' }}>Anda belum bergabung dengan komunitas mana pun.</p>
+                          <button 
+                            className="btn btn-primary"
+                            onClick={() => handleTabChange('communities')}
+                            style={{ padding: '6px 16px', fontSize: '0.8rem', borderRadius: '20px' }}
+                          >
+                            Jelajahi Komunitas
+                          </button>
+                        </div>
+                      );
                     }
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         {communitiesList.map(comm => {
                           const members = comm.joinedMembers || [];
-                          const isJoined = members.includes(currentUser.username);
                           const target = Number(comm.activeMembersCount || 0);
                           const current = members.length;
                           const isActive = current >= target;
@@ -2570,15 +2838,15 @@ export default function App() {
                             <div key={comm.username} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', gap: '16px' }}>
                               <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flex: '1 1 300px' }}>
                                 <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
-                                  {comm.organizerAvatar ? (
-                                    <img src={comm.organizerAvatar} alt={comm.organizerName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                                  {comm.avatar ? (
+                                    <img src={comm.avatar} alt={comm.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                                   ) : (
-                                    comm.organizerName?.charAt(0) || comm.username?.charAt(0)
+                                    comm.name?.charAt(0) || comm.username?.charAt(0)
                                   )}
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                    <strong style={{ fontSize: '0.95rem', color: 'white' }}>{comm.organizerName || comm.username}</strong>
+                                    <strong style={{ fontSize: '0.95rem', color: 'white' }}>{comm.name || comm.username}</strong>
                                     <span style={{ 
                                       fontSize: '0.7rem', 
                                       padding: '2px 8px', 
@@ -2593,45 +2861,46 @@ export default function App() {
                                   <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                                     {current} dari {target} Anggota Tergabung
                                   </span>
-                                  {comm.organizerDescription && (
-                                    <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                                      {comm.organizerDescription}
-                                    </p>
-                                  )}
                                 </div>
                               </div>
                               
-                              <button
-                                onClick={() => handleToggleJoinCommunity(comm.username)}
-                                style={{
-                                  padding: '8px 20px',
-                                  fontSize: '0.85rem',
-                                  fontWeight: 'bold',
-                                  borderRadius: '20px',
-                                  border: isJoined ? '1px solid rgba(239, 68, 68, 0.4)' : 'none',
-                                  background: isJoined ? 'rgba(239, 68, 68, 0.05)' : 'white',
-                                  color: isJoined ? '#ef4444' : 'black',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.2s ease',
-                                  whiteSpace: 'nowrap'
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (isJoined) {
-                                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
-                                  } else {
-                                    e.currentTarget.style.transform = 'translateY(-1px)';
-                                  }
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (isJoined) {
-                                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.05)';
-                                  } else {
-                                    e.currentTarget.style.transform = 'none';
-                                  }
-                                }}
-                              >
-                                {isJoined ? 'Keluar Komunitas' : 'Join Komunitas'}
-                              </button>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                  onClick={() => {
+                                    setSelectedCommunityId(comm.id);
+                                    handleTabChange('communities');
+                                  }}
+                                  style={{
+                                    padding: '8px 16px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 'bold',
+                                    borderRadius: '20px',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                  }}
+                                >
+                                  Lihat Detail
+                                </button>
+                                <button
+                                  onClick={() => handleToggleJoinCommunity(comm.username)}
+                                  style={{
+                                    padding: '8px 16px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 'bold',
+                                    borderRadius: '20px',
+                                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                                    background: 'rgba(239, 68, 68, 0.05)',
+                                    color: '#ef4444',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                  }}
+                                >
+                                  Keluar
+                                </button>
+                              </div>
                             </div>
                           );
                         })}
@@ -2694,6 +2963,7 @@ export default function App() {
               setUsers={handleSetUsers}
               offers={offers}
               setOffers={handleSetOffers}
+              communities={communities}
               renderEventManagement={(onSaveSuccess, autoOpenForm) => (
                 <AdminPanel 
                   movies={movies} 

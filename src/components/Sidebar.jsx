@@ -33,7 +33,8 @@ export default function Sidebar({
 }) {
   const generalMenuItems = [
     { id: 'discover', label: 'Beranda', icon: Home },
-    { id: 'events', label: 'Event', icon: Trophy }
+    { id: 'events', label: 'Event', icon: Trophy },
+    { id: 'communities', label: 'Komunitas', icon: Users }
   ];
 
 

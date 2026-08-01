@@ -443,6 +443,7 @@ export default function AdminPanel({
   const [eventBenefitAmount, setEventBenefitAmount] = useState(10000);
   const [eventBenefitViewsStep, setEventBenefitViewsStep] = useState(1000);
   const [eventBudgetMode, setEventBudgetMode] = useState('views'); // 'views' or 'ranking'
+  const [eventTargetAudience, setEventTargetAudience] = useState('public'); // 'public' or 'members_only'
   const [eventPrize1, setEventPrize1] = useState(3000000);
   const [eventPrize2, setEventPrize2] = useState(1500000);
   const [eventPrize3, setEventPrize3] = useState(500000);
@@ -716,6 +717,7 @@ export default function AdminPanel({
             description: eventDescription.trim(),
             juknis: eventJuknis.trim(),
             budgetMode: eventBudgetMode,
+            targetAudience: eventTargetAudience,
             campaignBudget: computedBudget,
             remainingBudget: computedBudget,
             benefitAmount: isRanking ? 0 : (parseInt(eventBenefitAmount) || 0),
@@ -742,6 +744,7 @@ export default function AdminPanel({
         description: eventDescription.trim(),
         juknis: eventJuknis.trim(),
         budgetMode: eventBudgetMode,
+        targetAudience: eventTargetAudience,
         campaignBudget: computedBudget,
         remainingBudget: computedBudget,
         // views mode
@@ -1034,6 +1037,7 @@ export default function AdminPanel({
     setEventDescription(evt.description || '');
     setEventJuknis(evt.juknis || '');
     setEventBudgetMode(evt.budgetMode || 'views');
+    setEventTargetAudience(evt.targetAudience || 'public');
     setEventBudget(evt.campaignBudget || 5000000);
     setEventBenefitAmount(evt.benefitAmount || 10000);
     setEventBenefitViewsStep(evt.benefitViewsStep || 1000);
@@ -2401,6 +2405,19 @@ export default function AdminPanel({
                       <option value="ranking" style={{ background: '#020202' }}>Juara 1, 2, 3</option>
                     </select>
 
+                    {/* Target Peserta Selector */}
+                    <div className="form-group" style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '12px', marginBottom: '16px' }}>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'white', fontSize: '0.92rem', fontWeight: 'bold' }}>Sasaran Peserta (Target Audience)</label>
+                      <select 
+                        value={eventTargetAudience} 
+                        onChange={(e) => setEventTargetAudience(e.target.value)} 
+                        style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                      >
+                        <option value="public" style={{ background: '#020202' }}>Terbuka untuk Umum (Public)</option>
+                        <option value="members_only" style={{ background: '#020202' }}>Khusus Anggota Komunitas Saja (Members Only)</option>
+                      </select>
+                    </div>
+
                     {eventBudgetMode === 'views' ? (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
                         <div className="form-group" style={{ marginBottom: 0 }}>
@@ -3005,6 +3022,7 @@ export default function AdminPanel({
                     setEventBenefitAmount(10000);
                     setEventBenefitViewsStep(1000);
                     setEventHasMaxParticipants(true);
+                    setEventTargetAudience('public');
                     setShowEventForm(true);
                   }}
                   style={{
