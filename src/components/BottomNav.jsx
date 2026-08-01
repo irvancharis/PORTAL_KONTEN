@@ -66,9 +66,10 @@ export default function BottomNav({
   const isCommunityUser = currentUser && (currentUser.isCommunity || currentUser.role === 'panitia');
 
   const navItems = [
-    { id: 'discover', label: 'Beranda', icon: Home, isEventCreator: false },
     ...(!isCommunityUser ? [
-      { id: 'events', label: 'Event', icon: Trophy, isEventCreator: false }
+      { id: 'discover', label: 'Beranda', icon: Home, isEventCreator: false },
+      { id: 'events', label: 'Event', icon: Trophy, isEventCreator: false },
+      { id: 'communities', label: 'Komunitas', icon: Users, isEventCreator: false }
     ] : [])
   ];
 
