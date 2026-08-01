@@ -1243,6 +1243,36 @@ select option {
   font-weight: 700;
 }
 
+/* Profile Tab Responsive Layout */
+.profile-view-container {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  color: #ffffff;
+}
+.profile-card-header {
+  padding: 32px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  margin-bottom: 24px;
+}
+.profile-card-details {
+  padding: 28px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
 /* Responsive Media Queries */
 @media (max-width: 1024px) {
   .watch-page-layout {
@@ -1259,8 +1289,22 @@ select option {
   .bottom-nav {
     display: flex; /* Show bottom-nav on mobile */
   }
+  .profile-view-container {
+    padding: 12px 0px;
+  }
+  .profile-card-header {
+    padding: 24px 16px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+  }
+  .profile-card-details {
+    padding: 20px 16px;
+    border-radius: 16px;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
   .main-content {
-    padding: 0 16px 80px; /* Spacing for bottom nav and no top padding */
+    padding: 0 12px 80px !important; /* Spacing for bottom nav and no top padding */
   }
   .app-container.youtube-layout {
     padding-bottom: 56px; /* Spacing for bottom nav */

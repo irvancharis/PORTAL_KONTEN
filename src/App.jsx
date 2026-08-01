@@ -2203,9 +2203,9 @@ export default function App() {
               withdrawalFeePercent={withdrawalFeePercent}
             />
           ) : activeTab === 'profile' ? (
-            <div className="profile-view-container animate-fade-in" style={{ padding: '24px', maxWidth: '800px', margin: '0 auto', color: '#ffffff' }}>
+            <div className="profile-view-container animate-fade-in">
               {/* Profile Header Card */}
-              <div className="glass-panel" style={{ padding: '32px', borderRadius: '24px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', marginBottom: '24px' }}>
+              <div className="profile-card-header glass-panel">
                 <div style={{ position: 'absolute', top: '24px', right: '24px' }}>
                   <button 
                     onClick={handleOpenEditProfile}
@@ -2238,7 +2238,7 @@ export default function App() {
               </div>
 
               {/* Profile Details Container */}
-              <div className="glass-panel" style={{ padding: '28px', borderRadius: '24px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '24px' }}>
+              <div className="profile-card-details glass-panel">
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 8px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Detail Data Profil</h3>
                 
                 {/* Email */}
