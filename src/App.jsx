@@ -81,7 +81,8 @@ import {
   Mail,
   Globe,
   Sparkles,
-  Users
+  Users,
+  Search
 } from 'lucide-react';
 
 const slugify = (text) => {
@@ -123,6 +124,7 @@ export default function App() {
   }); // 'discover', 'watchlist', 'history', 'admin'
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedCommunityId, setSelectedCommunityId] = useState(null);
+  const [communitySearchQuery, setCommunitySearchQuery] = useState('');
   const [isPageLoading, setIsPageLoading] = useState(false);
   
   // Movie selection (watch page) states
@@ -2831,21 +2833,60 @@ export default function App() {
                       </button>
                     </div>
                   )}
-                  <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: '0 0 8px 0', color: 'white' }}>Direktori Komunitas & Instansi</h2>
-                    <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', margin: 0 }}>
-                      Temukan komunitas kreatif pilihan dan bergabunglah untuk mengikuti event/kompetisi khusus anggota mereka.
-                    </p>
+                  <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div>
+                      <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: '0 0 8px 0', color: 'white' }}>Direktori Komunitas & Instansi</h2>
+                      <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', margin: 0 }}>
+                        Temukan komunitas kreatif pilihan dan bergabunglah untuk mengikuti event/kompetisi khusus anggota mereka.
+                      </p>
+                    </div>
+                    <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
+                      <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                      <input 
+                        type="text"
+                        placeholder="Cari nama atau deskripsi komunitas..."
+                        value={communitySearchQuery}
+                        onChange={(e) => setCommunitySearchQuery(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 16px 10px 40px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '30px',
+                          color: 'white',
+                          fontSize: '0.9rem',
+                          outline: 'none',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                    </div>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-                    {communities
-                      .filter(comm => !currentUser || comm.username.toLowerCase() !== currentUser.username.toLowerCase())
-                      .map(comm => {
-                      const members = comm.joinedMembers || [];
-                      const target = Number(comm.activeMembersCount || 0);
-                      const current = members.length;
-                      const isActive = current >= target;
+                    {(() => {
+                      const filtered = communities
+                        .filter(comm => !currentUser || comm.username.toLowerCase() !== currentUser.username.toLowerCase())
+                        .filter(comm => {
+                          const query = communitySearchQuery.toLowerCase().trim();
+                          if (!query) return true;
+                          return (comm.name || '').toLowerCase().includes(query) || 
+                                 (comm.username || '').toLowerCase().includes(query) || 
+                                 (comm.description || '').toLowerCase().includes(query);
+                        });
+
+                      if (filtered.length === 0) {
+                        return (
+                          <div className="glass-panel" style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                            Tidak ada komunitas yang cocok dengan pencarian Anda.
+                          </div>
+                        );
+                      }
+
+                      return filtered.map(comm => {
+                        const members = comm.joinedMembers || [];
+                        const target = Number(comm.activeMembersCount || 0);
+                        const current = members.length;
+                        const isActive = current >= target;
 
                       return (
                         <div 
@@ -2904,8 +2945,9 @@ export default function App() {
                           </div>
                         </div>
                       );
-                    })}
-                  </div>
+                    })
+                  })()}
+                </div>
                 </div>
               );
             })()
