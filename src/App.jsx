@@ -2777,34 +2777,6 @@ export default function App() {
                               </strong>
                             </div>
                           </div>
-
-                          {/* Right Section: Action Button */}
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const commSlug = slugify(comm.name || comm.username) + '-' + comm.id;
-                                window.history.pushState(null, '', '/community/' + commSlug);
-                                window.dispatchEvent(new PopStateEvent('popstate'));
-                              }}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                background: '#ffffff',
-                                border: 'none',
-                                padding: '8px 16px',
-                                borderRadius: '30px',
-                                fontSize: '0.82rem',
-                                fontWeight: 'bold',
-                                color: '#000000',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease'
-                              }}
-                            >
-                              Detail & Gabung →
-                            </button>
-                          </div>
                         </div>
                       );
                     })}
