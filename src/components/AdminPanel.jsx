@@ -2965,9 +2965,7 @@ export default function AdminPanel({
                   <Plus size={18} />
                   <span>Buat Event Baru</span>
                 </button>
-              </div>
-
-              <div className="admin-table-container glass-panel">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                 {myEvents.length > 0 ? (
                   (() => {
                     const filteredEvents = myEvents.filter(evt => 
@@ -2999,171 +2997,171 @@ export default function AdminPanel({
                         </div>
                       );
                     }
-                    return (
-                      <table className="admin-table">
-                        <thead>
-                          <tr>
-                            <th>Judul Event / Kategori</th>
-                            <th>Batas Waktu</th>
-                            <th style={{ textAlign: 'center' }}>Budget Campaign</th>
-                            <th style={{ textAlign: 'center' }}>Status Event</th>
-                            <th style={{ textAlign: 'center' }}>Aksi</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredEvents.map((evt) => {
-                            const status = getEventStatus(evt);
-                            const isLocked = (currentUser?.role === 'panitia' || currentUser?.role === 'user') && status.label === 'Berjalan';
-                            return (
-                              <tr 
-                                key={evt.id} 
-                                className="table-row-hover"
-                                onClick={() => { setSelectedManageEvent(evt); setInnerManageTab('participants'); }}
-                                style={{
-                                  cursor: 'pointer',
-                                  background: 'rgba(255, 255, 255, 0.01)'
-                                }}
-                              >
-                          <td>
-                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                               <strong style={{ color: 'white' }}>{evt.title}</strong>
-                               {(() => {
-                                 const style = getCategoryBadgeStyle(evt.category);
-                                 return (
-                                   <span style={{ 
-                                     fontSize: '0.7rem', 
-                                     background: 'rgba(255, 255, 255, 0.06)', 
-                                     border: '1px solid rgba(255, 255, 255, 0.15)',
-                                     color: '#ffffff', 
-                                     padding: '1px 6px', 
-                                     borderRadius: '6px',
-                                     fontWeight: '600'
-                                   }}>
-                                     {evt.category}
-                                   </span>
-                                 );
-                               })()}
-                             </div>
-                             <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', maxWidth: '450px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.description}</div>
-                           </td>
-                          <td><strong style={{ color: '#ffffff' }}>{formatIndonesianDate(evt.deadline)}</strong></td>
-                          <td style={{ textAlign: 'center' }}>
-                            <strong style={{ color: 'white' }}>
-                              Rp {evt.campaignBudget ? evt.campaignBudget.toLocaleString('id-ID') : '0'}
-                            </strong>
-                            {evt.adminFee > 0 && (
-                              <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
-                                + Platform: Rp {evt.adminFee.toLocaleString('id-ID')}
+                    return filteredEvents.map((evt) => {
+                      const status = getEventStatus(evt);
+                      const isLocked = (currentUser?.role === 'panitia' || currentUser?.role === 'user') && status.label === 'Berjalan';
+                      return (
+                        <div 
+                          key={evt.id}
+                          onClick={() => { setSelectedManageEvent(evt); setInnerManageTab('participants'); }}
+                          style={{ 
+                            borderRadius: '12px', 
+                            padding: '18px 24px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'space-between',
+                            gap: '24px',
+                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                            background: 'rgba(15, 23, 42, 0.45)',
+                            backdropFilter: 'blur(12px)',
+                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                            flexWrap: 'wrap',
+                            width: '100%',
+                            boxSizing: 'border-box',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(124, 58, 237, 0.06)';
+                            e.currentTarget.style.borderColor = 'rgba(167, 139, 250, 0.3)';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(15, 23, 42, 0.45)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                          }}
+                        >
+                          {/* Left Section: Tags, Title, Status & Desc */}
+                          <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                              {(() => {
+                                const style = getCategoryBadgeStyle(evt.category);
+                                return (
+                                  <span style={{ 
+                                    fontSize: '0.68rem', 
+                                    background: style.bg, 
+                                    color: style.color, 
+                                    padding: '3px 10px', 
+                                    borderRadius: '12px',
+                                    fontWeight: 'bold',
+                                    textTransform: 'uppercase',
+                                    border: style.border
+                                  }}>
+                                    {evt.category}
+                                  </span>
+                                );
+                              })()}
+
+                              {/* Status Badge with Tooltip */}
+                              <div className="tooltip-container">
+                                <span 
+                                  className={status.label === 'Berjalan' ? 'animate-glow-green' :
+                                             status.label === 'Pending' ? 'animate-glow-amber' :
+                                             status.label === 'Menunggu Verifikasi' ? 'animate-glow-blue' : ''}
+                                  style={{ 
+                                    fontSize: '0.68rem', 
+                                    padding: '3px 10px', 
+                                    borderRadius: '12px', 
+                                    fontWeight: 'bold', 
+                                    color: status.color, 
+                                    background: status.bg, 
+                                    border: `1px solid ${status.color}30`,
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                  }}
+                                >
+                                  {status.label}
+                                  <Info size={11} style={{ opacity: 0.8, cursor: 'help' }} />
+                                </span>
+                                <span className="tooltip-text">
+                                  {status.info}
+                                </span>
                               </div>
-                            )}
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                              {evt.budgetMode === 'views' ? 'Pay-per-View' : 'Sistem Juara'}
+
+                              {evt.paymentStatus !== 'paid' && (
+                                <span style={{ 
+                                  fontSize: '0.68rem', 
+                                  background: 'rgba(239, 68, 68, 0.15)', 
+                                  color: '#f87171', 
+                                  padding: '3px 10px', 
+                                  borderRadius: '12px',
+                                  fontWeight: 'bold',
+                                  border: '1px solid rgba(239, 68, 68, 0.2)'
+                                }}>
+                                  Belum Bayar
+                                </span>
+                              )}
                             </div>
-                          </td>
-                          <td style={{ textAlign: 'center' }}>
-                            {(() => {
-                              const status = getEventStatus(evt);
-                              return (
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                                  <div className="tooltip-container">
-                                    <span 
-                                      className={status.label === 'Berjalan' ? 'animate-glow-green' :
-                                                 status.label === 'Pending' ? 'animate-glow-amber' :
-                                                 status.label === 'Menunggu Verifikasi' ? 'animate-glow-blue' : ''}
-                                      style={{ 
-                                        fontSize: '0.78rem', 
-                                        padding: '4px 10px', 
-                                        borderRadius: '12px', 
-                                        fontWeight: 'bold', 
-                                        color: status.color, 
-                                        background: status.bg, 
-                                        border: `1px solid ${status.color}30`,
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '4px'
-                                      }}
-                                    >
-                                      {status.label}
-                                      <Info size={12} style={{ opacity: 0.8, cursor: 'help' }} />
-                                    </span>
-                                    <span className="tooltip-text">
-                                      {status.info}
-                                    </span>
-                                  </div>
-                                  
-                                  {evt.paymentStatus !== 'paid' && (
-                                    evt.paymentStatus === 'pending_verification' ? (
-                                      currentUser.role === 'superadmin' ? (
-                                        <button 
-                                          className="btn btn-sm" 
-                                          onClick={(e) => { e.stopPropagation(); setAdminSubTab('confirmations'); }}
-                                          style={{ 
-                                            padding: '4px 10px', 
-                                            fontSize: '0.75rem', 
-                                            display: 'inline-flex', 
-                                            alignItems: 'center', 
-                                            gap: '4px', 
-                                            background: '#ffffff', 
-                                            border: '1px solid #ffffff', 
-                                            color: '#020202', 
-                                            fontWeight: 'bold',
-                                            borderRadius: '20px',
-                                            marginTop: '4px'
-                                          }}
-                                        >
-                                          Verifikasi Pembayaran
-                                        </button>
-                                      ) : (
-                                        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', display: 'block', marginTop: '4px', fontStyle: 'italic' }}>
-                                          Menunggu Verifikasi
-                                        </span>
-                                      )
-                                    ) : (
-                                      <button 
-                                        className="btn btn-sm" 
-                                        onClick={(e) => { e.stopPropagation(); handleOpenPayment(evt); }}
-                                        style={{ 
-                                          padding: '4px 10px', 
-                                          fontSize: '0.75rem', 
-                                          display: 'inline-flex', 
-                                          alignItems: 'center', 
-                                          gap: '4px', 
-                                          background: '#ffffff', 
-                                          border: '1px solid #ffffff', 
-                                          color: '#020202', 
-                                          fontWeight: 'bold',
-                                          borderRadius: '20px'
-                                        }}
-                                      >
-                                        Selesaikan Pembayaran
-                                      </button>
-                                    )
-                                  )}
+
+                            <h3 style={{ color: 'white', fontSize: '1.1rem', fontWeight: '700', margin: 0 }}>{evt.title}</h3>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', maxWidth: '500px' }}>
+                              {evt.description}
+                            </p>
+                          </div>
+
+                          {/* Middle Section: Budget & Deadline */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap', marginRight: '8px' }}>
+                            <div style={{ minWidth: '160px', textAlign: 'left' }}>
+                              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
+                                {evt.budgetMode === 'views' ? 'Sisa / Total Budget' : 'Prize Pool'}
+                              </div>
+                              <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
+                                Rp {evt.campaignBudget ? evt.campaignBudget.toLocaleString('id-ID') : '0'}
+                              </strong>
+                              {evt.adminFee > 0 && (
+                                <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                  + Platform: Rp {evt.adminFee.toLocaleString('id-ID')}
                                 </div>
-                              );
-                            })()}
-                          </td>
-                          <td style={{ textAlign: 'center' }}>
-                            <div className="table-actions" style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                              )}
+                              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>
+                                {evt.budgetMode === 'views' ? 'Pay-per-View' : 'Sistem Juara'}
+                              </div>
+                            </div>
+
+                            <div style={{ minWidth: '180px', display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                <Calendar size={13} style={{ color: 'var(--text-secondary)' }} />
+                                <span>Batas Waktu</span>
+                              </div>
+                              <span style={{ 
+                                fontSize: '0.75rem', 
+                                color: '#ffffff', 
+                                background: 'rgba(255, 255, 255, 0.06)', 
+                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                padding: '3px 8px', 
+                                borderRadius: '4px', 
+                                display: 'inline-block',
+                                fontWeight: '600'
+                              }}>
+                                {evt.deadline ? formatIndonesianDate(evt.deadline) : 'Tanpa Batas Waktu'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Right Section: Actions & Payment Buttons */}
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }} onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: 'flex', gap: '8px' }}>
                               <button 
                                 className="action-btn" 
-                                onClick={(e) => { e.stopPropagation(); setSelectedManageEvent(evt); setInnerManageTab('participants'); }} 
-                                style={{ color: '#ffffff', cursor: 'pointer', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                onClick={() => { setSelectedManageEvent(evt); setInnerManageTab('participants'); }} 
+                                style={{ color: '#ffffff', cursor: 'pointer', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                 title="Kelola Event (Detail)"
                               >
-                                <Eye size={14} />
+                                <Eye size={15} />
                               </button>
                               <button 
                                 className="action-btn" 
-                                onClick={(e) => { e.stopPropagation(); handleEditEvent(evt); }} 
+                                onClick={() => handleEditEvent(evt)} 
                                 disabled={isLocked}
                                 style={{ 
                                   color: '#ffffff', 
                                   cursor: isLocked ? 'not-allowed' : 'pointer', 
                                   background: 'rgba(255, 255, 255, 0.05)', 
                                   border: '1px solid rgba(255, 255, 255, 0.1)', 
-                                  padding: '6px', 
-                                  borderRadius: '6px', 
+                                  padding: '8px', 
+                                  borderRadius: '8px', 
                                   display: 'flex', 
                                   alignItems: 'center', 
                                   justifyContent: 'center',
@@ -3171,19 +3169,19 @@ export default function AdminPanel({
                                 }}
                                 title={isLocked ? "Event berjalan dikunci (tidak bisa diedit)" : "Edit Event"}
                               >
-                                <Edit size={14} />
+                                <Edit size={15} />
                               </button>
                               <button 
                                 className="action-btn" 
-                                onClick={(e) => { e.stopPropagation(); handleDeleteEvent(evt.id); }} 
+                                onClick={() => handleDeleteEvent(evt.id)} 
                                 disabled={isLocked}
                                 style={{ 
-                                  color: '#ffffff', 
+                                  color: '#f87171', 
                                   cursor: isLocked ? 'not-allowed' : 'pointer', 
-                                  background: 'rgba(255, 255, 255, 0.05)', 
-                                  border: '1px solid rgba(255, 255, 255, 0.1)', 
-                                  padding: '6px', 
-                                  borderRadius: '6px', 
+                                  background: 'rgba(239, 68, 68, 0.05)', 
+                                  border: '1px solid rgba(239, 68, 68, 0.15)', 
+                                  padding: '8px', 
+                                  borderRadius: '8px', 
                                   display: 'flex', 
                                   alignItems: 'center', 
                                   justifyContent: 'center',
@@ -3191,25 +3189,70 @@ export default function AdminPanel({
                                 }}
                                 title={isLocked ? "Event berjalan dikunci (tidak bisa dihapus)" : "Hapus Event"}
                               >
-                                <Trash2 size={14} />
+                                <Trash2 size={15} />
                               </button>
                             </div>
-                          </td>
-                        </tr>
-                            );
-                          })}
-                    </tbody>
-                  </table>
-                    );
+
+                            {evt.paymentStatus !== 'paid' && (
+                              evt.paymentStatus === 'pending_verification' ? (
+                                currentUser?.role === 'superadmin' ? (
+                                  <button 
+                                    className="btn btn-sm" 
+                                    onClick={() => setAdminSubTab('confirmations')}
+                                    style={{ 
+                                      padding: '6px 12px', 
+                                      fontSize: '0.75rem', 
+                                      display: 'inline-flex', 
+                                      alignItems: 'center', 
+                                      gap: '4px', 
+                                      background: '#ffffff', 
+                                      border: '1px solid #ffffff', 
+                                      color: '#020202', 
+                                      fontWeight: 'bold',
+                                      borderRadius: '20px'
+                                    }}
+                                  >
+                                    Verifikasi Pembayaran
+                                  </button>
+                                ) : (
+                                  <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                    Menunggu Verifikasi
+                                  </span>
+                                )
+                              ) : (
+                                <button 
+                                  className="btn btn-sm" 
+                                  onClick={() => handleOpenPayment(evt)}
+                                  style={{ 
+                                    padding: '6px 12px', 
+                                    fontSize: '0.75rem', 
+                                    display: 'inline-flex', 
+                                    alignItems: 'center', 
+                                    gap: '4px', 
+                                    background: '#ffffff', 
+                                    border: '1px solid #ffffff', 
+                                    color: '#020202', 
+                                    fontWeight: 'bold',
+                                    borderRadius: '20px'
+                                  }}
+                                >
+                                  Selesaikan Pembayaran
+                                </button>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      );
+                    });
                   })()
                 ) : (
-                  <div className="admin-empty-state">
+                  <div className="admin-empty-state" style={{ padding: '48px', borderRadius: '16px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
                     <Calendar size={48} className="icon" />
                     <h3>Belum ada Event</h3>
                     <p>Mulai dengan membuat event kompetisi kreatif pertama Anda dengan tombol di atas.</p>
                   </div>
                 )}
-              </div>
+              </div>        </div>
             </div>
           </div>
         )
