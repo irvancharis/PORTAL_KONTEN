@@ -2483,6 +2483,7 @@ export default function App() {
               setCustomRoles={setCustomRoles}
               financialJournals={financialJournals}
               setFinancialJournals={handleSetFinancialJournals}
+              communities={communities}
             />
           ) : activeTab === 'wallet' ? (
             <WalletUserPortal 
@@ -2570,20 +2571,22 @@ export default function App() {
                           )}
                         </div>
                         <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                            <span style={{ 
-                              fontSize: '0.72rem', 
-                              background: isActive ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)', 
-                              color: isActive ? '#ffffff' : 'rgba(255,255,255,0.5)', 
-                              padding: '5px 14px', 
-                              borderRadius: '20px',
-                              fontWeight: 'bold',
-                              border: '1px solid rgba(255,255,255,0.15)',
-                              letterSpacing: '0.5px'
-                            }}>
-                              {isActive ? 'KOMUNITAS AKTIF' : 'KOMUNITAS BELUM AKTIF'}
-                            </span>
-                          </div>
+                          {currentUser && currentUser.username === comm.username && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                              <span style={{ 
+                                fontSize: '0.72rem', 
+                                background: isActive ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)', 
+                                color: isActive ? '#ffffff' : 'rgba(255,255,255,0.5)', 
+                                padding: '5px 14px', 
+                                borderRadius: '20px',
+                                fontWeight: 'bold',
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                letterSpacing: '0.5px'
+                              }}>
+                                {isActive ? 'KOMUNITAS AKTIF' : 'KOMUNITAS BELUM AKTIF'}
+                              </span>
+                            </div>
+                          )}
                           <h2 style={{ 
                             color: 'white', 
                             fontSize: '2.2rem', 
@@ -2627,34 +2630,40 @@ export default function App() {
                         {/* Right Column */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                           <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Status Keaktifan</h3>
-                            
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem' }}>
-                              <span style={{ color: 'var(--text-secondary)' }}>Target Anggota:</span>
-                              <strong style={{ color: 'white' }}>{target} Orang</strong>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '0.9rem' }}>
-                              <span style={{ color: 'var(--text-secondary)' }}>Anggota Tergabung:</span>
-                              <strong style={{ color: 'white' }}>{current} Orang</strong>
-                            </div>
+                            {currentUser && currentUser.username === comm.username ? (
+                              <>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Status Keaktifan</h3>
+                                
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem' }}>
+                                  <span style={{ color: 'var(--text-secondary)' }}>Target Anggota:</span>
+                                  <strong style={{ color: 'white' }}>{target} Orang</strong>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '0.9rem' }}>
+                                  <span style={{ color: 'var(--text-secondary)' }}>Anggota Tergabung:</span>
+                                  <strong style={{ color: 'white' }}>{current} Orang</strong>
+                                </div>
 
-                            <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', marginBottom: '12px' }}>
-                              <div style={{ 
-                                width: `${Math.min(100, percentage)}%`, 
-                                height: '100%', 
-                                background: '#ffffff',
-                                transition: 'width 0.3s ease'
-                              }} />
-                            </div>
-                            
-                            {!isActive ? (
-                              <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', display: 'block', lineHeight: '1.4' }}>
-                                *Kurang {target - current} anggota untuk mencapai status aktif
-                              </span>
+                                <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', marginBottom: '12px' }}>
+                                  <div style={{ 
+                                    width: `${Math.min(100, percentage)}%`, 
+                                    height: '100%', 
+                                    background: '#ffffff',
+                                    transition: 'width 0.3s ease'
+                                  }} />
+                                </div>
+                                
+                                {!isActive ? (
+                                  <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', display: 'block', lineHeight: '1.4' }}>
+                                    *Kurang {target - current} anggota untuk mencapai status aktif
+                                  </span>
+                                ) : (
+                                  <span style={{ fontSize: '0.78rem', color: '#ffffff', display: 'block', lineHeight: '1.4', fontWeight: 'bold' }}>
+                                    ✓ Komunitas telah mencapai target anggota aktif.
+                                  </span>
+                                )}
+                              </>
                             ) : (
-                              <span style={{ fontSize: '0.78rem', color: '#ffffff', display: 'block', lineHeight: '1.4', fontWeight: 'bold' }}>
-                                ✓ Komunitas telah mencapai target anggota aktif.
-                              </span>
+                              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Keanggotaan</h3>
                             )}
 
                             {isRegularUser && (() => {
@@ -2759,31 +2768,10 @@ export default function App() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                 <h3 style={{ color: 'white', fontSize: '1.05rem', fontWeight: '700', margin: 0 }}>{comm.name || comm.username}</h3>
-                                <span style={{ 
-                                  fontSize: '0.68rem', 
-                                  padding: '2px 8px', 
-                                  borderRadius: '10px', 
-                                  fontWeight: 'bold',
-                                  color: isActive ? '#ffffff' : 'rgba(255,255,255,0.6)', 
-                                  background: 'rgba(255,255,255,0.1)',
-                                  border: '1px solid rgba(255,255,255,0.15)'
-                                }}>
-                                  {isActive ? 'Aktif' : 'Belum Aktif'}
-                                </span>
                               </div>
                               <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>
                                 {comm.description || 'Belum ada deskripsi profil.'}
                               </p>
-                            </div>
-                          </div>
-
-                          {/* Middle Section: Members Count */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap' }}>
-                            <div style={{ minWidth: '120px', textAlign: 'left' }}>
-                              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}> Anggota Tergabung </div>
-                              <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
-                                {current} / {target} Orang
-                              </strong>
                             </div>
                           </div>
                         </div>
@@ -3077,19 +3065,9 @@ export default function App() {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                     <strong style={{ fontSize: '0.95rem', color: 'white' }}>{comm.name || comm.username}</strong>
-                                    <span style={{ 
-                                      fontSize: '0.7rem', 
-                                      padding: '2px 8px', 
-                                      borderRadius: '10px', 
-                                      fontWeight: 'bold', 
-                                      color: isActive ? '#10b981' : '#f59e0b', 
-                                      background: isActive ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)' 
-                                    }}>
-                                      {isActive ? 'Aktif' : 'Belum Aktif'}
-                                    </span>
                                   </div>
                                   <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                                    {current} dari {target} Anggota Tergabung
+                                    {comm.description || 'Komunitas Terdaftar'}
                                   </span>
                                 </div>
                               </div>

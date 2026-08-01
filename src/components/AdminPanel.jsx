@@ -167,7 +167,8 @@ export default function AdminPanel({
   setFinancialJournals,
   autoOpenCreateForm = false,
   onEventCreatedOrUpdated,
-  isEmbedded = false
+  isEmbedded = false,
+  communities = []
 }) {
   const isPanitia = currentUser && (currentUser.role === 'panitia' || currentUser.role === 'user');
   const myEvents = isPanitia 
@@ -3012,6 +3013,19 @@ export default function AdminPanel({
                 <button 
                   className="btn btn-primary" 
                   onClick={() => {
+                    const isCommunityUser = currentUser?.isCommunity || currentUser?.role === 'panitia';
+                    if (isCommunityUser) {
+                      const myComm = communities.find(c => c.username.toLowerCase() === currentUser.username.toLowerCase());
+                      if (myComm) {
+                        const targetCount = Number(myComm.activeMembersCount || 0);
+                        const currentCount = (myComm.joinedMembers || []).length;
+                        if (currentCount < targetCount) {
+                          alert(`Komunitas Anda belum aktif! Anda baru memiliki ${currentCount}/${targetCount} anggota. Harap capai target anggota aktif terlebih dahulu untuk membuat event.`);
+                          return;
+                        }
+                      }
+                    }
+
                     setEventTitle('');
                     setEventCategory('Short Film');
                     setEventDeadline('');
