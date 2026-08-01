@@ -924,7 +924,8 @@ export default function App() {
     setIsPlaying(false);
     setSelectedMovie(null);
     window.location.hash = '';
-    window.history.pushState("", document.title, window.location.pathname + window.location.search);
+    window.history.pushState(null, '', '/');
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   // Fetch initial data from Firestore if configured
