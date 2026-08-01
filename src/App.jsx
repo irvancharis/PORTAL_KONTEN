@@ -2531,6 +2531,52 @@ export default function App() {
 
                 return (
                   <div className="animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+                    {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && (
+                      <div style={{
+                        background: '#ffffff',
+                        border: '1px solid #ffffff',
+                        borderRadius: '12px',
+                        padding: '16px 20px',
+                        marginBottom: '24px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '16px',
+                        textAlign: 'left'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '280px' }}>
+                          <div style={{ background: 'rgba(0, 0, 0, 0.06)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <AlertTriangle size={20} color="#020202" />
+                          </div>
+                          <div>
+                            <h4 style={{ margin: '0 0 4px 0', color: '#020202', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
+                            <p style={{ margin: 0, color: '#4b5563', fontSize: '0.82rem', lineHeight: '1.5' }}>
+                              lengkapi profil Anda terlebih dahulu agar dapat bergabung dengan komunitas dan mendaftar sebagai peserta event.
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleOpenEditProfile}
+                          style={{
+                            padding: '8px 16px',
+                            fontSize: '0.82rem',
+                            borderRadius: '20px',
+                            fontWeight: 'bold',
+                            background: '#020202',
+                            color: '#ffffff',
+                            border: '1px solid #020202',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <User size={14} />
+                          <span>Lengkapi Profil Sekarang</span>
+                        </button>
+                      </div>
+                    )}
                     {/* Back button */}
                     <button 
                       onClick={() => {
@@ -2714,6 +2760,52 @@ export default function App() {
 
               return (
                 <div className="profile-view-container animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+                  {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && (
+                    <div style={{
+                      background: '#ffffff',
+                      border: '1px solid #ffffff',
+                      borderRadius: '12px',
+                      padding: '16px 20px',
+                      marginBottom: '24px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: '16px',
+                      textAlign: 'left'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '280px' }}>
+                        <div style={{ background: 'rgba(0, 0, 0, 0.06)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <AlertTriangle size={20} color="#020202" />
+                        </div>
+                        <div>
+                          <h4 style={{ margin: '0 0 4px 0', color: '#020202', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
+                          <p style={{ margin: 0, color: '#4b5563', fontSize: '0.82rem', lineHeight: '1.5' }}>
+                            lengkapi profil Anda terlebih dahulu agar dapat bergabung dengan komunitas dan mendaftar sebagai peserta event.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleOpenEditProfile}
+                        style={{
+                          padding: '8px 16px',
+                          fontSize: '0.82rem',
+                          borderRadius: '20px',
+                          fontWeight: 'bold',
+                          background: '#020202',
+                          color: '#ffffff',
+                          border: '1px solid #020202',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <User size={14} />
+                        <span>Lengkapi Profil Sekarang</span>
+                      </button>
+                    </div>
+                  )}
                   <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.06)' }}>
                     <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: '0 0 8px 0', color: 'white' }}>Direktori Komunitas & Instansi</h2>
                     <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', margin: 0 }}>
