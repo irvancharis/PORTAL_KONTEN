@@ -492,8 +492,10 @@ export default function Navbar({
               </div>
               {[
                 { id: 'discover', label: 'Beranda' },
-                { id: 'events', label: 'Event' },
-                { id: 'communities', label: 'Komunitas' },
+                ...(!(currentUser && (currentUser.isCommunity || currentUser.role === 'panitia')) ? [
+                  { id: 'events', label: 'Event' },
+                  { id: 'communities', label: 'Komunitas' }
+                ] : []),
                 { id: 'wallet', label: 'Dompet Saya', requiresUser: true }
               ]
                 .filter(tab => !tab.requiresUser || currentUser)
@@ -559,10 +561,15 @@ export default function Navbar({
                   return [];
                 };
 
+                const isCommunityUser = currentUser && (currentUser.isCommunity || currentUser.role === 'panitia');
                 const permissions = getAdminPermissions(currentUser.role);
                 const adminTabs = [
+                  { id: 'event-dashboard', label: 'Dashboard Event' },
+                  { id: 'event-manage', label: 'Kelola Event' },
                   { id: 'event-payment', label: 'Verifikasi Pembayaran' },
-                  { id: 'creator-marketplace', label: 'Marketplace Creator' },
+                  ...(!isCommunityUser ? [
+                    { id: 'creator-marketplace', label: 'Marketplace Creator' }
+                  ] : []),
                   { id: 'finance-report', label: 'Laporan Keuangan' },
                   { id: 'movies', label: 'Kelola Film' },
                   { id: 'users', label: 'Kelola Pengguna' },

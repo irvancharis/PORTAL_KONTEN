@@ -52,13 +52,19 @@ export default function BottomNav({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const isCommunityUser = currentUser && (currentUser.isCommunity || currentUser.role === 'panitia');
+
   const navItems = [
     { id: 'discover', label: 'Beranda', icon: Home, isEventCreator: false },
-    { id: 'events', label: 'Event', icon: Trophy, isEventCreator: false }
+    ...(!isCommunityUser ? [
+      { id: 'events', label: 'Event', icon: Trophy, isEventCreator: false }
+    ] : [])
   ];
 
   if (currentUser) {
-    if (hasPermission('creator-marketplace')) {
+    if (isCommunityUser) {
+      navItems.push({ id: 'event-manage', label: 'Kelola Event', icon: Trophy, isEventCreator: true });
+    } else if (hasPermission('creator-marketplace')) {
       navItems.push({ id: 'creator-marketplace', label: 'Creator', icon: Users, isEventCreator: true });
     }
     navItems.push({ id: 'wallet', label: 'Dompet Saya', icon: Wallet, isEventCreator: false });

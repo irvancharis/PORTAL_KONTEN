@@ -31,16 +31,23 @@ export default function Sidebar({
   pendingConfirmationsCount = 0,
   pendingWithdrawalsCount = 0
 }) {
+  const isCommunityUser = currentUser && (currentUser.isCommunity || currentUser.role === 'panitia');
+
   const generalMenuItems = [
     { id: 'discover', label: 'Beranda', icon: Home },
-    { id: 'events', label: 'Event', icon: Trophy },
-    { id: 'communities', label: 'Komunitas', icon: Users }
+    ...(!isCommunityUser ? [
+      { id: 'events', label: 'Event', icon: Trophy },
+      { id: 'communities', label: 'Komunitas', icon: Users }
+    ] : [])
   ];
 
-
-
   const eventMenuItems = [
-    { id: 'creator-marketplace', label: 'Creator', icon: Users }
+    { id: 'event-dashboard', label: 'Dashboard Event', icon: LayoutDashboard },
+    { id: 'event-manage', label: 'Kelola Event', icon: Calendar },
+    { id: 'event-payment', label: 'Verifikasi Pembayaran', icon: CreditCard },
+    ...(!isCommunityUser ? [
+      { id: 'creator-marketplace', label: 'Creator', icon: Users }
+    ] : [])
   ];
 
   const systemMenuItems = [
