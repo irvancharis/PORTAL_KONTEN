@@ -892,7 +892,7 @@ export default function Navbar({
                 >
                   {currentUser.username.charAt(0)}
                 </div>
-                <div className="desktop-only" style={{ display: 'flex', alignItems: 'center' }}>
+                <div className="desktop-only" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                    <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-primary)' }}>{currentUser.username}</span>
                 </div>
               </button>
