@@ -1376,43 +1376,64 @@ export default function EventsUserPortal({
                           </button>
                         ) : !userReg ? (
                           // Logged In, Not Registered
-                           <button 
-                            className="btn btn-primary" 
-                            onClick={() => {
-                              const isProfileIncomplete = !currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio;
-                              if (currentUser.role === 'user' && isProfileIncomplete) {
-                                alert('Profil & Portofolio Anda belum lengkap! Silakan lengkapi profil Anda terlebih dahulu untuk dapat mendaftar event.');
-                                if (onEditProfileClick) onEditProfileClick();
-                                return;
-                              }
-                              setRegisteringEvent(evt);
-                              setEmail(currentUser.username + '@gmail.com');
-                            }}
-                            style={{ 
-                              width: '100%', 
-                              justifyContent: 'center',
-                              background: '#ffffff',
-                              border: 'none',
-                              padding: '14px 28px',
-                              borderRadius: '30px',
-                              fontSize: '0.92rem',
-                              fontWeight: 'bold',
-                              color: '#000000',
-                              boxShadow: '0 8px 24px rgba(255, 255, 255, 0.1)',
-                              transition: 'all 0.3s ease',
-                              cursor: 'pointer'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = 'translateY(-2px)';
-                              e.currentTarget.style.boxShadow = '0 12px 30px rgba(255, 255, 255, 0.2)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = 'translateY(0)';
-                              e.currentTarget.style.boxShadow = '0 8px 24px rgba(255, 255, 255, 0.1)';
-                            }}
-                          >
-                            <span>Daftar Kompetisi</span>
-                          </button>
+                          currentUser?.isCommunity ? (
+                             <button 
+                              className="btn btn-secondary" 
+                              disabled
+                              style={{ 
+                                width: '100%', 
+                                justifyContent: 'center',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                padding: '14px 28px',
+                                borderRadius: '30px',
+                                fontSize: '0.92rem',
+                                fontWeight: 'bold',
+                                color: 'var(--text-muted)',
+                                cursor: 'not-allowed'
+                              }}
+                            >
+                              <span>Komunitas tidak dapat mendaftar</span>
+                            </button>
+                          ) : (
+                             <button 
+                              className="btn btn-primary" 
+                              onClick={() => {
+                                const isProfileIncomplete = !currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio;
+                                if (currentUser.role === 'user' && isProfileIncomplete) {
+                                  alert('Profil & Portofolio Anda belum lengkap! Silakan lengkapi profil Anda terlebih dahulu untuk dapat mendaftar event.');
+                                  if (onEditProfileClick) onEditProfileClick();
+                                  return;
+                                }
+                                setRegisteringEvent(evt);
+                                setEmail(currentUser.username + '@gmail.com');
+                              }}
+                              style={{ 
+                                width: '100%', 
+                                justifyContent: 'center',
+                                background: '#ffffff',
+                                border: 'none',
+                                padding: '14px 28px',
+                                borderRadius: '30px',
+                                fontSize: '0.92rem',
+                                fontWeight: 'bold',
+                                color: '#000000',
+                                boxShadow: '0 8px 24px rgba(255, 255, 255, 0.1)',
+                                transition: 'all 0.3s ease',
+                                cursor: 'pointer'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 12px 30px rgba(255, 255, 255, 0.2)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 8px 24px rgba(255, 255, 255, 0.1)';
+                              }}
+                            >
+                              <span>Daftar Kompetisi</span>
+                            </button>
+                          )
                         ) : (
                           // Logged In & Registered
                           <div style={{ textAlign: 'left' }}>

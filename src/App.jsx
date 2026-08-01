@@ -77,7 +77,8 @@ import {
   Phone,
   Mail,
   Globe,
-  Sparkles
+  Sparkles,
+  Users
 } from 'lucide-react';
 
 const slugify = (text) => {
@@ -134,12 +135,12 @@ export default function App() {
     const saved = localStorage.getItem('portal-users');
     let usersList = saved ? JSON.parse(saved) : [];
     const defaults = [
-      { id: '1', username: 'admin', password: 'admin', role: 'superadmin' },
-      { id: '2', username: 'staff', password: 'staff', role: 'staf' },
-      { id: '3', username: 'member', password: 'member', role: 'member' },
-      { id: '4', username: 'panitia', password: 'panitia', role: 'panitia' },
-      { id: '5', username: 'moderator', password: 'moderator', role: 'moderator' },
-      { id: '6', username: 'editor', password: 'editor', role: 'editor' }
+      { id: '1', username: 'admin', password: 'admin', role: 'superadmin', isCommunity: false, joinedMembers: [] },
+      { id: '2', username: 'staff', password: 'staff', role: 'staf', isCommunity: false, joinedMembers: [] },
+      { id: '3', username: 'member', password: 'member', role: 'member', isCommunity: false, joinedMembers: [] },
+      { id: '4', username: 'panitia', password: 'panitia', role: 'panitia', isCommunity: true, activeMembersCount: '5', joinedMembers: [] },
+      { id: '5', username: 'moderator', password: 'moderator', role: 'moderator', isCommunity: false, joinedMembers: [] },
+      { id: '6', username: 'editor', password: 'editor', role: 'editor', isCommunity: false, joinedMembers: [] }
     ];
     if (usersList.length === 0) {
       localStorage.setItem('portal-users', JSON.stringify(defaults));
@@ -147,17 +148,29 @@ export default function App() {
     } else {
       let changed = false;
       if (!usersList.some(u => u.username.toLowerCase() === 'panitia')) {
-        usersList.push({ id: '4', username: 'panitia', password: 'panitia', role: 'panitia' });
+        usersList.push({ id: '4', username: 'panitia', password: 'panitia', role: 'panitia', isCommunity: true, activeMembersCount: '5', joinedMembers: [] });
         changed = true;
       }
       if (!usersList.some(u => u.username.toLowerCase() === 'moderator')) {
-        usersList.push({ id: '5', username: 'moderator', password: 'moderator', role: 'moderator' });
+        usersList.push({ id: '5', username: 'moderator', password: 'moderator', role: 'moderator', isCommunity: false, joinedMembers: [] });
         changed = true;
       }
       if (!usersList.some(u => u.username.toLowerCase() === 'editor')) {
-        usersList.push({ id: '6', username: 'editor', password: 'editor', role: 'editor' });
+        usersList.push({ id: '6', username: 'editor', password: 'editor', role: 'editor', isCommunity: false, joinedMembers: [] });
         changed = true;
       }
+      
+      // Ensure all users have sanitized fields
+      usersList = usersList.map(u => {
+        const isComm = u.role === 'panitia';
+        return {
+          ...u,
+          isCommunity: u.isCommunity !== undefined ? u.isCommunity : isComm,
+          activeMembersCount: u.activeMembersCount || (isComm ? '5' : ''),
+          joinedMembers: u.joinedMembers || []
+        };
+      });
+      
       if (changed) {
         localStorage.setItem('portal-users', JSON.stringify(usersList));
       }
@@ -709,6 +722,8 @@ export default function App() {
           organizerDescription: isComm ? organizerDescription.trim() : '',
           organizerAvatar: isComm ? (organizerAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(organizerName.trim())}&backgroundColor=262626&textColor=ffffff`) : '',
           activeMembersCount: isComm ? activeMembersCount.trim() : '',
+          isCommunity: isComm,
+          joinedMembers: [],
           userCategory: 'Videografer',
           userPortfolio: ''
         };
@@ -750,6 +765,8 @@ export default function App() {
         organizerDescription: isComm ? organizerDescription.trim() : '',
         organizerAvatar: isComm ? (organizerAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(organizerName.trim())}&backgroundColor=262626&textColor=ffffff`) : '',
         activeMembersCount: isComm ? activeMembersCount.trim() : '',
+        isCommunity: isComm,
+        joinedMembers: [],
         userCategory: 'Videografer',
         userPortfolio: ''
       };
@@ -1180,6 +1197,41 @@ export default function App() {
       }
     } else {
       setUsers(newUsers);
+    }
+  };
+
+  const handleToggleJoinCommunity = async (communityUsername) => {
+    if (!currentUser) return;
+    
+    let latestUsers = [...users];
+    if (isFirebaseConfigured()) {
+      const dbUsers = await getFirestoreUsers();
+      if (dbUsers) {
+        latestUsers = dbUsers;
+      }
+    }
+    
+    const updatedUsers = latestUsers.map(u => {
+      if (u.username.toLowerCase() === communityUsername.toLowerCase()) {
+        const members = u.joinedMembers || [];
+        const isMember = members.includes(currentUser.username);
+        const newMembers = isMember 
+          ? members.filter(m => m !== currentUser.username)
+          : [...members, currentUser.username];
+          
+        return {
+          ...u,
+          joinedMembers: newMembers
+        };
+      }
+      return u;
+    });
+
+    await handleSetUsers(updatedUsers);
+    
+    const updatedCurrentUser = updatedUsers.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
+    if (updatedCurrentUser) {
+      setCurrentUser(updatedCurrentUser);
     }
   };
 
@@ -2294,13 +2346,88 @@ export default function App() {
 
                 {/* Jumlah Anggota (Community only) */}
                 {currentUser?.isCommunity && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
-                      <User size={16} />
-                      <span style={{ fontSize: '0.85rem' }}>Jumlah Anggota Aktif</span>
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                        <User size={16} />
+                        <span style={{ fontSize: '0.85rem' }}>Target Anggota untuk Aktif</span>
+                      </div>
+                      <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.activeMembersCount || '0'} Orang</span>
                     </div>
-                    <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.activeMembersCount || '-'} Orang</span>
-                  </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                        <Users size={16} />
+                        <span style={{ fontSize: '0.85rem' }}>Anggota Tergabung</span>
+                      </div>
+                      <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{(currentUser?.joinedMembers || []).length} Orang</span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Status Keaktifan</span>
+                        {(() => {
+                          const target = Number(currentUser?.activeMembersCount || 0);
+                          const current = (currentUser?.joinedMembers || []).length;
+                          const isActive = current >= target;
+                          return (
+                            <span style={{ 
+                              fontSize: '0.75rem', 
+                              padding: '4px 10px', 
+                              borderRadius: '12px', 
+                              fontWeight: 'bold', 
+                              color: isActive ? '#10b981' : '#f59e0b', 
+                              background: isActive ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)' 
+                            }}>
+                              {isActive ? 'AKTIF' : 'BELUM AKTIF'}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                      
+                      {(() => {
+                        const target = Number(currentUser?.activeMembersCount || 0);
+                        const current = (currentUser?.joinedMembers || []).length;
+                        const percentage = target > 0 ? (current / target) * 100 : 0;
+                        const isActive = current >= target;
+                        return (
+                          <div style={{ width: '100%', marginTop: '4px' }}>
+                            <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                              <div style={{ 
+                                width: `${Math.min(100, percentage)}%`, 
+                                height: '100%', 
+                                background: isActive ? 'linear-gradient(90deg, #10b981, #34d399)' : 'linear-gradient(90deg, #f59e0b, #fbbf24)',
+                                transition: 'width 0.3s ease'
+                              }} />
+                            </div>
+                            {!isActive && (
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px', display: 'inline-block' }}>
+                                *Kurang {target - current} anggota untuk mencapai status aktif
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '12px' }}>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Daftar Anggota Komunitas</span>
+                      {(currentUser?.joinedMembers || []).length > 0 ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                          {(currentUser.joinedMembers).map((m, idx) => (
+                            <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.8rem', color: 'white' }}>
+                              <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                {m.charAt(0)}
+                              </div>
+                              <span>{m}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Belum ada anggota yang bergabung.</span>
+                      )}
+                    </div>
+                  </>
                 )}
 
                 {/* Deskripsi */}
@@ -2312,7 +2439,98 @@ export default function App() {
                 </div>
               </div>
 
-
+              {/* Join Komunitas Section (For regular users) */}
+              {!currentUser?.isCommunity && (
+                <div className="profile-card-details glass-panel" style={{ marginTop: '24px' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Daftar Komunitas & Instansi</h3>
+                  {(() => {
+                    const communities = users.filter(u => u.isCommunity);
+                    if (communities.length === 0) {
+                      return <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', margin: 0 }}>Belum ada komunitas terdaftar saat ini.</p>;
+                    }
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {communities.map(comm => {
+                          const members = comm.joinedMembers || [];
+                          const isJoined = members.includes(currentUser.username);
+                          const target = Number(comm.activeMembersCount || 0);
+                          const current = members.length;
+                          const isActive = current >= target;
+                          
+                          return (
+                            <div key={comm.username} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', gap: '16px' }}>
+                              <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flex: '1 1 300px' }}>
+                                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
+                                  {comm.organizerAvatar ? (
+                                    <img src={comm.organizerAvatar} alt={comm.organizerName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                                  ) : (
+                                    comm.organizerName?.charAt(0) || comm.username?.charAt(0)
+                                  )}
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                    <strong style={{ fontSize: '0.95rem', color: 'white' }}>{comm.organizerName || comm.username}</strong>
+                                    <span style={{ 
+                                      fontSize: '0.7rem', 
+                                      padding: '2px 8px', 
+                                      borderRadius: '10px', 
+                                      fontWeight: 'bold', 
+                                      color: isActive ? '#10b981' : '#f59e0b', 
+                                      background: isActive ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)' 
+                                    }}>
+                                      {isActive ? 'Aktif' : 'Belum Aktif'}
+                                    </span>
+                                  </div>
+                                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                    {current} dari {target} Anggota Tergabung
+                                  </span>
+                                  {comm.organizerDescription && (
+                                    <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                                      {comm.organizerDescription}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <button
+                                onClick={() => handleToggleJoinCommunity(comm.username)}
+                                style={{
+                                  padding: '8px 20px',
+                                  fontSize: '0.85rem',
+                                  fontWeight: 'bold',
+                                  borderRadius: '20px',
+                                  border: isJoined ? '1px solid rgba(239, 68, 68, 0.4)' : 'none',
+                                  background: isJoined ? 'rgba(239, 68, 68, 0.05)' : 'white',
+                                  color: isJoined ? '#ef4444' : 'black',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s ease',
+                                  whiteSpace: 'nowrap'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (isJoined) {
+                                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
+                                  } else {
+                                    e.currentTarget.style.transform = 'translateY(-1px)';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (isJoined) {
+                                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.05)';
+                                  } else {
+                                    e.currentTarget.style.transform = 'none';
+                                  }
+                                }}
+                              >
+                                {isJoined ? 'Keluar Komunitas' : 'Join Komunitas'}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
 
               {/* Logout Button */}
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: '32px' }}>
@@ -2865,6 +3083,8 @@ export default function App() {
                     organizerDescription: editProfileDescription.trim(),
                     organizerAvatar: editProfileAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(editProfileName.trim())}&backgroundColor=262626&textColor=ffffff`,
                     activeMembersCount: isComm ? editProfileActiveMembers.trim() : '',
+                    isCommunity: isComm,
+                    joinedMembers: currentUser.joinedMembers || [],
                     userCategory: isComm ? 'Videografer' : editProfileCategory,
                     userPortfolio: isComm ? '' : editProfilePortfolio.trim()
                   };
