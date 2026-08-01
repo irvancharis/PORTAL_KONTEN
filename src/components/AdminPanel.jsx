@@ -2359,40 +2359,67 @@ export default function AdminPanel({
                     </div>
                   </div>
 
-                   <div className="form-group">
-                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Maksimal Peserta</label>
-                    <input 
-                      type="number" 
-                      required={eventHasMaxParticipants} 
-                      disabled={!eventHasMaxParticipants} 
-                      value={eventHasMaxParticipants ? eventMaxParticipants : ''} 
-                      onChange={(e) => setEventMaxParticipants(parseInt(e.target.value))} 
-                      placeholder="Contoh: 50" 
-                      style={{ 
-                        width: '100%', 
-                        padding: '12px 14px', 
-                        background: eventHasMaxParticipants ? '#111827' : 'rgba(255,255,255,0.02)', 
-                        border: '1px solid var(--border-color)', 
-                        borderRadius: '8px', 
-                        color: eventHasMaxParticipants ? 'white' : 'var(--text-muted)', 
-                        fontSize: '0.9rem', 
-                        outline: 'none',
-                        opacity: eventHasMaxParticipants ? 1 : 0.5
-                      }} 
-                    />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
-                      <input 
-                        type="checkbox" 
-                        id="unlimitedParticipants" 
-                        checked={!eventHasMaxParticipants} 
-                        onChange={(e) => setEventHasMaxParticipants(!e.target.checked)} 
-                        style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                      />
-                      <label htmlFor="unlimitedParticipants" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer', margin: 0, fontWeight: 'normal' }}>
-                        Tanpa Batas Peserta (Terbuka untuk Umum tanpa batasan kuota)
-                      </label>
+                    {/* Sasaran Peserta (Target Audience) */}
+                    <div className="form-group">
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Sasaran Peserta (Target Audience)</label>
+                      <select 
+                        value={eventTargetAudience} 
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setEventTargetAudience(val);
+                          if (val === 'members_only') {
+                            setEventHasMaxParticipants(false);
+                          }
+                        }} 
+                        style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                      >
+                        <option value="public" style={{ background: '#020202' }}>Terbuka untuk Umum (Public)</option>
+                        <option value="members_only" style={{ background: '#020202' }}>Khusus Anggota Komunitas Saja (Members Only)</option>
+                      </select>
                     </div>
-                  </div>
+
+                    <div className="form-group" style={{ opacity: eventTargetAudience === 'members_only' ? 0.7 : 1 }}>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Maksimal Peserta</label>
+                      {eventTargetAudience === 'members_only' ? (
+                        <div style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px dashed var(--border-color)', borderRadius: '8px', color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+                          Tanpa Batas Kuota (Terbuka otomatis untuk semua anggota komunitas Anda)
+                        </div>
+                      ) : (
+                        <>
+                          <input 
+                            type="number" 
+                            required={eventHasMaxParticipants} 
+                            disabled={!eventHasMaxParticipants} 
+                            value={eventHasMaxParticipants ? eventMaxParticipants : ''} 
+                            onChange={(e) => setEventMaxParticipants(parseInt(e.target.value))} 
+                            placeholder="Contoh: 50" 
+                            style={{ 
+                              width: '100%', 
+                              padding: '12px 14px', 
+                              background: eventHasMaxParticipants ? '#111827' : 'rgba(255,255,255,0.02)', 
+                              border: '1px solid var(--border-color)', 
+                              borderRadius: '8px', 
+                              color: eventHasMaxParticipants ? 'white' : 'var(--text-muted)', 
+                              fontSize: '0.9rem', 
+                              outline: 'none',
+                              opacity: eventHasMaxParticipants ? 1 : 0.5
+                            }} 
+                          />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                            <input 
+                              type="checkbox" 
+                              id="unlimitedParticipants" 
+                              checked={!eventHasMaxParticipants} 
+                              onChange={(e) => setEventHasMaxParticipants(!e.target.checked)} 
+                              style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                            />
+                            <label htmlFor="unlimitedParticipants" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer', margin: 0, fontWeight: 'normal' }}>
+                              Tanpa Batas Peserta (Terbuka untuk Umum tanpa batasan kuota)
+                            </label>
+                          </div>
+                        </>
+                      )}
+                    </div>
 
                   {/* Mode Budget Selector */}
                   <div className="form-group" style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '12px' }}>
@@ -2405,19 +2432,6 @@ export default function AdminPanel({
                       <option value="views" style={{ background: '#020202' }}>Pay-per-View</option>
                       <option value="ranking" style={{ background: '#020202' }}>Juara 1, 2, 3</option>
                     </select>
-
-                    {/* Target Peserta Selector */}
-                    <div className="form-group" style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '12px', marginBottom: '16px' }}>
-                      <label style={{ display: 'block', marginBottom: '8px', color: 'white', fontSize: '0.92rem', fontWeight: 'bold' }}>Sasaran Peserta (Target Audience)</label>
-                      <select 
-                        value={eventTargetAudience} 
-                        onChange={(e) => setEventTargetAudience(e.target.value)} 
-                        style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
-                      >
-                        <option value="public" style={{ background: '#020202' }}>Terbuka untuk Umum (Public)</option>
-                        <option value="members_only" style={{ background: '#020202' }}>Khusus Anggota Komunitas Saja (Members Only)</option>
-                      </select>
-                    </div>
 
                     {eventBudgetMode === 'views' ? (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
