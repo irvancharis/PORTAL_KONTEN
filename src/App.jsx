@@ -2379,7 +2379,7 @@ export default function App() {
                 const comm = communities.find(c => c.id === selectedCommunityId);
                 if (!comm) {
                   return (
-                    <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                    <div className="glass-panel animate-fade-in" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                       Komunitas tidak ditemukan.
                       <button onClick={() => setSelectedCommunityId(null)} className="btn btn-primary" style={{ marginTop: '12px' }}>Kembali</button>
                     </div>
@@ -2396,174 +2396,195 @@ export default function App() {
 
                 return (
                   <div className="profile-view-container animate-fade-in">
+                    {/* Back button */}
                     <button 
                       onClick={() => setSelectedCommunityId(null)}
                       style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        padding: '8px 16px',
-                        borderRadius: '20px',
-                        color: '#ffffff',
-                        fontSize: '0.8rem',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        marginBottom: '16px',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '6px'
+                        gap: '8px',
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        padding: '10px 20px',
+                        borderRadius: '30px',
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                        fontWeight: '600',
+                        marginBottom: '28px',
+                        transition: 'all 0.3s ease',
+                        outline: 'none'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
                       }}
                     >
                       ← Kembali ke Daftar Komunitas
                     </button>
 
-                    {/* Community Header Card */}
-                    <div className="profile-card-header glass-panel">
-                      <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '16px', border: '4px solid rgba(255, 255, 255, 0.1)' }}>
-                        {comm.avatar ? (
-                          <img src={comm.avatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                        ) : (
-                          comm.name?.charAt(0) || comm.username?.charAt(0)
-                        )}
-                      </div>
-
-                      <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 8px 0' }}>{comm.name || comm.username}</h2>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span style={{ 
-                          fontSize: '0.75rem', 
-                          padding: '4px 12px', 
-                          borderRadius: '20px', 
-                          fontWeight: 'bold',
-                          color: isActive ? '#10b981' : '#f59e0b', 
-                          background: isActive ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)'
-                        }}>
-                          {isActive ? 'AKTIF' : 'BELUM AKTIF'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Community Details */}
-                    <div className="profile-card-details glass-panel" style={{ marginTop: '24px' }}>
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Detail Komunitas</h3>
-                      
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
-                          <Phone size={16} />
-                          <span style={{ fontSize: '0.85rem' }}>WhatsApp / Hubungi</span>
-                        </div>
-                        {comm.phone ? (
-                          <a 
-                            href={`https://wa.me/${comm.phone.replace(/[^0-9]/g, '')}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            style={{ fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'underline' }}
-                          >
-                            Hubungi Komunitas
-                          </a>
-                        ) : (
-                          <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>-</span>
-                        )}
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
-                          <User size={16} />
-                          <span style={{ fontSize: '0.85rem' }}>Target Anggota untuk Aktif</span>
-                        </div>
-                        <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{target} Orang</span>
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
-                          <Users size={16} />
-                          <span style={{ fontSize: '0.85rem' }}>Anggota Tergabung</span>
-                        </div>
-                        <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{current} Orang</span>
-                      </div>
-
-                      {/* Keaktifan status progress bar */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '12px' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Kemajuan Target Keaktifan</span>
-                        <div style={{ width: '100%', marginTop: '4px' }}>
-                          <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                            <div style={{ 
-                              width: `${Math.min(100, percentage)}%`, 
-                              height: '100%', 
-                              background: isActive ? 'linear-gradient(90deg, #10b981, #34d399)' : 'linear-gradient(90deg, #f59e0b, #fbbf24)',
-                              transition: 'width 0.3s ease'
-                            }} />
-                          </div>
-                          {!isActive && (
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px', display: 'inline-block' }}>
-                              *Kurang {target - current} anggota untuk mencapai status aktif
-                            </span>
+                    <div style={{
+                      background: 'rgba(15, 15, 15, 0.7)', 
+                      backdropFilter: 'blur(20px)', 
+                      padding: '32px', 
+                      borderRadius: '24px', 
+                      border: '1px solid rgba(255,255,255,0.04)',
+                      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
+                      textAlign: 'left'
+                    }}>
+                      {/* Community Header Block */}
+                      <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap' }}>
+                        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#ffffff', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 'bold', textTransform: 'uppercase', border: '3px solid rgba(255, 255, 255, 0.1)', flexShrink: 0 }}>
+                          {comm.avatar ? (
+                            <img src={comm.avatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                          ) : (
+                            comm.name?.charAt(0) || comm.username?.charAt(0)
                           )}
                         </div>
-                      </div>
-
-                      {/* Bio */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '12px' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Bio / Deskripsi</span>
-                        <p style={{ fontSize: '0.9rem', margin: 0, lineHeight: '1.6', background: 'rgba(255, 255, 255, 0.01)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                          {comm.description || 'Belum ada deskripsi profil.'}
-                        </p>
-                      </div>
-
-                      {/* Joined members */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Daftar Anggota Komunitas</span>
-                        {members.length > 0 ? (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
-                            {members.map((m, idx) => (
-                              <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.8rem', color: 'white' }}>
-                                <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                  {m.charAt(0)}
-                                </div>
-                                <span>{m}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Belum ada anggota yang bergabung.</span>
-                        )}
-                      </div>
-
-                      {/* Join / Leave Button for regular users */}
-                      {isRegularUser && (
-                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                          <button
-                            onClick={() => handleToggleJoinCommunity(comm.username)}
-                            style={{
-                              padding: '12px 32px',
-                              fontSize: '0.9rem',
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <span style={{ 
+                              fontSize: '0.72rem', 
+                              background: isActive ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)', 
+                              color: isActive ? '#ffffff' : 'rgba(255,255,255,0.5)', 
+                              padding: '5px 14px', 
+                              borderRadius: '20px',
                               fontWeight: 'bold',
-                              borderRadius: '30px',
-                              border: isJoined ? '1px solid rgba(239, 68, 68, 0.4)' : 'none',
-                              background: isJoined ? 'rgba(239, 68, 68, 0.05)' : 'white',
-                              color: isJoined ? '#ef4444' : 'black',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease',
-                              minWidth: '200px'
-                            }}
-                          >
-                            {isJoined ? 'Keluar Komunitas' : 'Join Komunitas'}
-                          </button>
+                              border: '1px solid rgba(255,255,255,0.15)',
+                              letterSpacing: '0.5px'
+                            }}>
+                              {isActive ? 'KOMUNITAS AKTIF' : 'KOMUNITAS BELUM AKTIF'}
+                            </span>
+                          </div>
+                          <h2 style={{ 
+                            color: 'white', 
+                            fontSize: '2.2rem', 
+                            fontWeight: '800', 
+                            margin: 0, 
+                            letterSpacing: '-0.8px'
+                          }}>{comm.name || comm.username}</h2>
                         </div>
-                      )}
+                      </div>
+
+                      {/* Detail Grid */}
+                      <div className="event-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px', marginTop: '24px' }}>
+                        {/* Left Column */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Bio / Deskripsi</h3>
+                            <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
+                              {comm.description || 'Belum ada deskripsi profil.'}
+                            </p>
+                          </div>
+
+                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Daftar Anggota ({current} Orang)</h3>
+                            {members.length > 0 ? (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                                {members.map((m, idx) => (
+                                  <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.8rem', color: 'white' }}>
+                                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#ffffff', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                      {m.charAt(0)}
+                                    </div>
+                                    <span>{m}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Belum ada anggota yang bergabung.</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Right Column */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Status Keaktifan</h3>
+                            
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>Target Anggota:</span>
+                              <strong style={{ color: 'white' }}>{target} Orang</strong>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '0.9rem' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>Anggota Tergabung:</span>
+                              <strong style={{ color: 'white' }}>{current} Orang</strong>
+                            </div>
+
+                            <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', marginBottom: '12px' }}>
+                              <div style={{ 
+                                width: `${Math.min(100, percentage)}%`, 
+                                height: '100%', 
+                                background: '#ffffff',
+                                transition: 'width 0.3s ease'
+                              }} />
+                            </div>
+                            
+                            {!isActive ? (
+                              <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', display: 'block', lineHeight: '1.4' }}>
+                                *Kurang {target - current} anggota untuk mencapai status aktif
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '0.78rem', color: '#ffffff', display: 'block', lineHeight: '1.4', fontWeight: 'bold' }}>
+                                ✓ Komunitas telah mencapai target anggota aktif.
+                              </span>
+                            )}
+
+                            {comm.phone && (
+                              <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                                <a 
+                                  href={`https://wa.me/${comm.phone.replace(/[^0-9]/g, '')}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="btn btn-secondary"
+                                  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '8px', padding: '12px', borderRadius: '30px', fontSize: '0.85rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', textDecoration: 'none', fontWeight: 'bold' }}
+                                >
+                                  <Phone size={14} />
+                                  <span>Hubungi WhatsApp</span>
+                                </a>
+                              </div>
+                            )}
+
+                            {isRegularUser && (
+                              <div style={{ marginTop: '16px' }}>
+                                <button
+                                  onClick={() => handleToggleJoinCommunity(comm.username)}
+                                  style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    fontSize: '0.9rem',
+                                    fontWeight: 'bold',
+                                    borderRadius: '30px',
+                                    border: isJoined ? '1px solid rgba(255, 255, 255, 0.2)' : 'none',
+                                    background: isJoined ? 'rgba(255, 255, 255, 0.05)' : 'white',
+                                    color: isJoined ? 'white' : 'black',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                  }}
+                                >
+                                  {isJoined ? 'Keluar Komunitas' : 'Join Komunitas'}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
               }
 
               return (
-                <div className="profile-view-container animate-fade-in">
-                  <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px' }}>
-                    <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: '0 0 8px 0' }}>Direktori Komunitas & Instansi</h2>
+                <div className="profile-view-container animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+                  <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: '0 0 8px 0', color: 'white' }}>Direktori Komunitas & Instansi</h2>
                     <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', margin: 0 }}>
                       Temukan komunitas kreatif pilihan dan bergabunglah untuk mengikuti event/kompetisi khusus anggota mereka.
                     </p>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                     {communities.map(comm => {
                       const members = comm.joinedMembers || [];
                       const target = Number(comm.activeMembersCount || 0);
@@ -2571,52 +2592,98 @@ export default function App() {
                       const isActive = current >= target;
 
                       return (
-                        <div key={comm.id} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '220px', transition: 'transform 0.2s', border: '1px solid rgba(255,255,255,0.06)' }}>
-                          <div>
-                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '14px' }}>
-                              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                {comm.avatar ? (
-                                  <img src={comm.avatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                                ) : (
-                                  comm.name?.charAt(0) || comm.username?.charAt(0)
-                                )}
-                              </div>
-                              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <h3 style={{ fontSize: '1rem', fontWeight: 'bold', margin: '0 0 4px 0', color: 'white' }}>{comm.name || comm.username}</h3>
+                        <div 
+                          key={comm.id}
+                          className="glass-panel"
+                          onClick={() => setSelectedCommunityId(comm.id)}
+                          style={{ 
+                            borderRadius: '12px', 
+                            padding: '18px 24px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'space-between',
+                            gap: '24px',
+                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                            background: 'rgba(15, 15, 15, 0.45)',
+                            backdropFilter: 'blur(12px)',
+                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                            flexWrap: 'wrap',
+                            width: '100%',
+                            boxSizing: 'border-box',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(15, 15, 15, 0.45)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                          }}
+                        >
+                          {/* Left Section: Avatar, Title & Description */}
+                          <div style={{ flex: '1 1 300px', display: 'flex', alignItems: 'center', gap: '16px', textAlign: 'left' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#ffffff', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
+                              {comm.avatar ? (
+                                <img src={comm.avatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                              ) : (
+                                comm.name?.charAt(0) || comm.username?.charAt(0)
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                <h3 style={{ color: 'white', fontSize: '1.05rem', fontWeight: '700', margin: 0 }}>{comm.name || comm.username}</h3>
                                 <span style={{ 
                                   fontSize: '0.68rem', 
                                   padding: '2px 8px', 
                                   borderRadius: '10px', 
                                   fontWeight: 'bold',
-                                  alignSelf: 'flex-start',
-                                  color: isActive ? '#10b981' : '#f59e0b', 
-                                  background: isActive ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)'
+                                  color: isActive ? '#ffffff' : 'rgba(255,255,255,0.6)', 
+                                  background: 'rgba(255,255,255,0.1)',
+                                  border: '1px solid rgba(255,255,255,0.15)'
                                 }}>
-                                  {isActive ? 'AKTIF' : 'BELUM AKTIF'}
+                                  {isActive ? 'Aktif' : 'Belum Aktif'}
                                 </span>
                               </div>
+                              <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>
+                                {comm.description || 'Belum ada deskripsi profil.'}
+                              </p>
                             </div>
-
-                            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0 0 16px 0', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.5' }}>
-                              {comm.description || 'Belum ada deskripsi profil.'}
-                            </p>
                           </div>
 
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '12px' }}>
-                            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                              {current} / {target} Anggota
-                            </span>
+                          {/* Middle Section: Members Count */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap' }}>
+                            <div style={{ minWidth: '120px', textAlign: 'left' }}>
+                              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}> Anggota Tergabung </div>
+                              <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
+                                {current} / {target} Orang
+                              </strong>
+                            </div>
+                          </div>
+
+                          {/* Right Section: Action Button */}
+                          <div style={{ display: 'flex', gap: '8px' }}>
                             <button
-                              onClick={() => setSelectedCommunityId(comm.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedCommunityId(comm.id);
+                              }}
                               style={{
-                                padding: '6px 14px',
-                                fontSize: '0.78rem',
-                                fontWeight: 'bold',
-                                borderRadius: '15px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                background: '#ffffff',
                                 border: 'none',
-                                background: 'white',
-                                color: 'black',
-                                cursor: 'pointer'
+                                padding: '8px 16px',
+                                borderRadius: '30px',
+                                fontSize: '0.82rem',
+                                fontWeight: 'bold',
+                                color: '#000000',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
                               }}
                             >
                               Detail & Gabung →
