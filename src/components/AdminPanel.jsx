@@ -6048,17 +6048,16 @@ export default function AdminPanel({
                           required
                           value={agendaDate} 
                           onChange={(e) => setAgendaDate(e.target.value)}
-                          style={{ width: '100%', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                          style={{ width: '100%', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none', colorScheme: 'dark' }}
                         />
                       </div>
                       <div>
                         <label style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>Waktu / Jam</label>
                         <input 
-                          type="text" 
-                          placeholder="Contoh: 14:00 WITA"
+                          type="time" 
                           value={agendaTime} 
                           onChange={(e) => setAgendaTime(e.target.value)}
-                          style={{ width: '100%', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                          style={{ width: '100%', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none', colorScheme: 'dark' }}
                         />
                       </div>
                     </div>
