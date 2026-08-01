@@ -107,6 +107,11 @@ export default function Sidebar({
     if (isComm) {
       return ['event-dashboard', 'event-manage', 'community-members'].includes(tabId);
     }
+
+    // Explicit override for regular users (creators/participants)
+    if (currentUser.role === 'user' && !currentUser.isCommunity) {
+      return ['creator-marketplace'].includes(tabId);
+    }
     
     const lookupRole = currentUser.role?.toLowerCase() === 'staff' ? 'staf' : currentUser.role?.toLowerCase();
     const customRole = customRoles.find(r => 

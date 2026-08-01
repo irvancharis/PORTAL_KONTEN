@@ -19,6 +19,11 @@ export default function BottomNav({
     if (isComm) {
       return ['event-dashboard', 'event-manage', 'community-members'].includes(permId);
     }
+
+    // Explicit override for regular users (creators/participants)
+    if (currentUser.role === 'user' && !currentUser.isCommunity) {
+      return ['creator-marketplace'].includes(permId);
+    }
     
     const role = currentUser.role?.toLowerCase();
     const lookupRole = role === 'staff' ? 'staf' : role;
