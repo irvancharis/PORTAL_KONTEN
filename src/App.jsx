@@ -2133,7 +2133,7 @@ export default function App() {
     setSelectedCommunityId(null);
     const adminSubTabs = [
       'event-dashboard', 'event-manage', 'creator-marketplace', 
-      'movies', 'affiliates', 'membership', 'confirmations', 'withdrawals', 'finance-report', 'users', 'roles'
+      'movies', 'affiliates', 'membership', 'confirmations', 'withdrawals', 'finance-report', 'users', 'roles', 'community-members'
     ];
 
     if (adminSubTabs.includes(tabId)) {

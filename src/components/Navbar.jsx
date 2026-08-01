@@ -642,6 +642,14 @@ export default function Navbar({
             className="navbar-logo" 
             style={{ display: activeTab === 'admin' ? 'flex' : undefined }}
             onClick={() => {
+              const isComm = currentUser && (currentUser.isCommunity || currentUser.role === 'panitia');
+              if (isComm) {
+                if (onAdminSubTabChange) onAdminSubTabChange('event-dashboard');
+                setActiveTab('admin');
+                window.history.pushState(null, '', '/creator/event-dashboard');
+                window.dispatchEvent(new Event('popstate'));
+                return;
+              }
               if (activeTab !== 'admin') {
                 setSelectedGenre(null);
                 setSearchQuery('');
