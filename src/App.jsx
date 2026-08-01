@@ -2598,7 +2598,7 @@ export default function App() {
                       </div>
 
                       {/* Detail Grid */}
-                      <div className="event-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px', marginTop: '24px' }}>
+                      <div className="event-detail-grid" style={{ marginTop: '24px' }}>
                         {/* Left Column */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                           <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
