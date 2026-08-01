@@ -2360,23 +2360,25 @@ export default function AdminPanel({
                   </div>
 
                     {/* Sasaran Peserta (Target Audience) */}
-                    <div className="form-group">
-                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Sasaran Peserta (Target Audience)</label>
-                      <select 
-                        value={eventTargetAudience} 
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setEventTargetAudience(val);
-                          if (val === 'members_only') {
-                            setEventHasMaxParticipants(false);
-                          }
-                        }} 
-                        style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
-                      >
-                        <option value="public" style={{ background: '#020202' }}>Terbuka untuk Umum (Public)</option>
-                        <option value="members_only" style={{ background: '#020202' }}>Khusus Anggota Komunitas Saja (Members Only)</option>
-                      </select>
-                    </div>
+                    {(currentUser?.isCommunity || currentUser?.role === 'panitia') && (
+                      <div className="form-group">
+                        <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Sasaran Peserta (Target Audience)</label>
+                        <select 
+                          value={eventTargetAudience} 
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setEventTargetAudience(val);
+                            if (val === 'members_only') {
+                              setEventHasMaxParticipants(false);
+                            }
+                          }} 
+                          style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                        >
+                          <option value="public" style={{ background: '#020202' }}>Terbuka untuk Umum (Public)</option>
+                          <option value="members_only" style={{ background: '#020202' }}>Khusus Anggota Komunitas Saja (Members Only)</option>
+                        </select>
+                      </div>
+                    )}
 
                     <div className="form-group" style={{ opacity: eventTargetAudience === 'members_only' ? 0.7 : 1 }}>
                       <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Maksimal Peserta</label>
