@@ -2443,11 +2443,11 @@ export default function App() {
               </div>
 
               {/* Join Komunitas Section (For regular users) */}
-              {!currentUser?.isCommunity && (
+              {!isCurrentUserCommunity && (
                 <div className="profile-card-details glass-panel" style={{ marginTop: '24px' }}>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Daftar Komunitas & Instansi</h3>
                   {(() => {
-                    const communities = users.filter(u => u.isCommunity);
+                    const communities = users.filter(u => u.isCommunity || u.role === 'panitia');
                     if (communities.length === 0) {
                       return <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', margin: 0 }}>Belum ada komunitas terdaftar saat ini.</p>;
                     }
