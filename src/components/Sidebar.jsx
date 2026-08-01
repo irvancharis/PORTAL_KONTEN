@@ -34,8 +34,8 @@ export default function Sidebar({
   const isCommunityUser = currentUser && (currentUser.isCommunity || currentUser.role === 'panitia');
 
   const generalMenuItems = [
-    { id: 'discover', label: 'Beranda', icon: Home },
     ...(!isCommunityUser ? [
+      { id: 'discover', label: 'Beranda', icon: Home },
       { id: 'events', label: 'Event', icon: Trophy },
       { id: 'communities', label: 'Komunitas', icon: Users }
     ] : [])
@@ -101,6 +101,12 @@ export default function Sidebar({
   const hasPermission = (tabId) => {
     if (!currentUser) return false;
     if (currentUser.role === 'superadmin') return true;
+    
+    // Explicit override for community accounts to prevent database/stale value issues
+    const isComm = currentUser.isCommunity || currentUser.role === 'panitia';
+    if (isComm) {
+      return ['event-dashboard', 'event-manage', 'community-members'].includes(tabId);
+    }
     
     const lookupRole = currentUser.role?.toLowerCase() === 'staff' ? 'staf' : currentUser.role?.toLowerCase();
     const customRole = customRoles.find(r => 

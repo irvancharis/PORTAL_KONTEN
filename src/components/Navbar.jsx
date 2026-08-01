@@ -127,6 +127,12 @@ export default function Navbar({
     const hasPermission = (permId) => {
       if (currentUser.role === 'superadmin') return true;
       
+      // Explicit override for community accounts to prevent database/stale value issues
+      const isComm = currentUser.isCommunity || currentUser.role === 'panitia';
+      if (isComm) {
+        return ['event-dashboard', 'event-manage', 'community-members'].includes(permId);
+      }
+      
       const role = currentUser.role?.toLowerCase();
       const lookupRole = role === 'staff' ? 'staf' : role;
       
