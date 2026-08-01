@@ -1333,7 +1333,18 @@ export default function App() {
     if (!targetComm) return;
 
     const members = targetComm.joinedMembers || [];
+    const pending = targetComm.pendingMembers || [];
     const isMember = members.includes(currentUser.username);
+    const isPending = pending.includes(currentUser.username);
+
+    if (!isMember && !isPending) {
+      const isProfileIncomplete = !currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio;
+      if (isProfileIncomplete) {
+        alert("Profil Belum Lengkap! Silakan lengkapi profil Anda (Nama, WhatsApp/HP, dan Portofolio) terlebih dahulu agar dapat bergabung dengan komunitas.");
+        handleOpenEditProfile();
+        return;
+      }
+    }
 
     let reason = '';
     if (isMember) {
