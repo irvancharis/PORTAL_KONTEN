@@ -462,6 +462,44 @@ export const deleteFirestoreFinancialJournal = async (journalId) => {
   }
 };
 
+export const getFirestoreCommunities = async () => {
+  if (!db) return null;
+  try {
+    const querySnapshot = await getDocs(collection(db, "communities"));
+    const list = [];
+    querySnapshot.forEach((doc) => {
+      list.push({ id: doc.id, ...doc.data() });
+    });
+    return list;
+  } catch (e) {
+    console.error("Error fetching communities from Firestore:", e);
+    return null;
+  }
+};
+
+export const saveFirestoreCommunity = async (community) => {
+  if (!db) return false;
+  try {
+    const { id, ...data } = community;
+    await setDoc(doc(db, "communities", id), data);
+    return true;
+  } catch (e) {
+    console.error("Error saving community to Firestore:", e);
+    return false;
+  }
+};
+
+export const deleteFirestoreCommunity = async (communityId) => {
+  if (!db) return false;
+  try {
+    await deleteDoc(doc(db, "communities", communityId));
+    return true;
+  } catch (e) {
+    console.error("Error deleting community from Firestore:", e);
+    return false;
+  }
+};
+
 export { 
   db, 
   auth, 

@@ -52,7 +52,10 @@ import {
   deleteFirestoreOffer,
   getFirestoreFinancialJournals,
   saveFirestoreFinancialJournal,
-  deleteFirestoreFinancialJournal
+  deleteFirestoreFinancialJournal,
+  getFirestoreCommunities,
+  saveFirestoreCommunity,
+  deleteFirestoreCommunity
 } from './firebase';
 import { 
   Bookmark, 
@@ -177,6 +180,72 @@ export default function App() {
       return usersList;
     }
   });
+
+  const [communities, setCommunities] = useState(() => {
+    if (isFirebaseConfigured()) return [];
+    const saved = localStorage.getItem('portal-communities');
+    if (saved) return JSON.parse(saved);
+    return [
+      {
+        id: 'panitia',
+        username: 'panitia',
+        name: 'Panitia Portal',
+        phone: '081234567890',
+        description: 'Komunitas resmi penyelenggara kompetisi kreatif FILMO.',
+        avatar: '',
+        activeMembersCount: '5',
+        joinedMembers: []
+      }
+    ];
+  });
+
+  const handleSetCommunities = async (newCommunities) => {
+    if (isFirebaseConfigured()) {
+      if (typeof newCommunities === 'function') {
+        setCommunities(prev => {
+          const updated = newCommunities(prev);
+          (async () => {
+            if (updated.length < prev.length) {
+              const remainingIds = updated.map(c => c.id);
+              const deleted = prev.filter(c => !remainingIds.includes(c.id));
+              for (const c of deleted) {
+                await deleteFirestoreCommunity(c.id);
+              }
+            } else {
+              for (const c of updated) {
+                const existing = prev.find(old => old.id === c.id);
+                if (!existing || JSON.stringify(existing) !== JSON.stringify(c)) {
+                  await saveFirestoreCommunity(c);
+                }
+              }
+            }
+          })();
+          return updated;
+        });
+      } else {
+        const prev = communities;
+        setCommunities(newCommunities);
+        if (newCommunities.length < prev.length) {
+          const remainingIds = newCommunities.map(c => c.id);
+          const deleted = prev.filter(c => !remainingIds.includes(c.id));
+          for (const c of deleted) {
+            await deleteFirestoreCommunity(c.id);
+          }
+        } else {
+          for (const c of newCommunities) {
+            const existing = prev.find(old => old.id === c.id);
+            if (!existing || JSON.stringify(existing) !== JSON.stringify(c)) {
+              await saveFirestoreCommunity(c);
+            }
+          }
+        }
+      }
+    } else {
+      const value = typeof newCommunities === 'function' ? newCommunities(communities) : newCommunities;
+      setCommunities(value);
+      localStorage.setItem('portal-communities', JSON.stringify(value));
+    }
+  };
 
   const [customRoles, setCustomRoles] = useState(() => {
     const saved = localStorage.getItem('portal-custom-roles');
@@ -728,6 +797,20 @@ export default function App() {
           userPortfolio: ''
         };
         await saveFirestoreUser(newUser);
+        if (isComm) {
+          const newComm = {
+            id: newUser.username,
+            username: newUser.username,
+            name: newUser.organizerName,
+            phone: newUser.organizerPhone,
+            description: newUser.organizerDescription,
+            avatar: newUser.organizerAvatar,
+            activeMembersCount: newUser.activeMembersCount,
+            joinedMembers: []
+          };
+          await saveFirestoreCommunity(newComm);
+          setCommunities(prev => [...prev, newComm]);
+        }
         setIsLoginModalOpen(false);
         setLoginUsername('');
         setLoginPassword('');
@@ -771,6 +854,19 @@ export default function App() {
         userPortfolio: ''
       };
       await handleSetUsers(prev => [...prev, newUser]);
+      if (isComm) {
+        const newComm = {
+          id: newUser.username,
+          username: newUser.username,
+          name: newUser.organizerName,
+          phone: newUser.organizerPhone,
+          description: newUser.organizerDescription,
+          avatar: newUser.organizerAvatar,
+          activeMembersCount: newUser.activeMembersCount,
+          joinedMembers: []
+        };
+        await handleSetCommunities(prev => [...prev, newComm]);
+      }
       setCurrentUser(newUser);
       setIsLoginModalOpen(false);
       setLoginUsername('');
@@ -921,7 +1017,8 @@ export default function App() {
             dbWithdrawals,
             dbOffers,
             dbUsers,
-            dbFinancialJournals
+            dbFinancialJournals,
+            dbCommunities
           ] = await Promise.all([
             getFirestoreMovies(),
             getFirestoreConfirmations(),
@@ -931,7 +1028,8 @@ export default function App() {
             getFirestoreWithdrawals(),
             getFirestoreOffers(),
             getFirestoreUsers(),
-            getFirestoreFinancialJournals()
+            getFirestoreFinancialJournals(),
+            getFirestoreCommunities()
           ]);
  
           if (dbMovies) setMovies(dbMovies);
@@ -955,6 +1053,25 @@ export default function App() {
           if (dbOffers) setOffers(dbOffers);
           if (dbUsers) setUsers(dbUsers);
           if (dbFinancialJournals) setFinancialJournals(dbFinancialJournals);
+          
+          if (dbCommunities) {
+            if (dbCommunities.length === 0) {
+              const defaultComm = {
+                id: 'panitia',
+                username: 'panitia',
+                name: 'Panitia Portal',
+                phone: '081234567890',
+                description: 'Komunitas resmi penyelenggara kompetisi kreatif FILMO.',
+                avatar: '',
+                activeMembersCount: '5',
+                joinedMembers: []
+              };
+              await saveFirestoreCommunity(defaultComm);
+              setCommunities([defaultComm]);
+            } else {
+              setCommunities(dbCommunities);
+            }
+          }
 
         } catch (err) {
           console.error("Firestore initialization failed:", err);
@@ -1203,36 +1320,31 @@ export default function App() {
   const handleToggleJoinCommunity = async (communityUsername) => {
     if (!currentUser) return;
     
-    let latestUsers = [...users];
+    let latestComm = [...communities];
     if (isFirebaseConfigured()) {
-      const dbUsers = await getFirestoreUsers();
-      if (dbUsers) {
-        latestUsers = dbUsers;
+      const dbComm = await getFirestoreCommunities();
+      if (dbComm) {
+        latestComm = dbComm;
       }
     }
     
-    const updatedUsers = latestUsers.map(u => {
-      if (u.username.toLowerCase() === communityUsername.toLowerCase()) {
-        const members = u.joinedMembers || [];
+    const updatedComm = latestComm.map(c => {
+      if (c.username.toLowerCase() === communityUsername.toLowerCase()) {
+        const members = c.joinedMembers || [];
         const isMember = members.includes(currentUser.username);
         const newMembers = isMember 
           ? members.filter(m => m !== currentUser.username)
           : [...members, currentUser.username];
           
         return {
-          ...u,
+          ...c,
           joinedMembers: newMembers
         };
       }
-      return u;
+      return c;
     });
 
-    await handleSetUsers(updatedUsers);
-    
-    const updatedCurrentUser = updatedUsers.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
-    if (updatedCurrentUser) {
-      setCurrentUser(updatedCurrentUser);
-    }
+    await handleSetCommunities(updatedComm);
   };
 
   const handleTransferWallet = async (username, amount) => {
@@ -2348,90 +2460,84 @@ export default function App() {
                     )}
 
                     {/* Jumlah Anggota (Community only) */}
-                    {isCurrentUserCommunity && (
-                  <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
-                        <User size={16} />
-                        <span style={{ fontSize: '0.85rem' }}>Target Anggota untuk Aktif</span>
-                      </div>
-                      <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.activeMembersCount || '0'} Orang</span>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
-                        <Users size={16} />
-                        <span style={{ fontSize: '0.85rem' }}>Anggota Tergabung</span>
-                      </div>
-                      <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{(currentUser?.joinedMembers || []).length} Orang</span>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Status Keaktifan</span>
-                        {(() => {
-                          const target = Number(currentUser?.activeMembersCount || 0);
-                          const current = (currentUser?.joinedMembers || []).length;
-                          const isActive = current >= target;
-                          return (
-                            <span style={{ 
-                              fontSize: '0.75rem', 
-                              padding: '4px 10px', 
-                              borderRadius: '12px', 
-                              fontWeight: 'bold', 
-                              color: isActive ? '#10b981' : '#f59e0b', 
-                              background: isActive ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)' 
-                            }}>
-                              {isActive ? 'AKTIF' : 'BELUM AKTIF'}
-                            </span>
-                          );
-                        })()}
-                      </div>
+                    {isCurrentUserCommunity && (() => {
+                      const myCommRecord = communities.find(c => c.username.toLowerCase() === currentUser.username.toLowerCase());
+                      const myJoinedMembers = myCommRecord ? (myCommRecord.joinedMembers || []) : [];
+                      const target = Number(myCommRecord ? (myCommRecord.activeMembersCount || 0) : (currentUser.activeMembersCount || 0));
+                      const current = myJoinedMembers.length;
+                      const isActive = current >= target;
+                      const percentage = target > 0 ? (current / target) * 100 : 0;
                       
-                      {(() => {
-                        const target = Number(currentUser?.activeMembersCount || 0);
-                        const current = (currentUser?.joinedMembers || []).length;
-                        const percentage = target > 0 ? (current / target) * 100 : 0;
-                        const isActive = current >= target;
-                        return (
-                          <div style={{ width: '100%', marginTop: '4px' }}>
-                            <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                              <div style={{ 
-                                width: `${Math.min(100, percentage)}%`, 
-                                height: '100%', 
-                                background: isActive ? 'linear-gradient(90deg, #10b981, #34d399)' : 'linear-gradient(90deg, #f59e0b, #fbbf24)',
-                                transition: 'width 0.3s ease'
-                              }} />
+                      return (
+                        <>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                              <User size={16} />
+                              <span style={{ fontSize: '0.85rem' }}>Target Anggota untuk Aktif</span>
                             </div>
-                            {!isActive && (
-                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px', display: 'inline-block' }}>
-                                *Kurang {target - current} anggota untuk mencapai status aktif
+                            <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{target} Orang</span>
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                              <Users size={16} />
+                              <span style={{ fontSize: '0.85rem' }}>Anggota Tergabung</span>
+                            </div>
+                            <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{current} Orang</span>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Status Keaktifan</span>
+                              <span style={{ 
+                                fontSize: '0.75rem', 
+                                padding: '4px 10px', 
+                                borderRadius: '12px', 
+                                fontWeight: 'bold', 
+                                color: isActive ? '#10b981' : '#f59e0b', 
+                                background: isActive ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)' 
+                              }}>
+                                {isActive ? 'AKTIF' : 'BELUM AKTIF'}
                               </span>
+                            </div>
+                            
+                            <div style={{ width: '100%', marginTop: '4px' }}>
+                              <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                                <div style={{ 
+                                  width: `${Math.min(100, percentage)}%`, 
+                                  height: '100%', 
+                                  background: isActive ? 'linear-gradient(90deg, #10b981, #34d399)' : 'linear-gradient(90deg, #f59e0b, #fbbf24)',
+                                  transition: 'width 0.3s ease'
+                                }} />
+                              </div>
+                              {!isActive && (
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px', display: 'inline-block' }}>
+                                  *Kurang {target - current} anggota untuk mencapai status aktif
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '12px' }}>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Daftar Anggota Komunitas</span>
+                            {myJoinedMembers.length > 0 ? (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                                {myJoinedMembers.map((m, idx) => (
+                                  <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.8rem', color: 'white' }}>
+                                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                      {m.charAt(0)}
+                                    </div>
+                                    <span>{m}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Belum ada anggota yang bergabung.</span>
                             )}
                           </div>
-                        );
-                      })()}
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '12px' }}>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Daftar Anggota Komunitas</span>
-                      {(currentUser?.joinedMembers || []).length > 0 ? (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
-                          {(currentUser.joinedMembers).map((m, idx) => (
-                            <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.8rem', color: 'white' }}>
-                              <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                {m.charAt(0)}
-                              </div>
-                              <span>{m}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Belum ada anggota yang bergabung.</span>
-                      )}
-                    </div>
-                  </>
-                )}
+                        </>
+                      );
+                    })()}
 
                 {/* Deskripsi */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -2447,13 +2553,13 @@ export default function App() {
                 <div className="profile-card-details glass-panel" style={{ marginTop: '24px' }}>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Daftar Komunitas & Instansi</h3>
                   {(() => {
-                    const communities = users.filter(u => u.isCommunity || u.role === 'panitia');
-                    if (communities.length === 0) {
+                    const communitiesList = communities;
+                    if (communitiesList.length === 0) {
                       return <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', margin: 0 }}>Belum ada komunitas terdaftar saat ini.</p>;
                     }
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {communities.map(comm => {
+                        {communitiesList.map(comm => {
                           const members = comm.joinedMembers || [];
                           const isJoined = members.includes(currentUser.username);
                           const target = Number(comm.activeMembersCount || 0);
@@ -3098,6 +3204,28 @@ export default function App() {
                   setCurrentUser(updatedUser);
                   setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
                   
+                  if (isComm) {
+                    const existingComm = communities.find(c => c.username.toLowerCase() === currentUser.username.toLowerCase());
+                    const updatedComm = {
+                      id: currentUser.username,
+                      username: currentUser.username,
+                      name: updatedUser.organizerName,
+                      phone: updatedUser.organizerPhone,
+                      description: updatedUser.organizerDescription,
+                      avatar: updatedUser.organizerAvatar,
+                      activeMembersCount: updatedUser.activeMembersCount,
+                      joinedMembers: existingComm ? (existingComm.joinedMembers || []) : []
+                    };
+                    
+                    let updatedCommunities = [...communities];
+                    if (existingComm) {
+                      updatedCommunities = communities.map(c => c.username.toLowerCase() === currentUser.username.toLowerCase() ? updatedComm : c);
+                    } else {
+                      updatedCommunities.push(updatedComm);
+                    }
+                    await handleSetCommunities(updatedCommunities);
+                  }
+
                   // Save to Firestore if available
                   if (isFirebaseConfigured() && auth) {
                     try {
