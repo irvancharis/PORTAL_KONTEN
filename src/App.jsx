@@ -2767,6 +2767,7 @@ export default function App() {
         currentUser={currentUser}
         adminSubTab={adminSubTab}
         onAdminSubTabChange={handleAdminSubTabChange}
+        customRoles={customRoles}
       />
 
       {/* Premium Subscription Modal */}

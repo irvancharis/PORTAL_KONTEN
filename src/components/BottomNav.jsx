@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, LayoutDashboard, Calendar, Wallet, Users, Film, TrendingUp, Trophy } from 'lucide-react';
+import { Home, Wallet, Users, Trophy } from 'lucide-react';
 
 export default function BottomNav({
   activeTab,
@@ -7,90 +7,82 @@ export default function BottomNav({
   setSelectedGenre,
   currentUser,
   adminSubTab,
-  onAdminSubTabChange
+  onAdminSubTabChange,
+  customRoles
 }) {
-  const handleNav = (tabId) => {
-    setActiveTab(tabId);
-    setSelectedGenre(null);
+  const hasPermission = (permId) => {
+    if (!currentUser) return false;
+    if (currentUser.role === 'superadmin') return true;
+    
+    const role = currentUser.role?.toLowerCase();
+    const lookupRole = role === 'staff' ? 'staf' : role;
+    
+    const customRole = (customRoles || []).find(r => 
+      r.id?.toLowerCase() === lookupRole || 
+      r.name?.toLowerCase() === lookupRole
+    );
+    if (customRole) {
+      return customRole.permissions.includes(permId);
+    }
+    
+    // Default hardcoded permissions per role if not found in customRoles
+    if (lookupRole === 'staf') {
+      return ['movies', 'finance-report', 'event-payment', 'creator-marketplace'].includes(permId);
+    }
+    if (lookupRole === 'panitia' || lookupRole === 'user') {
+      return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'].includes(permId);
+    }
+    if (lookupRole === 'moderator') {
+      return ['finance-report', 'event-payment'].includes(permId);
+    }
+    if (lookupRole === 'editor') {
+      return ['movies'].includes(permId);
+    }
+    return false;
+  };
+
+  const handleNavClick = (item) => {
+    if (item.isEventCreator) {
+      if (onAdminSubTabChange) onAdminSubTabChange(item.id);
+      setActiveTab('admin');
+    } else {
+      setActiveTab(item.id);
+      if (setSelectedGenre) setSelectedGenre(null);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const isCurrentlyInAdminTab = activeTab === 'admin';
-  const isAdmin = currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role);
+  const navItems = [
+    { id: 'discover', label: 'Beranda', icon: Home, isEventCreator: false },
+    { id: 'events', label: 'Event', icon: Trophy, isEventCreator: false }
+  ];
 
-  // If user is admin, show admin subtabs in bottom nav (for system admin roles only)
-  if (isAdmin && ['superadmin', 'staf', 'moderator', 'editor'].includes(currentUser.role) && (isCurrentlyInAdminTab || currentUser.role !== 'user')) {
-    const getAdminNavItems = (role) => {
-      const lookupRole = role.toLowerCase() === 'staff' ? 'staf' : role.toLowerCase();
-      if (lookupRole === 'panitia' || lookupRole === 'user') {
-        return [
-          { id: 'event-dashboard', label: 'Dashboard', icon: LayoutDashboard },
-          { id: 'event-manage', label: 'Kelola Event', icon: Calendar },
-          { id: 'creator-marketplace', label: 'Marketplace', icon: Users }
-        ];
-      }
-      // Defaults/superadmin/staf
-      return [
-        { id: 'event-dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { id: 'event-manage', label: 'Event', icon: Calendar },
-        { id: 'movies', label: 'Film', icon: Film },
-        { id: 'finance-report', label: 'Laporan', icon: TrendingUp }
-      ];
-    };
-
-    const navItems = getAdminNavItems(currentUser.role);
-
-    return (
-      <nav className="bottom-nav glass-panel">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = adminSubTab === item.id;
-          return (
-            <button 
-              key={item.id}
-              className={`bottom-nav-item ${isActive ? 'active' : ''}`}
-              onClick={() => {
-                if (onAdminSubTabChange) onAdminSubTabChange(item.id);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-            >
-              <Icon size={20} />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-    );
+  if (currentUser) {
+    if (hasPermission('creator-marketplace')) {
+      navItems.push({ id: 'creator-marketplace', label: 'Marketplace Creator', icon: Users, isEventCreator: true });
+    }
+    navItems.push({ id: 'wallet', label: 'Dompet Saya', icon: Wallet, isEventCreator: false });
   }
 
-  // Otherwise, render standard public bottom navigation
   return (
     <nav className="bottom-nav glass-panel">
-      <button 
-        className={`bottom-nav-item ${activeTab === 'discover' ? 'active' : ''}`}
-        onClick={() => handleNav('discover')}
-      >
-        <Home size={20} />
-        <span>Beranda</span>
-      </button>
-
-      <button 
-        className={`bottom-nav-item ${activeTab === 'events' ? 'active' : ''}`}
-        onClick={() => handleNav('events')}
-      >
-        <Trophy size={20} />
-        <span>Event</span>
-      </button>
-
-      {currentUser && (
-        <button 
-          className={`bottom-nav-item ${activeTab === 'wallet' ? 'active' : ''}`}
-          onClick={() => handleNav('wallet')}
-        >
-          <Wallet size={20} />
-          <span>Dompet Saya</span>
-        </button>
-      )}
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        const isActive = item.isEventCreator 
+          ? (activeTab === 'admin' && adminSubTab === item.id)
+          : (activeTab === item.id);
+        
+        return (
+          <button 
+            key={item.id}
+            className={`bottom-nav-item ${isActive ? 'active' : ''}`}
+            onClick={() => handleNavClick(item)}
+          >
+            <Icon size={20} />
+            <span>{item.label}</span>
+          </button>
+        );
+      })}
     </nav>
   );
 }
