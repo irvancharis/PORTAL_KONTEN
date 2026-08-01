@@ -36,7 +36,8 @@ export default function Navbar({
   onAdminSubTabChange,
   adminSubTab,
   events = [],
-  customRoles = []
+  customRoles = [],
+  communities = []
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -284,6 +285,23 @@ export default function Navbar({
             eventTitle: e.title
           });
         });
+      
+      // Community pending member approvals
+      const myComm = communities.find(c => c.username.toLowerCase() === currentUser.username.toLowerCase());
+      if (myComm) {
+        const pending = myComm.pendingMembers || [];
+        pending.forEach(pendingUser => {
+          list.push({
+            id: `comm_join_req_${myComm.id}_${pendingUser}`,
+            type: 'confirmation',
+            title: 'Permintaan Anggota Baru',
+            message: `User "${pendingUser}" ingin bergabung dengan komunitas Anda "${myComm.name || myComm.username}".`,
+            timestamp: new Date().toISOString(),
+            tab: 'profile-approvals',
+            username: pendingUser
+          });
+        });
+      }
     }
 
     // === PARTICIPANT / MEMBER NOTIFICATIONS ===
@@ -761,12 +779,28 @@ export default function Navbar({
                                 onClick={() => {
                                   setIsNotificationOpen(false);
                                   // Mark notification as dismissed/read
-                                  setDismissedNotifs(prev => {
+                              setDismissedNotifs(prev => {
                                     const updated = [...prev, notif.id];
                                     localStorage.setItem('portal-dismissed-notifications', JSON.stringify(updated));
                                     return updated;
                                   });
-                                  if (notif.tab === 'wallet') {
+                                  if (notif.tab === 'profile-approvals') {
+                                    setActiveTab('profile');
+                                    window.history.pushState(null, '', '/profile');
+                                    window.dispatchEvent(new Event('popstate'));
+                                    setTimeout(() => {
+                                      const el = document.getElementById('persetujuan-anggota');
+                                      if (el) {
+                                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        el.style.borderColor = '#ffffff';
+                                        el.style.boxShadow = '0 0 25px rgba(255, 255, 255, 0.25)';
+                                        setTimeout(() => {
+                                          el.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                          el.style.boxShadow = 'none';
+                                        }, 2000);
+                                      }
+                                    }, 400);
+                                  } else if (notif.tab === 'wallet') {
                                     setActiveTab('wallet');
                                     window.history.pushState(null, '', '/wallet');
                                     window.dispatchEvent(new Event('popstate'));

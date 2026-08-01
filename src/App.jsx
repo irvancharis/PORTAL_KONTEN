@@ -2359,6 +2359,7 @@ export default function App() {
         onAdminSubTabChange={handleAdminSubTabChange}
         events={events}
         customRoles={customRoles}
+        communities={communities}
       />
 
       <div className="app-body-wrapper">
@@ -2643,40 +2644,7 @@ export default function App() {
                               );
                             })()}
 
-                            {/* Persetujuan Anggota Baru (Jika pemilik komunitas) */}
-                            {currentUser && currentUser.username === comm.username && (() => {
-                              const pendingList = comm.pendingMembers || [];
-                              return (
-                                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                                  <h4 style={{ fontSize: '0.92rem', fontWeight: 'bold', color: 'white', marginBottom: '12px' }}>Permintaan Bergabung</h4>
-                                  {pendingList.length > 0 ? (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                      {pendingList.map((pendingUser, idx) => (
-                                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                          <span style={{ fontSize: '0.85rem', color: 'white', fontWeight: '500' }}>{pendingUser}</span>
-                                          <div style={{ display: 'flex', gap: '6px' }}>
-                                            <button 
-                                              onClick={() => handleApproveMember(comm.id, pendingUser)}
-                                              style={{ background: 'white', color: 'black', border: 'none', padding: '6px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}
-                                            >
-                                              Setujui
-                                            </button>
-                                            <button 
-                                              onClick={() => handleRejectMember(comm.id, pendingUser)}
-                                              style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}
-                                            >
-                                              Tolak
-                                            </button>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Tidak ada permintaan bergabung baru.</p>
-                                  )}
-                                </div>
-                              );
-                            })()}
+
                           </div>
                         </div>
                       </div>
@@ -2695,7 +2663,9 @@ export default function App() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-                    {communities.map(comm => {
+                    {communities
+                      .filter(comm => !currentUser || comm.username.toLowerCase() !== currentUser.username.toLowerCase())
+                      .map(comm => {
                       const members = comm.joinedMembers || [];
                       const target = Number(comm.activeMembersCount || 0);
                       const current = members.length;
@@ -2960,6 +2930,54 @@ export default function App() {
                   </p>
                 </div>
               </div>
+
+              {/* Persetujuan Anggota Baru (Only for community owners) */}
+              {isCurrentUserCommunity && (() => {
+                const myComm = communities.find(c => c.username.toLowerCase() === currentUser?.username?.toLowerCase());
+                const pendingList = myComm ? (myComm.pendingMembers || []) : [];
+                return (
+                  <div 
+                    id="persetujuan-anggota" 
+                    className="profile-card-details glass-panel" 
+                    style={{ 
+                      marginTop: '24px',
+                      transition: 'all 0.3s ease',
+                      border: '1px solid rgba(255, 255, 255, 0.08)'
+                    }}
+                  >
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px', color: 'white' }}>
+                      Persetujuan Anggota Baru
+                    </h3>
+                    {pendingList.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
+                        {pendingList.map((pendingUser, idx) => (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '12px 18px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <span style={{ fontSize: '0.9rem', color: 'white', fontWeight: '500' }}>{pendingUser}</span>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button 
+                                onClick={() => handleApproveMember(myComm.id, pendingUser)}
+                                style={{ background: 'white', color: 'black', border: 'none', padding: '8px 16px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                              >
+                                Setujui
+                              </button>
+                              <button 
+                                onClick={() => handleRejectMember(myComm.id, pendingUser)}
+                                style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 16px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                              >
+                                Tolak
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, padding: '8px 0' }}>
+                        Tidak ada permintaan bergabung baru yang memerlukan persetujuan Anda.
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Join Komunitas Section (For regular users - Show only joined communities) */}
               {!isCurrentUserCommunity && (
