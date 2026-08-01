@@ -2260,92 +2260,95 @@ export default function App() {
               withdrawalFeePercent={withdrawalFeePercent}
             />
           ) : activeTab === 'profile' ? (
-            <div className="profile-view-container animate-fade-in">
-              {/* Profile Header Card */}
-              <div className="profile-card-header glass-panel">
-                <div style={{ position: 'absolute', top: '24px', right: '24px' }}>
-                  <button 
-                    onClick={handleOpenEditProfile}
-                    style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '8px 16px', borderRadius: '20px', color: '#ffffff', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; }}
-                  >
-                    <Edit size={14} />
-                    <span>Edit Profil</span>
-                  </button>
-                </div>
-
-                {/* Avatar */}
-                <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '16px', border: '4px solid rgba(255, 255, 255, 0.1)' }}>
-                  {currentUser?.organizerAvatar ? (
-                    <img src={currentUser.organizerAvatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                  ) : (
-                    currentUser?.username?.charAt(0)
-                  )}
-                </div>
-
-                <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 8px 0' }}>{currentUser?.organizerName || currentUser?.username}</h2>
-                {currentUser?.isCommunity && (
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'rgba(255,200,0,0.1)', padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(255,200,0,0.2)', fontWeight: 'bold' }}>
-                      Komunitas
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Profile Details Container */}
-              <div className="profile-card-details glass-panel">
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 8px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Detail Data Profil</h3>
-                
-                {/* Email */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
-                    <Mail size={16} />
-                    <span style={{ fontSize: '0.85rem' }}>Email</span>
-                  </div>
-                  <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.email || '-'}</span>
-                </div>
-
-                {/* WhatsApp */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
-                    <Phone size={16} />
-                    <span style={{ fontSize: '0.85rem' }}>WhatsApp / HP</span>
-                  </div>
-                  <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.organizerPhone || '-'}</span>
-                </div>
-
-                {/* Kategori Kreator */}
-                {!currentUser?.isCommunity && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
-                      <User size={16} />
-                      <span style={{ fontSize: '0.85rem' }}>Kategori Kreator</span>
+            (() => {
+              const isCurrentUserCommunity = currentUser?.isCommunity || currentUser?.role === 'panitia';
+              return (
+                <div className="profile-view-container animate-fade-in">
+                  {/* Profile Header Card */}
+                  <div className="profile-card-header glass-panel">
+                    <div style={{ position: 'absolute', top: '24px', right: '24px' }}>
+                      <button 
+                        onClick={handleOpenEditProfile}
+                        style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '8px 16px', borderRadius: '20px', color: '#ffffff', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; }}
+                      >
+                        <Edit size={14} />
+                        <span>Edit Profil</span>
+                      </button>
                     </div>
-                    <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.userCategory || '-'}</span>
-                  </div>
-                )}
 
-                {/* Link Portofolio */}
-                {!currentUser?.isCommunity && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
-                      <Globe size={16} />
-                      <span style={{ fontSize: '0.85rem' }}>Link Portofolio</span>
+                    {/* Avatar */}
+                    <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '16px', border: '4px solid rgba(255, 255, 255, 0.1)' }}>
+                      {currentUser?.organizerAvatar ? (
+                        <img src={currentUser.organizerAvatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                      ) : (
+                        currentUser?.username?.charAt(0)
+                      )}
                     </div>
-                    {currentUser?.userPortfolio ? (
-                      <a href={currentUser.userPortfolio} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'underline' }}>
-                        Buka Link Portofolio
-                      </a>
-                    ) : (
-                      <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Belum Diisi</span>
+
+                    <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 8px 0' }}>{currentUser?.organizerName || currentUser?.username}</h2>
+                    {isCurrentUserCommunity && (
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'rgba(255,200,0,0.1)', padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(255,200,0,0.2)', fontWeight: 'bold' }}>
+                          Komunitas
+                        </span>
+                      </div>
                     )}
                   </div>
-                )}
 
-                {/* Jumlah Anggota (Community only) */}
-                {currentUser?.isCommunity && (
+                  {/* Profile Details Container */}
+                  <div className="profile-card-details glass-panel">
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 8px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Detail Data Profil</h3>
+                    
+                    {/* Email */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                        <Mail size={16} />
+                        <span style={{ fontSize: '0.85rem' }}>Email</span>
+                      </div>
+                      <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.email || '-'}</span>
+                    </div>
+
+                    {/* WhatsApp */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                        <Phone size={16} />
+                        <span style={{ fontSize: '0.85rem' }}>WhatsApp / HP</span>
+                      </div>
+                      <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.organizerPhone || '-'}</span>
+                    </div>
+
+                    {/* Kategori Kreator */}
+                    {!isCurrentUserCommunity && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                          <User size={16} />
+                          <span style={{ fontSize: '0.85rem' }}>Kategori Kreator</span>
+                        </div>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.userCategory || '-'}</span>
+                      </div>
+                    )}
+
+                    {/* Link Portofolio */}
+                    {!isCurrentUserCommunity && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                          <Globe size={16} />
+                          <span style={{ fontSize: '0.85rem' }}>Link Portofolio</span>
+                        </div>
+                        {currentUser?.userPortfolio ? (
+                          <a href={currentUser.userPortfolio} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'underline' }}>
+                            Buka Link Portofolio
+                          </a>
+                        ) : (
+                          <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Belum Diisi</span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Jumlah Anggota (Community only) */}
+                    {isCurrentUserCommunity && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
@@ -2568,7 +2571,9 @@ export default function App() {
                 </button>
               </div>
             </div>
-          ) : activeTab === 'events' ? (
+          );
+        })()
+      ) : activeTab === 'events' ? (
             <EventsUserPortal 
               currentUser={currentUser}
               onLoginClick={(mode, role, isLocked) => handleOpenLoginModal(mode, role, isLocked)}
