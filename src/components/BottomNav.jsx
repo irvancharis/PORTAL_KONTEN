@@ -59,7 +59,7 @@ export default function BottomNav({
 
   if (currentUser) {
     if (hasPermission('creator-marketplace')) {
-      navItems.push({ id: 'creator-marketplace', label: 'Marketplace Creator', icon: Users, isEventCreator: true });
+      navItems.push({ id: 'creator-marketplace', label: 'Creator', icon: Users, isEventCreator: true });
     }
     navItems.push({ id: 'wallet', label: 'Dompet Saya', icon: Wallet, isEventCreator: false });
   }

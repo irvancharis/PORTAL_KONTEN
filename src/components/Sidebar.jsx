@@ -39,7 +39,7 @@ export default function Sidebar({
 
 
   const eventMenuItems = [
-    { id: 'creator-marketplace', label: 'Marketplace Creator', icon: Users }
+    { id: 'creator-marketplace', label: 'Creator', icon: Users }
   ];
 
   const systemMenuItems = [
