@@ -543,14 +543,17 @@ export default function Navbar({
                   if (lookupRole === 'superadmin') {
                     return [
                       'event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace', 'finance-report',
-                      'movies', 'users', 'roles', 'membership', 'gdrive', 'firebase'
+                      'movies', 'users', 'roles', 'membership', 'gdrive', 'firebase', 'community-members'
                     ];
                   }
                   if (lookupRole === 'staf') {
                     return ['movies', 'finance-report', 'event-payment', 'creator-marketplace'];
                   }
-                  if (lookupRole === 'panitia' || lookupRole === 'user') {
-                    return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'];
+                  if (lookupRole === 'panitia' || (currentUser && currentUser.isCommunity)) {
+                    return ['event-dashboard', 'event-manage', 'community-members'];
+                  }
+                  if (lookupRole === 'user') {
+                    return ['creator-marketplace'];
                   }
                   if (lookupRole === 'moderator') {
                     return ['finance-report', 'event-payment'];
@@ -566,10 +569,12 @@ export default function Navbar({
                 const adminTabs = [
                   { id: 'event-dashboard', label: 'Dashboard Event' },
                   { id: 'event-manage', label: 'Kelola Event' },
-                  { id: 'event-payment', label: 'Verifikasi Pembayaran' },
                   ...(!isCommunityUser ? [
+                    { id: 'event-payment', label: 'Verifikasi Pembayaran' },
                     { id: 'creator-marketplace', label: 'Marketplace Creator' }
-                  ] : []),
+                  ] : [
+                    { id: 'community-members', label: 'Anggota Komunitas' }
+                  ]),
                   { id: 'finance-report', label: 'Laporan Keuangan' },
                   { id: 'movies', label: 'Kelola Film' },
                   { id: 'users', label: 'Kelola Pengguna' },

@@ -44,10 +44,12 @@ export default function Sidebar({
   const eventMenuItems = [
     { id: 'event-dashboard', label: 'Dashboard Event', icon: LayoutDashboard },
     { id: 'event-manage', label: 'Kelola Event', icon: Calendar },
-    { id: 'event-payment', label: 'Verifikasi Pembayaran', icon: CreditCard },
     ...(!isCommunityUser ? [
+      { id: 'event-payment', label: 'Verifikasi Pembayaran', icon: CreditCard },
       { id: 'creator-marketplace', label: 'Creator', icon: Users }
-    ] : [])
+    ] : [
+      { id: 'community-members', label: 'Anggota Komunitas', icon: Users }
+    ])
   ];
 
   const systemMenuItems = [
@@ -75,14 +77,17 @@ export default function Sidebar({
     if (lookupRole === 'superadmin') {
       return [
         'movies', 'affiliates', 'membership', 'confirmations', 'withdrawals', 'users', 'roles',
-        'event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace', 'finance-report'
+        'event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace', 'finance-report', 'community-members'
       ];
     }
     if (lookupRole === 'staf') {
       return ['movies', 'affiliates', 'confirmations', 'withdrawals', 'finance-report'];
     }
-    if (lookupRole === 'panitia' || lookupRole === 'user') {
-      return ['event-dashboard', 'event-manage', 'event-payment', 'creator-marketplace'];
+    if (lookupRole === 'panitia' || (currentUser && currentUser.isCommunity)) {
+      return ['event-dashboard', 'event-manage', 'community-members'];
+    }
+    if (lookupRole === 'user') {
+      return ['creator-marketplace'];
     }
     if (lookupRole === 'moderator') {
       return ['confirmations', 'withdrawals', 'finance-report'];

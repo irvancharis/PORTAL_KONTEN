@@ -2498,6 +2498,9 @@ export default function App() {
               financialJournals={financialJournals}
               setFinancialJournals={handleSetFinancialJournals}
               communities={communities}
+              onKickMember={handleKickMember}
+              onApproveMember={handleApproveMember}
+              onRejectMember={handleRejectMember}
             />
           ) : activeTab === 'wallet' ? (
             <WalletUserPortal 

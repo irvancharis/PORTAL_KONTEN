@@ -168,7 +168,10 @@ export default function AdminPanel({
   autoOpenCreateForm = false,
   onEventCreatedOrUpdated,
   isEmbedded = false,
-  communities = []
+  communities = [],
+  onKickMember,
+  onApproveMember,
+  onRejectMember
 }) {
   const isPanitia = currentUser && (currentUser.role === 'panitia' || currentUser.role === 'user');
   const myEvents = isPanitia 
@@ -1413,6 +1416,11 @@ export default function AdminPanel({
         return {
           title: 'Marketplace Content Creator',
           subtitle: 'Temukan dan ajak kerja sama para Content Creator berprestasi berdasarkan performa, jumlah views, dan tingkat keaktifan mereka.'
+        };
+      case 'community-members':
+        return {
+          title: 'Anggota Komunitas',
+          subtitle: 'Tinjau permintaan bergabung dan kelola daftar keanggotaan aktif komunitas Anda.'
         };
       case 'roles':
         return {
@@ -5682,7 +5690,153 @@ export default function AdminPanel({
             </div>
           </div>
         </div>
-      ) : adminSubTab === 'withdrawals' && currentUser && ['superadmin', 'staf', 'moderator'].includes(currentUser.role) ? (() => {
+      ) : adminSubTab === 'community-members' ? (() => {
+        const myCommunity = communities.find(c => c.username?.toLowerCase() === currentUser?.username?.toLowerCase());
+        if (!myCommunity) {
+          return (
+            <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+              <h3>Komunitas Tidak Ditemukan</h3>
+              <p style={{ marginTop: '8px', fontSize: '0.9rem' }}>Akun Anda belum terdaftar sebagai komunitas atau data komunitas tidak ditemukan.</p>
+            </div>
+          );
+        }
+
+        const pendingList = myCommunity.pendingMembers || [];
+        const joinedList = myCommunity.joinedMembers || [];
+
+        return (
+          <div className="community-members-section animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Permintaan Bergabung */}
+            <div className="glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-md)' }}>
+              <h3 style={{ marginBottom: '16px', fontSize: '1.1rem', color: 'white', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ffc107', display: 'inline-block' }} />
+                Permintaan Bergabung ({pendingList.length})
+              </h3>
+              {pendingList.length > 0 ? (
+                <div className="admin-table-container">
+                  <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                        <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem' }}>Nama Lengkap / Username</th>
+                        <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem' }}>No. WhatsApp / HP</th>
+                        <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem' }}>Portofolio</th>
+                        <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', textAlign: 'right' }}>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pendingList.map(memberUsername => {
+                        const mUser = users.find(u => u.username?.toLowerCase() === memberUsername?.toLowerCase()) || {};
+                        return (
+                          <tr key={memberUsername} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                            <td style={{ padding: '14px 16px' }}>
+                              <div style={{ fontWeight: '600', color: 'white' }}>{mUser.organizerName || mUser.name || memberUsername}</div>
+                              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>@{memberUsername}</div>
+                            </td>
+                            <td style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>
+                              {mUser.organizerPhone || '-'}
+                            </td>
+                            <td style={{ padding: '14px 16px' }}>
+                              {mUser.userPortfolio ? (
+                                <a href={mUser.userPortfolio} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.85rem' }}>
+                                  Lihat Portofolio
+                                </a>
+                              ) : (
+                                <span style={{ color: 'var(--text-muted)' }}>Tidak ada</span>
+                              )}
+                            </td>
+                            <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                <button
+                                  className="btn btn-primary btn-sm"
+                                  onClick={() => onApproveMember && onApproveMember(myCommunity.id, memberUsername)}
+                                  style={{ padding: '6px 12px', fontSize: '0.78rem', background: '#22c55e', borderColor: '#22c55e', color: 'white' }}
+                                >
+                                  Terima
+                                </button>
+                                <button
+                                  className="btn btn-secondary btn-sm"
+                                  onClick={() => onRejectMember && onRejectMember(myCommunity.id, memberUsername)}
+                                  style={{ padding: '6px 12px', fontSize: '0.78rem', background: '#ef4444', borderColor: '#ef4444', color: 'white' }}
+                                >
+                                  Tolak
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', padding: '24px' }}>
+                  Tidak ada permintaan bergabung saat ini.
+                </div>
+              )}
+            </div>
+
+            {/* Daftar Anggota Aktif */}
+            <div className="glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-md)' }}>
+              <h3 style={{ marginBottom: '16px', fontSize: '1.1rem', color: 'white', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+                Anggota Aktif ({joinedList.length})
+              </h3>
+              {joinedList.length > 0 ? (
+                <div className="admin-table-container">
+                  <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                        <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem' }}>Nama Lengkap / Username</th>
+                        <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem' }}>No. WhatsApp / HP</th>
+                        <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem' }}>Portofolio</th>
+                        <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', textAlign: 'right' }}>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {joinedList.map(memberUsername => {
+                        const mUser = users.find(u => u.username?.toLowerCase() === memberUsername?.toLowerCase()) || {};
+                        return (
+                          <tr key={memberUsername} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                            <td style={{ padding: '14px 16px' }}>
+                              <div style={{ fontWeight: '600', color: 'white' }}>{mUser.organizerName || mUser.name || memberUsername}</div>
+                              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>@{memberUsername}</div>
+                            </td>
+                            <td style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>
+                              {mUser.organizerPhone || '-'}
+                            </td>
+                            <td style={{ padding: '14px 16px' }}>
+                              {mUser.userPortfolio ? (
+                                <a href={mUser.userPortfolio} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.85rem' }}>
+                                  Lihat Portofolio
+                                </a>
+                              ) : (
+                                <span style={{ color: 'var(--text-muted)' }}>Tidak ada</span>
+                              )}
+                            </td>
+                            <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => onKickMember && onKickMember(myCommunity.id, memberUsername)}
+                                style={{ padding: '6px 12px', fontSize: '0.78rem', background: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}
+                              >
+                                Keluarkan
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', padding: '24px' }}>
+                  Belum ada anggota yang bergabung.
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })() : adminSubTab === 'withdrawals' && currentUser && ['superadmin', 'staf', 'moderator'].includes(currentUser.role) ? (() => {
         const filteredWithdrawals = withdrawals.filter(wd => {
           if (withdrawalStatusFilter !== 'all' && wd.status !== withdrawalStatusFilter) return false;
           
