@@ -1329,12 +1329,26 @@ export default function App() {
       }
     }
     
+    const targetComm = latestComm.find(c => c.username.toLowerCase() === communityUsername.toLowerCase());
+    if (!targetComm) return;
+
+    const members = targetComm.joinedMembers || [];
+    const isMember = members.includes(currentUser.username);
+
+    let reason = '';
+    if (isMember) {
+      const inputReason = prompt("Masukkan alasan Anda keluar dari komunitas ini:");
+      if (inputReason === null) return; // User clicked Cancel
+      if (!inputReason.trim()) {
+        alert("Alasan harus diisi untuk keluar dari komunitas.");
+        return;
+      }
+      reason = inputReason.trim();
+    }
+    
     const updatedComm = latestComm.map(c => {
       if (c.username.toLowerCase() === communityUsername.toLowerCase()) {
-        const members = c.joinedMembers || [];
         const pending = c.pendingMembers || [];
-        
-        const isMember = members.includes(currentUser.username);
         const isPending = pending.includes(currentUser.username);
         
         let newMembers = [...members];
@@ -1342,7 +1356,7 @@ export default function App() {
         
         if (isMember) {
           newMembers = members.filter(m => m !== currentUser.username);
-          alert('Anda telah keluar dari komunitas.');
+          alert(`Anda telah keluar dari komunitas. Alasan: "${reason}"`);
         } else if (isPending) {
           newPending = pending.filter(m => m !== currentUser.username);
           alert('Permintaan bergabung dibatalkan.');
@@ -1361,6 +1375,31 @@ export default function App() {
     });
 
     await handleSetCommunities(updatedComm);
+  };
+
+  const handleKickMember = async (communityId, memberUsername) => {
+    if (!confirm(`Apakah Anda yakin ingin mengeluarkan anggota "${memberUsername}" dari komunitas?`)) {
+      return;
+    }
+    let latestComm = [...communities];
+    if (isFirebaseConfigured()) {
+      const dbComm = await getFirestoreCommunities();
+      if (dbComm) {
+        latestComm = dbComm;
+      }
+    }
+    const updatedComm = latestComm.map(c => {
+      if (c.id === communityId) {
+        const joined = c.joinedMembers || [];
+        return {
+          ...c,
+          joinedMembers: joined.filter(m => m !== memberUsername)
+        };
+      }
+      return c;
+    });
+    await handleSetCommunities(updatedComm);
+    alert(`Anggota "${memberUsername}" telah dikeluarkan.`);
   };
 
   const handleApproveMember = async (communityId, memberUsername) => {
@@ -2906,11 +2945,29 @@ export default function App() {
                             {myJoinedMembers.length > 0 ? (
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
                                 {myJoinedMembers.map((m, idx) => (
-                                  <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.8rem', color: 'white' }}>
-                                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                  <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.8rem', color: 'white' }}>
+                                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#ffffff', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
                                       {m.charAt(0)}
                                     </div>
                                     <span>{m}</span>
+                                    <button
+                                      onClick={() => handleKickMember(myCommRecord.id, m)}
+                                      style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: '#ef4444',
+                                        cursor: 'pointer',
+                                        fontSize: '0.75rem',
+                                        padding: '0 2px',
+                                        fontWeight: 'bold',
+                                        marginLeft: '4px',
+                                        display: 'inline-flex',
+                                        alignItems: 'center'
+                                      }}
+                                      title="Keluarkan Anggota"
+                                    >
+                                      ✕
+                                    </button>
                                   </div>
                                 ))}
                               </div>
