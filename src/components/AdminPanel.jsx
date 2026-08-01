@@ -171,7 +171,8 @@ export default function AdminPanel({
   communities = [],
   onKickMember,
   onApproveMember,
-  onRejectMember
+  onRejectMember,
+  onSaveAgenda
 }) {
   const isPanitia = currentUser && (currentUser.role === 'panitia' || currentUser.role === 'user');
   const myEvents = isPanitia 
@@ -218,6 +219,15 @@ export default function AdminPanel({
   const [visibleActivitiesCount, setVisibleActivitiesCount] = useState(6);
   const [visibleMoviesCount, setVisibleMoviesCount] = useState(12);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Agenda states
+  const [showAgendaModal, setShowAgendaModal] = useState(false);
+  const [agendaTitle, setAgendaTitle] = useState('');
+  const [agendaDesc, setAgendaDesc] = useState('');
+  const [agendaDate, setAgendaDate] = useState('');
+  const [agendaTime, setAgendaTime] = useState('');
+  const [agendaLoc, setAgendaLoc] = useState('');
+  const [agendaPublishTo, setAgendaPublishTo] = useState('public');
 
   // Creator Marketplace local states
   const [selectedMarketplaceCreator, setSelectedMarketplaceCreator] = useState(null);
@@ -1421,6 +1431,11 @@ export default function AdminPanel({
         return {
           title: 'Anggota Komunitas',
           subtitle: 'Tinjau permintaan bergabung dan kelola daftar keanggotaan aktif komunitas Anda.'
+        };
+      case 'community-agendas':
+        return {
+          title: 'Agenda Komunitas',
+          subtitle: 'Kelola jadwal, kegiatan internal, maupun agenda publik untuk komunitas Anda.'
         };
       case 'roles':
         return {
@@ -5834,6 +5849,261 @@ export default function AdminPanel({
                 </div>
               )}
             </div>
+          </div>
+        );
+      })() : adminSubTab === 'community-agendas' ? (() => {
+        const myCommunity = communities.find(c => c.username?.toLowerCase() === currentUser?.username?.toLowerCase());
+        if (!myCommunity) {
+          return (
+            <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+              <h3>Komunitas Tidak Ditemukan</h3>
+              <p style={{ marginTop: '8px', fontSize: '0.9rem' }}>Akun Anda belum terdaftar sebagai komunitas atau data komunitas tidak ditemukan.</p>
+            </div>
+          );
+        }
+
+        const agendaList = myCommunity.agendas || [];
+
+        const handleAddAgendaSubmit = (e) => {
+          e.preventDefault();
+          if (!agendaTitle.trim() || !agendaDate) {
+            alert('Judul agenda dan Tanggal wajib diisi.');
+            return;
+          }
+          const newAgenda = {
+            id: Date.now().toString(),
+            title: agendaTitle,
+            description: agendaDesc,
+            date: agendaDate,
+            time: agendaTime || '',
+            location: agendaLoc || '',
+            publishTo: agendaPublishTo || 'public'
+          };
+          const updatedAgendas = [...agendaList, newAgenda];
+          if (onSaveAgenda) {
+            onSaveAgenda(myCommunity.id, updatedAgendas);
+          }
+          // Reset form
+          setAgendaTitle('');
+          setAgendaDesc('');
+          setAgendaDate('');
+          setAgendaTime('');
+          setAgendaLoc('');
+          setAgendaPublishTo('public');
+          setShowAgendaModal(false);
+          alert('Agenda berhasil ditambahkan.');
+        };
+
+        const handleDeleteAgenda = (agendaId) => {
+          if (window.confirm('Apakah Anda yakin ingin menghapus agenda ini?')) {
+            const updatedAgendas = agendaList.filter(a => a.id !== agendaId);
+            if (onSaveAgenda) {
+              onSaveAgenda(myCommunity.id, updatedAgendas);
+            }
+            alert('Agenda berhasil dihapus.');
+          }
+        };
+
+        return (
+          <div className="community-agendas-section animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+              <button 
+                onClick={() => setShowAgendaModal(true)} 
+                className="btn btn-primary"
+                style={{ borderRadius: '20px', padding: '10px 20px', fontSize: '0.88rem' }}
+              >
+                + Tambah Agenda Baru
+              </button>
+            </div>
+
+            <div className="glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-md)' }}>
+              <h3 style={{ marginBottom: '20px', fontSize: '1.1rem', color: 'white', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                Daftar Agenda Komunitas ({agendaList.length})
+              </h3>
+              {agendaList.length > 0 ? (
+                <div className="table-responsive">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Tanggal / Waktu</th>
+                        <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Judul Agenda</th>
+                        <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Deskripsi</th>
+                        <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Lokasi</th>
+                        <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Publikasi</th>
+                        <th style={{ padding: '14px 16px', color: 'var(--text-secondary)', textAlign: 'right' }}>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {agendaList.map((agenda) => (
+                        <tr key={agenda.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
+                          <td style={{ padding: '14px 16px', color: 'white', fontSize: '0.88rem', whiteSpace: 'nowrap' }}>
+                            <strong>{agenda.date}</strong>
+                            {agenda.time && <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px' }}>Pukul {agenda.time}</div>}
+                          </td>
+                          <td style={{ padding: '14px 16px', color: 'white', fontSize: '0.88rem', fontWeight: 'bold' }}>
+                            {agenda.title}
+                          </td>
+                          <td style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontSize: '0.85rem', maxWidth: '300px' }}>
+                            {agenda.description || '-'}
+                          </td>
+                          <td style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                            {agenda.location || '-'}
+                          </td>
+                          <td style={{ padding: '14px 16px' }}>
+                            <span style={{
+                              fontSize: '0.75rem',
+                              padding: '4px 10px',
+                              borderRadius: '20px',
+                              fontWeight: 'bold',
+                              background: agenda.publishTo === 'public' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                              color: agenda.publishTo === 'public' ? '#10b981' : '#3b82f6',
+                              border: agenda.publishTo === 'public' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(59, 130, 246, 0.2)'
+                            }}>
+                              {agenda.publishTo === 'public' ? 'Publik' : 'Khusus Anggota'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => handleDeleteAgenda(agenda.id)}
+                              style={{ padding: '6px 12px', fontSize: '0.78rem', background: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}
+                            >
+                              Hapus
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', padding: '36px' }}>
+                  Belum ada agenda yang dibuat. Klik "+ Tambah Agenda Baru" untuk menambahkan agenda pertama Anda.
+                </div>
+              )}
+            </div>
+
+            {/* Modal Tambah Agenda */}
+            {showAgendaModal && (
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.8)',
+                backdropFilter: 'blur(8px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 9999,
+                padding: '20px'
+              }}>
+                <div className="glass-panel" style={{
+                  maxWidth: '500px',
+                  width: '100%',
+                  borderRadius: '20px',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  background: 'rgba(20, 20, 20, 0.95)',
+                  boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ color: 'white', margin: 0, fontSize: '1.15rem', fontWeight: 'bold' }}>Tambah Agenda Komunitas</h3>
+                    <button 
+                      type="button"
+                      onClick={() => setShowAgendaModal(false)}
+                      style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.2rem' }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <form onSubmit={handleAddAgendaSubmit} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>Judul Agenda *</label>
+                      <input 
+                        type="text" 
+                        required
+                        placeholder="Contoh: Rapat Koordinasi Anggota"
+                        value={agendaTitle} 
+                        onChange={(e) => setAgendaTitle(e.target.value)}
+                        style={{ width: '100%', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>Deskripsi / Keterangan</label>
+                      <textarea 
+                        rows="3"
+                        placeholder="Jelaskan rincian atau topik agenda..."
+                        value={agendaDesc} 
+                        onChange={(e) => setAgendaDesc(e.target.value)}
+                        style={{ width: '100%', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }}
+                      />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>Tanggal Agenda *</label>
+                        <input 
+                          type="date" 
+                          required
+                          value={agendaDate} 
+                          onChange={(e) => setAgendaDate(e.target.value)}
+                          style={{ width: '100%', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>Waktu / Jam</label>
+                        <input 
+                          type="text" 
+                          placeholder="Contoh: 14:00 WITA"
+                          value={agendaTime} 
+                          onChange={(e) => setAgendaTime(e.target.value)}
+                          style={{ width: '100%', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>Lokasi / Media Pertemuan</label>
+                      <input 
+                        type="text" 
+                        placeholder="Contoh: Gedung A Lantai 3 atau Zoom Meeting"
+                        value={agendaLoc} 
+                        onChange={(e) => setAgendaLoc(e.target.value)}
+                        style={{ width: '100%', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>Status Publikasi</label>
+                      <select
+                        value={agendaPublishTo}
+                        onChange={(e) => setAgendaPublishTo(e.target.value)}
+                        style={{ width: '100%', padding: '10px 14px', background: 'rgba(20, 20, 20, 0.95)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none', cursor: 'pointer' }}
+                      >
+                        <option value="public">Publik (Bisa dilihat oleh siapa saja)</option>
+                        <option value="members">Khusus Anggota Komunitas (Hanya yang sudah disetujui)</option>
+                      </select>
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '12px', justifyContent: 'flex-end' }}>
+                      <button 
+                        type="button" 
+                        onClick={() => setShowAgendaModal(false)}
+                        className="btn btn-secondary"
+                        style={{ borderRadius: '20px', padding: '8px 16px', fontSize: '0.85rem' }}
+                      >
+                        Batal
+                      </button>
+                      <button 
+                        type="submit" 
+                        className="btn btn-primary"
+                        style={{ borderRadius: '20px', padding: '8px 16px', fontSize: '0.85rem' }}
+                      >
+                        Simpan Agenda
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         );
       })() : adminSubTab === 'withdrawals' && currentUser && ['superadmin', 'staf', 'moderator'].includes(currentUser.role) ? (() => {

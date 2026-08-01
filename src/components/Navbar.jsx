@@ -130,7 +130,7 @@ export default function Navbar({
       // Explicit override for community accounts to prevent database/stale value issues
       const isComm = currentUser.isCommunity || currentUser.role === 'panitia';
       if (isComm) {
-        return ['event-dashboard', 'event-manage', 'community-members'].includes(permId);
+        return ['event-dashboard', 'event-manage', 'community-members', 'community-agendas'].includes(permId);
       }
 
       // Explicit override for regular users (creators/participants)

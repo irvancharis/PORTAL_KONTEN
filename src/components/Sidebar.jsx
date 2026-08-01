@@ -48,7 +48,8 @@ export default function Sidebar({
       { id: 'event-payment', label: 'Verifikasi Pembayaran', icon: CreditCard },
       { id: 'creator-marketplace', label: 'Creator', icon: Users }
     ] : [
-      { id: 'community-members', label: 'Anggota Komunitas', icon: Users }
+      { id: 'community-members', label: 'Anggota Komunitas', icon: Users },
+      { id: 'community-agendas', label: 'Agenda Komunitas', icon: Calendar }
     ])
   ];
 
@@ -105,7 +106,7 @@ export default function Sidebar({
     // Explicit override for community accounts to prevent database/stale value issues
     const isComm = currentUser.isCommunity || currentUser.role === 'panitia';
     if (isComm) {
-      return ['event-dashboard', 'event-manage', 'community-members'].includes(tabId);
+      return ['event-dashboard', 'event-manage', 'community-members', 'community-agendas'].includes(tabId);
     }
 
     // Explicit override for regular users (creators/participants)

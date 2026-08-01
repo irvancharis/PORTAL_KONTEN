@@ -1466,6 +1466,26 @@ export default function App() {
     await handleSetCommunities(updatedComm);
   };
 
+  const handleSaveAgenda = async (communityId, agendas) => {
+    let latestComm = [...communities];
+    if (isFirebaseConfigured()) {
+      const dbComm = await getFirestoreCommunities();
+      if (dbComm) {
+        latestComm = dbComm;
+      }
+    }
+    const updatedComm = latestComm.map(c => {
+      if (c.id === communityId) {
+        return {
+          ...c,
+          agendas: agendas
+        };
+      }
+      return c;
+    });
+    await handleSetCommunities(updatedComm);
+  };
+
   const handleTransferWallet = async (username, amount) => {
     let latestUsers = [...users];
     if (isFirebaseConfigured()) {
@@ -2135,7 +2155,7 @@ export default function App() {
     setSelectedCommunityId(null);
     const adminSubTabs = [
       'event-dashboard', 'event-manage', 'creator-marketplace', 
-      'movies', 'affiliates', 'membership', 'confirmations', 'withdrawals', 'finance-report', 'users', 'roles', 'community-members'
+      'movies', 'affiliates', 'membership', 'confirmations', 'withdrawals', 'finance-report', 'users', 'roles', 'community-members', 'community-agendas'
     ];
 
     if (adminSubTabs.includes(tabId)) {
@@ -2503,6 +2523,7 @@ export default function App() {
               onKickMember={handleKickMember}
               onApproveMember={handleApproveMember}
               onRejectMember={handleRejectMember}
+              onSaveAgenda={handleSaveAgenda}
             />
           ) : activeTab === 'wallet' ? (
             <WalletUserPortal 
@@ -2683,6 +2704,81 @@ export default function App() {
                               </div>
                             </div>
                           )}
+
+                          {/* Agenda Kegiatan Komunitas */}
+                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Agenda Kegiatan</h3>
+                            {(() => {
+                              const allAgendas = comm.agendas || [];
+                              const isOwner = currentUser && currentUser.username === comm.username;
+                              const isMember = isJoined || isOwner;
+
+                              if (allAgendas.length > 0) {
+                                return (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '12px' }}>
+                                    {allAgendas.map((agenda) => {
+                                      const canViewDetails = agenda.publishTo === 'public' || isMember;
+                                      return (
+                                        <div key={agenda.id} style={{
+                                          background: 'rgba(255, 255, 255, 0.02)',
+                                          border: '1px solid rgba(255, 255, 255, 0.05)',
+                                          borderRadius: '12px',
+                                          padding: '16px',
+                                          display: 'flex',
+                                          flexDirection: 'column',
+                                          gap: '8px'
+                                        }}>
+                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
+                                            <div>
+                                              <span style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: 'bold' }}>{agenda.date} {agenda.time && `• Pukul ${agenda.time}`}</span>
+                                              <h4 style={{ color: 'white', margin: '4px 0 0 0', fontSize: '1rem', fontWeight: 'bold' }}>
+                                                {canViewDetails ? agenda.title : '🔒 [Agenda Khusus Anggota]'}
+                                              </h4>
+                                            </div>
+                                            <span style={{
+                                              fontSize: '0.75rem',
+                                              padding: '4px 10px',
+                                              borderRadius: '20px',
+                                              background: agenda.publishTo === 'public' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                                              color: agenda.publishTo === 'public' ? '#10b981' : '#3b82f6',
+                                              border: agenda.publishTo === 'public' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(59, 130, 246, 0.2)',
+                                              fontWeight: 'bold'
+                                            }}>
+                                              {agenda.publishTo === 'public' ? 'Publik' : 'Anggota'}
+                                            </span>
+                                          </div>
+
+                                          {canViewDetails ? (
+                                            <>
+                                              {agenda.description && (
+                                                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.5' }}>
+                                                  {agenda.description}
+                                                </p>
+                                              )}
+                                              {agenda.location && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                                  <span style={{ color: 'var(--primary)' }}>📍</span>
+                                                  <span>Lokasi: {agenda.location}</span>
+                                                </div>
+                                              )}
+                                            </>
+                                          ) : (
+                                            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0, fontStyle: 'italic' }}>
+                                              Detail agenda ini hanya dapat dilihat oleh anggota resmi komunitas ini. Silakan bergabung untuk melihat info lengkap.
+                                            </p>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              }
+
+                              return (
+                                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Belum ada agenda kegiatan yang dijadwalkan.</p>
+                              );
+                            })()}
+                          </div>
                         </div>
 
                         {/* Right Column */}
