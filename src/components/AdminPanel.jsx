@@ -485,8 +485,29 @@ export default function AdminPanel({
   const [eventJudgingSearch, setEventJudgingSearch] = useState('');
   const [affiliatesSearch, setAffiliatesSearch] = useState('');
   const [selectedEventIdFilter, setSelectedEventIdFilter] = useState('');
-  const [selectedManageEvent, setSelectedManageEvent] = useState(null);
+  const [selectedManageEvent, setSelectedManageEvent] = useState(() => {
+    const path = window.location.pathname;
+    if (path.startsWith('/events/kelola/')) {
+      const parts = path.replace('/events/kelola/', '').split('/');
+      const eventId = parts[0];
+      return events.find(e => e.id === eventId) || null;
+    }
+    const savedId = localStorage.getItem('portal-selected-manage-event-id');
+    if (savedId) {
+      return events.find(e => e.id === savedId) || null;
+    }
+    return null;
+  });
+
   const [innerManageTab, setInnerManageTab] = useState(() => {
+    const path = window.location.pathname;
+    if (path.startsWith('/events/kelola/')) {
+      const parts = path.replace('/events/kelola/', '').split('/');
+      const tabId = parts[1];
+      if (['participants', 'submissions', 'judging', 'finance'].includes(tabId)) {
+        return tabId;
+      }
+    }
     return localStorage.getItem('portal-inner-manage-tab') || 'participants';
   });
 
@@ -495,12 +516,22 @@ export default function AdminPanel({
   }, [innerManageTab]);
 
   React.useEffect(() => {
+    if (!isEmbedded) return;
+    const path = window.location.pathname;
     if (selectedManageEvent) {
+      const targetPath = `/events/kelola/${selectedManageEvent.id}/${innerManageTab}`;
+      if (path !== targetPath) {
+        window.history.pushState(null, '', targetPath);
+      }
       localStorage.setItem('portal-selected-manage-event-id', selectedManageEvent.id);
     } else {
+      const targetPath = '/events/kelola';
+      if (path.startsWith('/events/kelola/') || (path.startsWith('/events') && path !== '/events/semua' && path !== '/events/undangan' && path !== '/events/kelola')) {
+        window.history.pushState(null, '', targetPath);
+      }
       localStorage.removeItem('portal-selected-manage-event-id');
     }
-  }, [selectedManageEvent]);
+  }, [selectedManageEvent, innerManageTab, isEmbedded]);
 
   React.useEffect(() => {
     const savedId = localStorage.getItem('portal-selected-manage-event-id');
@@ -514,6 +545,26 @@ export default function AdminPanel({
 
   React.useEffect(() => {
     const handleNav = () => {
+      const path = window.location.pathname;
+      if (isEmbedded) {
+        if (path.startsWith('/events/kelola/')) {
+          const parts = path.replace('/events/kelola/', '').split('/');
+          const eventId = parts[0];
+          const tabId = parts[1];
+          const found = events.find(e => e.id === eventId);
+          if (found) {
+            setSelectedManageEvent(found);
+            if (['participants', 'submissions', 'judging', 'finance'].includes(tabId)) {
+              setInnerManageTab(tabId);
+            }
+          }
+          return;
+        } else if (path === '/events/kelola') {
+          setSelectedManageEvent(null);
+          return;
+        }
+      }
+
       const isNotifNavigating = localStorage.getItem('portal-notif-navigating');
       if (isNotifNavigating === 'true' && events.length > 0) {
         const savedId = localStorage.getItem('portal-selected-manage-event-id');
@@ -535,7 +586,7 @@ export default function AdminPanel({
     return () => {
       window.removeEventListener('popstate', handleNav);
     };
-  }, [events]);
+  }, [events, isEmbedded]);
 
   const lastTabRef = React.useRef(adminSubTab);
   React.useEffect(() => {

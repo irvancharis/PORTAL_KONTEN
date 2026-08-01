@@ -292,8 +292,24 @@ export default function EventsUserPortal({
   const [contact, setContact] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleEventsCount, setVisibleEventsCount] = useState(12);
-  const [userPortalTab, setUserPortalTab] = useState('events'); // 'events', 'offers' or 'manage'
+  const [userPortalTab, setUserPortalTab] = useState(() => {
+    const path = window.location.pathname;
+    if (path.startsWith('/events/kelola')) return 'manage';
+    if (path === '/events/undangan') return 'offers';
+    return 'events';
+  });
   const [autoOpenForm, setAutoOpenForm] = useState(false);
+
+  const changePortalTab = (tab) => {
+    setUserPortalTab(tab);
+    if (tab === 'events') {
+      window.history.pushState(null, '', '/events/semua');
+    } else if (tab === 'offers') {
+      window.history.pushState(null, '', '/events/undangan');
+    } else if (tab === 'manage') {
+      window.history.pushState(null, '', '/events/kelola');
+    }
+  };
 
   useEffect(() => {
     setVisibleEventsCount(12);
@@ -315,6 +331,14 @@ export default function EventsUserPortal({
         }
       } else {
         setSelectedEvent(null);
+      }
+
+      if (path.startsWith('/events/kelola')) {
+        setUserPortalTab('manage');
+      } else if (path === '/events/undangan') {
+        setUserPortalTab('offers');
+      } else if (path.startsWith('/events')) {
+        setUserPortalTab('events');
       }
     };
 
@@ -779,7 +803,7 @@ export default function EventsUserPortal({
       currentUser.role === 'staf' ||
       currentUser.role === 'superadmin'
     ) {
-      setUserPortalTab('manage');
+      changePortalTab('manage');
       setAutoOpenForm(true);
     } else {
       setShowRoleWarning(true);
@@ -1691,7 +1715,7 @@ export default function EventsUserPortal({
           {currentUser && (currentUser.role === 'user' || currentUser.role === 'panitia' || currentUser.role === 'superadmin' || currentUser.role === 'staf') && (
             <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px', overflowX: 'auto', width: '100%' }}>
               <button
-                onClick={() => setUserPortalTab('events')}
+                onClick={() => changePortalTab('events')}
                 style={{
                   padding: '10px 20px',
                   background: userPortalTab === 'events' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
@@ -1710,7 +1734,7 @@ export default function EventsUserPortal({
               </button>
               <button
                 onClick={() => {
-                  setUserPortalTab('manage');
+                  changePortalTab('manage');
                   setAutoOpenForm(false);
                 }}
                 style={{
@@ -1730,7 +1754,7 @@ export default function EventsUserPortal({
                 Kelola Event Saya
               </button>
               <button
-                onClick={() => setUserPortalTab('offers')}
+                onClick={() => changePortalTab('offers')}
                 style={{
                   padding: '10px 20px',
                   background: userPortalTab === 'offers' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
@@ -1925,7 +1949,7 @@ export default function EventsUserPortal({
             <div className="event-management-view animate-fade-in" style={{ textAlign: 'left', width: '100%' }}>
               {renderEventManagement && renderEventManagement(() => {
                 setAutoOpenForm(false);
-                setUserPortalTab('manage');
+                changePortalTab('manage');
               }, autoOpenForm)}
             </div>
           ) : (

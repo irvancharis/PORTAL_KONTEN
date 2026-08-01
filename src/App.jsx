@@ -1637,7 +1637,7 @@ export default function App() {
             setIsPlaying(true);
             setActiveTab('discover');
           }
-        } else if (path.startsWith('/event/')) {
+        } else if (path.startsWith('/events') || path.startsWith('/event/')) {
           setActiveTab('events');
           setIsPlaying(false);
           setSelectedMovie(null);
@@ -1669,10 +1669,15 @@ export default function App() {
             window.history.replaceState(null, '', '/');
           }
         } else {
-          // Parse regular tabs: discover, events, wallet
-          const tabId = path.replace('/', '');
-          if (['discover', 'events', 'wallet'].includes(tabId)) {
-            setActiveTab(tabId);
+          // Parse regular tabs: discover, events, wallet, profile
+          const parts = path.split('/');
+          const firstSegment = parts[1];
+          if (firstSegment === 'events') {
+            setActiveTab('events');
+            setIsPlaying(false);
+            setSelectedMovie(null);
+          } else if (['discover', 'wallet', 'profile'].includes(firstSegment)) {
+            setActiveTab(firstSegment);
             setIsPlaying(false);
             setSelectedMovie(null);
           } else {
