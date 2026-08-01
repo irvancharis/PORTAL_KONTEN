@@ -1680,7 +1680,7 @@ export default function EventsUserPortal({
             display: 'flex', 
             alignItems: 'center', 
             gap: '10px', 
-            marginBottom: '24px' 
+            marginBottom: '16px' 
           }}>
             <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
               Event & Kompetisi Kreatif
@@ -1689,7 +1689,7 @@ export default function EventsUserPortal({
 
           {/* User Portal Tabs */}
           {currentUser && (currentUser.role === 'user' || currentUser.role === 'panitia' || currentUser.role === 'superadmin' || currentUser.role === 'staf') && (
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px', overflowX: 'auto', width: '100%' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px', overflowX: 'auto', width: '100%' }}>
               <button
                 onClick={() => setUserPortalTab('events')}
                 style={{
@@ -1931,7 +1931,7 @@ export default function EventsUserPortal({
           ) : (
             <>
               {/* Search Bar & Action Buttons */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap', width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '16px', flexWrap: 'wrap', width: '100%' }}>
             <div style={{ position: 'relative', flex: '1 1 300px', maxWidth: '400px' }}>
               <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input

@@ -1374,7 +1374,7 @@ export default function AdminPanel({
   const { title: pageTitle, subtitle: pageSubtitle } = getPageMeta();
 
   return (
-    <div className="admin-panel-container animate-fade-in-up">
+    <div className="admin-panel-container animate-fade-in-up" style={isEmbedded ? { paddingTop: 0 } : {}}>
       {!isEmbedded && !(adminSubTab === 'event-manage' && selectedManageEvent) && (
         <div className="admin-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
@@ -1721,7 +1721,7 @@ export default function AdminPanel({
         selectedManageEvent ? (
           <div className="event-management-panel animate-fade-in" style={{ padding: '4px' }}>
             {/* Header with back button */}
-            <div style={{ marginBottom: '28px' }}>
+            <div style={{ marginBottom: '16px' }}>
               {/* Back link */}
               <button 
                 onClick={() => setSelectedManageEvent(null)}
@@ -1790,7 +1790,7 @@ export default function AdminPanel({
             </div>
 
             {/* Inner Sub-tabs Selector */}
-            <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '24px', overflowX: 'auto' }}>
+            <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '16px', overflowX: 'auto' }}>
               {[
                 { id: 'participants', label: 'Pendaftaran Peserta', count: eventParticipants.filter(p => p.eventId === selectedManageEvent.id && p.status === 'pending').length },
                 { id: 'submissions', label: 'Monitoring Karya', count: eventSubmissions.filter(s => s.eventId === selectedManageEvent.id && s.score === null).length },
@@ -2897,7 +2897,7 @@ export default function AdminPanel({
                 justifyContent: 'space-between', 
                 alignItems: 'center', 
                 gap: '16px', 
-                marginBottom: '20px',
+                marginBottom: '16px',
                 width: '100%',
                 flexWrap: 'wrap'
               }}>
