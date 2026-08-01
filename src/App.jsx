@@ -1332,19 +1332,82 @@ export default function App() {
     const updatedComm = latestComm.map(c => {
       if (c.username.toLowerCase() === communityUsername.toLowerCase()) {
         const members = c.joinedMembers || [];
+        const pending = c.pendingMembers || [];
+        
         const isMember = members.includes(currentUser.username);
-        const newMembers = isMember 
-          ? members.filter(m => m !== currentUser.username)
-          : [...members, currentUser.username];
+        const isPending = pending.includes(currentUser.username);
+        
+        let newMembers = [...members];
+        let newPending = [...pending];
+        
+        if (isMember) {
+          newMembers = members.filter(m => m !== currentUser.username);
+          alert('Anda telah keluar dari komunitas.');
+        } else if (isPending) {
+          newPending = pending.filter(m => m !== currentUser.username);
+          alert('Permintaan bergabung dibatalkan.');
+        } else {
+          newPending = [...pending, currentUser.username];
+          alert('Permintaan bergabung telah dikirim. Menunggu persetujuan dari pemilik komunitas.');
+        }
           
         return {
           ...c,
-          joinedMembers: newMembers
+          joinedMembers: newMembers,
+          pendingMembers: newPending
         };
       }
       return c;
     });
 
+    await handleSetCommunities(updatedComm);
+  };
+
+  const handleApproveMember = async (communityId, memberUsername) => {
+    let latestComm = [...communities];
+    if (isFirebaseConfigured()) {
+      const dbComm = await getFirestoreCommunities();
+      if (dbComm) {
+        latestComm = dbComm;
+      }
+    }
+    const updatedComm = latestComm.map(c => {
+      if (c.id === communityId) {
+        const pending = c.pendingMembers || [];
+        const joined = c.joinedMembers || [];
+        if (pending.includes(memberUsername)) {
+          alert(`Persetujuan berhasil: ${memberUsername} kini bergabung di komunitas.`);
+          return {
+            ...c,
+            pendingMembers: pending.filter(m => m !== memberUsername),
+            joinedMembers: joined.includes(memberUsername) ? joined : [...joined, memberUsername]
+          };
+        }
+      }
+      return c;
+    });
+    await handleSetCommunities(updatedComm);
+  };
+
+  const handleRejectMember = async (communityId, memberUsername) => {
+    let latestComm = [...communities];
+    if (isFirebaseConfigured()) {
+      const dbComm = await getFirestoreCommunities();
+      if (dbComm) {
+        latestComm = dbComm;
+      }
+    }
+    const updatedComm = latestComm.map(c => {
+      if (c.id === communityId) {
+        const pending = c.pendingMembers || [];
+        alert(`Persetujuan ditolak untuk ${memberUsername}.`);
+        return {
+          ...c,
+          pendingMembers: pending.filter(m => m !== memberUsername)
+        };
+      }
+      return c;
+    });
     await handleSetCommunities(updatedComm);
   };
 
@@ -2554,42 +2617,66 @@ export default function App() {
                               </span>
                             )}
 
-                            {comm.phone && (
-                              <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                                <a 
-                                  href={`https://wa.me/${comm.phone.replace(/[^0-9]/g, '')}`} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer" 
-                                  className="btn btn-secondary"
-                                  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '8px', padding: '12px', borderRadius: '30px', fontSize: '0.85rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', textDecoration: 'none', fontWeight: 'bold' }}
-                                >
-                                  <Phone size={14} />
-                                  <span>Hubungi WhatsApp</span>
-                                </a>
-                              </div>
-                            )}
+                            {isRegularUser && (() => {
+                              const pending = comm.pendingMembers || [];
+                              const isPending = pending.includes(currentUser?.username);
+                              return (
+                                <div style={{ marginTop: '16px' }}>
+                                  <button
+                                    onClick={() => handleToggleJoinCommunity(comm.username)}
+                                    style={{
+                                      width: '100%',
+                                      padding: '12px',
+                                      fontSize: '0.9rem',
+                                      fontWeight: 'bold',
+                                      borderRadius: '30px',
+                                      border: (isJoined || isPending) ? '1px solid rgba(255, 255, 255, 0.2)' : 'none',
+                                      background: (isJoined || isPending) ? 'rgba(255, 255, 255, 0.05)' : 'white',
+                                      color: (isJoined || isPending) ? 'white' : 'black',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s ease'
+                                    }}
+                                  >
+                                    {isJoined ? 'Keluar Komunitas' : isPending ? 'Menunggu Persetujuan (Batalkan)' : 'Join Komunitas'}
+                                  </button>
+                                </div>
+                              );
+                            })()}
 
-                            {isRegularUser && (
-                              <div style={{ marginTop: '16px' }}>
-                                <button
-                                  onClick={() => handleToggleJoinCommunity(comm.username)}
-                                  style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    fontSize: '0.9rem',
-                                    fontWeight: 'bold',
-                                    borderRadius: '30px',
-                                    border: isJoined ? '1px solid rgba(255, 255, 255, 0.2)' : 'none',
-                                    background: isJoined ? 'rgba(255, 255, 255, 0.05)' : 'white',
-                                    color: isJoined ? 'white' : 'black',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease'
-                                  }}
-                                >
-                                  {isJoined ? 'Keluar Komunitas' : 'Join Komunitas'}
-                                </button>
-                              </div>
-                            )}
+                            {/* Persetujuan Anggota Baru (Jika pemilik komunitas) */}
+                            {currentUser && currentUser.username === comm.username && (() => {
+                              const pendingList = comm.pendingMembers || [];
+                              return (
+                                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                                  <h4 style={{ fontSize: '0.92rem', fontWeight: 'bold', color: 'white', marginBottom: '12px' }}>Permintaan Bergabung</h4>
+                                  {pendingList.length > 0 ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                      {pendingList.map((pendingUser, idx) => (
+                                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                          <span style={{ fontSize: '0.85rem', color: 'white', fontWeight: '500' }}>{pendingUser}</span>
+                                          <div style={{ display: 'flex', gap: '6px' }}>
+                                            <button 
+                                              onClick={() => handleApproveMember(comm.id, pendingUser)}
+                                              style={{ background: 'white', color: 'black', border: 'none', padding: '6px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}
+                                            >
+                                              Setujui
+                                            </button>
+                                            <button 
+                                              onClick={() => handleRejectMember(comm.id, pendingUser)}
+                                              style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}
+                                            >
+                                              Tolak
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Tidak ada permintaan bergabung baru.</p>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>
