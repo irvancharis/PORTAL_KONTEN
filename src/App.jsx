@@ -2538,7 +2538,7 @@ export default function App() {
                 const isRegularUser = currentUser && !(currentUser.isCommunity || currentUser.role === 'panitia');
 
                 return (
-                  <div className="animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+                  <div className="profile-view-container animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
                     {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && (
                       <div style={{
                         background: '#ffffff',
@@ -2617,15 +2617,7 @@ export default function App() {
                       ← Kembali ke Daftar Komunitas
                     </button>
 
-                    <div style={{
-                      background: 'rgba(15, 15, 15, 0.7)', 
-                      backdropFilter: 'blur(20px)', 
-                      padding: '32px', 
-                      borderRadius: '24px', 
-                      border: '1px solid rgba(255,255,255,0.04)',
-                      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
-                      textAlign: 'left'
-                    }}>
+                    <div className="community-detail-card glass-panel">
                       {/* Community Header Block */}
                       <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap' }}>
                         <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#ffffff', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 'bold', textTransform: 'uppercase', border: '3px solid rgba(255, 255, 255, 0.1)', flexShrink: 0 }}>
