@@ -850,21 +850,21 @@ export default function EventsUserPortal({
               fontSize: '0.82rem',
               borderRadius: '20px',
               fontWeight: 'bold',
-              background: '#ef4444',
+              background: '#020202',
               color: '#ffffff',
-              border: '1px solid #ef4444',
+              border: '1px solid #020202',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '6px'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#dc2626';
-              e.currentTarget.style.borderColor = '#dc2626';
+              e.currentTarget.style.background = '#1f2937';
+              e.currentTarget.style.borderColor = '#1f2937';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#ef4444';
-              e.currentTarget.style.borderColor = '#ef4444';
+              e.currentTarget.style.background = '#020202';
+              e.currentTarget.style.borderColor = '#020202';
             }}
           >
             <User size={14} />
