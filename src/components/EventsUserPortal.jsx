@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Trophy, Calendar, Users, User, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown, X, Maximize2 } from 'lucide-react';
+import { Trophy, Calendar, Users, User, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown, X, Maximize2, ExternalLink } from 'lucide-react';
 
 const slugify = (text) => {
   if (!text) return '';
@@ -1198,21 +1198,142 @@ export default function EventsUserPortal({
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.8', margin: 0 }}>{evt.description}</p>
                   </div>
 
-                  {evt.juknis && (
-                    <div style={{ 
+                  {/* Structured Technical Guidelines Card */}
+                  {((evt.juknisPlatforms && (evt.juknisPlatforms.TikTok || evt.juknisPlatforms.Instagram || evt.juknisPlatforms.YouTube)) || 
+                    evt.juknisDuration || 
+                    evt.juknisSourceName1 || 
+                    evt.juknisBrandName || 
+                    evt.juknisDos || 
+                    evt.juknisDonts) ? (
+                    <div style={{
                       padding: '24px',
                       background: 'rgba(255, 255, 255, 0.02)',
                       border: '1px solid rgba(255, 255, 255, 0.08)',
                       borderRadius: '16px',
                       fontSize: '0.88rem',
-                      textAlign: 'left'
+                      textAlign: 'left',
+                      marginBottom: '24px'
                     }}>
-                      <strong style={{ color: 'white', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
-                        <CheckCircle2 size={18} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
-                        <span>Petunjuk Teknis (Juknis)</span>
+                      <strong style={{ color: 'white', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '20px', fontSize: '1rem', fontWeight: '800', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px', width: '100%' }}>
+                        <CheckCircle2 size={18} style={{ color: 'rgba(255, 255, 255, 0.9)' }} />
+                        <span>Tugas & Cara Kerja</span>
                       </strong>
-                      <div style={{ color: 'rgba(255, 255, 255, 0.7)', whiteSpace: 'pre-wrap', lineHeight: '1.7' }}>{evt.juknis}</div>
+
+                      {/* Platforms & Duration badges */}
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px' }}>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Upload ke:</span>
+                        {evt.juknisPlatforms?.TikTok && (
+                          <span style={{ fontSize: '0.75rem', background: '#ffffff', color: '#000000', padding: '4px 12px', borderRadius: '12px', fontWeight: 'bold' }}>TikTok</span>
+                        )}
+                        {evt.juknisPlatforms?.Instagram && (
+                          <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)', color: '#ffffff', padding: '4px 12px', borderRadius: '12px', fontWeight: 'bold' }}>Instagram</span>
+                        )}
+                        {evt.juknisPlatforms?.YouTube && (
+                          <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)', color: '#ffffff', padding: '4px 12px', borderRadius: '12px', fontWeight: 'bold' }}>YouTube Shorts</span>
+                        )}
+                        {evt.juknisDuration && (
+                          <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 12px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
+                            <Clock size={12} />
+                            {evt.juknisDuration}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Source Materials */}
+                      {(evt.juknisSourceName1 || evt.juknisSourceName2) && (
+                        <div style={{ marginBottom: '20px' }}>
+                          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: '8px' }}>Bahan Sumber</span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {evt.juknisSourceName1 && (
+                              <a href={evt.juknisSourceLink1} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', textDecoration: 'none', color: 'white', transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}>
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <span style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>{evt.juknisSourceName1}</span>
+                                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px', whiteSpace: 'nowrap' }}>{evt.juknisSourceLink1}</span>
+                                </div>
+                                <ExternalLink size={16} style={{ color: 'var(--text-secondary)' }} />
+                              </a>
+                            )}
+                            {evt.juknisSourceName2 && (
+                              <a href={evt.juknisSourceLink2} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', textDecoration: 'none', color: 'white', transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}>
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <span style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>{evt.juknisSourceName2}</span>
+                                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px', whiteSpace: 'nowrap' }}>{evt.juknisSourceLink2}</span>
+                                </div>
+                                <ExternalLink size={16} style={{ color: 'var(--text-secondary)' }} />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Brand Assets */}
+                      {evt.juknisBrandName && (
+                        <div style={{ marginBottom: '20px' }}>
+                          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: '8px' }}>Asset Logo / Brand</span>
+                          <a href={evt.juknisBrandLink} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', textDecoration: 'none', color: 'white', transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>{evt.juknisBrandName}</span>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px', whiteSpace: 'nowrap' }}>{evt.juknisBrandLink}</span>
+                            </div>
+                            <ExternalLink size={16} style={{ color: 'var(--text-secondary)' }} />
+                          </a>
+                        </div>
+                      )}
+
+                      {/* DOs list */}
+                      {evt.juknisDos && (
+                        <div style={{ marginBottom: '20px', padding: '16px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px' }}>
+                          <span style={{ fontSize: '0.85rem', color: 'white', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>Isi Konten Harus Begini:</span>
+                          <ul style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', color: 'rgba(255,255,255,0.8)' }}>
+                            {evt.juknisDos.split('\n').filter(Boolean).map((line, idx) => (
+                              <li key={idx} style={{ lineHeight: '1.5' }}>{line}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* DONTs list (Red warning container) */}
+                      {evt.juknisDonts && (
+                        <div style={{ padding: '16px', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.15)', borderRadius: '12px' }}>
+                          <span style={{ fontSize: '0.85rem', color: '#ef4444', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                            <AlertTriangle size={14} />
+                            JANGAN Lakukan Ini!
+                          </span>
+                          <span style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(239, 68, 68, 0.8)', marginBottom: '8px' }}>Awas! Kalau melanggar, konten otomatis ditolak.</span>
+                          <ul style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', color: 'rgba(255,255,255,0.8)' }}>
+                            {evt.juknisDonts.split('\n').filter(Boolean).map((line, idx) => (
+                              <li key={idx} style={{ lineHeight: '1.5', color: '#f87171' }}>{line}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {evt.juknis && (
+                        <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px dashed rgba(255,255,255,0.06)' }}>
+                          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Catatan Tambahan</span>
+                          <div style={{ color: 'rgba(255, 255, 255, 0.7)', whiteSpace: 'pre-wrap', lineHeight: '1.7' }}>{evt.juknis}</div>
+                        </div>
+                      )}
+
                     </div>
+                  ) : (
+                    evt.juknis && (
+                      <div style={{ 
+                        padding: '24px',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '16px',
+                        fontSize: '0.88rem',
+                        textAlign: 'left',
+                        marginBottom: '24px'
+                      }}>
+                        <strong style={{ color: 'white', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
+                          <CheckCircle2 size={18} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+                          <span>Petunjuk Teknis (Juknis)</span>
+                        </strong>
+                        <div style={{ color: 'rgba(255, 255, 255, 0.7)', whiteSpace: 'pre-wrap', lineHeight: '1.7' }}>{evt.juknis}</div>
+                      </div>
+                    )
                   )}
 
                   <div style={{
