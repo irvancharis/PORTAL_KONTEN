@@ -81,6 +81,49 @@ const formatInputCurrency = (num) => {
   return num.toLocaleString('id-ID');
 };
 
+const InfoTooltip = ({ text }) => {
+  const [hovered, setHovered] = React.useState(false);
+  return (
+    <span 
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ 
+        position: 'relative', 
+        display: 'inline-flex', 
+        alignItems: 'center', 
+        marginLeft: '6px', 
+        cursor: 'help',
+        verticalAlign: 'middle'
+      }}
+    >
+      <Info size={13} style={{ color: hovered ? 'white' : 'rgba(255, 255, 255, 0.4)', transition: 'color 0.2s' }} />
+      {hovered && (
+        <span style={{
+          position: 'absolute',
+          bottom: '125%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '220px',
+          backgroundColor: '#1f2937',
+          color: '#fff',
+          textAlign: 'left',
+          borderRadius: '8px',
+          padding: '10px 14px',
+          zIndex: 10000,
+          fontSize: '0.75rem',
+          lineHeight: '1.4',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
+          whiteSpace: 'normal',
+          pointerEvents: 'none'
+        }}>
+          {text}
+        </span>
+      )}
+    </span>
+  );
+};
+
 
 const getCategoryBadgeStyle = (category) => {
   return {
@@ -2797,28 +2840,40 @@ export default function AdminPanel({
                       {eventBudgetMode === 'views' ? (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
                           <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Budget Campaign (IDR)</label>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}>
+                              <span>Budget Campaign (IDR)</span>
+                              <InfoTooltip text="Total budget yang disiapkan untuk dibagikan ke kreator berdasarkan performa views video mereka." />
+                            </label>
                             <input type="text" required value={formatInputCurrency(eventBudget)} onChange={(e) => {
                               const parsed = e.target.value.replace(/\D/g, '');
                               setEventBudget(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Benefit Payout (IDR)</label>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}>
+                              <span>Benefit Payout (IDR)</span>
+                              <InfoTooltip text="Nominal uang yang akan diterima kreator setiap kali mencapai target jumlah views tertentu." />
+                            </label>
                             <input type="text" required value={formatInputCurrency(eventBenefitAmount)} onChange={(e) => {
                               const parsed = e.target.value.replace(/\D/g, '');
                               setEventBenefitAmount(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Per XXX Views</label>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}>
+                              <span>Per XXX Views</span>
+                              <InfoTooltip text="Satuan kelipatan jumlah views untuk mencairkan benefit (misal: setiap kelipatan 1.000 views)." />
+                            </label>
                             <input type="text" required value={formatInputCurrency(eventBenefitViewsStep)} onChange={(e) => {
                               const parsed = e.target.value.replace(/\D/g, '');
                               setEventBenefitViewsStep(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Min Views Earning</label>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}>
+                              <span>Min Views Earning</span>
+                              <InfoTooltip text="Batas minimum views yang harus dicapai video sebelum kreator berhak mendapatkan pembayaran." />
+                            </label>
                             <input type="text" required value={formatInputCurrency(eventMinEarningViews)} onChange={(e) => {
                               const parsed = e.target.value.replace(/\D/g, '');
                               setEventMinEarningViews(parsed ? parseInt(parsed) : 0);
