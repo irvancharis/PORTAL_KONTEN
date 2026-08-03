@@ -2838,9 +2838,9 @@ export default function AdminPanel({
                       </select>
 
                       {eventBudgetMode === 'views' ? (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                           <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', marginBottom: '8px' }}>
                               <span>Budget Campaign (IDR)</span>
                               <InfoTooltip text="Total budget yang disiapkan untuk dibagikan ke kreator berdasarkan performa views video mereka." />
                             </label>
@@ -2850,7 +2850,7 @@ export default function AdminPanel({
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', marginBottom: '8px' }}>
                               <span>Benefit Payout (IDR)</span>
                               <InfoTooltip text="Nominal uang yang akan diterima kreator setiap kali mencapai target jumlah views tertentu." />
                             </label>
@@ -2860,7 +2860,7 @@ export default function AdminPanel({
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', marginBottom: '8px' }}>
                               <span>Per XXX Views</span>
                               <InfoTooltip text="Satuan kelipatan jumlah views untuk mencairkan benefit (misal: setiap kelipatan 1.000 views)." />
                             </label>
@@ -2870,7 +2870,7 @@ export default function AdminPanel({
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', marginBottom: '8px' }}>
                               <span>Min Views Earning</span>
                               <InfoTooltip text="Batas minimum views yang harus dicapai video sebelum kreator berhak mendapatkan pembayaran." />
                             </label>
@@ -2881,23 +2881,23 @@ export default function AdminPanel({
                           </div>
                         </div>
                       ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                           <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Juara 1 (IDR)</label>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>Juara 1 (IDR)</label>
                             <input type="text" required value={formatInputCurrency(eventPrize1)} onChange={(e) => {
                               const parsed = e.target.value.replace(/\D/g, '');
                               setEventPrize1(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Juara 2 (IDR)</label>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>Juara 2 (IDR)</label>
                             <input type="text" required value={formatInputCurrency(eventPrize2)} onChange={(e) => {
                               const parsed = e.target.value.replace(/\D/g, '');
                               setEventPrize2(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Juara 3 (IDR)</label>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>Juara 3 (IDR)</label>
                             <input type="text" required value={formatInputCurrency(eventPrize3)} onChange={(e) => {
                               const parsed = e.target.value.replace(/\D/g, '');
                               setEventPrize3(parsed ? parseInt(parsed) : 0);
