@@ -1,5 +1,4 @@
-import React from 'react';
-import { Home, Wallet, Users, Trophy } from 'lucide-react';
+import { Home, Wallet, Users, Trophy, Calendar } from 'lucide-react';
 
 export default function BottomNav({
   activeTab,
@@ -53,30 +52,35 @@ export default function BottomNav({
   };
 
   const handleNavClick = (item) => {
-    if (item.isEventCreator) {
-      if (onAdminSubTabChange) onAdminSubTabChange(item.id);
-      setActiveTab('admin');
-    } else {
-      setActiveTab(item.id);
-      if (setSelectedGenre) setSelectedGenre(null);
+    setActiveTab(item.id);
+    if (!item.isEventCreator && setSelectedGenre) {
+      setSelectedGenre(null);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const isCommunityUser = currentUser && (currentUser.isCommunity || currentUser.role === 'panitia');
 
-  const navItems = [
-    ...(!isCommunityUser ? [
+  const navItems = [];
+
+  if (!isCommunityUser) {
+    navItems.push(
       { id: 'discover', label: 'Beranda', icon: Home, isEventCreator: false },
       { id: 'events', label: 'Event', icon: Trophy, isEventCreator: false },
       { id: 'communities', label: 'Komunitas', icon: Users, isEventCreator: false }
-    ] : [])
-  ];
+    );
+  } else {
+    // Community/Panitia Bottom Navigation
+    navItems.push(
+      { id: 'event-dashboard', label: 'Dashboard', icon: Home, isEventCreator: true },
+      { id: 'event-manage', label: 'Kelola Event', icon: Trophy, isEventCreator: true },
+      { id: 'community-members', label: 'Anggota', icon: Users, isEventCreator: true },
+      { id: 'community-agendas', label: 'Agenda', icon: Calendar, isEventCreator: true }
+    );
+  }
 
   if (currentUser) {
-    if (isCommunityUser) {
-      navItems.push({ id: 'event-manage', label: 'Kelola Event', icon: Trophy, isEventCreator: true });
-    } else if (hasPermission('creator-marketplace')) {
+    if (!isCommunityUser && hasPermission('creator-marketplace')) {
       navItems.push({ id: 'creator-marketplace', label: 'Creator', icon: Users, isEventCreator: true });
     }
     navItems.push({ id: 'wallet', label: 'Dompet Saya', icon: Wallet, isEventCreator: false });

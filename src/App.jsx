@@ -1786,6 +1786,11 @@ export default function App() {
     return saved ? parseInt(saved) : 0;
   });
 
+  const [eventFlatFee, setEventFlatFee] = useState(() => {
+    const saved = localStorage.getItem('portal-event-flat-fee');
+    return saved ? parseInt(saved) : 150000;
+  });
+
   const [withdrawalFeePercent, setWithdrawalFeePercent] = useState(() => {
     const saved = localStorage.getItem('portal-withdrawal-fee-percent');
     return saved ? parseInt(saved) : 0;
@@ -1811,6 +1816,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('portal-event-admin-fee', eventAdminFee.toString());
   }, [eventAdminFee]);
+
+  useEffect(() => {
+    localStorage.setItem('portal-event-flat-fee', eventFlatFee.toString());
+  }, [eventFlatFee]);
 
   useEffect(() => {
     localStorage.setItem('portal-withdrawal-fee-percent', withdrawalFeePercent.toString());
@@ -2513,6 +2522,8 @@ export default function App() {
               setMinWithdrawalAmount={setMinWithdrawalAmount}
               eventAdminFee={eventAdminFee}
               setEventAdminFee={setEventAdminFee}
+              eventFlatFee={eventFlatFee}
+              setEventFlatFee={setEventFlatFee}
               withdrawalFeePercent={withdrawalFeePercent}
               setWithdrawalFeePercent={setWithdrawalFeePercent}
               customRoles={customRoles}
@@ -2536,6 +2547,7 @@ export default function App() {
               setWithdrawals={handleSetWithdrawals}
               minWithdrawalAmount={minWithdrawalAmount}
               withdrawalFeePercent={withdrawalFeePercent}
+              eventParticipants={eventParticipants}
             />
           ) : activeTab === 'communities' ? (
             (() => {
@@ -3466,6 +3478,8 @@ export default function App() {
                   setMinWithdrawalAmount={setMinWithdrawalAmount}
                   eventAdminFee={eventAdminFee}
                   setEventAdminFee={setEventAdminFee}
+                  eventFlatFee={eventFlatFee}
+                  setEventFlatFee={setEventFlatFee}
                   withdrawalFeePercent={withdrawalFeePercent}
                   setWithdrawalFeePercent={setWithdrawalFeePercent}
                   customRoles={customRoles}

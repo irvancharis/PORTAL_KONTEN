@@ -18,6 +18,8 @@ import {
   XCircle,
   Search, 
   Sparkles,
+  QrCode,
+  Camera,
   Clock,
   Check,
   AlertTriangle,
@@ -159,6 +161,8 @@ export default function AdminPanel({
   setMinWithdrawalAmount,
   eventAdminFee = 0,
   setEventAdminFee,
+  eventFlatFee = 150000,
+  setEventFlatFee,
   withdrawalFeePercent = 0,
   setWithdrawalFeePercent,
   customRoles = [],
@@ -464,6 +468,29 @@ export default function AdminPanel({
   const [editingEventId, setEditingEventId] = useState(null);
   const [depositingEvent, setDepositingEvent] = useState(null);
   const [verifyingEvent, setVerifyingEvent] = useState(null);
+  const [eventTicketPrice, setEventTicketPrice] = useState(0);
+  const [checkInTicketCode, setCheckInTicketCode] = useState('');
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const scanIntervalRef = useRef(null);
+  
+  useEffect(() => {
+    if (!showQRScanner) {
+      if (scanIntervalRef.current) {
+        clearInterval(scanIntervalRef.current);
+      }
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        videoRef.current.srcObject = null;
+      }
+      setIsScanning(false);
+    }
+  }, [showQRScanner]);
+
+  const [eventType, setEventType] = useState('competition'); // 'competition' or 'regular'
   const [senderName, setSenderName] = useState('');
   const [senderBank, setSenderBank] = useState('BCA');
   const [receiptFile, setReceiptFile] = useState('');
@@ -529,6 +556,14 @@ export default function AdminPanel({
   React.useEffect(() => {
     localStorage.setItem('portal-inner-manage-tab', innerManageTab);
   }, [innerManageTab]);
+
+  React.useEffect(() => {
+    if (selectedManageEvent && selectedManageEvent.eventType === 'regular') {
+      if (innerManageTab === 'submissions' || innerManageTab === 'judging') {
+        setInnerManageTab('participants');
+      }
+    }
+  }, [selectedManageEvent, innerManageTab]);
 
   React.useEffect(() => {
     if (!isEmbedded) return;
@@ -715,9 +750,10 @@ export default function AdminPanel({
   const handleEventSubmit = (e) => {
     e.preventDefault();
     const isRanking = eventBudgetMode === 'ranking';
-    const computedBudget = isRanking 
+    const isComp = eventType === 'competition';
+    const computedBudget = !isComp ? 0 : (isRanking 
       ? (parseInt(eventPrize1) || 0) + (parseInt(eventPrize2) || 0) + (parseInt(eventPrize3) || 0)
-      : (parseInt(eventBudget) || 0);
+      : (parseInt(eventBudget) || 0));
 
     if (editingEventId) {
       setEvents(events.map(evt => {
@@ -726,21 +762,23 @@ export default function AdminPanel({
             ...evt,
             title: eventTitle.trim(),
             category: eventCategory,
-            deadline: (eventBudgetMode === 'views' && !eventHasDeadline) ? '' : eventDeadline,
+            eventType: eventType,
+            deadline: (!isComp || (eventBudgetMode === 'views' && !eventHasDeadline)) ? '' : eventDeadline,
             maxParticipants: eventHasMaxParticipants ? (parseInt(eventMaxParticipants) || 0) : 0,
             description: eventDescription.trim(),
             juknis: eventJuknis.trim(),
-            budgetMode: eventBudgetMode,
+            budgetMode: isComp ? eventBudgetMode : 'views',
             targetAudience: eventTargetAudience,
             campaignBudget: computedBudget,
             remainingBudget: computedBudget,
-            benefitAmount: isRanking ? 0 : (parseInt(eventBenefitAmount) || 0),
-            benefitViewsStep: isRanking ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
-            prize1: isRanking ? (parseInt(eventPrize1) || 0) : 0,
-            prize2: isRanking ? (parseInt(eventPrize2) || 0) : 0,
-            prize3: isRanking ? (parseInt(eventPrize3) || 0) : 0,
+            ticketPrice: parseInt(eventTicketPrice) || 0,
+            benefitAmount: (!isComp || isRanking) ? 0 : (parseInt(eventBenefitAmount) || 0),
+            benefitViewsStep: (!isComp || isRanking) ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
+            prize1: (isComp && isRanking) ? (parseInt(eventPrize1) || 0) : 0,
+            prize2: (isComp && isRanking) ? (parseInt(eventPrize2) || 0) : 0,
+            prize3: (isComp && isRanking) ? (parseInt(eventPrize3) || 0) : 0,
             paymentStatus: evt.paymentStatus || 'pending',
-            adminFee: evt.paymentStatus === 'paid' ? (evt.adminFee !== undefined ? evt.adminFee : 0) : Math.round((computedBudget * (eventAdminFee || 0)) / 100)
+            adminFee: evt.paymentStatus === 'paid' ? (evt.adminFee !== undefined ? evt.adminFee : 0) : (eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((computedBudget * (eventAdminFee || 0)) / 100))
           };
         }
         return evt;
@@ -753,14 +791,16 @@ export default function AdminPanel({
         id: `evt_${Date.now()}`,
         title: eventTitle.trim(),
         category: eventCategory,
-        deadline: (eventBudgetMode === 'views' && !eventHasDeadline) ? '' : eventDeadline,
+        eventType: eventType,
+        deadline: (!isComp || (eventBudgetMode === 'views' && !eventHasDeadline)) ? '' : eventDeadline,
         maxParticipants: eventHasMaxParticipants ? (parseInt(eventMaxParticipants) || 0) : 0,
         description: eventDescription.trim(),
         juknis: eventJuknis.trim(),
-        budgetMode: eventBudgetMode,
+        budgetMode: isComp ? eventBudgetMode : 'views',
         targetAudience: eventTargetAudience,
         campaignBudget: computedBudget,
         remainingBudget: computedBudget,
+        ticketPrice: parseInt(eventTicketPrice) || 0,
         // views mode
         benefitAmount: isRanking ? 0 : (parseInt(eventBenefitAmount) || 0),
         benefitViewsStep: isRanking ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
@@ -769,7 +809,7 @@ export default function AdminPanel({
         prize2: isRanking ? (parseInt(eventPrize2) || 0) : 0,
         prize3: isRanking ? (parseInt(eventPrize3) || 0) : 0,
         paymentStatus: 'pending',
-        adminFee: Math.round((computedBudget * (eventAdminFee || 0)) / 100),
+        adminFee: eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((computedBudget * (eventAdminFee || 0)) / 100),
         organizerName: currentUser?.organizerName || currentUser?.username || 'Panitia Portal',
         organizerPhone: currentUser?.organizerPhone || '',
         organizerDescription: currentUser?.organizerDescription || '',
@@ -977,6 +1017,23 @@ export default function AdminPanel({
         : new Date().getTime() > new Date(evt.deadline + 'T23:59:59').getTime()
     ) : false;
     
+    if (evt.eventType === 'regular') {
+      if (isDeadlinePassed) {
+        return {
+          label: 'Selesai',
+          color: '#10b981',
+          bg: 'rgba(16, 185, 129, 0.1)',
+          info: 'Acara telah selesai dilaksanakan.'
+        };
+      }
+      return {
+        label: 'Aktif',
+        color: '#22c55e',
+        bg: 'rgba(34, 197, 94, 0.1)',
+        info: 'Acara sedang berlangsung/aktif. Peserta dapat mendaftar dan membeli tiket.'
+      };
+    }
+
     if (evt.budgetMode === 'ranking') {
       if (isDeadlinePassed) {
         return {
@@ -1050,9 +1107,11 @@ export default function AdminPanel({
     setEventHasMaxParticipants((evt.maxParticipants || 0) > 0);
     setEventDescription(evt.description || '');
     setEventJuknis(evt.juknis || '');
+    setEventType(evt.eventType || 'competition');
     setEventBudgetMode(evt.budgetMode || 'views');
     setEventTargetAudience(evt.targetAudience || 'public');
     setEventBudget(evt.campaignBudget || 5000000);
+    setEventTicketPrice(evt.ticketPrice || 0);
     setEventBenefitAmount(evt.benefitAmount || 10000);
     setEventBenefitViewsStep(evt.benefitViewsStep || 1000);
     setEventPrize1(evt.prize1 || 3000000);
@@ -1077,6 +1136,143 @@ export default function AdminPanel({
       }
       return p;
     }));
+  };
+
+  const handleCheckInParticipant = (id) => {
+    setEventParticipants(prev => prev.map(p => {
+      if (p.id === id) {
+        return { ...p, isCheckedIn: true, checkedInAt: new Date().toISOString() };
+      }
+      return p;
+    }));
+    alert('Peserta berhasil check-in!');
+  };
+
+  const startScanner = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.setAttribute('playsinline', 'true');
+        videoRef.current.play();
+        setIsScanning(true);
+        scanIntervalRef.current = setInterval(captureAndDecode, 1500);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Gagal mengakses kamera. Pastikan izin kamera telah diberikan di browser Anda.');
+    }
+  };
+
+  const captureAndDecode = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = video.videoWidth || 300;
+    canvas.height = video.videoHeight || 300;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      
+      const formData = new FormData();
+      formData.append('file', blob, 'qrcode.png');
+      
+      try {
+        const res = await fetch('https://api.qrserver.com/v1/read-qr-code/', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data && data[0] && data[0].symbol && data[0].symbol[0] && data[0].symbol[0].data) {
+          const scannedCode = data[0].symbol[0].data;
+          if (scannedCode) {
+            handleScannedCode(scannedCode);
+          }
+        }
+      } catch (err) {
+        // Ignore decoding errors
+      }
+    }, 'image/png');
+  };
+
+  const handleScannedCode = (code) => {
+    const trimmed = code.trim();
+    if (!trimmed) return;
+
+    const part = eventParticipants.find(p => 
+      p.eventId === selectedManageEvent.id && 
+      p.ticketCode && 
+      p.ticketCode.toLowerCase() === trimmed.toLowerCase()
+    );
+
+    if (!part) {
+      alert(`Tiket tidak ditemukan / tidak valid untuk event ini: ${trimmed}`);
+      return;
+    }
+
+    if (part.isCheckedIn) {
+      alert(`Peserta "${part.name}" (@${part.username}) sudah check-in pada ${new Date(part.checkedInAt).toLocaleTimeString('id-ID')}!`);
+      setShowQRScanner(false);
+      return;
+    }
+
+    setEventParticipants(prev => prev.map(p => {
+      if (p.id === part.id) {
+        return { ...p, isCheckedIn: true, checkedInAt: new Date().toISOString() };
+      }
+      return p;
+    }));
+
+    alert(`Check-in Sukses!\nNama: ${part.name}\nTiket: ${trimmed}`);
+    setShowQRScanner(false);
+  };
+
+  const handleQuickCheckIn = (e) => {
+    e.preventDefault();
+    const code = checkInTicketCode.trim();
+    if (!code) {
+      alert('Silakan masukkan Kode Tiket!');
+      return;
+    }
+
+    const part = eventParticipants.find(p => 
+      p.eventId === selectedManageEvent.id && 
+      p.ticketCode && 
+      p.ticketCode.toLowerCase() === code.toLowerCase()
+    );
+
+    if (!part) {
+      alert('Kode tiket tidak ditemukan untuk event ini!');
+      return;
+    }
+
+    if (part.isCheckedIn) {
+      alert(`Peserta "${part.name}" (@${part.username}) sudah melakukan check-in pada ${new Date(part.checkedInAt).toLocaleTimeString('id-ID')}!`);
+      return;
+    }
+
+    setEventParticipants(prev => prev.map(p => {
+      if (p.id === part.id) {
+        return { ...p, isCheckedIn: true, checkedInAt: new Date().toISOString() };
+      }
+      return p;
+    }));
+
+    alert(`Check-in sukses untuk peserta: ${part.name} (@${part.username})`);
+    setCheckInTicketCode('');
+  };
+
+  const handleResetParticipantStatus = (id) => {
+    setEventParticipants(prev => prev.map(p => {
+      if (p.id === id) {
+        return { ...p, status: 'pending', isCheckedIn: false, checkedInAt: null };
+      }
+      return p;
+    }));
+    alert('Status pendaftaran dibatalkan kembali ke pending.');
   };
 
   const handleApproveWithdrawal = (wdId) => {
@@ -1872,8 +2068,8 @@ export default function AdminPanel({
             <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '16px', overflowX: 'auto' }}>
               {[
                 { id: 'participants', label: 'Pendaftaran Peserta', count: eventParticipants.filter(p => p.eventId === selectedManageEvent.id && p.status === 'pending').length },
-                { id: 'submissions', label: 'Monitoring Karya', count: eventSubmissions.filter(s => s.eventId === selectedManageEvent.id && s.score === null).length },
-                selectedManageEvent.budgetMode !== 'views' && { id: 'judging', label: 'Penjurian & Pemenang', count: 0 },
+                selectedManageEvent.eventType !== 'regular' && { id: 'submissions', label: 'Monitoring Karya', count: eventSubmissions.filter(s => s.eventId === selectedManageEvent.id && s.score === null).length },
+                selectedManageEvent.eventType !== 'regular' && selectedManageEvent.budgetMode !== 'views' && { id: 'judging', label: 'Penjurian & Pemenang', count: 0 },
                 { id: 'finance', label: 'Keuangan Event', count: 0 }
               ].filter(Boolean).map(tab => {
                 const isActive = innerManageTab === tab.id;
@@ -1911,8 +2107,8 @@ export default function AdminPanel({
             {/* Inner Tab Contents */}
             {innerManageTab === 'participants' && (
               <div className="inner-tab-content animate-fade-in">
-                <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', width: '100%', maxWidth: '360px' }}>
-                  <div style={{ position: 'relative', flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
+                  <div style={{ position: 'relative', width: '100%', maxWidth: '320px' }}>
                     <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                     <input
                       type="text"
@@ -1921,6 +2117,35 @@ export default function AdminPanel({
                       placeholder="Cari peserta berdasarkan nama, email..."
                       style={{ width: '100%', padding: '8px 12px 8px 36px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '20px', color: 'white', fontSize: '0.82rem', outline: 'none' }}
                     />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <form onSubmit={handleQuickCheckIn} style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '100%', maxWidth: '300px' }}>
+                      <input
+                        type="text"
+                        value={checkInTicketCode}
+                        onChange={(e) => setCheckInTicketCode(e.target.value)}
+                        placeholder="Kode Tiket (misal: TKT-123456)"
+                        style={{ flex: 1, padding: '8px 12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '20px', color: 'white', fontSize: '0.82rem', outline: 'none' }}
+                      />
+                      <button 
+                        type="submit" 
+                        className="btn btn-primary btn-sm"
+                        style={{ padding: '8px 16px', borderRadius: '20px', background: 'white', color: 'black', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}
+                      >
+                        Check-In
+                      </button>
+                    </form>
+
+                    <button 
+                      type="button" 
+                      onClick={() => setShowQRScanner(true)}
+                      className="btn btn-secondary btn-sm"
+                      style={{ padding: '8px 16px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      <QrCode size={14} />
+                      <span>Scan Tiket QR</span>
+                    </button>
                   </div>
                 </div>
 
@@ -1947,10 +2172,10 @@ export default function AdminPanel({
                           <tr>
                             <th>Nama Peserta</th>
                             <th>Akun Sosmed / Link</th>
-                            <th>Kode Verifikasi</th>
-                            <th>Tanggal Daftar</th>
-                            <th>Status</th>
-                            <th style={{ textAlign: 'center', width: '150px' }}>Aksi</th>
+                            <th>Kode Tiket</th>
+                            <th>Biaya & Status</th>
+                            <th>Check-In</th>
+                            <th>Aksi</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1972,17 +2197,46 @@ export default function AdminPanel({
                                   {part.tiktokUrl && <div><span style={{ color: 'var(--text-muted)' }}>TikTok:</span> <a href={part.tiktokUrl} target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline' }}>Profil Link</a></div>}
                                 </div>
                               </td>
-                              <td><span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'white' }}>{part.verificationCode || 'Manual (Legacy)'}</span></td>
-                              <td>{part.registeredAt ? new Date(part.registeredAt).toLocaleDateString('id-ID') : '25/7/2026'}</td>
                               <td>
-                                <span style={{ 
-                                  fontSize: '0.75rem', 
-                                  padding: '2px 8px', 
-                                  borderRadius: '12px', 
-                                  fontWeight: 'bold',
-                                  color: part.status === 'approved' ? '#22c55e' : part.status === 'rejected' ? '#ef4444' : '#fbbf24',
-                                  background: part.status === 'approved' ? 'rgba(34, 197, 94, 0.1)' : part.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)'
-                                }}>{part.status === 'approved' ? 'Disetujui' : part.status === 'rejected' ? 'Ditolak' : 'Pending'}</span>
+                                <span style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: 'white', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '4px' }}>
+                                  {part.ticketCode || `TKT-${part.id.substring(part.id.length - 6).toUpperCase()}`}
+                                </span>
+                              </td>
+                              <td>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                  <span style={{ fontSize: '0.8rem', color: 'white', fontWeight: 'bold' }}>
+                                    {selectedManageEvent.ticketPrice > 0 ? `Rp ${selectedManageEvent.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}
+                                  </span>
+                                  {selectedManageEvent.ticketPrice > 0 && (
+                                    <span style={{ 
+                                      fontSize: '0.7rem', 
+                                      color: part.isPaid ? '#22c55e' : '#fbbf24', 
+                                      fontWeight: '600'
+                                    }}>
+                                      {part.isPaid ? 'Lunas' : 'Belum Lunas'}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td>
+                                {part.isCheckedIn ? (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <span style={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e' }}></span>
+                                      Sudah Check-In
+                                    </span>
+                                    {part.checkedInAt && (
+                                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                                        {new Date(part.checkedInAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span style={{ fontSize: '0.75rem', color: '#a3a3a3', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#a3a3a3' }}></span>
+                                    Belum Check-In
+                                  </span>
+                                )}
                               </td>
                               <td style={{ textAlign: 'center' }}>
                                 {part.status === 'pending' ? (
@@ -2003,21 +2257,41 @@ export default function AdminPanel({
                                     </button>
                                   </div>
                                 ) : (
-                                  <button 
-                                    onClick={() => handleResetParticipantStatus(part.id)}
-                                    style={{ 
-                                      background: 'transparent', 
-                                      border: 'none', 
-                                      color: '#f87171', 
-                                      textDecoration: 'underline', 
-                                      cursor: 'pointer', 
-                                      fontSize: '0.8rem',
-                                      padding: '4px 8px',
-                                      fontWeight: '600'
-                                    }}
-                                  >
-                                    Batalkan
-                                  </button>
+                                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                                    {part.status === 'approved' && !part.isCheckedIn && (
+                                      <button
+                                        onClick={() => handleCheckInParticipant(part.id)}
+                                        className="btn btn-primary btn-sm"
+                                        style={{ 
+                                          background: '#22c55e', 
+                                          color: 'white', 
+                                          border: 'none', 
+                                          fontWeight: 'bold',
+                                          padding: '4px 10px',
+                                          fontSize: '0.75rem',
+                                          borderRadius: '12px',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
+                                        Check-In
+                                      </button>
+                                    )}
+                                    <button 
+                                      onClick={() => handleResetParticipantStatus(part.id)}
+                                      style={{ 
+                                        background: 'transparent', 
+                                        border: 'none', 
+                                        color: '#f87171', 
+                                        textDecoration: 'underline', 
+                                        cursor: 'pointer', 
+                                        fontSize: '0.75rem',
+                                        padding: '4px 8px',
+                                        fontWeight: '600'
+                                      }}
+                                    >
+                                      Batalkan
+                                    </button>
+                                  </div>
                                 )}
                               </td>
                             </tr>
@@ -2333,6 +2607,13 @@ export default function AdminPanel({
                   
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
                     <div className="form-group">
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Tipe Event</label>
+                      <select value={eventType} onChange={(e) => setEventType(e.target.value)} style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}>
+                        <option value="competition">Kompetisi (Kirim Karya & Hadiah)</option>
+                        <option value="regular">Acara / Festival / Seminar (E-Tiket & Check-In)</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
                       <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Kategori Event</label>
                       <select value={eventCategory} onChange={(e) => setEventCategory(e.target.value)} style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}>
                         <option value="Short Film">Short Film</option>
@@ -2446,92 +2727,126 @@ export default function AdminPanel({
                       )}
                     </div>
 
-                  {/* Mode Budget Selector */}
-                  <div className="form-group" style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '12px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: 'white', fontSize: '0.92rem', fontWeight: 'bold' }}>Skema & Mode Pembagian Budget</label>
-                    <select 
-                      value={eventBudgetMode} 
-                      onChange={(e) => setEventBudgetMode(e.target.value)} 
-                      style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none', marginBottom: '16px' }}
-                    >
-                      <option value="views" style={{ background: '#020202' }}>Pay-per-View</option>
-                      <option value="ranking" style={{ background: '#020202' }}>Juara 1, 2, 3</option>
-                    </select>
+                    <div className="form-group">
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Biaya Pendaftaran / Tiket Event (IDR)</label>
+                      <input 
+                        type="text" 
+                        value={formatInputCurrency(eventTicketPrice)} 
+                        onChange={(e) => {
+                          const parsed = e.target.value.replace(/\D/g, '');
+                          setEventTicketPrice(parsed ? parseInt(parsed) : 0);
+                        }} 
+                        placeholder="0 (Gratis)" 
+                        style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
+                      />
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', display: 'block' }}>
+                        Isi dengan 0 atau biarkan kosong jika pendaftaran/tiket masuk event ini gratis (tidak dipungut biaya).
+                      </span>
+                    </div>
 
-                    {eventBudgetMode === 'views' ? (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
-                        <div className="form-group" style={{ marginBottom: 0 }}>
-                          <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Budget Campaign (IDR)</label>
-                          <input type="text" required value={formatInputCurrency(eventBudget)} onChange={(e) => {
-                            const parsed = e.target.value.replace(/\D/g, '');
-                            setEventBudget(parsed ? parseInt(parsed) : 0);
-                          }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
-                        </div>
-                        <div className="form-group" style={{ marginBottom: 0 }}>
-                          <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Benefit Payout (IDR)</label>
-                          <input type="text" required value={formatInputCurrency(eventBenefitAmount)} onChange={(e) => {
-                            const parsed = e.target.value.replace(/\D/g, '');
-                            setEventBenefitAmount(parsed ? parseInt(parsed) : 0);
-                          }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
-                        </div>
-                        <div className="form-group" style={{ marginBottom: 0 }}>
-                          <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Per XXX Views</label>
-                          <input type="text" required value={formatInputCurrency(eventBenefitViewsStep)} onChange={(e) => {
-                            const parsed = e.target.value.replace(/\D/g, '');
-                            setEventBenefitViewsStep(parsed ? parseInt(parsed) : 0);
-                          }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
-                        <div className="form-group" style={{ marginBottom: 0 }}>
-                          <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Juara 1 (IDR)</label>
-                          <input type="text" required value={formatInputCurrency(eventPrize1)} onChange={(e) => {
-                            const parsed = e.target.value.replace(/\D/g, '');
-                            setEventPrize1(parsed ? parseInt(parsed) : 0);
-                          }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
-                        </div>
-                        <div className="form-group" style={{ marginBottom: 0 }}>
-                          <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Juara 2 (IDR)</label>
-                          <input type="text" required value={formatInputCurrency(eventPrize2)} onChange={(e) => {
-                            const parsed = e.target.value.replace(/\D/g, '');
-                            setEventPrize2(parsed ? parseInt(parsed) : 0);
-                          }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
-                        </div>
-                        <div className="form-group" style={{ marginBottom: 0 }}>
-                          <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Juara 3 (IDR)</label>
-                          <input type="text" required value={formatInputCurrency(eventPrize3)} onChange={(e) => {
-                            const parsed = e.target.value.replace(/\D/g, '');
-                            setEventPrize3(parsed ? parseInt(parsed) : 0);
-                          }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Platform Fee & Escrow Info */}
-                    {eventAdminFee > 0 && (
+                    {/* Platform Fee info box for Regular Event */}
+                    {eventType === 'regular' && eventFlatFee > 0 && (
                       <div style={{ marginTop: '16px', padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Total Budget Kampanye:</span>
-                          <strong style={{ color: 'white' }}>
-                            Rp {(eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))).toLocaleString('id-ID')}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform (Flat):</span>
+                          <strong style={{ color: 'white', fontSize: '0.92rem', borderBottom: '1px dashed white', paddingBottom: '2px' }}>
+                            Rp {eventFlatFee.toLocaleString('id-ID')}
                           </strong>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform ({eventAdminFee}%):</span>
-                          <strong style={{ color: 'white' }}>
-                            + Rp {Math.round(((eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))) * eventAdminFee) / 100).toLocaleString('id-ID')}
-                          </strong>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
-                          <span style={{ color: 'white' }}>Total Deposit Escrow:</span>
-                          <strong style={{ color: 'white', fontSize: '0.92rem', borderBottom: '1px solid white', paddingBottom: '2px' }}>
-                            Rp {((eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))) + Math.round(((eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))) * eventAdminFee) / 100)).toLocaleString('id-ID')}
-                          </strong>
-                        </div>
+                        <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: '1.4' }}>
+                          * Karena event ini bertipe Acara/Festival (tanpa budget kampanye/hadiah), Anda dikenakan biaya layanan aktivasi platform secara flat.
+                        </span>
                       </div>
                     )}
-                  </div>
+
+                  {/* Mode Budget Selector */}
+                  {eventType === 'competition' && (
+                    <div className="form-group" style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '12px' }}>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'white', fontSize: '0.92rem', fontWeight: 'bold' }}>Skema & Mode Pembagian Budget</label>
+                      <select 
+                        value={eventBudgetMode} 
+                        onChange={(e) => setEventBudgetMode(e.target.value)} 
+                        style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none', marginBottom: '16px' }}
+                      >
+                        <option value="views" style={{ background: '#020202' }}>Pay-per-View</option>
+                        <option value="ranking" style={{ background: '#020202' }}>Juara 1, 2, 3</option>
+                      </select>
+
+                      {eventBudgetMode === 'views' ? (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Budget Campaign (IDR)</label>
+                            <input type="text" required value={formatInputCurrency(eventBudget)} onChange={(e) => {
+                              const parsed = e.target.value.replace(/\D/g, '');
+                              setEventBudget(parsed ? parseInt(parsed) : 0);
+                            }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Benefit Payout (IDR)</label>
+                            <input type="text" required value={formatInputCurrency(eventBenefitAmount)} onChange={(e) => {
+                              const parsed = e.target.value.replace(/\D/g, '');
+                              setEventBenefitAmount(parsed ? parseInt(parsed) : 0);
+                            }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Per XXX Views</label>
+                            <input type="text" required value={formatInputCurrency(eventBenefitViewsStep)} onChange={(e) => {
+                              const parsed = e.target.value.replace(/\D/g, '');
+                              setEventBenefitViewsStep(parsed ? parseInt(parsed) : 0);
+                            }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Juara 1 (IDR)</label>
+                            <input type="text" required value={formatInputCurrency(eventPrize1)} onChange={(e) => {
+                              const parsed = e.target.value.replace(/\D/g, '');
+                              setEventPrize1(parsed ? parseInt(parsed) : 0);
+                            }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Juara 2 (IDR)</label>
+                            <input type="text" required value={formatInputCurrency(eventPrize2)} onChange={(e) => {
+                              const parsed = e.target.value.replace(/\D/g, '');
+                              setEventPrize2(parsed ? parseInt(parsed) : 0);
+                            }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Juara 3 (IDR)</label>
+                            <input type="text" required value={formatInputCurrency(eventPrize3)} onChange={(e) => {
+                              const parsed = e.target.value.replace(/\D/g, '');
+                              setEventPrize3(parsed ? parseInt(parsed) : 0);
+                            }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Platform Fee & Escrow Info */}
+                      {eventAdminFee > 0 && (
+                        <div style={{ marginTop: '16px', padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Total Budget Kampanye:</span>
+                            <strong style={{ color: 'white' }}>
+                              Rp {(eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))).toLocaleString('id-ID')}
+                            </strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform ({eventAdminFee}%):</span>
+                            <strong style={{ color: 'white' }}>
+                              + Rp {Math.round(((eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))) * eventAdminFee) / 100).toLocaleString('id-ID')}
+                          </strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
+                            <span style={{ color: 'white' }}>Total Deposit Escrow:</span>
+                            <strong style={{ color: 'white', fontSize: '0.92rem', borderBottom: '1px solid white', paddingBottom: '2px' }}>
+                              Rp {((eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))) + Math.round(((eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))) * eventAdminFee) / 100)).toLocaleString('id-ID')}
+                            </strong>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="form-group">
                     <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Deskripsi Event & Ketentuan Singkat</label>
@@ -2607,26 +2922,41 @@ export default function AdminPanel({
                         <strong style={{ color: 'white' }}>{depositingEvent.title}</strong>
                       </div>
                       <div>
-                        <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Skema Pembagian</span>
-                        <strong style={{ color: 'white' }}>
-                          {depositingEvent.budgetMode === 'views' ? 'Berdasarkan Jumlah Views' : 'Kompetisi Juara 1, 2, 3'}
-                        </strong>
+                        {depositingEvent.eventType === 'regular' ? (
+                          <>
+                            <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Tipe Event</span>
+                            <strong style={{ color: 'white' }}>Acara / Seminar (Non-Kompetisi)</strong>
+                          </>
+                        ) : (
+                          <>
+                            <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Skema Pembagian</span>
+                            <strong style={{ color: 'white' }}>
+                              {depositingEvent.budgetMode === 'views' ? 'Berdasarkan Jumlah Views' : 'Kompetisi Juara 1, 2, 3'}
+                            </strong>
+                          </>
+                        )}
                       </div>
                     </div>
                     
                     <div style={{ borderTop: '1px dashed rgba(255,255,255,0.05)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem' }}>
+                      {depositingEvent.eventType !== 'regular' && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Budget Kampanye:</span>
+                          <strong style={{ color: 'white' }}>Rp {depositingEvent.campaignBudget?.toLocaleString('id-ID')}</strong>
+                        </div>
+                      )}
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--text-secondary)' }}>Budget Kampanye:</span>
-                        <strong style={{ color: 'white' }}>Rp {depositingEvent.campaignBudget?.toLocaleString('id-ID')}</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform:</span>
-                        <strong style={{ color: 'white' }}>Rp {(depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100)).toLocaleString('id-ID')}</strong>
+                        <span style={{ color: 'var(--text-secondary)' }}>
+                          Biaya Layanan Platform{depositingEvent.eventType === 'regular' && ' (Flat)'}:
+                        </span>
+                        <strong style={{ color: 'white' }}>
+                          Rp {(depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : (depositingEvent.eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100))).toLocaleString('id-ID')}
+                        </strong>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px', marginTop: '4px' }}>
                         <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>Total Pembayaran:</span>
                         <strong style={{ color: '#fbbf24', fontSize: '1.2rem' }}>
-                          Rp {((depositingEvent.campaignBudget || 0) + (depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100))).toLocaleString('id-ID')}
+                          Rp {((depositingEvent.eventType === 'regular' ? 0 : (depositingEvent.campaignBudget || 0)) + (depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : (depositingEvent.eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100)))).toLocaleString('id-ID')}
                         </strong>
                       </div>
                     </div>
@@ -3076,6 +3406,8 @@ export default function AdminPanel({
                     setEventBenefitViewsStep(1000);
                     setEventHasMaxParticipants(true);
                     setEventTargetAudience('public');
+                    setEventTicketPrice(0);
+                    setEventType('competition');
                     setShowEventForm(true);
                   }}
                   style={{
@@ -3226,20 +3558,36 @@ export default function AdminPanel({
                           {/* Middle Section: Budget & Deadline */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap', marginRight: '8px' }}>
                             <div style={{ minWidth: '160px', textAlign: 'left' }}>
-                              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
-                                {evt.budgetMode === 'views' ? 'Sisa / Total Budget' : 'Prize Pool'}
-                              </div>
-                              <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
-                                Rp {evt.campaignBudget ? evt.campaignBudget.toLocaleString('id-ID') : '0'}
-                              </strong>
-                              {evt.adminFee > 0 && (
-                                <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                                  + Platform: Rp {evt.adminFee.toLocaleString('id-ID')}
-                                </div>
+                              {evt.eventType === 'regular' ? (
+                                <>
+                                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
+                                    Biaya Platform (Flat)
+                                  </div>
+                                  <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
+                                    Rp {evt.adminFee ? evt.adminFee.toLocaleString('id-ID') : 'Rp 0'}
+                                  </strong>
+                                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>
+                                    Harga Tiket: <span style={{ color: evt.ticketPrice > 0 ? '#4ade80' : 'white', fontWeight: 'bold' }}>{evt.ticketPrice > 0 ? `Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}</span>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
+                                    {evt.budgetMode === 'views' ? 'Sisa / Total Budget' : 'Prize Pool'}
+                                  </div>
+                                  <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
+                                    Rp {evt.campaignBudget ? evt.campaignBudget.toLocaleString('id-ID') : '0'}
+                                  </strong>
+                                  {evt.adminFee > 0 && (
+                                    <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                      + Platform: Rp {evt.adminFee.toLocaleString('id-ID')}
+                                    </div>
+                                  )}
+                                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>
+                                    {evt.budgetMode === 'views' ? 'Pay-per-View' : 'Sistem Juara'}
+                                  </div>
+                                </>
                               )}
-                              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>
-                                {evt.budgetMode === 'views' ? 'Pay-per-View' : 'Sistem Juara'}
-                              </div>
                             </div>
 
                             <div style={{ minWidth: '180px', display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -4892,6 +5240,33 @@ export default function AdminPanel({
                   </span>
                 </div>
 
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                  <label style={{ fontSize: '0.85rem', marginBottom: '6px', display: 'block', color: 'white', fontWeight: 'bold' }}>Biaya Flat Pembuatan Event Non-Kompetisi (IDR)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Contoh: 150000"
+                    value={eventFlatFee || ''}
+                    onChange={(e) => {
+                      const val = Math.max(0, parseInt(e.target.value) || 0);
+                      setEventFlatFee(val);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(167, 139, 250, 0.3)',
+                      borderRadius: 'var(--radius-sm)',
+                      color: 'white',
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: '0.9rem'
+                    }}
+                  />
+                  <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    Biaya flat platform untuk mengaktifkan event bertipe Acara / Festival / Seminar (non-kompetisi).
+                  </span>
+                </div>
+
                 <div className="form-group" style={{ marginBottom: '24px' }}>
                   <label style={{ fontSize: '0.85rem', marginBottom: '6px', display: 'block', color: 'white', fontWeight: 'bold' }}>Biaya Penarikan Saldo (%)</label>
                   <input
@@ -6393,7 +6768,11 @@ export default function AdminPanel({
             }))
         ];
 
-        const sortedConfirmations = [...allConfirmations].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        const sortedConfirmations = [...allConfirmations].sort((a, b) => {
+          if (a.status === 'pending' && b.status !== 'pending') return -1;
+          if (a.status !== 'pending' && b.status === 'pending') return 1;
+          return new Date(b.timestamp) - new Date(a.timestamp);
+        });
 
         const filteredConfirmations = sortedConfirmations.filter(conf => {
           if (confirmationStatusFilter !== 'all' && conf.status !== confirmationStatusFilter) return false;
@@ -7883,6 +8262,157 @@ export default function AdminPanel({
           </div>
         </div>
       )}
+      {/* Panitia QR Code scanner modal */}
+      {showQRScanner && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0, 0, 0, 0.9)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 100000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px',
+          boxSizing: 'border-box'
+        }} onClick={() => setShowQRScanner(false)}>
+          <div style={{
+            background: '#121212',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            borderRadius: '24px',
+            padding: '32px',
+            maxWidth: '440px',
+            width: '100%',
+            textAlign: 'center',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)',
+            position: 'relative',
+            cursor: 'default'
+          }} onClick={(e) => e.stopPropagation()}>
+            
+            {/* Close Button */}
+            <button 
+              onClick={() => setShowQRScanner(false)}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '36px',
+                height: '36px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                outline: 'none'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+            >
+              <X size={18} />
+            </button>
+
+            <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
+              Panitia Event
+            </div>
+            <h3 style={{ margin: '0 0 20px 0', color: 'white', fontSize: '1.25rem', fontWeight: 'bold' }}>
+              Scan QR Tiket Masuk
+            </h3>
+
+            {/* Video preview container */}
+            <div style={{
+              position: 'relative',
+              width: '100%',
+              aspectRatio: '1',
+              background: '#000000',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              marginBottom: '20px',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}>
+              <video 
+                ref={videoRef}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+              />
+              
+              {/* Scan box Overlay border animation */}
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '65%',
+                height: '65%',
+                border: '2px solid #ffffff',
+                boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
+                borderRadius: '8px',
+                pointerEvents: 'none'
+              }}>
+                {/* Scanner laser lines */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '2px',
+                  background: '#f87171',
+                  boxShadow: '0 0 8px #ef4444',
+                  animation: 'scan-laser 2s infinite linear'
+                }}></div>
+              </div>
+            </div>
+
+            {/* Hidden canvas used for processing */}
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
+
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+              {isScanning ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#4ade80' }}>
+                  <span style={{ width: '12px', height: '12px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 1s infinite linear' }} />
+                  <span>Membidik QR Code tiket...</span>
+                </div>
+              ) : (
+                <button 
+                  type="button"
+                  onClick={startScanner}
+                  className="btn btn-primary"
+                  style={{ background: 'white', color: 'black', border: '1px solid white', padding: '10px 24px', fontWeight: 'bold', borderRadius: '20px', cursor: 'pointer' }}
+                >
+                  Aktifkan Kamera
+                </button>
+              )}
+            </div>
+
+            <div style={{ marginTop: '20px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              Arahkan kamera ke QR Code yang ada pada E-Tiket pengunjung.
+            </div>
+
+            <style>{`
+              @keyframes scan-laser {
+                0% { top: 0%; }
+                50% { top: 100%; }
+                100% { top: 0%; }
+              }
+              @keyframes spin {
+                to { transform: rotate(360deg); }
+              }
+            `}</style>
+
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* Zoomed Receipt Modal Overlay */}
       {zoomedReceipt && createPortal(
         <div 

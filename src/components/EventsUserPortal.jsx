@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Trophy, Calendar, Users, User, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Trophy, Calendar, Users, User, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown, X, Maximize2 } from 'lucide-react';
 
 const slugify = (text) => {
   if (!text) return '';
@@ -287,6 +287,7 @@ export default function EventsUserPortal({
   renderEventManagement
 }) {
   const [registeringEvent, setRegisteringEvent] = useState(null); // Event model open for register
+  const [generatedTicketCode, setGeneratedTicketCode] = useState('');
   const [showRoleWarning, setShowRoleWarning] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -364,6 +365,18 @@ export default function EventsUserPortal({
   const [confirmCode, setConfirmCode] = useState('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
+  const [participantName, setParticipantName] = useState('');
+  const [participantContact, setParticipantContact] = useState('');
+  const [showTicketConfirm, setShowTicketConfirm] = useState(false);
+  const [enlargedTicketReg, setEnlargedTicketReg] = useState(null);
+
+  useEffect(() => {
+    if (registeringEvent) {
+      setParticipantName(currentUser ? currentUser.username : '');
+      setParticipantContact(currentUser ? (currentUser.email || '') : '');
+    }
+  }, [registeringEvent, currentUser]);
+
   // Timer countdown hook for verification
   useEffect(() => {
     let interval = null;
@@ -438,6 +451,74 @@ export default function EventsUserPortal({
   const handleDeclineOffer = (off) => {
     setOffers(prev => prev.map(o => o.id === off.id ? { ...o, status: 'declined' } : o));
     alert(`Undangan kolaborasi untuk event "${off.eventTitle}" ditolak.`);
+  };
+
+  const handleRegularRegister = (e) => {
+    if (e) e.preventDefault();
+    
+    const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
+    const finalName = userProfile.organizerName || userProfile.username;
+    const finalPhone = userProfile.organizerPhone || userProfile.phone || '';
+    const finalEmail = userProfile.email || `${userProfile.username}@gmail.com`;
+
+    if (!userProfile.organizerName || !userProfile.organizerPhone) {
+      alert('Silakan lengkapi Nama Lengkap dan No. WhatsApp di profil Anda terlebih dahulu!');
+      return;
+    }
+
+    const approvedCount = eventParticipants.filter(p => p.eventId === registeringEvent.id && p.status === 'approved').length;
+    if (registeringEvent.maxParticipants > 0 && approvedCount >= registeringEvent.maxParticipants) {
+      alert('Maaf, kuota peserta untuk event ini sudah penuh!');
+      setRegisteringEvent(null);
+      resetVerificationForm();
+      return;
+    }
+
+    const ticketPrice = registeringEvent.ticketPrice || 0;
+    if (ticketPrice > 0) {
+      const currentBal = userProfile.walletBalance || 0;
+      if (currentBal < ticketPrice) {
+        alert('Saldo Anda tidak mencukupi untuk membeli tiket event ini!');
+        return;
+      }
+
+      // Deduct balance
+      setUsers(prevUsers => prevUsers.map(u => {
+        if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
+          return { ...u, walletBalance: Math.max(0, (u.walletBalance || 0) - ticketPrice) };
+        }
+        if (u.username.toLowerCase() === (registeringEvent.creator || '').toLowerCase()) {
+          return { ...u, walletBalance: (u.walletBalance || 0) + ticketPrice };
+        }
+        return u;
+      }));
+    }
+
+    const tktCode = `TKT-${Math.floor(100000 + Math.random() * 900000)}`;
+    setGeneratedTicketCode(tktCode);
+
+    const newPart = {
+      id: `part_${Date.now()}`,
+      eventId: registeringEvent.id,
+      eventTitle: registeringEvent.title,
+      name: finalName,
+      username: currentUser.username,
+      email: finalEmail,
+      contact: finalPhone,
+      socialPlatform: 'ticket',
+      socialLink: '',
+      status: 'approved',
+      verifiedAt: new Date().toISOString(),
+      registeredAt: new Date().toISOString(),
+      ticketCode: tktCode,
+      isCheckedIn: false,
+      checkedInAt: null,
+      ticketPrice: ticketPrice,
+      isPaid: ticketPrice > 0
+    };
+
+    setEventParticipants([...eventParticipants, newPart]);
+    setVerificationStep('success');
   };
 
   // Move from input handle step to show code instruction step
@@ -588,6 +669,31 @@ export default function EventsUserPortal({
         }
 
         const targetStatus = verificationResult.status || 'approved';
+        const ticketPrice = registeringEvent.ticketPrice || 0;
+        
+        if (ticketPrice > 0) {
+          const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
+          const currentBal = userProfile ? (userProfile.walletBalance || 0) : (currentUser.walletBalance || 0);
+          if (currentBal < ticketPrice) {
+            alert('Saldo Anda tidak mencukupi untuk membayar tiket pendaftaran event ini!');
+            return;
+          }
+        }
+
+        const tktCode = `TKT-${Math.floor(100000 + Math.random() * 900000)}`;
+        setGeneratedTicketCode(tktCode);
+
+        if (ticketPrice > 0) {
+          setUsers(prevUsers => prevUsers.map(u => {
+            if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
+              return { ...u, walletBalance: Math.max(0, (u.walletBalance || 0) - ticketPrice) };
+            }
+            if (u.username.toLowerCase() === (registeringEvent.creator || '').toLowerCase()) {
+              return { ...u, walletBalance: (u.walletBalance || 0) + ticketPrice };
+            }
+            return u;
+          }));
+        }
 
         const newPart = {
           id: `part_${Date.now()}`,
@@ -601,7 +707,12 @@ export default function EventsUserPortal({
           socialLink: generatedLink,
           status: targetStatus,
           verifiedAt: new Date().toISOString(),
-          registeredAt: new Date().toISOString()
+          registeredAt: new Date().toISOString(),
+          ticketCode: tktCode,
+          isCheckedIn: false,
+          checkedInAt: null,
+          ticketPrice: ticketPrice,
+          isPaid: ticketPrice > 0
         };
 
         setEventParticipants([...eventParticipants, newPart]);
@@ -685,6 +796,32 @@ export default function EventsUserPortal({
           }
 
           const targetStatus = fallbackResult.status || 'approved';
+          const ticketPrice = registeringEvent.ticketPrice || 0;
+          
+          if (ticketPrice > 0) {
+            const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
+            const currentBal = userProfile ? (userProfile.walletBalance || 0) : (currentUser.walletBalance || 0);
+            if (currentBal < ticketPrice) {
+              alert('Saldo Anda tidak mencukupi untuk membayar tiket pendaftaran event ini!');
+              return;
+            }
+          }
+
+          const tktCode = `TKT-${Math.floor(100000 + Math.random() * 900000)}`;
+          setGeneratedTicketCode(tktCode);
+
+          if (ticketPrice > 0) {
+            setUsers(prevUsers => prevUsers.map(u => {
+              if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
+                return { ...u, walletBalance: Math.max(0, (u.walletBalance || 0) - ticketPrice) };
+              }
+              if (u.username.toLowerCase() === (registeringEvent.creator || '').toLowerCase()) {
+                return { ...u, walletBalance: (u.walletBalance || 0) + ticketPrice };
+              }
+              return u;
+            }));
+          }
+
           const newPart = {
             id: `part_${Date.now()}`,
             eventId: registeringEvent.id,
@@ -697,7 +834,12 @@ export default function EventsUserPortal({
             socialLink: generatedLink,
             status: targetStatus,
             verifiedAt: new Date().toISOString(),
-            registeredAt: new Date().toISOString()
+            registeredAt: new Date().toISOString(),
+            ticketCode: tktCode,
+            isCheckedIn: false,
+            checkedInAt: null,
+            ticketPrice: ticketPrice,
+            isPaid: ticketPrice > 0
           };
 
           setEventParticipants([...eventParticipants, newPart]);
@@ -722,6 +864,7 @@ export default function EventsUserPortal({
     setVerificationError('');
     setConfirmCode('');
     setShowConfirmDialog(false);
+    setShowTicketConfirm(false);
   };
 
 
@@ -818,6 +961,12 @@ export default function EventsUserPortal({
         ? new Date().getTime() > new Date(evt.deadline).getTime()
         : new Date().getTime() > new Date(evt.deadline + 'T23:59:59').getTime()
     ) : false;
+
+    if (evt.eventType === 'regular') {
+      if (isDeadlinePassed) return 'Selesai';
+      return 'Aktif';
+    }
+
     if (evt.budgetMode === 'ranking') {
       if (isDeadlinePassed) return 'Selesai';
       return 'Berjalan';
@@ -969,7 +1118,34 @@ export default function EventsUserPortal({
                 {/* Left Column: Info & Juknis */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   <div style={{ textAlign: 'left' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
+                      {evt.eventType === 'regular' ? (
+                        <span style={{ 
+                          fontSize: '0.72rem', 
+                          background: 'rgba(255, 255, 255, 0.08)', 
+                          color: '#ffffff', 
+                          padding: '5px 14px', 
+                          borderRadius: '20px',
+                          fontWeight: 'bold',
+                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                          letterSpacing: '0.5px'
+                        }}>
+                          Acara / Seminar
+                        </span>
+                      ) : (
+                        <span style={{ 
+                          fontSize: '0.72rem', 
+                          background: 'rgba(255, 255, 255, 0.08)', 
+                          color: '#ffffff', 
+                          padding: '5px 14px', 
+                          borderRadius: '20px',
+                          fontWeight: 'bold',
+                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                          letterSpacing: '0.5px'
+                        }}>
+                          Kompetisi
+                        </span>
+                      )}
                       {(() => {
                         const style = getCategoryBadgeStyle(evt.category);
                         return (
@@ -1002,13 +1178,19 @@ export default function EventsUserPortal({
                       WebkitTextFillColor: 'transparent'
                     }}>{evt.title}</h2>
                     
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', marginBottom: '24px' }}>
-                      <Calendar size={16} style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
-                      {evt.deadline ? (
-                        <span>Batas Waktu Pendaftaran: <strong style={{ color: 'white' }}>{formatIndonesianDate(evt.deadline)}</strong></span>
-                      ) : (
-                        <span>Batas Waktu Pendaftaran: <strong style={{ color: 'white' }}>Tanpa Batas Waktu (Selesai saat budget habis)</strong></span>
-                      )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>
+                        <Calendar size={16} style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
+                        {evt.deadline ? (
+                          <span>Batas Waktu Pendaftaran: <strong style={{ color: 'white' }}>{formatIndonesianDate(evt.deadline)}</strong></span>
+                        ) : (
+                          <span>Batas Waktu Pendaftaran: <strong style={{ color: 'white' }}>{evt.eventType === 'regular' ? 'Tanpa Batas Waktu' : 'Tanpa Batas Waktu (Selesai saat budget habis)'}</strong></span>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>
+                        <Wallet size={16} style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
+                        <span>Biaya Pendaftaran / Tiket: <strong style={{ color: evt.ticketPrice > 0 ? '#4ade80' : 'white' }}>{evt.ticketPrice > 0 ? `Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}</strong></span>
+                      </div>
                     </div>
                     
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.8', margin: 0 }}>{evt.description}</p>
@@ -1163,7 +1345,7 @@ export default function EventsUserPortal({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   {/* Countdown and Budget widgets */}
 
-                  {evt.campaignBudget > 0 && (
+                  {evt.eventType !== 'regular' && evt.campaignBudget > 0 && (
                     evt.budgetMode === 'ranking' ? (
                       <div style={{ 
                         background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.01) 0%, rgba(15, 23, 42, 0.6) 100%)',
@@ -1460,283 +1642,442 @@ export default function EventsUserPortal({
                                   e.currentTarget.style.boxShadow = '0 8px 24px rgba(255, 255, 255, 0.1)';
                                 }}
                               >
-                                <span>Daftar Kompetisi</span>
+                                <span>{evt.eventType === 'regular' ? (evt.ticketPrice > 0 ? 'Beli Tiket' : 'Daftar Acara') : 'Daftar Kompetisi'}</span>
                               </button>
                             );
                           })()
                         ) : (
                           // Logged In & Registered
                           <div style={{ textAlign: 'left' }}>
-                            {/* Unified Stepper/Timeline */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative', marginTop: '10px' }}>
+                            {/* E-Tiket Card */}
+                            <div 
+                              onClick={() => setEnlargedTicketReg(userReg)}
+                              title="Klik untuk memperbesar tiket"
+                              style={{
+                                background: 'rgba(255, 255, 255, 0.02)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderRadius: '16px',
+                                padding: '20px',
+                                marginBottom: '24px',
+                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.05)',
+                                position: 'relative',
+                                overflow: 'hidden',
+                                cursor: 'pointer',
+                                transition: 'all 0.25s ease'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                              }}
+                            >
+                              {/* Ticket Notch decorations */}
+                              <div style={{ position: 'absolute', left: '-10px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', borderRadius: '50%', background: '#020202', borderRight: '1px solid rgba(255, 255, 255, 0.08)' }}></div>
+                              <div style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', borderRadius: '50%', background: '#020202', borderLeft: '1px solid rgba(255, 255, 255, 0.08)' }}></div>
                               
-                              {/* Step 1: Pendaftaran */}
-                              <div style={{ display: 'flex', gap: '12px', position: 'relative' }}>
-                                {/* Line to Step 2 */}
-                                <div style={{
-                                  position: 'absolute',
-                                  left: '11px',
-                                  top: '26px',
-                                  bottom: '-26px',
-                                  width: '2px',
-                                  background: userReg.status === 'approved' ? '#22c55e' : 'rgba(255, 255, 255, 0.1)',
-                                  zIndex: 1
-                                }} />
-                                
-                                <div style={{
-                                  width: '24px',
-                                  height: '24px',
-                                  borderRadius: '50%',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  background: 
-                                    userReg.status === 'approved' ? 'rgba(34, 197, 94, 0.15)' :
-                                    userReg.status === 'pending' ? 'rgba(234, 179, 8, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                                  border: `2px solid ${
-                                    userReg.status === 'approved' ? '#22c55e' :
-                                    userReg.status === 'pending' ? '#eab308' : '#ef4444'
-                                  }`,
-                                  zIndex: 2,
-                                  flexShrink: 0
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed rgba(255,255,255,0.15)', paddingBottom: '12px', marginBottom: '14px' }}>
+                                <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>E-Tiket Resmi</span>
+                                <span style={{ 
+                                  fontSize: '0.68rem', 
+                                  background: userReg.isCheckedIn ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.03)', 
+                                  color: userReg.isCheckedIn ? '#ffffff' : 'var(--text-secondary)', 
+                                  padding: '3px 8px', 
+                                  borderRadius: '12px',
+                                  fontWeight: 'bold',
+                                  border: userReg.isCheckedIn ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)'
                                 }}>
-                                  {userReg.status === 'approved' && <CheckCircle2 size={14} style={{ color: '#22c55e' }} />}
-                                  {userReg.status === 'pending' && <Clock size={14} style={{ color: '#fbbf24' }} />}
-                                  {userReg.status === 'rejected' && <XCircle size={14} style={{ color: '#ef4444' }} />}
+                                  {userReg.isCheckedIn ? 'SUDAH CHECK-IN' : 'BELUM CHECK-IN'}
+                                </span>
+                              </div>
+                              
+                              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                               {/* Real QR Code Image */}
+                                <div style={{ 
+                                  background: 'white', 
+                                  borderRadius: '8px', 
+                                  padding: '4px', 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  justifyContent: 'center',
+                                  width: '48px',
+                                  height: '48px',
+                                  boxSizing: 'border-box'
+                                }}>
+                                  <img 
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(userReg.ticketCode || `TKT-${userReg.id.substring(userReg.id.length - 6).toUpperCase()}`)}`}
+                                    alt="QR Code"
+                                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                  />
                                 </div>
                                 
-                                <div style={{ flex: 1 }}>
-                                  <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: 'white', fontWeight: 'bold' }}>
-                                    Tahap 1: Pendaftaran Kompetisi
-                                  </h4>
-                                  <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                                    {userReg.status === 'approved' ? 'Pendaftaran disetujui. Anda resmi terdaftar.' :
-                                     userReg.status === 'pending' ? 'Pendaftaran Anda sedang diverifikasi panitia.' :
-                                     'Pendaftaran Anda ditolak oleh panitia.'}
-                                  </p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Kode Tiket</span>
+                                  <span style={{ fontSize: '1.15rem', color: 'white', fontWeight: '800', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
+                                    {userReg.ticketCode || `TKT-${userReg.id.substring(userReg.id.length - 6).toUpperCase()}`}
+                                  </span>
+                                  <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                                    Nama: <strong>{userReg.name}</strong>
+                                  </span>
                                 </div>
                               </div>
 
-                              {/* Step 2: Pengiriman Karya */}
-                              <div style={{ display: 'flex', gap: '12px', position: 'relative' }}>
-                                {/* Line to Step 3 */}
-                                <div style={{
-                                  position: 'absolute',
-                                  left: '11px',
-                                  top: '26px',
-                                  bottom: '-26px',
-                                  width: '2px',
-                                  background: (userReg.status === 'approved' && userSub) ? '#22c55e' : 'rgba(255, 255, 255, 0.1)',
-                                  zIndex: 1
-                                }} />
-                                
-                                <div style={{
-                                  width: '24px',
-                                  height: '24px',
-                                  borderRadius: '50%',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  background: 
-                                    (userReg.status === 'approved' && userSub) ? 'rgba(34, 197, 94, 0.15)' :
-                                    userReg.status === 'approved' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-                                  border: `2px solid ${
-                                    (userReg.status === 'approved' && userSub) ? '#22c55e' :
-                                    userReg.status === 'approved' ? 'white' : 'rgba(255, 255, 255, 0.1)'
-                                  }`,
-                                  zIndex: 2,
-                                  flexShrink: 0
-                                }}>
-                                  {(userReg.status === 'approved' && userSub) ? (
-                                    <CheckCircle2 size={14} style={{ color: '#22c55e' }} />
-                                  ) : (
-                                    <div style={{ 
-                                      width: '6px', 
-                                      height: '6px', 
-                                      borderRadius: '50%', 
-                                      background: userReg.status === 'approved' ? 'white' : 'rgba(255,255,255,0.2)' 
-                                    }} />
-                                  )}
-                                </div>
-                                
-                                <div style={{ flex: 1 }}>
-                                  <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userReg.status === 'approved' ? 'white' : 'var(--text-muted)', fontWeight: 'bold' }}>
-                                    Tahap 2: Pengiriman Karya Video
-                                  </h4>
-                                  
-                                  {userReg.status !== 'approved' && (
-                                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                                      Menunggu persetujuan pendaftaran.
-                                    </p>
-                                  )}
-                                  
-                                  {userReg.status === 'approved' && !userSub && (
-                                    <div style={{ marginTop: '8px' }}>
-                                      <p style={{ margin: '0 0 8px 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                                        Kirim tautan karya video Anda untuk dinilai juri.
-                                      </p>
-                                      <button 
-                                        className="btn btn-secondary" 
-                                        onClick={() => setSubmittingEvent(evt)}
-                                        style={{ 
-                                          width: '100%', 
-                                          justifyContent: 'center', 
-                                          borderColor: 'white', 
-                                          color: 'black',
-                                          background: 'white',
-                                          padding: '8px 16px',
-                                          borderRadius: '30px',
-                                          fontWeight: 'bold',
-                                          fontSize: '0.8rem',
-                                          cursor: 'pointer'
-                                        }}
-                                      >
-                                        <Send size={12} />
-                                        <span>Kirim Karya Sekarang</span>
-                                      </button>
-                                    </div>
-                                  )}
-                                  
-                                  {userReg.status === 'approved' && userSub && (
-                                    <div style={{ 
-                                      border: '1px solid var(--border-color)', 
-                                      borderRadius: '12px', 
-                                      padding: '12px', 
-                                      background: 'rgba(255, 255, 255, 0.02)', 
-                                      marginTop: '8px',
-                                      fontSize: '0.8rem'
-                                    }}>
-                                      <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginBottom: '2px' }}>Karya Terkirim:</div>
-                                      <div style={{ fontWeight: 'bold', color: 'white', marginBottom: '6px' }}>{userSub.title}</div>
-                                      
-                                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '6px' }}>
-                                        <span style={{ 
-                                          padding: '2px 8px', 
-                                          borderRadius: '10px', 
-                                          fontSize: '0.6rem',
-                                          color: 'white',
-                                          fontWeight: 'bold',
-                                          background: 
-                                            userSub.platform?.toLowerCase() === 'youtube' ? '#ff0000' :
-                                            userSub.platform?.toLowerCase() === 'tiktok' ? 'linear-gradient(45deg, #fe2c55, #25f4ee)' :
-                                            userSub.platform?.toLowerCase() === 'instagram' ? 'linear-gradient(45deg, #f09433, #dc2743, #bc1888)' : '#475569'
-                                        }}>{userSub.platform || 'Link Eksternal'}</span>
-                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Views: <strong>{userSub.views || 0}</strong></span>
-                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Likes: <strong>{userSub.likes || 0}</strong></span>
-                                      </div>
-
-                                      {/* Estimasi Pembayaran */}
-                                      {(() => {
-                                        const step = evt.benefitViewsStep || 1000;
-                                        const amount = evt.benefitAmount || 0;
-                                        const views = userSub.views || 0;
-                                        const payout = Math.floor(views / step) * amount;
-                                        if (payout === 0) return null;
-                                        return (
-                                          <div style={{ 
-                                            padding: '8px 12px', 
-                                            background: 'rgba(34, 197, 94, 0.08)', 
-                                            border: '1px solid rgba(34, 197, 94, 0.15)', 
-                                            borderRadius: '8px',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            fontSize: '0.75rem',
-                                            marginTop: '6px'
-                                          }}>
-                                            <span style={{ color: '#4ade80', fontWeight: '500' }}>Estimasi Pembayaran</span>
-                                            <strong style={{ color: 'white' }}>Rp {payout.toLocaleString('id-ID')}</strong>
-                                          </div>
-                                        );
-                                      })()}
-                                    </div>
-                                  )}
-                                </div>
+                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', borderTop: '1px dashed rgba(255,255,255,0.06)', paddingTop: '10px' }}>
+                                <Maximize2 size={10} />
+                                <span>Klik tiket untuk memperbesar & scan</span>
                               </div>
-
-                              {/* Step 3: Penilaian & Hasil */}
-                              <div style={{ display: 'flex', gap: '12px' }}>
-                                <div style={{
-                                  width: '24px',
-                                  height: '24px',
-                                  borderRadius: '50%',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  background: 
-                                    (userSub && userSub.score !== null) ? 'rgba(34, 197, 94, 0.15)' :
-                                    userSub ? 'rgba(234, 179, 8, 0.15)' : 'rgba(255, 255, 255, 0.03)',
-                                  border: `2px solid ${
-                                    (userSub && userSub.score !== null) ? '#22c55e' :
-                                    userSub ? '#eab308' : 'rgba(255, 255, 255, 0.1)'
-                                  }`,
-                                  zIndex: 2,
-                                  flexShrink: 0
-                                }}>
-                                  {(userSub && userSub.score !== null) ? (
-                                    <Award size={13} style={{ color: '#22c55e' }} />
-                                  ) : userSub ? (
-                                    <Clock size={13} style={{ color: '#fbbf24' }} />
-                                  ) : (
-                                    <div style={{ 
-                                      width: '6px', 
-                                      height: '6px', 
-                                      borderRadius: '50%', 
-                                      background: 'rgba(255,255,255,0.2)' 
-                                    }} />
-                                  )}
+                              
+                              {evt.ticketPrice > 0 && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', borderTop: '1px dashed rgba(255,255,255,0.06)', paddingTop: '10px', fontSize: '0.75rem' }}>
+                                  <span style={{ color: 'var(--text-muted)' }}>Status Pembayaran</span>
+                                  <strong style={{ color: '#4ade80' }}>✓ Lunas (Rp {evt.ticketPrice.toLocaleString('id-ID')})</strong>
                                 </div>
-                                
-                                <div style={{ flex: 1 }}>
-                                   <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userSub ? 'white' : 'var(--text-muted)', fontWeight: 'bold' }}>
-                                     {evt.budgetMode === 'views' ? 'Tahap 3: Pembayaran Otomatis & Hasil' : 'Tahap 3: Penilaian Juri & Hasil'}
-                                   </h4>
-                                   
-                                   {!userSub && (
-                                     <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                                       Menunggu pengiriman karya video Anda.
-                                     </p>
-                                   )}
-                                   
-                                   {userSub && userSub.score === null && (
-                                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: evt.budgetMode === 'views' ? '#38bdf8' : '#fbbf24', background: evt.budgetMode === 'views' ? 'rgba(56, 189, 248, 0.05)' : 'rgba(245, 158, 11, 0.05)', padding: '6px 12px', borderRadius: '20px', marginTop: '6px' }}>
-                                       <Clock size={12} />
-                                       <span>{evt.budgetMode === 'views' ? 'Menunggu Sinkronisasi Views & Pembayaran' : 'Sedang Dinilai oleh Juri'}</span>
-                                     </div>
-                                   )}
-                                   
-                                   {userSub && userSub.score !== null && (
-                                     <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)', padding: '10px 12px', borderRadius: '8px', marginTop: '8px', fontSize: '0.8rem' }}>
-                                       {evt.budgetMode === 'views' ? (
-                                         <>
-                                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                             <span style={{ fontSize: '0.75rem', color: '#4ade80', fontWeight: '600' }}>Status Pembayaran</span>
-                                             <span style={{ fontSize: '0.9rem', color: '#22c55e', fontWeight: 'bold' }}>Otomatis Cair</span>
-                                           </div>
-                                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
-                                             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Total Payout Masuk</span>
-                                             <strong style={{ color: 'white', fontSize: '0.9rem' }}>Rp {(userSub.paidBenefit || 0).toLocaleString('id-ID')}</strong>
-                                           </div>
-                                         </>
-                                       ) : (
-                                         <>
-                                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                             <span style={{ fontSize: '0.75rem', color: '#4ade80', fontWeight: '600' }}>Skor Akhir</span>
-                                             <span style={{ fontSize: '1rem', color: '#22c55e', fontWeight: 'bold' }}>{userSub.score} / 100</span>
-                                           </div>
-                                           {userSub.feedback && (
-                                             <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.4' }}>
-                                               "{userSub.feedback}"
-                                             </p>
-                                           )}
-                                         </>
-                                       )}
-                                     </div>
-                                   )}
+                              )}
+                              
+                              {userReg.isCheckedIn && userReg.checkedInAt && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                  <span>Waktu Check-In:</span>
+                                  <span>{new Date(userReg.checkedInAt).toLocaleTimeString('id-ID')} - {new Date(userReg.checkedInAt).toLocaleDateString('id-ID')}</span>
                                 </div>
-                              </div>
-
+                              )}
                             </div>
+
+                            {/* Unified Stepper/Timeline */}
+                            {evt.eventType === 'regular' ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative', marginTop: '10px' }}>
+                                {/* Step 1: Pendaftaran & Tiket */}
+                                <div style={{ display: 'flex', gap: '12px', position: 'relative' }}>
+                                  <div style={{
+                                    position: 'absolute',
+                                    left: '11px',
+                                    top: '26px',
+                                    bottom: '-26px',
+                                    width: '2px',
+                                    background: userReg.status === 'approved' ? '#22c55e' : 'rgba(255, 255, 255, 0.1)',
+                                    zIndex: 1
+                                  }} />
+                                  <div style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: userReg.status === 'approved' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                    border: `2px solid ${userReg.status === 'approved' ? '#22c55e' : 'rgba(255, 255, 255, 0.2)'}`,
+                                    zIndex: 2,
+                                    flexShrink: 0
+                                  }}>
+                                    {userReg.status === 'approved' ? <CheckCircle2 size={14} style={{ color: '#22c55e' }} /> : <Clock size={14} style={{ color: '#fbbf24' }} />}
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: 'white', fontWeight: 'bold' }}>
+                                      Tahap 1: Pendaftaran & Pembelian Tiket
+                                    </h4>
+                                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                                      {userReg.status === 'approved' ? 'Tiket Anda telah terbit dan lunas.' : 'Pendaftaran Anda sedang diproses.'}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Step 2: Check-In Kehadiran */}
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                  <div style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: userReg.isCheckedIn ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                                    border: `2px solid ${userReg.isCheckedIn ? '#22c55e' : 'rgba(255, 255, 255, 0.1)'}`,
+                                    zIndex: 2,
+                                    flexShrink: 0
+                                  }}>
+                                    {userReg.isCheckedIn ? <CheckCircle2 size={14} style={{ color: '#22c55e' }} /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />}
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userReg.isCheckedIn ? 'white' : 'var(--text-muted)', fontWeight: 'bold' }}>
+                                      Tahap 2: Kehadiran di Acara
+                                    </h4>
+                                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                      {userReg.isCheckedIn ? 'Anda telah berhasil check-in di lokasi.' : 'Tunjukkan E-Tiket Anda pada panitia di lokasi untuk check-in.'}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative', marginTop: '10px' }}>
+                                
+                                {/* Step 1: Pendaftaran */}
+                                <div style={{ display: 'flex', gap: '12px', position: 'relative' }}>
+                                  {/* Line to Step 2 */}
+                                  <div style={{
+                                    position: 'absolute',
+                                    left: '11px',
+                                    top: '26px',
+                                    bottom: '-26px',
+                                    width: '2px',
+                                    background: userReg.status === 'approved' ? '#22c55e' : 'rgba(255, 255, 255, 0.1)',
+                                    zIndex: 1
+                                  }} />
+                                  
+                                  <div style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: 
+                                      userReg.status === 'approved' ? 'rgba(34, 197, 94, 0.15)' :
+                                      userReg.status === 'pending' ? 'rgba(234, 179, 8, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                    border: `2px solid ${
+                                      userReg.status === 'approved' ? '#22c55e' :
+                                      userReg.status === 'pending' ? '#eab308' : '#ef4444'
+                                    }`,
+                                    zIndex: 2,
+                                    flexShrink: 0
+                                  }}>
+                                    {userReg.status === 'approved' && <CheckCircle2 size={14} style={{ color: '#22c55e' }} />}
+                                    {userReg.status === 'pending' && <Clock size={14} style={{ color: '#fbbf24' }} />}
+                                    {userReg.status === 'rejected' && <XCircle size={14} style={{ color: '#ef4444' }} />}
+                                  </div>
+                                  
+                                  <div style={{ flex: 1 }}>
+                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: 'white', fontWeight: 'bold' }}>
+                                      Tahap 1: Pendaftaran Kompetisi
+                                    </h4>
+                                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                                      {userReg.status === 'approved' ? 'Pendaftaran disetujui. Anda resmi terdaftar.' :
+                                       userReg.status === 'pending' ? 'Pendaftaran Anda sedang diverifikasi panitia.' :
+                                       'Pendaftaran Anda ditolak oleh panitia.'}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Step 2: Pengiriman Karya */}
+                                <div style={{ display: 'flex', gap: '12px', position: 'relative' }}>
+                                  {/* Line to Step 3 */}
+                                  <div style={{
+                                    position: 'absolute',
+                                    left: '11px',
+                                    top: '26px',
+                                    bottom: '-26px',
+                                    width: '2px',
+                                    background: (userReg.status === 'approved' && userSub) ? '#22c55e' : 'rgba(255, 255, 255, 0.1)',
+                                    zIndex: 1
+                                  }} />
+                                  
+                                  <div style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: 
+                                      (userReg.status === 'approved' && userSub) ? 'rgba(34, 197, 94, 0.15)' :
+                                      userReg.status === 'approved' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+                                    border: `2px solid ${
+                                      (userReg.status === 'approved' && userSub) ? '#22c55e' :
+                                      userReg.status === 'approved' ? 'white' : 'rgba(255, 255, 255, 0.1)'
+                                    }`,
+                                    zIndex: 2,
+                                    flexShrink: 0
+                                  }}>
+                                    {(userReg.status === 'approved' && userSub) ? (
+                                      <CheckCircle2 size={14} style={{ color: '#22c55e' }} />
+                                    ) : (
+                                      <div style={{ 
+                                        width: '6px', 
+                                        height: '6px', 
+                                        borderRadius: '50%', 
+                                        background: userReg.status === 'approved' ? 'white' : 'rgba(255,255,255,0.2)' 
+                                      }} />
+                                    )}
+                                  </div>
+                                  
+                                  <div style={{ flex: 1 }}>
+                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userReg.status === 'approved' ? 'white' : 'var(--text-muted)', fontWeight: 'bold' }}>
+                                      Tahap 2: Pengiriman Karya Video
+                                    </h4>
+                                    
+                                    {userReg.status !== 'approved' && (
+                                      <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                        Menunggu persetujuan pendaftaran.
+                                      </p>
+                                    )}
+                                    
+                                    {userReg.status === 'approved' && !userSub && (
+                                      <div style={{ marginTop: '8px' }}>
+                                        <p style={{ margin: '0 0 8px 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                                          Kirim tautan karya video Anda untuk dinilai juri.
+                                        </p>
+                                        <button 
+                                          className="btn btn-secondary" 
+                                          onClick={() => setSubmittingEvent(evt)}
+                                          style={{ 
+                                            width: '100%', 
+                                            justifyContent: 'center', 
+                                            borderColor: 'white', 
+                                            color: 'black',
+                                            background: 'white',
+                                            padding: '8px 16px',
+                                            borderRadius: '30px',
+                                            fontWeight: 'bold',
+                                            fontSize: '0.8rem',
+                                            cursor: 'pointer'
+                                          }}
+                                        >
+                                          <Send size={12} />
+                                          <span>Kirim Karya Sekarang</span>
+                                        </button>
+                                      </div>
+                                    )}
+                                    
+                                    {userReg.status === 'approved' && userSub && (
+                                      <div style={{ 
+                                        border: '1px solid var(--border-color)', 
+                                        borderRadius: '12px', 
+                                        padding: '12px', 
+                                        background: 'rgba(255, 255, 255, 0.02)', 
+                                        marginTop: '8px',
+                                        fontSize: '0.8rem'
+                                      }}>
+                                        <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginBottom: '2px' }}>Karya Terkirim:</div>
+                                        <div style={{ fontWeight: 'bold', color: 'white', marginBottom: '6px' }}>{userSub.title}</div>
+                                        
+                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '6px' }}>
+                                          <span style={{ 
+                                            padding: '2px 8px', 
+                                            borderRadius: '10px', 
+                                            fontSize: '0.6rem',
+                                            color: 'white',
+                                            fontWeight: 'bold',
+                                            background: 
+                                              userSub.platform?.toLowerCase() === 'youtube' ? '#ff0000' :
+                                              userSub.platform?.toLowerCase() === 'tiktok' ? 'linear-gradient(45deg, #fe2c55, #25f4ee)' :
+                                              userSub.platform?.toLowerCase() === 'instagram' ? 'linear-gradient(45deg, #f09433, #dc2743, #bc1888)' : '#475569'
+                                          }}>{userSub.platform || 'Link Eksternal'}</span>
+                                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Views: <strong>{userSub.views || 0}</strong></span>
+                                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Likes: <strong>{userSub.likes || 0}</strong></span>
+                                        </div>
+
+                                        {/* Estimasi Pembayaran */}
+                                        {(() => {
+                                          const step = evt.benefitViewsStep || 1000;
+                                          const amount = evt.benefitAmount || 0;
+                                          const views = userSub.views || 0;
+                                          const payout = Math.floor(views / step) * amount;
+                                          if (payout === 0) return null;
+                                          return (
+                                            <div style={{ 
+                                              padding: '8px 12px', 
+                                              background: 'rgba(34, 197, 94, 0.08)', 
+                                              border: '1px solid rgba(34, 197, 94, 0.15)', 
+                                              borderRadius: '8px',
+                                              display: 'flex',
+                                              justifyContent: 'space-between',
+                                              alignItems: 'center',
+                                              fontSize: '0.75rem',
+                                              marginTop: '6px'
+                                            }}>
+                                              <span style={{ color: '#4ade80', fontWeight: '500' }}>Estimasi Pembayaran</span>
+                                              <strong style={{ color: 'white' }}>Rp {payout.toLocaleString('id-ID')}</strong>
+                                            </div>
+                                          );
+                                        })()}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Step 3: Penilaian & Hasil */}
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                  <div style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: 
+                                      (userSub && userSub.score !== null) ? 'rgba(34, 197, 94, 0.15)' :
+                                      userSub ? 'rgba(234, 179, 8, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                                    border: `2px solid ${
+                                      (userSub && userSub.score !== null) ? '#22c55e' :
+                                      userSub ? '#eab308' : 'rgba(255, 255, 255, 0.1)'
+                                    }`,
+                                    zIndex: 2,
+                                    flexShrink: 0
+                                  }}>
+                                    {(userSub && userSub.score !== null) ? (
+                                      <Award size={13} style={{ color: '#22c55e' }} />
+                                    ) : userSub ? (
+                                      <Clock size={13} style={{ color: '#fbbf24' }} />
+                                    ) : (
+                                      <div style={{ 
+                                        width: '6px', 
+                                        height: '6px', 
+                                        borderRadius: '50%', 
+                                        background: 'rgba(255,255,255,0.2)' 
+                                      }} />
+                                    )}
+                                  </div>
+                                  
+                                  <div style={{ flex: 1 }}>
+                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userSub ? 'white' : 'var(--text-muted)', fontWeight: 'bold' }}>
+                                      {evt.budgetMode === 'views' ? 'Tahap 3: Pembayaran Otomatis & Hasil' : 'Tahap 3: Penilaian Juri & Hasil'}
+                                    </h4>
+                                    
+                                    {!userSub && (
+                                      <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                        Menunggu pengiriman karya video Anda.
+                                      </p>
+                                    )}
+                                    
+                                    {userSub && userSub.score === null && (
+                                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: evt.budgetMode === 'views' ? '#38bdf8' : '#fbbf24', background: evt.budgetMode === 'views' ? 'rgba(56, 189, 248, 0.05)' : 'rgba(245, 158, 11, 0.05)', padding: '6px 12px', borderRadius: '20px', marginTop: '6px' }}>
+                                        <Clock size={12} />
+                                        <span>{evt.budgetMode === 'views' ? 'Menunggu Sinkronisasi Views & Pembayaran' : 'Sedang Dinilai oleh Juri'}</span>
+                                      </div>
+                                    )}
+                                    
+                                    {userSub && userSub.score !== null && (
+                                      <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)', padding: '10px 12px', borderRadius: '8px', marginTop: '8px', fontSize: '0.8rem' }}>
+                                        {evt.budgetMode === 'views' ? (
+                                          <>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                              <span style={{ fontSize: '0.75rem', color: '#4ade80', fontWeight: '600' }}>Status Pembayaran</span>
+                                              <span style={{ fontSize: '0.9rem', color: '#22c55e', fontWeight: 'bold' }}>Otomatis Cair</span>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                                              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Total Payout Masuk</span>
+                                              <strong style={{ color: 'white', fontSize: '0.9rem' }}>Rp {(userSub.paidBenefit || 0).toLocaleString('id-ID')}</strong>
+                                            </div>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                              <span style={{ fontSize: '0.75rem', color: '#4ade80', fontWeight: '600' }}>Skor Akhir</span>
+                                              <span style={{ fontSize: '1rem', color: '#22c55e', fontWeight: 'bold' }}>{userSub.score} / 100</span>
+                                            </div>
+                                            {userSub.feedback && (
+                                              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.4' }}>
+                                                "{userSub.feedback}"
+                                              </p>
+                                            )}
+                                          </>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </React.Fragment>
@@ -2053,24 +2394,24 @@ export default function EventsUserPortal({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
-                border: 'none',
+                background: 'white',
+                border: '1px solid white',
                 padding: '10px 24px',
                 borderRadius: '30px',
                 fontWeight: 'bold',
-                color: 'white',
-                boxShadow: '0 4px 15px rgba(124, 58, 237, 0.2)',
+                color: 'black',
+                boxShadow: '0 4px 12px rgba(255, 255, 255, 0.1)',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
                 fontSize: '0.88rem'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 24px rgba(124, 58, 237, 0.4)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(255, 255, 255, 0.15)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 15px rgba(124, 58, 237, 0.2)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 255, 255, 0.1)';
               }}
             >
               <Calendar size={16} />
@@ -2141,8 +2482,8 @@ export default function EventsUserPortal({
                       transition: 'all 0.3s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(124, 58, 237, 0.06)';
-                      e.currentTarget.style.borderColor = 'rgba(167, 139, 250, 0.3)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
                       e.currentTarget.style.transform = 'translateY(-2px)';
                     }}
                     onMouseLeave={(e) => {
@@ -2171,6 +2512,19 @@ export default function EventsUserPortal({
                             </span>
                           );
                         })()}
+                        {/* Type Badge */}
+                        <span style={{ 
+                            fontSize: '0.68rem', 
+                            background: 'rgba(255, 255, 255, 0.05)', 
+                            color: '#e2e8f0', 
+                            padding: '3px 10px', 
+                            borderRadius: '12px',
+                            fontWeight: 'bold',
+                            textTransform: 'uppercase',
+                            border: '1px solid rgba(255, 255, 255, 0.1)'
+                          }}>
+                          {evt.eventType === 'regular' ? 'Event' : 'Kompetisi'}
+                        </span>
                         {userReg?.status === 'approved' && (
                           <span style={{ 
                             fontSize: '0.68rem', 
@@ -2212,26 +2566,37 @@ export default function EventsUserPortal({
                       </div>
                     </div>
 
-                    {/* Middle Section: Budget & Deadline */}
+                    {/* Middle Section: Budget & Ticket & Deadline */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap', marginRight: '8px' }}>
-                      <div style={{ minWidth: '160px', textAlign: 'left' }}>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
-                          {evt.budgetMode === 'ranking' ? 'Prize Pool' : 'Sisa / Total Budget'}
-                        </div>
-                        {evt.budgetMode === 'ranking' ? (
-                          <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
-                            Rp {evt.campaignBudget.toLocaleString('id-ID')}
-                          </strong>
-                        ) : (
-                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                            <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
-                              Rp {getEventRemainingBudget(evt).toLocaleString('id-ID')}
-                            </strong>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                              / Rp {evt.campaignBudget.toLocaleString('id-ID')}
-                            </span>
+                      {evt.eventType !== 'regular' && (
+                        <div style={{ minWidth: '130px', textAlign: 'left' }}>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
+                            {evt.budgetMode === 'ranking' ? 'Prize Pool' : 'Sisa / Total Budget'}
                           </div>
-                        )}
+                          {evt.budgetMode === 'ranking' ? (
+                            <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
+                              Rp {evt.campaignBudget.toLocaleString('id-ID')}
+                            </strong>
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                              <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
+                                Rp {getEventRemainingBudget(evt).toLocaleString('id-ID')}
+                              </strong>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                / Rp {evt.campaignBudget.toLocaleString('id-ID')}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div style={{ minWidth: '110px', textAlign: 'left' }}>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
+                          {evt.eventType === 'regular' ? 'Harga Tiket' : 'Biaya Tiket'}
+                        </div>
+                        <strong style={{ color: evt.ticketPrice > 0 ? '#4ade80' : 'white', fontSize: '0.95rem' }}>
+                          {evt.ticketPrice > 0 ? `Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}
+                        </strong>
                       </div>
 
                       <div style={{ minWidth: '180px', display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -2339,10 +2704,11 @@ export default function EventsUserPortal({
               <div>
                 <h3 style={{ margin: 0, color: 'white', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.4rem', fontWeight: 'bold' }}>
                   <ShieldCheck size={26} style={{ color: '#ffffff' }} />
-                  <span>Verifikasi Akun Sosmed</span>
+                  <span>{registeringEvent.eventType === 'regular' ? 'Formulir Pembelian Tiket / Pendaftaran' : 'Verifikasi Akun Sosmed'}</span>
                 </h3>
                 <p style={{ margin: '6px 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  Pendaftaran Kompetisi: <strong style={{ color: 'white' }}>{registeringEvent.title}</strong>
+                  {registeringEvent.eventType === 'regular' ? 'Pendaftaran Acara: ' : 'Pendaftaran Kompetisi: '}
+                  <strong style={{ color: 'white' }}>{registeringEvent.title}</strong>
                 </p>
               </div>
               <button 
@@ -2355,69 +2721,358 @@ export default function EventsUserPortal({
 
             {verificationStep === 'input' && (
               <div>
-                <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '600' }}>Pilih Platform Sosial Media</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
-                  {[
-                    { id: 'instagram', label: 'Instagram', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>, color: '#e1306c' },
-                    { id: 'tiktok', label: 'TikTok', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>, color: '#00f2fe' },
-                    { id: 'youtube', label: 'YouTube', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17z"/><polygon points="10 15 15 12 10 9"/></svg>, color: '#ff0000' },
-                    { id: 'facebook', label: 'Facebook', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, color: '#1877f2' }
-                  ].map(p => {
-                    const isSelected = selectedPlatform === p.id;
-                    return (
-                      <button
-                        type="button"
-                        key={p.id}
-                        onClick={() => setSelectedPlatform(p.id)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '10px',
-                          padding: '14px 16px',
+                {registeringEvent.eventType === 'regular' ? (
+                  showTicketConfirm ? (
+                    /* TICKET CONFIRMATION STEP */
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '20px', borderRadius: '12px' }}>
+                        <h4 style={{ margin: '0 0 16px 0', color: 'white', fontSize: '1.1rem', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Konfirmasi Pembelian Tiket</h4>
+                        
+                        <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                          Mohon periksa kembali data Anda sebelum melanjutkan pendaftaran. Transaksi ini akan memotong saldo dompet Anda secara langsung.
+                        </p>
+
+                        {(() => {
+                          const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
+                          return (
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                              <tbody>
+                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                  <td style={{ padding: '8px 0', width: '140px' }}>Nama Pengunjung:</td>
+                                  <td style={{ padding: '8px 0', color: 'white', fontWeight: '600' }}>{userProfile.organizerName || userProfile.username}</td>
+                                </tr>
+                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                  <td style={{ padding: '8px 0' }}>No. WhatsApp:</td>
+                                  <td style={{ padding: '8px 0', color: 'white', fontWeight: '600' }}>{userProfile.organizerPhone}</td>
+                                </tr>
+                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                  <td style={{ padding: '8px 0' }}>Email:</td>
+                                  <td style={{ padding: '8px 0', color: 'white', fontWeight: '600' }}>{userProfile.email || `${userProfile.username}@gmail.com`}</td>
+                                </tr>
+                                <tr>
+                                  <td style={{ padding: '8px 0', color: '#fbbf24', fontWeight: 'bold' }}>Harga Tiket:</td>
+                                  <td style={{ padding: '8px 0', color: '#4ade80', fontWeight: 'bold', fontSize: '1rem' }}>
+                                    {registeringEvent.ticketPrice > 0 ? `Rp ${registeringEvent.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          );
+                        })()}
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                        <button 
+                          type="button" 
+                          className="btn btn-secondary" 
+                          style={{ padding: '10px 20px' }} 
+                          onClick={() => setShowTicketConfirm(false)}
+                        >
+                          Batal / Ubah Data
+                        </button>
+                        <button 
+                          type="button" 
+                          className="btn btn-primary" 
+                          style={{ padding: '10px 24px', fontWeight: 'bold', background: 'white', color: 'black', border: '1px solid white' }} 
+                          onClick={handleRegularRegister}
+                        >
+                          Ya, Konfirmasi & Bayar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* REGULAR EVENT TICKET REGISTRATION FORM */
+                    <form onSubmit={(e) => { e.preventDefault(); setShowTicketConfirm(true); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {(() => {
+                        const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
+                        const hasIncompleteProfile = !userProfile.organizerName || !userProfile.organizerPhone;
+                        return (
+                          <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '16px', borderRadius: '8px', marginBottom: '8px' }}>
+                            <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                              Data pengunjung diambil langsung dari profil Anda untuk memastikan kevalidan data tiket:
+                            </p>
+                            
+                            <div className="form-group" style={{ marginBottom: '14px' }}>
+                              <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Nama Lengkap Pengunjung</label>
+                              <input
+                                type="text"
+                                disabled
+                                value={userProfile.organizerName || userProfile.username}
+                                style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '6px', color: 'white', fontSize: '0.9rem', cursor: 'not-allowed' }}
+                              />
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: '14px' }}>
+                              <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>No. WhatsApp</label>
+                              <input
+                                type="text"
+                                disabled
+                                value={userProfile.organizerPhone || '-'}
+                                style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '6px', color: 'white', fontSize: '0.9rem', cursor: 'not-allowed' }}
+                              />
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: '14px' }}>
+                              <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Email</label>
+                              <input
+                                type="text"
+                                disabled
+                                value={userProfile.email || `${userProfile.username}@gmail.com`}
+                                style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '6px', color: 'white', fontSize: '0.9rem', cursor: 'not-allowed' }}
+                              />
+                            </div>
+
+                            {hasIncompleteProfile ? (
+                              <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', fontSize: '0.8rem', color: '#f87171' }}>
+                                <p style={{ margin: '0 0 8px 0', fontWeight: '600' }}>⚠️ Data Profil Belum Lengkap!</p>
+                                <p style={{ margin: '0 0 12px 0', fontSize: '0.75rem', lineHeight: '1.4' }}>
+                                  Nama Lengkap dan No. WhatsApp wajib diisi di profil Anda untuk dapat membeli tiket / mendaftar.
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setRegisteringEvent(null);
+                                    if (onEditProfileClick) onEditProfileClick();
+                                  }}
+                                  className="btn btn-secondary"
+                                  style={{ padding: '6px 12px', fontSize: '0.75rem', fontWeight: 'bold' }}
+                                >
+                                  Lengkapi Profil Sekarang
+                                </button>
+                              </div>
+                            ) : (
+                              <div style={{ marginTop: '12px', padding: '10px 12px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '6px', fontSize: '0.75rem', color: '#4ade80', lineHeight: '1.4' }}>
+                                ✓ Data profil Anda valid. E-Tiket Anda akan diterbitkan secara otomatis setelah pendaftaran dikonfirmasi.
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+
+                      {/* ticket price and payment */}
+                      {registeringEvent.ticketPrice > 0 && (() => {
+                        const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
+                        const activeBal = userProfile ? (userProfile.walletBalance || 0) : (currentUser.walletBalance || 0);
+                        const isInsufficient = activeBal < registeringEvent.ticketPrice;
+                        return (
+                          <div style={{
+                            background: 'rgba(255, 255, 255, 0.02)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            padding: '16px',
+                            borderRadius: '8px'
+                          }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Harga Tiket Masuk:</span>
+                              <strong style={{ color: '#4ade80', fontSize: '1.05rem' }}>Rp {registeringEvent.ticketPrice.toLocaleString('id-ID')}</strong>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Saldo Dompet Anda:</span>
+                              <strong style={{ color: 'white', fontSize: '1.05rem' }}>Rp {activeBal.toLocaleString('id-ID')}</strong>
+                            </div>
+                            
+                            {isInsufficient ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '12px' }}>
+                                <p style={{ margin: 0, fontSize: '0.78rem', color: '#f87171', lineHeight: '1.4' }}>
+                                  * Saldo Anda kurang sebesar <strong>Rp {(registeringEvent.ticketPrice - activeBal).toLocaleString('id-ID')}</strong>.
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const deficit = registeringEvent.ticketPrice - activeBal;
+                                    setUsers(prevUsers => prevUsers.map(u => {
+                                      if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
+                                        return { ...u, walletBalance: (u.walletBalance || 0) + deficit };
+                                      }
+                                      return u;
+                                    }));
+                                    alert(`Top Up Sukses! Dana sebesar Rp ${deficit.toLocaleString('id-ID')} ditambahkan ke dompet Anda.`);
+                                  }}
+                                  className="btn"
+                                  style={{
+                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '20px',
+                                    fontWeight: 'bold',
+                                    fontSize: '0.8rem',
+                                    cursor: 'pointer',
+                                    textAlign: 'center',
+                                    display: 'inline-flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    gap: '6px'
+                                  }}
+                                >
+                                  <Wallet size={14} />
+                                  <span>Top Up Instan & Beli Tiket</span>
+                                </button>
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: '0.78rem', color: '#4ade80', marginTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '8px' }}>
+                                ✓ Saldo Anda mencukupi. Saldo akan otomatis dipotong untuk pembelian tiket.
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+
+                      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
+                        <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
+                        {(() => {
+                          const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
+                          const hasIncompleteProfile = !userProfile.organizerName || !userProfile.organizerPhone;
+                          return (
+                            <button 
+                              type="submit" 
+                              disabled={hasIncompleteProfile} 
+                              className="btn btn-primary" 
+                              style={{ padding: '10px 20px', fontWeight: 'bold', opacity: hasIncompleteProfile ? 0.5 : 1, cursor: hasIncompleteProfile ? 'not-allowed' : 'pointer' }}
+                            >
+                              {registeringEvent.ticketPrice > 0 ? 'Beli Tiket & Daftar' : 'Konfirmasi Pendaftaran'}
+                            </button>
+                          );
+                        })()}
+                      </div>
+                    </form>
+                  )
+                ) : (
+                  /* ORIGINAL COMPETITION SOCIAL MEDIA LINKING FORM */
+                  <>
+                    <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '600' }}>Pilih Platform Sosial Media</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+                      {[
+                        { id: 'instagram', label: 'Instagram', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>, color: '#e1306c' },
+                        { id: 'tiktok', label: 'TikTok', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>, color: '#00f2fe' },
+                        { id: 'youtube', label: 'YouTube', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17z"/><polygon points="10 15 15 12 10 9"/></svg>, color: '#ff0000' },
+                        { id: 'facebook', label: 'Facebook', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, color: '#1877f2' }
+                      ].map(p => {
+                        const isSelected = selectedPlatform === p.id;
+                        return (
+                          <button
+                            type="button"
+                            key={p.id}
+                            onClick={() => setSelectedPlatform(p.id)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              padding: '14px 16px',
+                              borderRadius: '8px',
+                              background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255,255,255,0.02)',
+                              border: isSelected ? '1px solid #ffffff' : '1px solid var(--border-color)',
+                              color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+                              cursor: 'pointer',
+                              fontWeight: '600',
+                              fontSize: '0.9rem',
+                              transition: 'all 0.2s',
+                              outline: 'none'
+                            }}
+                          >
+                            <span style={{ color: isSelected ? '#ffffff' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+                              {p.svg}
+                            </span>
+                            <span>{p.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', background: '#ffffff', border: '1px solid #ffffff', padding: '14px 16px', borderRadius: '8px', marginBottom: '20px', fontSize: '0.85rem', color: '#000000', lineHeight: '1.5', boxShadow: '0 4px 20px rgba(255, 255, 255, 0.15)' }}>
+                      <AlertTriangle size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#000000' }} />
+                      <span style={{ fontWeight: '500' }}>
+                        <strong style={{ fontWeight: '800', textDecoration: 'underline' }}>PENTING:</strong> Akun sosial media ini wajib menjadi akun yang Anda gunakan untuk mempublikasikan video hasil karya kompetisi Anda nantinya.
+                      </span>
+                    </div>
+
+                    {/* ticket price and payment */}
+                    {registeringEvent.ticketPrice > 0 && (() => {
+                      const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
+                      const activeBal = userProfile ? (userProfile.walletBalance || 0) : (currentUser.walletBalance || 0);
+                      const isInsufficient = activeBal < registeringEvent.ticketPrice;
+                      return (
+                        <div style={{
+                          background: 'rgba(255, 255, 255, 0.02)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          padding: '16px',
                           borderRadius: '8px',
-                          background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255,255,255,0.02)',
-                          border: isSelected ? '1px solid #ffffff' : '1px solid var(--border-color)',
-                          color: isSelected ? '#ffffff' : 'var(--text-secondary)',
-                          cursor: 'pointer',
-                          fontWeight: '600',
-                          fontSize: '0.9rem',
-                          transition: 'all 0.2s',
-                          outline: 'none'
-                        }}
-                      >
-                        <span style={{ color: isSelected ? '#ffffff' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
-                          {p.svg}
-                        </span>
-                        <span>{p.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                          marginBottom: '20px'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Biaya Pendaftaran / Tiket:</span>
+                            <strong style={{ color: '#4ade80', fontSize: '1.05rem' }}>Rp {registeringEvent.ticketPrice.toLocaleString('id-ID')}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Saldo Dompet Anda:</span>
+                            <strong style={{ color: 'white', fontSize: '1.05rem' }}>Rp {activeBal.toLocaleString('id-ID')}</strong>
+                          </div>
+                          
+                          {isInsufficient ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '12px' }}>
+                              <p style={{ margin: 0, fontSize: '0.78rem', color: '#f87171', lineHeight: '1.4' }}>
+                                * Saldo Anda kurang sebesar <strong>Rp {(registeringEvent.ticketPrice - activeBal).toLocaleString('id-ID')}</strong>.
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const deficit = registeringEvent.ticketPrice - activeBal;
+                                  setUsers(prevUsers => prevUsers.map(u => {
+                                    if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
+                                      return { ...u, walletBalance: (u.walletBalance || 0) + deficit };
+                                    }
+                                    return u;
+                                  }));
+                                  alert(`Top Up Sukses! Dana sebesar Rp ${deficit.toLocaleString('id-ID')} ditambahkan ke dompet Anda.`);
+                                }}
+                                className="btn"
+                                style={{
+                                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                  color: 'white',
+                                  border: 'none',
+                                  padding: '8px 16px',
+                                  borderRadius: '20px',
+                                  fontWeight: 'bold',
+                                  fontSize: '0.8rem',
+                                  cursor: 'pointer',
+                                  textAlign: 'center',
+                                  display: 'inline-flex',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  gap: '6px'
+                                }}
+                              >
+                                <Wallet size={14} />
+                                <span>Top Up Instan & Bayar</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ fontSize: '0.78rem', color: '#4ade80', marginTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '8px' }}>
+                              ✓ Saldo Anda mencukupi. Biaya pendaftaran akan langsung dipotong setelah verifikasi sukses.
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
 
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', background: '#ffffff', border: '1px solid #ffffff', padding: '14px 16px', borderRadius: '8px', marginBottom: '24px', fontSize: '0.85rem', color: '#000000', lineHeight: '1.5', boxShadow: '0 4px 20px rgba(255, 255, 255, 0.15)' }}>
-                  <AlertTriangle size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#000000' }} />
-                  <span style={{ fontWeight: '500' }}>
-                    <strong style={{ fontWeight: '800', textDecoration: 'underline' }}>PENTING:</strong> Akun sosial media ini wajib menjadi akun yang Anda gunakan untuk mempublikasikan video hasil karya kompetisi Anda nantinya.
-                  </span>
-                </div>
-
-                <form onSubmit={handleLanjutVerifikasi} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div className="form-group">
-                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: '500' }}>Username / Handle {selectedPlatform.toUpperCase()}</label>
-                    <input
-                      type="text"
-                      required
-                      value={socialUrl}
-                      onChange={(e) => setSocialUrl(e.target.value)}
-                      placeholder={`Contoh: @username atau username Anda`}
-                      style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '12px' }}>
-                    <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
-                    <button type="submit" className="btn btn-primary" style={{ padding: '10px 20px' }}>Lanjut ke Verifikasi Kode</button>
-                  </div>
-                </form>
+                    <form onSubmit={handleLanjutVerifikasi} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <div className="form-group">
+                        <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: '500' }}>Username / Handle {selectedPlatform.toUpperCase()}</label>
+                        <input
+                          type="text"
+                          required
+                          value={socialUrl}
+                          onChange={(e) => setSocialUrl(e.target.value)}
+                          placeholder={`Contoh: @username atau username Anda`}
+                          style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '12px' }}>
+                        <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
+                        <button type="submit" className="btn btn-primary" style={{ padding: '10px 20px' }}>Lanjut ke Verifikasi Kode</button>
+                      </div>
+                    </form>
+                  </>
+                )}
               </div>
             )}
 
@@ -2532,10 +3187,45 @@ export default function EventsUserPortal({
                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.06)', border: '2px solid #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#ffffff' }}>
                   <CheckCircle2 size={32} />
                 </div>
-                <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>Verifikasi Akun Sukses!</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: '0 0 28px 0' }}>
-                  Sistem mendeteksi akun <strong>@{socialUrl.trim()}</strong> Anda valid dan aktif. Pendaftaran kompetisi disetujui secara otomatis.
+                <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>
+                  {registeringEvent.eventType === 'regular' ? 'Pembelian Tiket Sukses!' : 'Pendaftaran & Pembayaran Sukses!'}
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: '0 0 20px 0' }}>
+                  {registeringEvent.eventType === 'regular' ? (
+                    (() => {
+                      const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
+                      return <>Pendaftaran atas nama <strong>{userProfile.organizerName || userProfile.username}</strong> berhasil disetujui. E-Tiket Anda telah aktif.</>;
+                    })()
+                  ) : (
+                    <>Sistem mendeteksi akun <strong>@{socialUrl.trim()}</strong> Anda valid. Pendaftaran kompetisi disetujui secara otomatis.</>
+                  )}
                 </p>
+                
+                {/* E-Tiket Success Box */}
+                <div style={{ 
+                  background: 'rgba(255, 255, 255, 0.02)', 
+                  border: '1px solid rgba(255, 255, 255, 0.08)', 
+                  padding: '20px', 
+                  borderRadius: '12px', 
+                  marginBottom: '24px',
+                  textAlign: 'left'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(255,255,255,0.15)', paddingBottom: '10px', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1.5px' }}>E-Tiket Resmi</span>
+                    <span style={{ fontSize: '0.68rem', color: '#ffffff', fontWeight: 'bold', letterSpacing: '1px' }}>FILMO TICKET</span>
+                  </div>
+                  <h4 style={{ margin: '0 0 8px 0', color: 'white', fontSize: '1.05rem', fontWeight: 'bold' }}>{registeringEvent.title}</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    <span>Peserta: <strong>{currentUser.username}</strong></span>
+                    <span>Kode Tiket: <strong style={{ color: 'white', fontFamily: 'monospace' }}>{generatedTicketCode}</strong></span>
+                  </div>
+                  {registeringEvent.ticketPrice > 0 && (
+                    <div style={{ fontSize: '0.78rem', color: '#4ade80', marginTop: '10px', fontWeight: '600' }}>
+                      ✓ Pembayaran Lunas (Rp {registeringEvent.ticketPrice.toLocaleString('id-ID')})
+                    </div>
+                  )}
+                </div>
+
                 <button 
                   type="button" 
                   className="btn btn-primary" 
@@ -2545,7 +3235,7 @@ export default function EventsUserPortal({
                   }}
                   style={{ width: '100%', fontWeight: 'bold', padding: '12px' }}
                 >
-                  Mulai Kompetisi
+                  {registeringEvent.eventType === 'regular' ? 'Selesai' : 'Mulai Kompetisi'}
                 </button>
               </div>
             )}
@@ -2584,6 +3274,125 @@ export default function EventsUserPortal({
                 </div>
               </div>
             )}
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Enlarged Ticket Modal for Scanning */}
+      {enlargedTicketReg && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0, 0, 0, 0.9)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 100000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px',
+          boxSizing: 'border-box'
+        }} onClick={() => setEnlargedTicketReg(null)}>
+          <div style={{
+            background: '#121212',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            borderRadius: '24px',
+            padding: '32px',
+            maxWidth: '440px',
+            width: '100%',
+            textAlign: 'center',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)',
+            position: 'relative',
+            cursor: 'default'
+          }} onClick={(e) => e.stopPropagation()}>
+            
+            {/* Close Button */}
+            <button 
+              onClick={() => setEnlargedTicketReg(null)}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '36px',
+                height: '36px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                outline: 'none'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+            >
+              <X size={18} />
+            </button>
+
+            <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
+              Scan Tiket Masuk
+            </div>
+            <h3 style={{ margin: '0 0 24px 0', color: 'white', fontSize: '1.25rem', fontWeight: 'bold', lineHeight: '1.4' }}>
+              {(() => {
+                const foundEvent = events.find(e => e.id === enlargedTicketReg.eventId);
+                return foundEvent ? foundEvent.title : enlargedTicketReg.eventTitle;
+              })()}
+            </h3>
+
+            {/* High Contrast QR Code Container for Easy Scanning */}
+            <div style={{
+              background: 'white',
+              padding: '16px',
+              borderRadius: '16px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '24px',
+              boxShadow: '0 8px 24px rgba(255, 255, 255, 0.05)',
+              width: '200px',
+              height: '200px',
+              boxSizing: 'border-box'
+            }}>
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(enlargedTicketReg.ticketCode || `TKT-${enlargedTicketReg.id.substring(enlargedTicketReg.id.length - 6).toUpperCase()}`)}`}
+                alt="QR Code Tiket"
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            </div>
+
+            {/* Ticket Details */}
+            <div style={{ borderTop: '1px dashed rgba(255, 255, 255, 0.1)', paddingTop: '20px' }}>
+              <div style={{ fontSize: '1.4rem', color: 'white', fontWeight: '800', fontFamily: 'monospace', letterSpacing: '1px', marginBottom: '12px' }}>
+                {enlargedTicketReg.ticketCode || `TKT-${enlargedTicketReg.id.substring(enlargedTicketReg.id.length - 6).toUpperCase()}`}
+              </div>
+              
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left', background: 'rgba(255,255,255,0.02)', padding: '14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Nama:</span><span style={{ color: 'white', fontWeight: '600' }}>{enlargedTicketReg.name}</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Email:</span><span style={{ color: 'white' }}>{enlargedTicketReg.email}</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>WhatsApp:</span><span style={{ color: 'white' }}>{enlargedTicketReg.contact}</span></div>
+              </div>
+
+              <div style={{ 
+                marginTop: '16px',
+                display: 'inline-block',
+                fontSize: '0.75rem', 
+                background: enlargedTicketReg.isCheckedIn ? 'rgba(34, 197, 94, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
+                color: enlargedTicketReg.isCheckedIn ? '#4ade80' : 'white', 
+                padding: '6px 16px', 
+                borderRadius: '20px',
+                fontWeight: 'bold',
+                border: enlargedTicketReg.isCheckedIn ? '1px solid rgba(34, 197, 94, 0.2)' : '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                {enlargedTicketReg.isCheckedIn ? 'SUDAH CHECK-IN' : 'BELUM CHECK-IN'}
+              </div>
+            </div>
+
           </div>
         </div>,
         document.body
@@ -2735,11 +3544,11 @@ export default function EventsUserPortal({
           <div style={{
             width: '100%',
             maxWidth: '460px',
-            background: 'linear-gradient(135deg, rgba(30, 27, 75, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%)',
-            border: '1px solid rgba(167, 139, 250, 0.25)',
+            background: 'rgba(18, 18, 18, 0.95)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
             borderRadius: '20px',
             padding: '32px',
-            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(124, 58, 237, 0.15)',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
             color: 'white',
             textAlign: 'center'
           }}>
@@ -2748,14 +3557,14 @@ export default function EventsUserPortal({
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              background: 'rgba(124, 58, 237, 0.15)',
-              border: '1px solid rgba(167, 139, 250, 0.3)',
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 20px auto'
             }}>
-              <AlertTriangle size={32} style={{ color: '#c084fc' }} />
+              <AlertTriangle size={32} style={{ color: '#ffffff' }} />
             </div>
 
             <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '12px', color: 'white' }}>
@@ -2763,8 +3572,8 @@ export default function EventsUserPortal({
             </h3>
             
             <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '28px' }}>
-              Saat ini Anda masuk sebagai <strong style={{ color: '#c084fc' }}>{currentUser?.role === 'member' ? 'Member' : 'User'}</strong>. 
-              Untuk dapat membuat & mengelola event baru, Anda harus terdaftar menggunakan akun dengan peran <strong style={{ color: '#a78bfa' }}>Panitia</strong>.
+              Saat ini Anda masuk sebagai <strong style={{ color: 'white' }}>{currentUser?.role === 'member' ? 'Member' : 'User'}</strong>. 
+              Untuk dapat membuat & mengelola event baru, Anda harus terdaftar menggunakan akun dengan peran <strong style={{ color: 'white', textDecoration: 'underline' }}>Panitia</strong>.
             </p>
 
             {/* Action Buttons */}
@@ -2781,13 +3590,14 @@ export default function EventsUserPortal({
                 style={{
                   width: '100%',
                   justifyContent: 'center',
-                  background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
-                  border: 'none',
+                  background: 'white',
+                  border: '1px solid white',
+                  color: 'black',
                   padding: '12px 24px',
                   borderRadius: '30px',
                   fontWeight: 'bold',
                   fontSize: '0.9rem',
-                  boxShadow: '0 4px 15px rgba(124, 58, 237, 0.25)',
+                  boxShadow: '0 4px 12px rgba(255, 255, 255, 0.1)',
                   cursor: 'pointer'
                 }}
               >

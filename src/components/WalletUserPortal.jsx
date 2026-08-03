@@ -16,7 +16,8 @@ export default function WalletUserPortal({
   withdrawals = [],
   setWithdrawals,
   minWithdrawalAmount = 50000,
-  withdrawalFeePercent = 0
+  withdrawalFeePercent = 0,
+  eventParticipants = []
 }) {
   const [isWdModalOpen, setIsWdModalOpen] = useState(false);
   const [wdAmount, setWdAmount] = useState(0);
@@ -130,8 +131,34 @@ export default function WalletUserPortal({
     status: evt.paymentStatus === 'paid' ? 'approved' : 'pending'
   }));
 
+  // 5. Debits from ticket purchases (pembelian tiket)
+  const debitTicketPurchases = eventParticipants.filter(part => 
+    part.username.toLowerCase() === currentUser.username.toLowerCase() &&
+    part.ticketPrice > 0
+  ).map(part => ({
+    id: `tkt_buy_${part.id}`,
+    date: part.registeredAt || new Date().toISOString(),
+    description: `Pembelian Tiket Event: ${part.eventTitle || 'Event Kompetisi'}`,
+    type: 'debit',
+    amount: part.ticketPrice,
+    status: 'approved'
+  }));
+
+  // 6. Credits from ticket sales (penjualan tiket)
+  const creditTicketSales = eventParticipants.filter(part => {
+    const evt = events.find(e => e.id === part.eventId);
+    return evt && evt.creator?.toLowerCase() === currentUser.username.toLowerCase() && part.ticketPrice > 0;
+  }).map(part => ({
+    id: `tkt_sale_${part.id}`,
+    date: part.registeredAt || new Date().toISOString(),
+    description: `Penjualan Tiket Event: ${part.eventTitle || 'Event'} (oleh @${part.username})`,
+    type: 'credit',
+    amount: part.ticketPrice,
+    status: 'approved'
+  }));
+
   // Combine & Sort Transactions
-  const allTransactions = [...creditSubs, ...creditPrizes, ...debitWithdrawals, ...debitEventPayments].sort((a, b) => 
+  const allTransactions = [...creditSubs, ...creditPrizes, ...debitWithdrawals, ...debitEventPayments, ...debitTicketPurchases, ...creditTicketSales].sort((a, b) => 
     new Date(b.date) - new Date(a.date)
   );
 
