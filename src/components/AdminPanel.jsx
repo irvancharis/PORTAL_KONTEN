@@ -460,6 +460,7 @@ export default function AdminPanel({
   const [eventBudget, setEventBudget] = useState(5000000);
   const [eventBenefitAmount, setEventBenefitAmount] = useState(10000);
   const [eventBenefitViewsStep, setEventBenefitViewsStep] = useState(1000);
+  const [eventMinEarningViews, setEventMinEarningViews] = useState(0);
   const [eventBudgetMode, setEventBudgetMode] = useState('views'); // 'views' or 'ranking'
   const [eventTargetAudience, setEventTargetAudience] = useState('public'); // 'public' or 'members_only'
   const [eventPrize1, setEventPrize1] = useState(3000000);
@@ -673,6 +674,7 @@ export default function AdminPanel({
     }
     setIsSyncingAll(true);
     try {
+      const tempEvents = [...events];
       const updated = await Promise.all(eventSubmissions.map(async (sub) => {
         const lowerUrl = sub.videoUrl?.toLowerCase() || '';
         let platform = sub.platform;
@@ -715,20 +717,34 @@ export default function AdminPanel({
         }
 
         // Auto Payout & Auto Review for Pay Per View (views) mode
-        const evt = events.find(e => e.id === sub.eventId);
-        if (evt && evt.budgetMode === 'views') {
+        const evtIdx = tempEvents.findIndex(e => e.id === sub.eventId);
+        if (evtIdx !== -1 && tempEvents[evtIdx].budgetMode === 'views') {
+          const evt = tempEvents[evtIdx];
           const step = evt.benefitViewsStep || 1000;
-          const payout = Math.floor(nextSub.views / step) * (evt.benefitAmount || 0);
+          const minViews = evt.minEarningViews || 0;
           
+          let payout = nextSub.views >= minViews 
+            ? Math.floor(nextSub.views / step) * (evt.benefitAmount || 0)
+            : 0;
+
           const oldPaid = sub.paidBenefit || 0;
-          const newPaid = payout;
-          if (newPaid > oldPaid) {
-            const diff = newPaid - oldPaid;
-            await handleTransferWallet(sub.username, diff);
-            nextSub.paidBenefit = newPaid;
-          } else {
-            nextSub.paidBenefit = oldPaid;
+          
+          // Cap payout by remaining budget
+          const currentRemaining = evt.remainingBudget !== undefined ? evt.remainingBudget : evt.campaignBudget;
+          if (payout - oldPaid > currentRemaining) {
+            payout = oldPaid + currentRemaining;
           }
+
+          const diff = payout - oldPaid;
+          if (diff > 0) {
+            await handleTransferWallet(sub.username, diff);
+            // Deduct from event remaining budget
+            tempEvents[evtIdx] = {
+              ...evt,
+              remainingBudget: currentRemaining - diff
+            };
+          }
+          nextSub.paidBenefit = payout;
           nextSub.status = 'reviewed';
           nextSub.score = 100; // Auto 100 score for views mode
         }
@@ -736,6 +752,7 @@ export default function AdminPanel({
         return nextSub;
       }));
 
+      setEvents(tempEvents);
       setEventSubmissions(updated);
       alert(`Berhasil melakukan Grab & Sinkronisasi data real-time! Karya dengan mode Pay Per View otomatis dinilai dan benefit dicairkan ke wallet.`);
     } catch (e) {
@@ -774,6 +791,7 @@ export default function AdminPanel({
             ticketPrice: parseInt(eventTicketPrice) || 0,
             benefitAmount: (!isComp || isRanking) ? 0 : (parseInt(eventBenefitAmount) || 0),
             benefitViewsStep: (!isComp || isRanking) ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
+            minEarningViews: (!isComp || isRanking) ? 0 : (parseInt(eventMinEarningViews) || 0),
             prize1: (isComp && isRanking) ? (parseInt(eventPrize1) || 0) : 0,
             prize2: (isComp && isRanking) ? (parseInt(eventPrize2) || 0) : 0,
             prize3: (isComp && isRanking) ? (parseInt(eventPrize3) || 0) : 0,
@@ -804,6 +822,7 @@ export default function AdminPanel({
         // views mode
         benefitAmount: isRanking ? 0 : (parseInt(eventBenefitAmount) || 0),
         benefitViewsStep: isRanking ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
+        minEarningViews: isRanking ? 0 : (parseInt(eventMinEarningViews) || 0),
         // ranking mode
         prize1: isRanking ? (parseInt(eventPrize1) || 0) : 0,
         prize2: isRanking ? (parseInt(eventPrize2) || 0) : 0,
@@ -854,7 +873,8 @@ export default function AdminPanel({
         const subs = mySubmissions.filter(s => s.eventId === evt.id && s.views > 0);
         subs.forEach(s => {
           const step = evt.benefitViewsStep || 1000;
-          const payout = Math.floor(s.views / step) * (evt.benefitAmount || 0);
+          const minViews = evt.minEarningViews || 0;
+          const payout = s.views >= minViews ? Math.floor(s.views / step) * (evt.benefitAmount || 0) : 0;
           if (payout > 0) {
             list.push({
               id: `payout_views_${s.id}`,
@@ -894,7 +914,8 @@ export default function AdminPanel({
       const subs = eventSubmissions.filter(s => s.eventId === evt.id && s.views > 0);
       subs.forEach(s => {
         const step = evt.benefitViewsStep || 1000;
-        const payout = Math.floor(s.views / step) * (evt.benefitAmount || 0);
+        const minViews = evt.minEarningViews || 0;
+        const payout = s.views >= minViews ? Math.floor(s.views / step) * (evt.benefitAmount || 0) : 0;
         if (payout > 0) {
           list.push({
             id: `payout_views_${s.id}`,
@@ -915,12 +936,12 @@ export default function AdminPanel({
       return evt.campaignBudget || 0;
     }
     const initialBudget = evt.campaignBudget || 0;
-    const eventSubs = eventSubmissions.filter(s => s.eventId === evt.id);
     const totalPayout = eventSubs.reduce((sum, sub) => {
       const views = sub.views || 0;
       const step = evt.benefitViewsStep || 1000;
+      const minViews = evt.minEarningViews || 0;
       const amount = evt.benefitAmount || 0;
-      const payout = Math.floor(views / step) * amount;
+      const payout = views >= minViews ? Math.floor(views / step) * amount : 0;
       return sum + payout;
     }, 0);
     return Math.max(0, initialBudget - totalPayout);
@@ -1114,6 +1135,7 @@ export default function AdminPanel({
     setEventTicketPrice(evt.ticketPrice || 0);
     setEventBenefitAmount(evt.benefitAmount || 10000);
     setEventBenefitViewsStep(evt.benefitViewsStep || 1000);
+    setEventMinEarningViews(evt.minEarningViews || 0);
     setEventPrize1(evt.prize1 || 3000000);
     setEventPrize2(evt.prize2 || 1500000);
     setEventPrize3(evt.prize3 || 500000);
@@ -2795,6 +2817,13 @@ export default function AdminPanel({
                               setEventBenefitViewsStep(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Min Views Earning</label>
+                            <input type="text" required value={formatInputCurrency(eventMinEarningViews)} onChange={(e) => {
+                              const parsed = e.target.value.replace(/\D/g, '');
+                              setEventMinEarningViews(parsed ? parseInt(parsed) : 0);
+                            }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
                         </div>
                       ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
@@ -3404,6 +3433,7 @@ export default function AdminPanel({
                     setEventBudget(5000000);
                     setEventBenefitAmount(10000);
                     setEventBenefitViewsStep(1000);
+                    setEventMinEarningViews(0);
                     setEventHasMaxParticipants(true);
                     setEventTargetAudience('public');
                     setEventTicketPrice(0);

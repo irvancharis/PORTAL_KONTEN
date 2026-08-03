@@ -926,13 +926,15 @@ export default function EventsUserPortal({
 
 
   const getEventRemainingBudget = (evt) => {
+    if (!evt) return 0;
     const initialBudget = evt.campaignBudget || 0;
     const eventSubs = eventSubmissions.filter(s => s.eventId === evt.id);
     const totalPayout = eventSubs.reduce((sum, sub) => {
       const views = sub.views || 0;
       const step = evt.benefitViewsStep || 1000;
+      const minViews = evt.minEarningViews || 0;
       const amount = evt.benefitAmount || 0;
-      const payout = Math.floor(views / step) * amount;
+      const payout = views >= minViews ? Math.floor(views / step) * amount : 0;
       return sum + payout;
     }, 0);
     return Math.max(0, initialBudget - totalPayout);
@@ -1431,7 +1433,10 @@ export default function EventsUserPortal({
                           
                           <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.7)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.02)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                             <Award size={14} style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
-                            <span>Benefit: Rp {evt.benefitAmount?.toLocaleString('id-ID')} per {evt.benefitViewsStep?.toLocaleString('id-ID')} Views</span>
+                            <span>
+                              Benefit: Rp {evt.benefitAmount?.toLocaleString('id-ID')} per {evt.benefitViewsStep?.toLocaleString('id-ID')} Views
+                              {evt.minEarningViews > 0 && ` (Min. ${evt.minEarningViews.toLocaleString('id-ID')} Views)`}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -1476,7 +1481,27 @@ export default function EventsUserPortal({
                               const step = evt.benefitViewsStep || 1000;
                               const amount = evt.benefitAmount || 0;
                               const views = userSub.views || 0;
-                              const payout = Math.floor(views / step) * amount;
+                              const minViews = evt.minEarningViews || 0;
+                              const payout = views >= minViews ? Math.floor(views / step) * amount : 0;
+                              if (minViews > 0 && views < minViews) {
+                                return (
+                                  <div style={{
+                                    margin: '8px 0',
+                                    padding: '10px 14px',
+                                    background: 'rgba(255, 255, 255, 0.03)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    borderRadius: '8px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    fontSize: '0.8rem',
+                                    color: 'var(--text-secondary)'
+                                  }}>
+                                    <span>Batas Min. Views:</span>
+                                    <strong>{(views).toLocaleString('id-ID')} / {(minViews).toLocaleString('id-ID')} Views</strong>
+                                  </div>
+                                );
+                              }
                               if (payout === 0) return null;
                               return (
                                 <div style={{ 
@@ -1971,7 +1996,26 @@ export default function EventsUserPortal({
                                           const step = evt.benefitViewsStep || 1000;
                                           const amount = evt.benefitAmount || 0;
                                           const views = userSub.views || 0;
-                                          const payout = Math.floor(views / step) * amount;
+                                          const minViews = evt.minEarningViews || 0;
+                                          const payout = views >= minViews ? Math.floor(views / step) * amount : 0;
+                                          if (minViews > 0 && views < minViews) {
+                                            return (
+                                              <div style={{ 
+                                                padding: '8px 12px', 
+                                                background: 'rgba(255, 255, 255, 0.03)', 
+                                                border: '1px solid rgba(255, 255, 255, 0.08)', 
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                fontSize: '0.75rem',
+                                                color: 'var(--text-secondary)'
+                                              }}>
+                                                <span>Batas Min. Views:</span>
+                                                <strong>{views} / {minViews} Views</strong>
+                                              </div>
+                                            );
+                                          }
                                           if (payout === 0) return null;
                                           return (
                                             <div style={{ 
