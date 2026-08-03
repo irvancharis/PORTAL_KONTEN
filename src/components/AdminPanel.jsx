@@ -1009,6 +1009,7 @@ export default function AdminPanel({
       return evt.campaignBudget || 0;
     }
     const initialBudget = evt.campaignBudget || 0;
+    const eventSubs = eventSubmissions.filter(s => s.eventId === evt.id);
     const totalPayout = eventSubs.reduce((sum, sub) => {
       const views = sub.views || 0;
       const step = evt.benefitViewsStep || 1000;
