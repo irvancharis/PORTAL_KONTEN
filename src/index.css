@@ -3326,9 +3326,8 @@ select option {
   gap: 14px;
 }
 
-/* Ticket-Style Cards */
+/* Sleek Minimalist Cards */
 .split-card {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3338,39 +3337,12 @@ select option {
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-}
-
-.split-card::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: -6px;
-  transform: translateY(-50%);
-  width: 12px;
-  height: 12px;
-  background: #020202;
-  border-radius: 50%;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.split-card::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: -6px;
-  transform: translateY(-50%);
-  width: 12px;
-  height: 12px;
-  background: #020202;
-  border-radius: 50%;
-  border-left: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .split-card:hover {
   background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(56, 189, 248, 0.4);
-  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.04);
   transform: translateY(-2px);
 }
 
@@ -3379,7 +3351,6 @@ select option {
   flex-direction: column;
   gap: 6px;
   text-align: left;
-  padding-left: 8px;
 }
 
 .split-card-name {
@@ -3396,6 +3367,17 @@ select option {
   gap: 16px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.split-card-link-text {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: bold;
+  transition: color 0.2s ease;
+}
+
+.split-card:hover .split-card-link-text {
+  color: #ffffff;
 }
 
 /* Recruiting Communities Section */
@@ -3422,8 +3404,8 @@ select option {
 
 .recruiting-card:hover {
   background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(16, 185, 129, 0.4);
-  box-shadow: 0 12px 30px rgba(16, 185, 129, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 30px rgba(255, 255, 255, 0.04);
   transform: translateY(-3px);
 }
 
@@ -3433,9 +3415,9 @@ select option {
   right: 14px;
   font-size: 0.65rem;
   font-weight: 800;
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 4px 10px;
   border-radius: 30px;
   letter-spacing: 0.8px;
@@ -3443,9 +3425,9 @@ select option {
 }
 
 @keyframes pulse-border-glow {
-  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2); }
+  70% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
 }
 
 .recruiting-positions {
@@ -3501,15 +3483,10 @@ select option {
 
 .creator-card:hover {
   background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-6px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.04);
 }
-
-.creator-card:nth-child(1):hover { box-shadow: 0 15px 35px rgba(56, 189, 248, 0.08); }
-.creator-card:nth-child(2):hover { box-shadow: 0 15px 35px rgba(245, 158, 11, 0.08); }
-.creator-card:nth-child(3):hover { box-shadow: 0 15px 35px rgba(139, 92, 246, 0.08); }
-.creator-card:nth-child(4):hover { box-shadow: 0 15px 35px rgba(236, 72, 153, 0.08); }
-.creator-card:nth-child(5):hover { box-shadow: 0 15px 35px rgba(16, 185, 129, 0.08); }
 
 .creator-avatar-container {
   position: relative;
@@ -3544,7 +3521,7 @@ select option {
 
 .creator-tag {
   font-size: 0.78rem;
-  color: rgba(56, 189, 248, 0.85);
+  color: rgba(255, 255, 255, 0.6);
   font-weight: 600;
   letter-spacing: 0.2px;
 }

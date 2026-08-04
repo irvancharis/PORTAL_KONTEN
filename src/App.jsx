@@ -87,7 +87,10 @@ import {
   UserPlus,
   Award,
   Briefcase,
-  Tv
+  Tv,
+  MapPin,
+  Clock,
+  DollarSign
 } from 'lucide-react';
 
 const slugify = (text) => {
@@ -3730,11 +3733,17 @@ export default function App() {
                               <div className="split-card-info">
                                 <span className="split-card-name">{evt.title}</span>
                                 <span className="split-card-meta">
-                                  <span>📅 {evt.date || 'Segera'}</span>
-                                  <span>📍 {evt.location || 'Online'}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                                    <Calendar size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
+                                    <span>{evt.date || 'Segera'}</span>
+                                  </span>
+                                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                                    <MapPin size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
+                                    <span>{evt.location || 'Online'}</span>
+                                  </span>
                                 </span>
                               </div>
-                              <span style={{ fontSize: '0.8rem', color: '#fbbf24', fontWeight: 'bold' }}>Lihat Event →</span>
+                              <span className="split-card-link-text">Lihat Event →</span>
                             </div>
                           );
                         })
@@ -3780,11 +3789,17 @@ export default function App() {
                               <div className="split-card-info">
                                 <span className="split-card-name">{evt.title}</span>
                                 <span className="split-card-meta">
-                                  <span style={{ color: '#10b981', fontWeight: 'bold' }}>💰 Rp {(evt.campaignBudget || 0).toLocaleString('id-ID')}</span>
-                                  <span>📅 Batas: {evt.deadline || 'Segera'}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', color: 'white', fontWeight: 'bold' }}>
+                                    <DollarSign size={13} style={{ marginRight: '4px', opacity: 0.8 }} />
+                                    <span>Rp {(evt.campaignBudget || 0).toLocaleString('id-ID')}</span>
+                                  </span>
+                                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                                    <Clock size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
+                                    <span>Batas: {evt.deadline || 'Segera'}</span>
+                                  </span>
                                 </span>
                               </div>
-                              <span style={{ fontSize: '0.8rem', color: '#fbbf24', fontWeight: 'bold' }}>Ikuti Lomba →</span>
+                              <span className="split-card-link-text">Ikuti Lomba →</span>
                             </div>
                           );
                         })
@@ -4018,19 +4033,28 @@ export default function App() {
                                   fontSize: '0.68rem',
                                   padding: '2px 8px',
                                   borderRadius: '10px',
-                                  background: evt.eventType === 'competition' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                                  color: evt.eventType === 'competition' ? '#f59e0b' : '#3b82f6',
+                                  background: 'rgba(255, 255, 255, 0.06)',
+                                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                                  color: 'rgba(255, 255, 255, 0.8)',
                                   fontWeight: 'bold'
                                 }}>
                                   {evt.eventType === 'competition' ? 'Kompetisi' : 'Event'}
                                 </span>
                               </span>
                               <span className="split-card-meta">
-                                <span>📅 {evt.date || evt.deadline || 'Segera'}</span>
-                                {evt.location && <span>📍 {evt.location}</span>}
+                                <span style={{ display: 'flex', alignItems: 'center' }}>
+                                  <Calendar size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
+                                  <span>{evt.date || evt.deadline || 'Segera'}</span>
+                                </span>
+                                {evt.location && (
+                                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                                    <MapPin size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
+                                    <span>{evt.location}</span>
+                                  </span>
+                                )}
                               </span>
                             </div>
-                            <span style={{ fontSize: '0.8rem', color: '#fbbf24', fontWeight: 'bold' }}>Lihat →</span>
+                            <span className="split-card-link-text">Lihat →</span>
                           </div>
                         );
                       })}
