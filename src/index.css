@@ -121,6 +121,10 @@ select option {
   min-height: calc(100vh - 56px);
   overflow-x: hidden;
   transition: padding-left 0.25s ease;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* YouTube Header/Navbar */
@@ -3611,5 +3615,36 @@ select option {
   width: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08) 50%, transparent);
   margin: 10px 0;
+}
+
+/* Responsive Lists to Grids for Widescreen Layouts */
+.event-portal-list-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+@media (min-width: 992px) {
+  .event-portal-list-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+.community-portal-list-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+@media (min-width: 992px) {
+  .community-portal-list-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
 }
 

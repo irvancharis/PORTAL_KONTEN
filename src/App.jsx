@@ -2975,7 +2975,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+                  <div className="community-portal-list-grid">
                     {(() => {
                       const filtered = communities
                         .filter(comm => !currentUser || comm.username.toLowerCase() !== currentUser.username.toLowerCase())
