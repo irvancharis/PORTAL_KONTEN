@@ -82,7 +82,12 @@ import {
   Globe,
   Sparkles,
   Users,
-  Search
+  Search,
+  TrendingUp,
+  UserPlus,
+  Award,
+  Briefcase,
+  Tv
 } from 'lucide-react';
 
 const slugify = (text) => {
@@ -3592,8 +3597,537 @@ export default function App() {
                 </div>
               </div>
             </div>
+          ) : activeTab === 'discover' && !searchQuery ? (
+            /* NEW DASHBOARD HOME VIEW */
+            <div className="dashboard-container">
+              {/* 1. Hero Header / CTA Banner */}
+              <div className="dashboard-hero">
+                <div className="dashboard-hero-content animate-fade-in">
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 14px', borderRadius: '30px', marginBottom: '16px' }}>
+                    <Sparkles size={14} style={{ color: '#fbbf24' }} />
+                    <span style={{ fontSize: '0.78rem', fontWeight: 'bold', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.5px' }}>WADAH KREATOR VIDEO INDONESIA</span>
+                  </div>
+                  <h1 className="dashboard-hero-title">Ekosistem Video Kreatif & Hub Komunitas Film Indie</h1>
+                  <p className="dashboard-hero-subtitle">
+                    Temukan dan saksikan film indie lokal terbaik, ikuti kompetisi kreator video kreatif, bergabung dengan production house impianmu, dan bangun portofolio sineasmu hanya di ngonten.id.
+                  </p>
+                  <div className="dashboard-hero-ctas">
+                    <button 
+                      className="btn btn-primary" 
+                      onClick={() => {
+                        const targetEl = document.getElementById('new-releases-section');
+                        if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      style={{ borderRadius: '30px', padding: '12px 24px', fontWeight: 'bold' }}
+                    >
+                      <Film size={16} />
+                      <span>Mulai Menonton</span>
+                    </button>
+                    {!currentUser ? (
+                      <button 
+                        className="btn btn-outline" 
+                        onClick={() => handleOpenLoginModal('register')}
+                        style={{ borderRadius: '30px', padding: '12px 24px', fontWeight: 'bold', borderColor: 'rgba(255,255,255,0.2)' }}
+                      >
+                        <UserPlus size={16} />
+                        <span>Daftar Akun Baru</span>
+                      </button>
+                    ) : (
+                      currentUser.role !== 'pro' && currentUser.role !== 'member' && (
+                        <button 
+                          className="btn btn-outline" 
+                          onClick={() => setShowPremiumModal(true)}
+                          style={{ borderRadius: '30px', padding: '12px 24px', fontWeight: 'bold', borderColor: 'rgba(255,255,255,0.2)' }}
+                        >
+                          <Sparkles size={16} style={{ color: '#fbbf24' }} />
+                          <span>Upgrade Premium</span>
+                        </button>
+                      )
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Film Baru Rilis */}
+              <div id="new-releases-section" className="dashboard-section animate-fade-in">
+                <div className="dashboard-section-header">
+                  <div className="dashboard-section-title-wrapper">
+                    <h3>
+                      <Tv size={18} />
+                      <span>Film & Video Baru Rilis</span>
+                    </h3>
+                    <p>Tonton karya terbaik sineas lokal tanpa gangguan iklan</p>
+                  </div>
+                </div>
+                <div className="movie-grid youtube-grid">
+                  {[...movies]
+                    .sort((a, b) => b.year - a.year)
+                    .slice(0, 4)
+                    .map(movie => (
+                      <MovieCard 
+                        key={movie.id} 
+                        movie={movie} 
+                        currentUser={currentUser}
+                        onSelect={handleMovieSelect}
+                      />
+                    ))}
+                </div>
+              </div>
+
+              {/* 3. Event & Kompetisi Grid */}
+              <div className="dashboard-split-grid animate-fade-in">
+                {/* Upcoming Events */}
+                <div className="split-column">
+                  <div className="dashboard-section-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+                    <div className="dashboard-section-title-wrapper">
+                      <h4 className="split-column-title">
+                        <Calendar size={18} />
+                        <span>Event & Kegiatan Mendatang</span>
+                      </h4>
+                      <p style={{ margin: 0 }}>Webinar, workshop, screening, dan networking</p>
+                    </div>
+                  </div>
+                  <div className="split-list" style={{ marginTop: '12px' }}>
+                    {events.filter(e => e.eventType === 'regular' || !e.eventType).length > 0 ? (
+                      events
+                        .filter(e => e.eventType === 'regular' || !e.eventType)
+                        .slice(0, 3)
+                        .map(evt => {
+                          const eventSlug = slugify(evt.title) + '-' + evt.id;
+                          return (
+                            <div 
+                              key={evt.id} 
+                              className="split-card"
+                              onClick={() => {
+                                if (!currentUser) {
+                                  handleOpenLoginModal('register');
+                                  return;
+                                }
+                                window.history.pushState(null, '', '/event/' + eventSlug);
+                                window.dispatchEvent(new PopStateEvent('popstate'));
+                              }}
+                            >
+                              <div className="split-card-info">
+                                <span className="split-card-name">{evt.title}</span>
+                                <span className="split-card-meta">
+                                  <span>📅 {evt.date || 'Segera'}</span>
+                                  <span>📍 {evt.location || 'Online'}</span>
+                                </span>
+                              </div>
+                              <span style={{ fontSize: '0.8rem', color: '#fbbf24', fontWeight: 'bold' }}>Detail →</span>
+                            </div>
+                          );
+                        })
+                    ) : (
+                      <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                        Belum ada event umum yang terdaftar.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Open Competitions */}
+                <div className="split-column">
+                  <div className="dashboard-section-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+                    <div className="dashboard-section-title-wrapper">
+                      <h4 className="split-column-title">
+                        <Award size={18} />
+                        <span>Kompetisi Video Terbuka</span>
+                      </h4>
+                      <p style={{ margin: 0 }}>Tantang dirimu dan rebut hadiah jutaan rupiah</p>
+                    </div>
+                  </div>
+                  <div className="split-list" style={{ marginTop: '12px' }}>
+                    {events.filter(e => e.eventType === 'competition').length > 0 ? (
+                      events
+                        .filter(e => e.eventType === 'competition')
+                        .slice(0, 3)
+                        .map(evt => {
+                          const eventSlug = slugify(evt.title) + '-' + evt.id;
+                          return (
+                            <div 
+                              key={evt.id} 
+                              className="split-card"
+                              onClick={() => {
+                                if (!currentUser) {
+                                  handleOpenLoginModal('register');
+                                  return;
+                                }
+                                window.history.pushState(null, '', '/event/' + eventSlug);
+                                window.dispatchEvent(new PopStateEvent('popstate'));
+                              }}
+                            >
+                              <div className="split-card-info">
+                                <span className="split-card-name">{evt.title}</span>
+                                <span className="split-card-meta">
+                                  <span style={{ color: '#10b981', fontWeight: 'bold' }}>💰 Rp {(evt.campaignBudget || 0).toLocaleString('id-ID')}</span>
+                                  <span>📅 Batas: {evt.deadline || 'Segera'}</span>
+                                </span>
+                              </div>
+                              <span style={{ fontSize: '0.8rem', color: '#fbbf24', fontWeight: 'bold' }}>Ikuti →</span>
+                            </div>
+                          );
+                        })
+                    ) : (
+                      <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                        Belum ada kompetisi aktif saat ini.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Komunitas / PH Merekrut */}
+              <div className="dashboard-section animate-fade-in">
+                <div className="dashboard-section-header">
+                  <div className="dashboard-section-title-wrapper">
+                    <h3>
+                      <Briefcase size={18} />
+                      <span>Komunitas & Production House Merekrut</span>
+                    </h3>
+                    <p>Bergabunglah dengan rumah produksi lokal untuk kolaborasi project video kreatif</p>
+                  </div>
+                  <span 
+                    className="dashboard-section-link"
+                    onClick={() => handleTabChange('communities')}
+                  >
+                    Jelajahi Semua Komunitas →
+                  </span>
+                </div>
+                <div className="recruiting-grid">
+                  {communities.slice(0, 4).map(comm => {
+                    const members = comm.joinedMembers || [];
+                    const target = Number(comm.activeMembersCount || 0);
+                    const current = members.length;
+                    const percentage = target > 0 ? (current / target) * 100 : 0;
+                    const commSlug = slugify(comm.name || comm.username) + '-' + comm.id;
+                    
+                    return (
+                      <div 
+                        key={comm.id} 
+                        className="recruiting-card glass-panel"
+                        onClick={() => {
+                          if (!currentUser) {
+                            handleOpenLoginModal('register');
+                            return;
+                          }
+                          window.history.pushState(null, '', '/community/' + commSlug);
+                          window.dispatchEvent(new PopStateEvent('popstate'));
+                        }}
+                      >
+                        <span className="recruiting-badge">MEREKRUT</span>
+                        <div style={{ display: 'flex', gap: '14px', alignItems: 'center', textAlign: 'left' }}>
+                          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
+                            {comm.avatar ? (
+                              <img src={comm.avatar} alt={comm.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                            ) : (
+                              comm.name?.charAt(0) || comm.username?.charAt(0)
+                            )}
+                          </div>
+                          <div>
+                            <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>{comm.name || comm.username}</strong>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{members.length} Anggota</span>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                            <span>Kekuatan Komunitas:</span>
+                            <span style={{ color: 'white', fontWeight: 'bold' }}>{current}/{target}</span>
+                          </div>
+                          <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ width: `${Math.min(100, percentage)}%`, height: '100%', background: '#ffffff', transition: 'width 0.3s' }} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 5. Kreator Naik Daun */}
+              <div className="dashboard-section animate-fade-in">
+                <div className="dashboard-section-header">
+                  <div className="dashboard-section-title-wrapper">
+                    <h3>
+                      <TrendingUp size={18} />
+                      <span>Kreator Naik Daun</span>
+                    </h3>
+                    <p>Kenali bertalenta lokal kreatif minggu ini yang membagikan karyanya</p>
+                  </div>
+                </div>
+                <div className="creators-grid">
+                  {(users.filter(u => u.role !== 'superadmin' && u.role !== 'staf' && !u.isCommunity).slice(0, 5).length > 0 ? 
+                    users.filter(u => u.role !== 'superadmin' && u.role !== 'staf' && !u.isCommunity).slice(0, 5).map(u => ({
+                      id: u.id,
+                      username: u.username,
+                      name: u.organizerName || u.username,
+                      userCategory: u.userCategory || 'Kreator Video',
+                      avatar: u.organizerAvatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${u.username}`
+                    })) : [
+                      { id: 'c1', username: 'andikapra', name: 'Andika Pratama', userCategory: 'Sutradara / Editor', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=andika' },
+                      { id: 'c2', username: 'sitisarah', name: 'Siti Sarah', userCategory: 'Videografer / DOP', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=sara' },
+                      { id: 'c3', username: 'budiarta', name: 'Budi Artawan', userCategory: 'Content Creator', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=budi' },
+                      { id: 'c4', username: 'renata_m', name: 'Renata Mauris', userCategory: 'Motion Designer', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=renata' },
+                      { id: 'c5', username: 'danur_w', name: 'Danur Wijaya', userCategory: 'Animator 3D', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=danur' }
+                    ]
+                  ).map(creator => (
+                    <div 
+                      key={creator.id} 
+                      className="creator-card glass-panel"
+                      onClick={() => {
+                        if (!currentUser) {
+                          handleOpenLoginModal('register');
+                          return;
+                        }
+                        alert(`Profil Portofolio Kreator ${creator.name} akan segera hadir.`);
+                      }}
+                    >
+                      <div className="creator-avatar">
+                        <img src={creator.avatar} alt={creator.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                      </div>
+                      <div className="creator-info">
+                        <span className="creator-name">{creator.name}</span>
+                        <span className="creator-tag">{creator.userCategory}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 6. Bottom Join CTA Banner */}
+              <div className="dashboard-hero" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(5, 150, 105, 0.05) 100%)', borderColor: 'rgba(16, 185, 129, 0.15)', textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ maxWidth: '600px' }}>
+                  <h2 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'white', marginBottom: '12px' }}>Ayo Mulai Ngonten Sekarang!</h2>
+                  <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.7)', marginBottom: '24px', lineHeight: '1.6' }}>
+                    Daftar sebagai kreator secara gratis, ikuti kompetisi video kreatif berhadiah jutaan rupiah, atau hubungkan komunitas film indie-mu ke dalam platform ngonten.id.
+                  </p>
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => {
+                      if (!currentUser) {
+                        handleOpenLoginModal('register');
+                      } else {
+                        handleTabChange('events');
+                      }
+                    }}
+                    style={{ borderRadius: '30px', padding: '12px 32px', fontWeight: 'bold' }}
+                  >
+                    {!currentUser ? 'Gabung Sekarang' : 'Telusuri Event Kompetisi'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : activeTab === 'discover' && searchQuery ? (
+            /* UNIFIED SEARCH RESULTS VIEW */
+            <div className="search-results-wrapper">
+              <div className="search-results-header">
+                <h2>Hasil Pencarian: "{searchQuery}"</h2>
+                <button 
+                  className="btn btn-outline" 
+                  onClick={() => setSearchQuery('')}
+                  style={{ borderRadius: '20px', padding: '6px 16px', fontSize: '0.8rem' }}
+                >
+                  <X size={14} style={{ marginRight: '4px' }} />
+                  <span>Bersihkan Pencarian</span>
+                </button>
+              </div>
+
+              {/* Category 1: Film & Video */}
+              {(() => {
+                const results = movies.filter(m => 
+                  m.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  m.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  m.genre.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()))
+                );
+                if (results.length === 0) return null;
+                return (
+                  <div className="search-category-section">
+                    <h3 className="search-category-title">Film & Video ({results.length})</h3>
+                    <div className="movie-grid youtube-grid">
+                      {results.map(movie => (
+                        <MovieCard 
+                          key={movie.id} 
+                          movie={movie} 
+                          currentUser={currentUser}
+                          onSelect={handleMovieSelect}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Category 2: Event & Kompetisi */}
+              {(() => {
+                const results = events.filter(e => 
+                  e.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  (e.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+                );
+                if (results.length === 0) return null;
+                return (
+                  <div className="search-category-section">
+                    <h3 className="search-category-title">Event & Kompetisi ({results.length})</h3>
+                    <div className="split-list">
+                      {results.map(evt => {
+                        const eventSlug = slugify(evt.title) + '-' + evt.id;
+                        return (
+                          <div 
+                            key={evt.id} 
+                            className="split-card"
+                            onClick={() => {
+                              if (!currentUser) {
+                                handleOpenLoginModal('register');
+                                return;
+                              }
+                              window.history.pushState(null, '', '/event/' + eventSlug);
+                              window.dispatchEvent(new PopStateEvent('popstate'));
+                            }}
+                          >
+                            <div className="split-card-info">
+                              <span className="split-card-name" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span>{evt.title}</span>
+                                <span style={{
+                                  fontSize: '0.68rem',
+                                  padding: '2px 8px',
+                                  borderRadius: '10px',
+                                  background: evt.eventType === 'competition' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                  color: evt.eventType === 'competition' ? '#f59e0b' : '#3b82f6',
+                                  fontWeight: 'bold'
+                                }}>
+                                  {evt.eventType === 'competition' ? 'Kompetisi' : 'Event'}
+                                </span>
+                              </span>
+                              <span className="split-card-meta">
+                                <span>📅 {evt.date || evt.deadline || 'Segera'}</span>
+                                {evt.location && <span>📍 {evt.location}</span>}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '0.8rem', color: '#fbbf24', fontWeight: 'bold' }}>Lihat →</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Category 3: Komunitas & PH */}
+              {(() => {
+                const results = communities.filter(c => 
+                  c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  (c.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  c.username.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+                if (results.length === 0) return null;
+                return (
+                  <div className="search-category-section">
+                    <h3 className="search-category-title">Komunitas & Production House ({results.length})</h3>
+                    <div className="recruiting-grid">
+                      {results.map(comm => {
+                        const members = comm.joinedMembers || [];
+                        const target = Number(comm.activeMembersCount || 0);
+                        const current = members.length;
+                        const percentage = target > 0 ? (current / target) * 100 : 0;
+                        const commSlug = slugify(comm.name || comm.username) + '-' + comm.id;
+                        
+                        return (
+                          <div 
+                            key={comm.id} 
+                            className="recruiting-card glass-panel"
+                            onClick={() => {
+                              if (!currentUser) {
+                                handleOpenLoginModal('register');
+                                return;
+                              }
+                              window.history.pushState(null, '', '/community/' + commSlug);
+                              window.dispatchEvent(new PopStateEvent('popstate'));
+                            }}
+                          >
+                            <div style={{ display: 'flex', gap: '14px', alignItems: 'center', textAlign: 'left' }}>
+                              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
+                                {comm.avatar ? (
+                                  <img src={comm.avatar} alt={comm.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                                ) : (
+                                  comm.name?.charAt(0) || comm.username?.charAt(0)
+                                )}
+                              </div>
+                              <div>
+                                <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>{comm.name || comm.username}</strong>
+                                <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{members.length} Anggota</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Category 4: Kreator & Talent */}
+              {(() => {
+                const results = users.filter(u => 
+                  u.role !== 'superadmin' && u.role !== 'staf' && !u.isCommunity &&
+                  (u.username.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                   (u.organizerName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                   (u.userCategory || '').toLowerCase().includes(searchQuery.toLowerCase()))
+                );
+                if (results.length === 0) return null;
+                return (
+                  <div className="search-category-section">
+                    <h3 className="search-category-title">Kreator & Talent ({results.length})</h3>
+                    <div className="creators-grid">
+                      {results.map(u => {
+                        const name = u.organizerName || u.username;
+                        const userCategory = u.userCategory || 'Kreator Video';
+                        const avatar = u.organizerAvatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${u.username}`;
+                        return (
+                          <div 
+                            key={u.id} 
+                            className="creator-card glass-panel"
+                            onClick={() => {
+                              if (!currentUser) {
+                                handleOpenLoginModal('register');
+                                return;
+                              }
+                              alert(`Profil Portofolio Kreator ${name} akan segera hadir.`);
+                            }}
+                          >
+                            <div className="creator-avatar">
+                              <img src={avatar} alt={name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                            </div>
+                            <div className="creator-info">
+                              <span className="creator-name">{name}</span>
+                              <span className="creator-tag">{userCategory}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Unified Empty State if no category matched */}
+              {movies.filter(m => m.title.toLowerCase().includes(searchQuery.toLowerCase()) || m.description.toLowerCase().includes(searchQuery.toLowerCase()) || m.genre.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()))).length === 0 &&
+               events.filter(e => e.title.toLowerCase().includes(searchQuery.toLowerCase()) || (e.description || '').toLowerCase().includes(searchQuery.toLowerCase())).length === 0 &&
+               communities.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || (c.description || '').toLowerCase().includes(searchQuery.toLowerCase())).length === 0 &&
+               users.filter(u => u.role !== 'superadmin' && u.role !== 'staf' && !u.isCommunity && (u.username.toLowerCase().includes(searchQuery.toLowerCase()) || (u.organizerName || '').toLowerCase().includes(searchQuery.toLowerCase()))).length === 0 && (
+                <div className="empty-state glass-panel">
+                  <Film size={48} className="empty-icon" />
+                  <h3>Hasil tidak ditemukan</h3>
+                  <p>Tidak ada film, event, komunitas, atau kreator yang cocok dengan kata kunci "{searchQuery}". Coba kata kunci lainnya.</p>
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => setSearchQuery('')}
+                  >
+                    Kembali ke Beranda
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
-            /* CATALOG GRID VIEW */
+            /* CATALOG GRID VIEW (for Watchlist/History) */
             <div className="catalog-layout">
               {activeTab === 'discover' && (
                 <div className="genres-bar">
