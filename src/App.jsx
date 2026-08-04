@@ -4137,63 +4137,25 @@ export default function App() {
                 </div>
               </div>
 
-              {/* 6. Bottom Join CTA Banner */}
-              <div className="dashboard-hero" style={{ background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.01) 0%, rgba(255, 255, 255, 0.005) 100%)', borderColor: 'rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px', padding: '48px 24px' }}>
-                <div style={{ textAlign: 'center', maxWidth: '650px' }}>
-                  <h2 style={{ fontSize: '1.8rem', fontWeight: '900', color: 'white', marginBottom: '8px', letterSpacing: '-0.02em' }}>Bergabung & Temukan Solusi Kreatif Anda</h2>
-                  <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)' }}>Platform terintegrasi yang mempertemukan kreator dan brand untuk solusi kebutuhan karya digital dan bisnis.</p>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '24px', width: '100%', maxWidth: '960px' }}>
-                  
-                  {/* Cluster 1: Kreator */}
-                  <div className="glass-panel" style={{ padding: '32px 24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', transition: 'transform 0.2s', textAlign: 'left' }}>
-                    <div>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'white', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'inline-block', marginBottom: '16px' }}>IKUT KAMPANYE</span>
-                      <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'white', marginBottom: '10px', lineHeight: '1.4' }}>Salurkan karya Anda & raih apresiasi finansial.</h3>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
-                        Temukan proyek kolaborasi dari brand nasional, kembangkan portofolio profesional Anda, dan dapatkan penghasilan secara aman dengan potongan admin rendah.
-                      </p>
-                    </div>
-                    <button 
-                      className="btn btn-primary"
-                      onClick={() => {
-                        if (!currentUser) {
-                          handleOpenLoginModal('register');
-                        } else {
-                          handleTabChange('events');
-                        }
-                      }}
-                      style={{ borderRadius: '30px', padding: '12px 24px', fontWeight: 'bold', fontSize: '0.88rem', width: '100%', justifyContent: 'center' }}
-                    >
-                      {!currentUser ? 'Ikut Kampanye Sekarang' : 'Jelajahi Kampanye Aktif'}
-                    </button>
-                  </div>
-
-                  {/* Cluster 2: Brand / Industri */}
-                  <div className="glass-panel" style={{ padding: '32px 24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', transition: 'transform 0.2s', textAlign: 'left' }}>
-                    <div>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'white', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'inline-block', marginBottom: '16px' }}>BUAT KAMPANYE</span>
-                      <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'white', marginBottom: '10px', lineHeight: '1.4' }}>Temukan talent & kreator terbaik secara instan.</h3>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
-                        Selenggarakan kompetisi kreatif untuk menjaring karya berkualitas, pasang lowongan kolaborasi kru agensi, atau hubungi talent profesional secara langsung.
-                      </p>
-                    </div>
-                    <button 
-                      className="btn btn-outline"
-                      onClick={() => {
-                        if (whatsappAdmin) {
-                          window.open(whatsappAdmin, '_blank');
-                        } else {
-                          window.open('https://wa.me/6281234567890', '_blank');
-                        }
-                      }}
-                      style={{ borderRadius: '30px', padding: '12px 24px', fontWeight: 'bold', fontSize: '0.88rem', width: '100%', justifyContent: 'center', borderColor: 'rgba(255,255,255,0.15)' }}
-                    >
-                      <span>Buat Kampanye Sekarang</span>
-                    </button>
-                  </div>
-
+              <div className="dashboard-hero" style={{ background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%)', borderColor: 'rgba(255, 255, 255, 0.08)', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '48px 24px' }}>
+                <div style={{ maxWidth: '650px' }}>
+                  <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'white', marginBottom: '14px', letterSpacing: '-0.02em' }}>Bergabung & Temukan Solusi Kreatif Anda</h2>
+                  <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.7)', marginBottom: '28px', lineHeight: '1.6' }}>
+                    Platform terintegrasi yang mempertemukan kreator dan brand untuk solusi kebutuhan karya digital dan bisnis.
+                  </p>
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => {
+                      if (!currentUser) {
+                        handleOpenLoginModal('register');
+                      } else {
+                        handleTabChange('events');
+                      }
+                    }}
+                    style={{ borderRadius: '30px', padding: '14px 36px', fontWeight: 'bold', fontSize: '0.95rem' }}
+                  >
+                    {!currentUser ? 'Gabung Sekarang' : 'Jelajahi Event & Kompetisi'}
+                  </button>
                 </div>
               </div>
             </div>
