@@ -3606,9 +3606,9 @@ export default function App() {
               {/* 1. Hero Header / CTA Banner */}
               <div className="dashboard-hero">
                 <div className="dashboard-hero-content animate-fade-in">
-                  <h1 className="dashboard-hero-title">Tempat Karya Menjadi Nyata,<br />Kreator Video Menjadi Juara</h1>
+                  <h1 className="dashboard-hero-title">Tempat Karya Menjadi Nyata,<br />Kreator Digital Menjadi Juara</h1>
                   <p className="dashboard-hero-subtitle">
-                    Saksikan video pendek & film indie pilihan tanpa iklan, ikuti berbagai kompetisi video kreatif untuk brand nasional, temukan crew kolaborasi, dan bangun portofolio konten kreatormu hanya di ngonten.id.
+                    Pamerkan portofolio desain, foto, video, & animasi terbaikmu, ikuti berbagai kompetisi kreatif untuk brand nasional, temukan kru kolaborasi, dan bangun reputasimu hanya di ngonten.id.
                   </p>
                   <div className="dashboard-hero-ctas">
                     <button 
@@ -3649,7 +3649,7 @@ export default function App() {
                   <div className="dashboard-stats-row">
                     <div className="stat-item">
                       <span className="stat-number">15+</span>
-                      <span className="stat-label">Video & Film Pilihan</span>
+                      <span className="stat-label">Karya Digital Pilihan</span>
                     </div>
                     <div className="stat-item">
                       <span className="stat-number">Rp 250Jt+</span>
@@ -3657,7 +3657,7 @@ export default function App() {
                     </div>
                     <div className="stat-item">
                       <span className="stat-number">50+</span>
-                      <span className="stat-label">PH & Komunitas</span>
+                      <span className="stat-label">PH & Studio Kreatif</span>
                     </div>
                     <div className="stat-item">
                       <span className="stat-number">5.000+</span>
@@ -3673,9 +3673,9 @@ export default function App() {
                   <div className="dashboard-section-title-wrapper">
                     <h3>
                       <Tv size={20} />
-                      <span>Saksikan Karya Video & Film Pilihan</span>
+                      <span>Jelajahi Showcase Karya Digital Pilihan</span>
                     </h3>
-                    <p>Streaming video kreatif, konten digital, dan film pendek buator kreator lokal terbaik tanpa iklan</p>
+                    <p>Galeri karya kreatif buatan kreator lokal (desain, foto, video, animasi) terbaik tanpa iklan</p>
                   </div>
                 </div>
                 <div className="movie-grid youtube-grid">
@@ -3705,7 +3705,7 @@ export default function App() {
                         <Calendar size={18} />
                         <span>Event & Kolaborasi Kreator</span>
                       </h4>
-                      <p style={{ margin: 0 }}>Screening, workshop, diskusi, dan networking konten kreator nasional</p>
+                      <p style={{ margin: 0 }}>Workshop, sharing session, kolaborasi, dan networking kreator digital nasional</p>
                     </div>
                   </div>
                   <div className="split-list" style={{ marginTop: '12px' }}>
@@ -3759,9 +3759,9 @@ export default function App() {
                     <div className="dashboard-section-title-wrapper">
                       <h4 className="split-column-title">
                         <Award size={18} />
-                        <span>Kompetisi Video Kreatif Aktif</span>
+                        <span>Kompetisi Karya Digital Aktif</span>
                       </h4>
-                      <p style={{ margin: 0 }}>Tantang kreativitasmu, ikuti brand campaign, dan raih hadiah</p>
+                      <p style={{ margin: 0 }}>Tantang kreativitasmu dalam desain, foto, video, & animasi untuk brand campaign nasional</p>
                     </div>
                   </div>
                   <div className="split-list" style={{ marginTop: '12px' }}>
@@ -3818,9 +3818,9 @@ export default function App() {
                   <div className="dashboard-section-title-wrapper">
                     <h3>
                       <Briefcase size={20} />
-                      <span>Production House & Komunitas Kreatif</span>
+                      <span>Agensi, Studio & Komunitas Kreatif</span>
                     </h3>
-                    <p>Bergabunglah dengan komunitas kreator & production house lokal untuk kolaborasi project video kreatif</p>
+                    <p>Bergabunglah dengan agensi, studio, dan komunitas lokal untuk kolaborasi project kreatif</p>
                   </div>
                   <span 
                     className="dashboard-section-link"
@@ -3867,15 +3867,16 @@ export default function App() {
                             <strong style={{ fontSize: '1rem', color: 'white', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={comm.name || comm.username}>
                               {comm.name || comm.username}
                             </strong>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>Kategori: PH / Komunitas</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>Kategori: Agensi / Komunitas</span>
                           </div>
                         </div>
 
                         {/* Recruiting Positions list */}
                         <div className="recruiting-positions">
+                          <span className="position-badge">Desainer</span>
+                          <span className="position-badge">Fotografer</span>
                           <span className="position-badge">Videografer</span>
-                          <span className="position-badge">Editor</span>
-                          <span className="position-badge">Scriptwriter</span>
+                          <span className="position-badge">Animator</span>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -3903,7 +3904,7 @@ export default function App() {
                       <TrendingUp size={20} />
                       <span>Kreator Terpopuler Minggu Ini</span>
                     </h3>
-                    <p>Apresiasi konten kreator, sineas, dan pembuat konten video digital yang aktif berkarya</p>
+                    <p>Apresiasi desainer, fotografer, videografer, animator, dan kreator digital yang aktif berkarya</p>
                   </div>
                 </div>
                 <div className="creators-grid">
@@ -3912,12 +3913,12 @@ export default function App() {
                       id: u.id,
                       username: u.username,
                       name: u.organizerName || u.username,
-                      userCategory: u.userCategory || 'Kreator Video',
+                      userCategory: u.userCategory || 'Kreator Digital',
                       avatar: u.organizerAvatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${u.username}`
                     })) : [
-                      { id: 'c1', username: 'andikapra', name: 'Andika Pratama', userCategory: 'Sutradara / Editor', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=andika' },
-                      { id: 'c2', username: 'sitisarah', name: 'Siti Sarah', userCategory: 'Videografer / DOP', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=sara' },
-                      { id: 'c3', username: 'budiarta', name: 'Budi Artawan', userCategory: 'Content Creator', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=budi' },
+                      { id: 'c1', username: 'andikapra', name: 'Andika Pratama', userCategory: 'Desainer / Ilustrator', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=andika' },
+                      { id: 'c2', username: 'sitisarah', name: 'Siti Sarah', userCategory: 'Fotografer / DOP', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=sara' },
+                      { id: 'c3', username: 'budiarta', name: 'Budi Artawan', userCategory: 'Videografer / Editor', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=budi' },
                       { id: 'c4', username: 'renata_m', name: 'Renata Mauris', userCategory: 'Motion Designer', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=renata' },
                       { id: 'c5', username: 'danur_w', name: 'Danur Wijaya', userCategory: 'Animator 3D', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=danur' }
                     ]
@@ -3948,9 +3949,9 @@ export default function App() {
               {/* 6. Bottom Join CTA Banner */}
               <div className="dashboard-hero" style={{ background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%)', borderColor: 'rgba(255, 255, 255, 0.08)', textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <div style={{ maxWidth: '650px' }}>
-                  <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'white', marginBottom: '14px', letterSpacing: '-0.02em' }}>Siap Mengembangkan Karya Videomu?</h2>
+                  <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'white', marginBottom: '14px', letterSpacing: '-0.02em' }}>Siap Mengembangkan Karya Digitalmu?</h2>
                   <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.7)', marginBottom: '28px', lineHeight: '1.6' }}>
-                    Daftar gratis sebagai kreator untuk membangun portofolio video digitalmu, ikuti berbagai kompetisi kreatif untuk brand nasional, dan bangun kolaborasimu di ngonten.id.
+                    Daftar gratis sebagai kreator untuk membangun portofolio karya digitalmu (desain, foto, video, animasi, dll), ikuti berbagai kompetisi kreatif untuk brand nasional, dan bangun kolaborasimu di ngonten.id.
                   </p>
                   <button 
                     className="btn btn-primary"
