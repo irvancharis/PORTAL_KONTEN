@@ -3750,13 +3750,33 @@ export default function App() {
                             >
                               <div className="split-card-info">
                                 <span className="split-card-name">{evt.title}</span>
-                                <span className="split-card-meta">
-                                  <span style={{ display: 'flex', alignItems: 'center' }}>
-                                    <Calendar size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
+                                <span className="split-card-meta" style={{ marginTop: '8px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                  <span style={{ 
+                                    display: 'inline-flex', 
+                                    alignItems: 'center', 
+                                    background: 'rgba(56, 189, 248, 0.08)', 
+                                    border: '1px solid rgba(56, 189, 248, 0.2)', 
+                                    color: '#38bdf8', 
+                                    padding: '4px 10px', 
+                                    borderRadius: '12px', 
+                                    fontSize: '0.78rem', 
+                                    fontWeight: '600' 
+                                  }}>
+                                    <Calendar size={12} style={{ marginRight: '5px' }} />
                                     <span>{evt.date || 'Segera'}</span>
                                   </span>
-                                  <span style={{ display: 'flex', alignItems: 'center' }}>
-                                    <MapPin size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
+                                  <span style={{ 
+                                    display: 'inline-flex', 
+                                    alignItems: 'center', 
+                                    background: 'rgba(255, 255, 255, 0.05)', 
+                                    border: '1px solid rgba(255, 255, 255, 0.1)', 
+                                    color: 'rgba(255, 255, 255, 0.7)', 
+                                    padding: '4px 10px', 
+                                    borderRadius: '12px', 
+                                    fontSize: '0.78rem', 
+                                    fontWeight: '600' 
+                                  }}>
+                                    <MapPin size={12} style={{ marginRight: '5px' }} />
                                     <span>{evt.location || 'Online'}</span>
                                   </span>
                                 </span>
@@ -3852,13 +3872,33 @@ export default function App() {
                             >
                               <div className="split-card-info">
                                 <span className="split-card-name">{evt.title}</span>
-                                <span className="split-card-meta">
-                                  <span style={{ display: 'flex', alignItems: 'center', color: 'white', fontWeight: 'bold' }}>
-                                    <DollarSign size={13} style={{ marginRight: '4px', opacity: 0.8 }} />
+                                <span className="split-card-meta" style={{ marginTop: '8px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                  <span style={{ 
+                                    display: 'inline-flex', 
+                                    alignItems: 'center', 
+                                    background: 'rgba(34, 197, 94, 0.1)', 
+                                    border: '1px solid rgba(34, 197, 94, 0.25)', 
+                                    color: '#4ade80', 
+                                    padding: '4px 10px', 
+                                    borderRadius: '12px', 
+                                    fontSize: '0.78rem', 
+                                    fontWeight: 'bold' 
+                                  }}>
+                                    <DollarSign size={12} style={{ marginRight: '4px' }} />
                                     <span>Rp {(evt.campaignBudget || 0).toLocaleString('id-ID')}</span>
                                   </span>
-                                  <span style={{ display: 'flex', alignItems: 'center' }}>
-                                    <Clock size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
+                                  <span style={{ 
+                                    display: 'inline-flex', 
+                                    alignItems: 'center', 
+                                    background: 'rgba(245, 158, 11, 0.1)', 
+                                    border: '1px solid rgba(245, 158, 11, 0.25)', 
+                                    color: '#fbbf24', 
+                                    padding: '4px 10px', 
+                                    borderRadius: '12px', 
+                                    fontSize: '0.78rem', 
+                                    fontWeight: '600' 
+                                  }}>
+                                    <Clock size={12} style={{ marginRight: '5px' }} />
                                     <span>Batas: {evt.deadline || 'Segera'}</span>
                                   </span>
                                 </span>
