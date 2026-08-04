@@ -90,7 +90,8 @@ import {
   Tv,
   MapPin,
   Clock,
-  DollarSign
+  DollarSign,
+  HelpCircle
 } from 'lucide-react';
 
 const slugify = (text) => {
@@ -130,6 +131,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('portal-active-tab') || 'discover';
   }); // 'discover', 'watchlist', 'history', 'admin'
+  const [activeFaqIndex, setActiveFaqIndex] = useState(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedCommunityId, setSelectedCommunityId] = useState(null);
   const [communitySearchQuery, setCommunitySearchQuery] = useState('');
@@ -4036,6 +4038,109 @@ export default function App() {
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              <div className="section-divider"></div>
+
+              {/* 5.5. Tanya Jawab (FAQ) */}
+              <div className="dashboard-section animate-fade-in" style={{ maxWidth: '800px', marginLeft: 'auto', marginRight: 'auto', width: '100%', padding: '0 16px' }}>
+                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                  <h3 style={{ fontSize: '1.6rem', fontWeight: '800', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <HelpCircle size={24} style={{ color: 'white' }} />
+                    <span>Tanya Jawab (FAQ)</span>
+                  </h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>
+                    Segala hal yang perlu Anda ketahui tentang ngonten.id
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {[
+                    {
+                      q: "Apa itu ngonten.id?",
+                      a: "ngonten.id adalah platform hub kreatif dan kolaborasi untuk kreator digital Indonesia (desain, foto, video, animasi, dll). Di sini Anda dapat memamerkan portofolio terbaik, mengikuti kompetisi kreatif nasional berhadiah jutaan rupiah, bergabung dengan komunitas agensi/production house, serta mencairkan pendapatan secara langsung."
+                    },
+                    {
+                      q: "Bagaimana cara kreator mendapatkan uang di ngonten.id?",
+                      a: "Kreator dapat menghasilkan uang melalui dua jalur: 1) Memenangkan kompetisi kreatif/lomba berhadiah yang diselenggarakan oleh brand dan agensi nasional di platform, dan 2) Menerima pembagian hasil (benefit views) dari hasil penayangan karya digital orisinal Anda yang diunggah di situs."
+                    },
+                    {
+                      q: "Apakah mendaftar di ngonten.id dipungut biaya?",
+                      a: "Tidak, pendaftaran dan akses ke fitur utama ngonten.id adalah 100% gratis. Namun, kami menawarkan keanggotaan Premium bagi kreator yang ingin memotong biaya admin penarikan saldo menjadi hanya 5% (hemat 50%), mendapatkan badge verified, serta mempromosikan portofolionya di posisi teratas halaman Beranda."
+                    },
+                    {
+                      q: "Bagaimana sistem penarikan saldo (withdrawal)?",
+                      a: "Setiap dana kemenangan lomba atau hasil karya akan masuk ke Dompet Kreator Anda. Anda bisa melakukan penarikan saldo kapan saja ke Rekening Bank atau E-Wallet (DANA, OVO, Gopay, dll) dengan batas minimal penarikan Rp 50.000."
+                    },
+                    {
+                      q: "Bagaimana cara komunitas atau agensi merekrut crew?",
+                      a: "Komunitas/agensi dapat membuka rekrutmen crew baru dengan mendaftarkan profil komunitas dan menentukan batas kuota crew yang diinginkan. Kreator lain dapat mendaftar langsung untuk berkolaborasi dalam proyek kreatif bersama komunitas Anda."
+                    }
+                  ].map((faq, idx) => {
+                    const isOpen = activeFaqIndex === idx;
+                    return (
+                      <div 
+                        key={idx} 
+                        style={{ 
+                          background: 'rgba(255, 255, 255, 0.02)', 
+                          border: isOpen ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(255, 255, 255, 0.05)', 
+                          borderRadius: '12px', 
+                          overflow: 'hidden',
+                          transition: 'all 0.2s ease-in-out'
+                        }}
+                      >
+                        <button
+                          onClick={() => setActiveFaqIndex(isOpen ? null : idx)}
+                          style={{
+                            width: '100%',
+                            padding: '16px 20px',
+                            background: 'transparent',
+                            border: 'none',
+                            outline: 'none',
+                            color: 'white',
+                            fontWeight: '600',
+                            fontSize: '0.92rem',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            gap: '12px'
+                          }}
+                        >
+                          <span>{faq.q}</span>
+                          <span style={{ 
+                            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', 
+                            transition: 'transform 0.2s', 
+                            color: isOpen ? 'white' : 'var(--text-secondary)',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}>
+                            <ChevronDown size={18} />
+                          </span>
+                        </button>
+                        <div 
+                          style={{ 
+                            maxHeight: isOpen ? '200px' : '0px', 
+                            overflow: 'hidden', 
+                            transition: 'max-height 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            background: 'rgba(255, 255, 255, 0.01)'
+                          }}
+                        >
+                          <p style={{ 
+                            margin: 0, 
+                            padding: '0 20px 16px 20px', 
+                            color: 'var(--text-secondary)', 
+                            fontSize: '0.85rem', 
+                            lineHeight: '1.6' 
+                          }}>
+                            {faq.a}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
