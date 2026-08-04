@@ -1962,7 +1962,13 @@ export default function App() {
           const lastPart = parts[parts.length - 1];
           const foundComm = communities.find(c => c.id === commParam || c.id === lastPart || c.username?.toLowerCase() === commParam.toLowerCase());
           if (foundComm) {
-            setSelectedCommunityId(foundComm.id);
+            if (!currentUser) {
+              window.history.replaceState(null, '', '/communities');
+              setSelectedCommunityId(null);
+              handleOpenLoginModal('register');
+            } else {
+              setSelectedCommunityId(foundComm.id);
+            }
           }
         } else if (path.startsWith('/communities')) {
           setActiveTab('communities');
@@ -2992,6 +2998,10 @@ export default function App() {
                           key={comm.id}
                           className="glass-panel"
                           onClick={() => {
+                            if (!currentUser) {
+                              handleOpenLoginModal('register');
+                              return;
+                            }
                             const commSlug = slugify(comm.name || comm.username) + '-' + comm.id;
                             window.history.pushState(null, '', '/community/' + commSlug);
                             window.dispatchEvent(new PopStateEvent('popstate'));

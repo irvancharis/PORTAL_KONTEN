@@ -336,7 +336,13 @@ export default function EventsUserPortal({
         const eventParam = path.replace('/event/', '');
         const foundEvent = events.find(e => e.id === eventParam || eventParam.endsWith(e.id));
         if (foundEvent) {
-          setSelectedEvent(foundEvent);
+          if (!currentUser) {
+            window.history.replaceState(null, '', '/events');
+            setSelectedEvent(null);
+            if (onLoginClick) onLoginClick('register');
+          } else {
+            setSelectedEvent(foundEvent);
+          }
         } else {
           setSelectedEvent(null);
         }
@@ -2634,6 +2640,10 @@ export default function EventsUserPortal({
                     key={evt.id} 
                     className={`glass-panel event-portal-card ${userReg?.status === 'approved' ? 'registered-card' : ''}`}
                     onClick={() => {
+                      if (!currentUser) {
+                        if (onLoginClick) onLoginClick('register');
+                        return;
+                      }
                       const eventSlug = slugify(evt.title) + '-' + evt.id;
                       window.history.pushState(null, '', '/event/' + eventSlug);
                       window.dispatchEvent(new PopStateEvent('popstate'));
