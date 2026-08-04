@@ -3625,9 +3625,9 @@ export default function App() {
               {/* 1. Hero Header / CTA Banner */}
               <div className="dashboard-hero">
                 <div className="dashboard-hero-content animate-fade-in">
-                  <h1 className="dashboard-hero-title">Tempat Karya Menjadi Nyata,<br />Kreator Digital Menjadi Juara</h1>
+                  <h1 className="dashboard-hero-title">Kreativitas Tanpa Batas,<br />Karya Digital Dihargai Nyata</h1>
                   <p className="dashboard-hero-subtitle">
-                    Pamerkan portofolio desain, foto, video, & animasi terbaikmu, ikuti berbagai kompetisi kreatif untuk brand nasional, temukan kru kolaborasi, dan bangun reputasimu hanya di ngonten.id.
+                    Pamerkan portofolio terbaikmu (desain, foto, video, & animasi) tanpa batasan. Ikuti berbagai kompetisi kreatif nasional, temukan kolaborasi impian, dan dapatkan apresiasi finansial yang layak hanya di ngonten.id.
                   </p>
                   <div className="dashboard-hero-ctas">
                     <button 
