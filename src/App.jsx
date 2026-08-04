@@ -3627,9 +3627,9 @@ export default function App() {
               {/* 1. Hero Header / CTA Banner */}
               <div className="dashboard-hero">
                 <div className="dashboard-hero-content animate-fade-in">
-                  <h1 className="dashboard-hero-title">Ikuti & Buat Kampanye Kreatif<br />dalam Satu Platform Terpadu</h1>
+                  <h1 className="dashboard-hero-title">Satu Platform,<br />Berbagai Solusi Industri Kreatif</h1>
                   <p className="dashboard-hero-subtitle">
-                    Wadah kolaborasi pelaku industri kreatif di Indonesia. Kreator dapat mengikuti kampanye kreatif untuk mengembangkan portofolio, sedangkan brand atau komunitas dapat membuat kampanye untuk menemukan talent terbaik secara lebih mudah dan cepat.
+                    Bergabunglah sekarang dan temukan solusi kebutuhan kreatif Anda. Kreator dapat mengikuti kampanye untuk memamerkan karya, sedangkan brand dapat membuat kampanye untuk menemukan talent terbaik secara cepat.
                   </p>
                   <div className="dashboard-hero-ctas">
                     <button 
@@ -4140,8 +4140,8 @@ export default function App() {
               {/* 6. Bottom Join CTA Banner */}
               <div className="dashboard-hero" style={{ background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.01) 0%, rgba(255, 255, 255, 0.005) 100%)', borderColor: 'rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px', padding: '48px 24px' }}>
                 <div style={{ textAlign: 'center', maxWidth: '650px' }}>
-                  <h2 style={{ fontSize: '1.8rem', fontWeight: '900', color: 'white', marginBottom: '8px', letterSpacing: '-0.02em' }}>Gabung di Hub Kolaborasi Industri Kreatif</h2>
-                  <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)' }}>Dua ekosistem yang saling melengkapi untuk mempercepat pertumbuhan industri kreatif Indonesia.</p>
+                  <h2 style={{ fontSize: '1.8rem', fontWeight: '900', color: 'white', marginBottom: '8px', letterSpacing: '-0.02em' }}>Bergabung & Temukan Solusi Kreatif Anda</h2>
+                  <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)' }}>Platform terintegrasi yang mempertemukan kreator dan brand untuk solusi kebutuhan karya digital dan bisnis.</p>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '24px', width: '100%', maxWidth: '960px' }}>
@@ -4149,10 +4149,10 @@ export default function App() {
                   {/* Cluster 1: Kreator */}
                   <div className="glass-panel" style={{ padding: '32px 24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', transition: 'transform 0.2s', textAlign: 'left' }}>
                     <div>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'white', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'inline-block', marginBottom: '16px' }}>UNTUK KREATOR & TALENT</span>
-                      <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'white', marginBottom: '10px', lineHeight: '1.4' }}>Ikuti kampanye kreatif & kembangkan karya digital Anda.</h3>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'white', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'inline-block', marginBottom: '16px' }}>IKUT KAMPANYE</span>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'white', marginBottom: '10px', lineHeight: '1.4' }}>Salurkan karya Anda & raih apresiasi finansial.</h3>
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
-                        Tunjukkan keahlian Anda, ikuti berbagai tantangan kampanye dari brand nasional, bangun portofolio profesional, dan tarik hasil pendapatan Anda dengan biaya admin super hemat.
+                        Temukan proyek kolaborasi dari brand nasional, kembangkan portofolio profesional Anda, dan dapatkan penghasilan secara aman dengan potongan admin rendah.
                       </p>
                     </div>
                     <button 
@@ -4173,10 +4173,10 @@ export default function App() {
                   {/* Cluster 2: Brand / Industri */}
                   <div className="glass-panel" style={{ padding: '32px 24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', transition: 'transform 0.2s', textAlign: 'left' }}>
                     <div>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'white', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'inline-block', marginBottom: '16px' }}>UNTUK BRAND & PARTNER</span>
-                      <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'white', marginBottom: '10px', lineHeight: '1.4' }}>Buat kampanye kreatif & temukan talent terbaik untuk bisnis Anda.</h3>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'white', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'inline-block', marginBottom: '16px' }}>BUAT KAMPANYE</span>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'white', marginBottom: '10px', lineHeight: '1.4' }}>Temukan talent & kreator terbaik secara instan.</h3>
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
-                        Selenggarakan kompetisi kreatif untuk menjaring karya berkualitas, buka lowongan kolaborasi kru agensi secara cepat, dan unlock detail portofolio talent untuk dihubungi secara langsung.
+                        Selenggarakan kompetisi kreatif untuk menjaring karya berkualitas, pasang lowongan kolaborasi kru agensi, atau hubungi talent profesional secara langsung.
                       </p>
                     </div>
                     <button 
