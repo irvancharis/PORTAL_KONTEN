@@ -3850,8 +3850,12 @@ export default function App() {
                           window.dispatchEvent(new PopStateEvent('popstate'));
                         }}
                       >
-                        <span className="recruiting-badge">OPEN RECRUITMENT</span>
-                        <div style={{ display: 'flex', gap: '14px', alignItems: 'center', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                          <span className="recruiting-badge">OPEN RECRUITMENT</span>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>{members.length} Crew</span>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '14px', alignItems: 'center', textAlign: 'left', minWidth: 0 }}>
                           <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
                             {comm.avatar ? (
                               <img src={comm.avatar} alt={comm.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
@@ -3859,9 +3863,11 @@ export default function App() {
                               comm.name?.charAt(0) || comm.username?.charAt(0)
                             )}
                           </div>
-                          <div>
-                            <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>{comm.name || comm.username}</strong>
-                            <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{members.length} Crew Bergabung</span>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <strong style={{ fontSize: '1rem', color: 'white', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={comm.name || comm.username}>
+                              {comm.name || comm.username}
+                            </strong>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>Kategori: PH / Komunitas</span>
                           </div>
                         </div>
 
