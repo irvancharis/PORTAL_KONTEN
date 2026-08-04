@@ -1004,8 +1004,6 @@ export default function EventsUserPortal({
     <div className="events-portal-container animate-fade-in-up" style={{ 
       padding: '24px 0', 
       color: 'var(--text-primary)',
-      maxWidth: '1200px',
-      margin: '0 auto',
       width: '100%'
     }}>
       {/* Profile Completion Suggestion Banner */}
