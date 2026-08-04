@@ -3606,10 +3606,6 @@ export default function App() {
               {/* 1. Hero Header / CTA Banner */}
               <div className="dashboard-hero">
                 <div className="dashboard-hero-content animate-fade-in">
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 14px', borderRadius: '30px', marginBottom: '20px' }}>
-                    <Sparkles size={14} style={{ color: 'white' }} />
-                    <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.8px' }}>THE DIGITAL VIDEO CREATOR HUB</span>
-                  </div>
                   <h1 className="dashboard-hero-title">Tempat Karya Menjadi Nyata,<br />Kreator Video Menjadi Juara</h1>
                   <p className="dashboard-hero-subtitle">
                     Saksikan video pendek & film indie pilihan tanpa iklan, ikuti berbagai kompetisi video kreatif untuk brand nasional, temukan crew kolaborasi, dan bangun portofolio konten kreatormu hanya di ngonten.id.
