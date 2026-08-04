@@ -662,8 +662,8 @@ export default function Navbar({
               }
             }}
           >
-            <Film className="logo-icon" />
-            <span className="logo-text">FIL<span className="accent-text" style={{ color: 'var(--primary)' }}>MO</span></span>
+            <img src="/favicon.png" alt="ngonten.id" style={{ height: '30px', objectFit: 'contain' }} />
+            <span className="logo-text">ngonten.id</span>
           </div>
         </div>
 

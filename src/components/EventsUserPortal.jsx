@@ -444,7 +444,7 @@ export default function EventsUserPortal({
       eventId: off.eventId,
       name: currentUser.username,
       username: currentUser.username,
-      email: currentUser.email || `${currentUser.username}@filmo.com`,
+      email: currentUser.email || `${currentUser.username}@ngonten.id`,
       contact: `@${currentUser.username}`,
       socialPlatform: 'instagram', // Default fallback
       socialLink: `https://instagram.com/${currentUser.username}`,
@@ -547,7 +547,7 @@ export default function EventsUserPortal({
     // Generate unique code if not already set
     if (!uniqueCode) {
       const randomId = Math.floor(1000 + Math.random() * 9000);
-      setUniqueCode(`FILMO-${randomId}`);
+      setUniqueCode(`NGONTEN-${randomId}`);
     }
 
     setVerificationStep('verify');
@@ -710,7 +710,7 @@ export default function EventsUserPortal({
           eventTitle: registeringEvent.title,
           name: currentUser.username,
           username: currentUser.username,
-          email: currentUser.email || `${currentUser.username}@filmo.com`,
+          email: currentUser.email || `${currentUser.username}@ngonten.id`,
           contact: `@${cleanUsername}`,
           socialPlatform: selectedPlatform,
           socialLink: generatedLink,
@@ -837,7 +837,7 @@ export default function EventsUserPortal({
             eventTitle: registeringEvent.title,
             name: currentUser.username,
             username: currentUser.username,
-            email: currentUser.email || `${currentUser.username}@filmo.com`,
+            email: currentUser.email || `${currentUser.username}@ngonten.id`,
             contact: `@${cleanUsername}`,
             socialPlatform: selectedPlatform,
             socialLink: generatedLink,
@@ -3386,7 +3386,7 @@ export default function EventsUserPortal({
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(255,255,255,0.15)', paddingBottom: '10px', marginBottom: '10px' }}>
                     <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1.5px' }}>E-Tiket Resmi</span>
-                    <span style={{ fontSize: '0.68rem', color: '#ffffff', fontWeight: 'bold', letterSpacing: '1px' }}>FILMO TICKET</span>
+                    <span style={{ fontSize: '0.68rem', color: '#ffffff', fontWeight: 'bold', letterSpacing: '1px' }}>NGONTEN.ID TICKET</span>
                   </div>
                   <h4 style={{ margin: '0 0 8px 0', color: 'white', fontSize: '1.05rem', fontWeight: 'bold' }}>{registeringEvent.title}</h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>

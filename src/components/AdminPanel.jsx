@@ -2250,7 +2250,7 @@ export default function AdminPanel({
                       style={{ padding: '8px 16px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                     >
                       <QrCode size={14} />
-                      <span>Scan Tiket QR</span>
+                      <span>Scan QR</span>
                     </button>
                   </div>
                 </div>
@@ -3173,7 +3173,7 @@ export default function AdminPanel({
                     <div style={{ fontFamily: 'monospace', color: '#f1f5f9', fontSize: '0.9rem', lineHeight: '1.6' }}>
                       BANK MANDIRI KAB. JAKARTA<br />
                       No. Rekening: <strong style={{ color: 'white', fontSize: '1.05rem' }}>127-000-999-888</strong><br />
-                      Atas Nama: <strong>PT Filmo Media Indonesia (Escrow)</strong>
+                      Atas Nama: <strong>PT Ngonten Media Indonesia (Escrow)</strong>
                     </div>
                   </div>
 

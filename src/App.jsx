@@ -194,7 +194,7 @@ export default function App() {
         username: 'panitia',
         name: 'Panitia Portal',
         phone: '081234567890',
-        description: 'Komunitas resmi penyelenggara kompetisi kreatif FILMO.',
+        description: 'Komunitas resmi penyelenggara kompetisi kreatif ngonten.id.',
         avatar: '',
         activeMembersCount: '5',
         joinedMembers: []
@@ -976,7 +976,7 @@ export default function App() {
               ],
               whatsappAdmin: dbSettings?.whatsappAdmin || 'https://wa.me/6281234567890',
               premiumPrice: dbSettings?.premiumPrice || 'Rp 29.000 / Bulan',
-              paymentInstructions: dbSettings?.paymentInstructions || '- Bank BCA: 1234567890 a.n. FILMO\n- DANA: 081234567890 a.n. Admin\n- OVO: 081234567890',
+              paymentInstructions: dbSettings?.paymentInstructions || '- Bank BCA: 1234567890 a.n. ngonten.id\n- DANA: 081234567890 a.n. Admin\n- OVO: 081234567890',
               minWithdrawalAmount: dbSettings?.minWithdrawalAmount || 50000,
               eventAdminFee: dbSettings?.eventAdminFee || 0,
               withdrawalFeePercent: dbSettings?.withdrawalFeePercent || 0
@@ -1067,7 +1067,7 @@ export default function App() {
                 username: 'panitia',
                 name: 'Panitia Portal',
                 phone: '081234567890',
-                description: 'Komunitas resmi penyelenggara kompetisi kreatif FILMO.',
+                description: 'Komunitas resmi penyelenggara kompetisi kreatif ngonten.id.',
                 avatar: '',
                 activeMembersCount: '5',
                 joinedMembers: []
@@ -1773,7 +1773,7 @@ export default function App() {
   });
 
   const [paymentInstructions, setPaymentInstructions] = useState(() => {
-    return localStorage.getItem('portal-payment-instructions') || '- Bank BCA: 1234567890 a.n. FILMO\n- DANA: 081234567890 a.n. Admin\n- OVO: 081234567890';
+    return localStorage.getItem('portal-payment-instructions') || '- Bank BCA: 1234567890 a.n. ngonten.id\n- DANA: 081234567890 a.n. Admin\n- OVO: 081234567890';
   });
 
   const [minWithdrawalAmount, setMinWithdrawalAmount] = useState(() => {
@@ -2044,10 +2044,10 @@ export default function App() {
     
     if (selectedMovie && isPlaying && activeTab === 'discover') {
       // Nonton Film Page
-      const titleText = `${selectedMovie.title} - FILMO`;
+      const titleText = `${selectedMovie.title} - ngonten.id`;
       document.title = titleText;
       
-      const descText = `Saksikan film "${selectedMovie.title}" secara instan tanpa iklan. Sinopsis: ${selectedMovie.description?.substring(0, 120) || 'Nonton streaming film berkualitas di FILMO.'}...`;
+      const descText = `Saksikan film "${selectedMovie.title}" secara instan tanpa iklan. Sinopsis: ${selectedMovie.description?.substring(0, 120) || 'Nonton streaming film berkualitas di ngonten.id.'}...`;
       if (metaDesc) {
         metaDesc.setAttribute('content', descText);
       }
@@ -2057,7 +2057,7 @@ export default function App() {
         "@context": "https://schema.org",
         "@type": "Movie",
         "name": selectedMovie.title,
-        "description": selectedMovie.description || 'Nonton streaming film berkualitas di FILMO.',
+        "description": selectedMovie.description || 'Nonton streaming film berkualitas di ngonten.id.',
         "image": selectedMovie.poster || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=500&q=80',
         "genre": selectedMovie.genre || [],
         "dateCreated": selectedMovie.year || new Date().getFullYear(),
@@ -2079,7 +2079,7 @@ export default function App() {
       
       if (activeEvent) {
         // Event Detail Page
-        const titleText = `${activeEvent.title} - FILMO`;
+        const titleText = `${activeEvent.title} - ngonten.id`;
         document.title = titleText;
         
         const descText = `Ikuti kompetisi video "${activeEvent.title}" kategori ${activeEvent.category || 'UGC'}. Batas pendaftaran: ${activeEvent.deadline || 'Segera'}.`;
@@ -2092,7 +2092,7 @@ export default function App() {
           "@context": "https://schema.org",
           "@type": "Event",
           "name": activeEvent.title,
-          "description": activeEvent.description || 'Ikuti kompetisi video kreatif di FILMO.',
+          "description": activeEvent.description || 'Ikuti kompetisi video kreatif di ngonten.id.',
           "startDate": new Date().toISOString().split('T')[0],
           "endDate": activeEvent.deadline || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           "eventStatus": "https://schema.org/EventScheduled",
@@ -2112,31 +2112,31 @@ export default function App() {
         };
       } else {
         // General Events Page
-        document.title = 'Event - FILMO';
+        document.title = 'Event - ngonten.id';
         if (metaDesc) {
           metaDesc.setAttribute('content', 'Ikuti berbagai kompetisi event video kreatif (Short Film, Music Video, UGC, Dokumenter) dan raih total hadiah jutaan rupiah.');
         }
       }
     } else if (activeTab === 'wallet') {
-      document.title = 'Dompet Saya - FILMO';
+      document.title = 'Dompet Saya - ngonten.id';
       if (metaDesc) {
-        metaDesc.setAttribute('content', 'Kelola pendapatan Anda dari views video dan lakukan penarikan saldo dengan mudah di FILMO.');
+        metaDesc.setAttribute('content', 'Kelola pendapatan Anda dari views video and lakukan penarikan saldo dengan mudah di ngonten.id.');
       }
     } else if (activeTab === 'watchlist') {
-      document.title = 'Daftar Tontonan - FILMO';
+      document.title = 'Daftar Tontonan - ngonten.id';
       if (metaDesc) {
-        metaDesc.setAttribute('content', 'Simpan dan kelola film-film favorit Anda untuk ditonton nanti di FILMO.');
+        metaDesc.setAttribute('content', 'Simpan dan kelola film-film favorit Anda untuk ditonton nanti di ngonten.id.');
       }
     } else if (activeTab === 'history') {
-      document.title = 'Riwayat - FILMO';
+      document.title = 'Riwayat - ngonten.id';
       if (metaDesc) {
-        metaDesc.setAttribute('content', 'Lihat riwayat film yang telah Anda tonton sebelumnya di FILMO.');
+        metaDesc.setAttribute('content', 'Lihat riwayat film yang telah Anda tonton sebelumnya di ngonten.id.');
       }
     } else {
       // General Homepage / Discover
-      document.title = 'FILMO';
+      document.title = 'ngonten.id';
       if (metaDesc) {
-        metaDesc.setAttribute('content', 'Platform streaming film berkualitas tinggi tanpa iklan serta portal kompetisi event video kreatif dengan berbagai pilihan kategori dan hadiah menarik di FILMO.');
+        metaDesc.setAttribute('content', 'Platform streaming film berkualitas tinggi tanpa iklan serta portal kompetisi event video kreatif dengan berbagai pilihan kategori dan hadiah menarik di ngonten.id.');
       }
     }
     
@@ -4280,11 +4280,8 @@ export default function App() {
             maxWidth: loginModalMode === 'register' && registerRole === 'panitia' ? '680px' : '400px'
           }}>
           {/* Logo Brand Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-            <div style={{ background: '#ffffff', padding: '8px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Film size={24} color="black" />
-            </div>
-            <span style={{ fontSize: '1.6rem', fontWeight: '900', letterSpacing: '1.5px', color: '#ffffff' }}>FILMO</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+            <img src="/logo.png" alt="ngonten.id" style={{ height: '60px', objectFit: 'contain' }} />
           </div>
 
           {/* Login Card */}

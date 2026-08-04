@@ -316,7 +316,7 @@ export default function PremiumModal({
 
                   <button 
                     onClick={() => {
-                      setSelectedPayMethod({ id: 'bca', name: 'Bank BCA', type: 'bank', number: '1234567890', recipient: 'FILMO' });
+                      setSelectedPayMethod({ id: 'bca', name: 'Bank BCA', type: 'bank', number: '1234567890', recipient: 'ngonten.id' });
                       setCheckoutStep('instructions');
                     }}
                     className="payment-method-card glass-panel"
@@ -391,7 +391,7 @@ export default function PremiumModal({
                         <span style={{ fontSize: '0.55rem', color: '#6b7280', fontWeight: 'bold' }}>NMID: ID100050809</span>
                       </div>
                       <div style={{ textAlign: 'center', marginBottom: '6px' }}>
-                        <h4 style={{ margin: 0, fontSize: '0.8rem', color: '#111827', fontWeight: 'bold' }}>FILMO PREMIUM</h4>
+                        <h4 style={{ margin: 0, fontSize: '0.8rem', color: '#111827', fontWeight: 'bold' }}>NGONTEN.ID PREMIUM</h4>
                       </div>
                       
                       {/* SVG representation of standard QRIS code */}
