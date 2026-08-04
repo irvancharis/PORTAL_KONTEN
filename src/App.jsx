@@ -989,8 +989,8 @@ export default function App() {
               paymentInstructions: dbSettings?.paymentInstructions || '- Bank BCA: 1234567890 a.n. ngonten.id\n- DANA: 081234567890 a.n. Admin\n- OVO: 081234567890',
               minWithdrawalAmount: dbSettings?.minWithdrawalAmount || 50000,
               eventAdminFee: dbSettings?.eventAdminFee || 0,
-              withdrawalFeePercent: dbSettings?.withdrawalFeePercent || 0,
-              withdrawalFeePercentPremium: dbSettings?.withdrawalFeePercentPremium || 5
+              withdrawalFeePercent: dbSettings?.withdrawalFeePercent !== undefined ? dbSettings.withdrawalFeePercent : 5,
+              withdrawalFeePercentPremium: dbSettings?.withdrawalFeePercentPremium !== undefined ? dbSettings.withdrawalFeePercentPremium : 2
             };
             await saveFirestoreSettings(initialSettings);
             dbSettings = initialSettings;
@@ -1808,12 +1808,12 @@ export default function App() {
 
   const [withdrawalFeePercent, setWithdrawalFeePercent] = useState(() => {
     const saved = localStorage.getItem('portal-withdrawal-fee-percent');
-    return saved ? parseInt(saved) : 0;
+    return saved ? parseInt(saved) : 5;
   });
 
   const [withdrawalFeePercentPremium, setWithdrawalFeePercentPremium] = useState(() => {
     const saved = localStorage.getItem('portal-withdrawal-fee-percent-premium');
-    return saved ? parseInt(saved) : 5;
+    return saved ? parseInt(saved) : 2;
   });
 
   // Save Membership & Subscription Settings to localStorage when modified
@@ -3627,9 +3627,9 @@ export default function App() {
               {/* 1. Hero Header / CTA Banner */}
               <div className="dashboard-hero">
                 <div className="dashboard-hero-content animate-fade-in">
-                  <h1 className="dashboard-hero-title">Kreativitas Tanpa Batas,<br />Karya Digital Dihargai Nyata</h1>
+                  <h1 className="dashboard-hero-title">Hub Kolaborasi & Portofolio<br />Pelaku Industri Kreatif Indonesia</h1>
                   <p className="dashboard-hero-subtitle">
-                    Pamerkan portofolio terbaikmu (desain, foto, video, & animasi) tanpa batasan. Ikuti berbagai kompetisi kreatif nasional, temukan kolaborasi impian, dan dapatkan apresiasi finansial yang layak hanya di ngonten.id.
+                    Mempertemukan kreator, komunitas, dan brand nasional dalam satu platform dinamis. Temukan talent terbaik, bangun portofolio orisinal, dan penuhi kebutuhan industri kreatif dengan lebih cepat dan mudah di ngonten.id.
                   </p>
                   <div className="dashboard-hero-ctas">
                     <button 
@@ -4059,23 +4059,23 @@ export default function App() {
                   {[
                     {
                       q: "Apa itu ngonten.id?",
-                      a: "ngonten.id adalah platform hub kreatif dan kolaborasi untuk kreator digital Indonesia (desain, foto, video, animasi, dll). Di sini Anda dapat memamerkan portofolio terbaik, mengikuti kompetisi kreatif nasional berhadiah jutaan rupiah, bergabung dengan komunitas agensi/production house, serta mencairkan pendapatan secara langsung."
+                      a: "ngonten.id adalah hub kolaborasi pelaku industri kreatif Indonesia yang mempertemukan kreator, komunitas, dan brand nasional dalam satu platform terpadu. Tujuannya adalah mempermudah dan mempercepat pemenuhan kebutuhan industri kreatif seperti pencarian talent, verifikasi portofolio profesional, rekrutmen kru, dan penyelenggaraan event kompetisi."
                     },
                     {
                       q: "Bagaimana cara kreator mendapatkan uang di ngonten.id?",
-                      a: "Kreator dapat menghasilkan uang melalui dua jalur: 1) Memenangkan kompetisi kreatif/lomba berhadiah yang diselenggarakan oleh brand dan agensi nasional di platform, dan 2) Menerima pembagian hasil (benefit views) dari hasil penayangan karya digital orisinal Anda yang diunggah di situs."
+                      a: "Kreator dapat menghasilkan uang dengan memenangkan kompetisi kreatif/lomba yang diadakan oleh brand nasional dan agensi di platform, serta menerima pembagian hasil (benefit views) dari karya digital orisinal yang diunggah di situs."
                     },
                     {
                       q: "Apakah mendaftar di ngonten.id dipungut biaya?",
-                      a: "Tidak, pendaftaran dan akses ke fitur utama ngonten.id adalah 100% gratis. Namun, kami menawarkan keanggotaan Premium bagi kreator yang ingin memotong biaya admin penarikan saldo menjadi hanya 5% (hemat 50%), mendapatkan badge verified, serta mempromosikan portofolionya di posisi teratas halaman Beranda."
+                      a: "Pendaftaran di ngonten.id adalah 100% gratis. Namun, bagi kreator yang ingin meningkatkan peluang karir, akun Premium menyediakan prioritas akses informasi proyek, unlock detail halaman portofolio (kontak langsung, statistik performa, & CV lengkap agar brand/industri dapat menilai dan merekrut Anda dengan lebih mudah), serta diskon potongan admin penarikan saldo."
                     },
                     {
                       q: "Bagaimana sistem penarikan saldo (withdrawal)?",
-                      a: "Setiap dana kemenangan lomba atau hasil karya akan masuk ke Dompet Kreator Anda. Anda bisa melakukan penarikan saldo kapan saja ke Rekening Bank atau E-Wallet (DANA, OVO, Gopay, dll) dengan batas minimal penarikan Rp 50.000."
+                      a: "Dana dari kemenangan lomba atau benefit views akan masuk ke Dompet Kreator Anda. Penarikan saldo dapat dilakukan kapan saja ke rekening bank/e-wallet (minimal Rp 50.000) dengan potongan biaya admin otomatis sebesar 5% untuk akun biasa, dan hanya 2% bagi akun Premium."
                     },
                     {
                       q: "Bagaimana cara komunitas atau agensi merekrut crew?",
-                      a: "Komunitas/agensi dapat membuka rekrutmen crew baru dengan mendaftarkan profil komunitas dan menentukan batas kuota crew yang diinginkan. Kreator lain dapat mendaftar langsung untuk berkolaborasi dalam proyek kreatif bersama komunitas Anda."
+                      a: "Komunitas atau agensi dapat mendaftarkan profil mereka, membuka slot lowongan crew, dan menetapkan kuota yang dibutuhkan. Kreator lain dapat mendaftar langsung untuk mulai berkolaborasi secara cepat dan efisien."
                     }
                   ].map((faq, idx) => {
                     const isOpen = activeFaqIndex === idx;
@@ -4147,9 +4147,9 @@ export default function App() {
               {/* 6. Bottom Join CTA Banner */}
               <div className="dashboard-hero" style={{ background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%)', borderColor: 'rgba(255, 255, 255, 0.08)', textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <div style={{ maxWidth: '650px' }}>
-                  <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'white', marginBottom: '14px', letterSpacing: '-0.02em' }}>Siap Mengembangkan Karya Digitalmu?</h2>
+                  <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'white', marginBottom: '14px', letterSpacing: '-0.02em' }}>Penuhi Kebutuhan Industri Kreatif Bersama Kami</h2>
                   <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.7)', marginBottom: '28px', lineHeight: '1.6' }}>
-                    Daftar gratis sebagai kreator untuk membangun portofolio karya digitalmu (desain, foto, video, animasi, dll), ikuti berbagai kompetisi kreatif untuk brand nasional, dan bangun kolaborasimu di ngonten.id.
+                    Pendaftaran gratis untuk kreator, agensi, dan brand. Bagikan portofolio profesional Anda, buka lowongan kolaborasi komunitas, atau temukan talent terbaik untuk proyek kreatif Anda hanya di ngonten.id.
                   </p>
                   <button 
                     className="btn btn-primary"
