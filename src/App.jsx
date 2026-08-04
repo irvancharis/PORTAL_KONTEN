@@ -3635,27 +3635,15 @@ export default function App() {
                     <button 
                       className="btn btn-primary" 
                       onClick={() => {
-                        const targetEl = document.getElementById('new-releases-section');
-                        if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                      style={{ borderRadius: '30px', padding: '12px 28px', fontWeight: 'bold', fontSize: '0.92rem' }}
-                    >
-                      <Film size={16} />
-                      <span>Ikut Kampanye (Kreator)</span>
-                    </button>
-                    <button 
-                      className="btn btn-outline" 
-                      onClick={() => {
-                        if (whatsappAdmin) {
-                          window.open(whatsappAdmin, '_blank');
+                        if (!currentUser) {
+                          handleOpenLoginModal('register');
                         } else {
-                          window.open('https://wa.me/6281234567890', '_blank');
+                          handleTabChange('events');
                         }
                       }}
-                      style={{ borderRadius: '30px', padding: '12px 28px', fontWeight: 'bold', fontSize: '0.92rem', borderColor: 'rgba(255,255,255,0.2)' }}
+                      style={{ borderRadius: '30px', padding: '14px 36px', fontWeight: 'bold', fontSize: '0.95rem' }}
                     >
-                      <Briefcase size={16} />
-                      <span>Buat Kampanye (Brand)</span>
+                      {!currentUser ? 'Gabung Sekarang' : 'Jelajahi Event & Kompetisi'}
                     </button>
                   </div>
 
