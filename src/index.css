@@ -3613,34 +3613,17 @@ select option {
   margin: 10px 0;
 }
 
-/* Responsive Lists to Grids for Widescreen Layouts */
-.event-portal-list-grid {
+.event-portal-list-container {
   display: flex;
   flex-direction: column;
   gap: 16px;
   width: 100%;
 }
 
-@media (min-width: 992px) {
-  .event-portal-list-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-  }
-}
-
-.community-portal-list-grid {
+.community-portal-list-container {
   display: flex;
   flex-direction: column;
   gap: 16px;
   width: 100%;
-}
-
-@media (min-width: 992px) {
-  .community-portal-list-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-  }
 }
 

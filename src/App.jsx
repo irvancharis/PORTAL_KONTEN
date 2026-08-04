@@ -2975,7 +2975,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="community-portal-list-grid">
+                  <div className="community-portal-list-container">
                     {(() => {
                       const filtered = communities
                         .filter(comm => !currentUser || comm.username.toLowerCase() !== currentUser.username.toLowerCase())
@@ -3004,7 +3004,7 @@ export default function App() {
                       return (
                         <div 
                           key={comm.id}
-                          className="glass-panel"
+                          className="glass-panel community-portal-card"
                           onClick={() => {
                             if (!currentUser) {
                               handleOpenLoginModal('register');

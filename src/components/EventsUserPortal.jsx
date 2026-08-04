@@ -2600,7 +2600,7 @@ export default function EventsUserPortal({
           </div>
 
           {/* List Layout: Row Cards */}
-          <div className="event-portal-list-grid">
+          <div className="event-portal-list-container">
             {(() => {
               const filtered = events.filter(evt =>
                 evt.paymentStatus === 'paid' && 
