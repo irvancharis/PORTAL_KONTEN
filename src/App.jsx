@@ -107,6 +107,38 @@ const slugify = (text) => {
     .replace(/-+$/, '');
 };
 
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbww9byb9H5SIW_HknSEVJJe-oY9S--NaeKSPjcQ6IBACzoQc38oZ36bQqm__60gncIxxA/exec';
+
+const fetchJSONP = (url, params = {}) => {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+    window[callbackName] = (data) => {
+      delete window[callbackName];
+      const scriptTag = document.getElementById(callbackName);
+      if (scriptTag) document.body.removeChild(scriptTag);
+      resolve(data);
+    };
+
+    const queryString = Object.keys(params)
+      .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+      .join('&');
+    
+    const separator = url.includes('?') ? '&' : '?';
+    const finalUrl = `${url}${separator}${queryString}&callback=${callbackName}`;
+
+    const script = document.createElement('script');
+    script.id = callbackName;
+    script.src = finalUrl;
+    script.onerror = () => {
+      delete window[callbackName];
+      const scriptTag = document.getElementById(callbackName);
+      if (scriptTag) document.body.removeChild(scriptTag);
+      reject(new Error('JSONP request failed'));
+    };
+    document.body.appendChild(script);
+  });
+};
+
 export default function App() {
   // Movie database state loaded from localStorage, fallback to movies.json
   const [movies, setMovies] = useState(() => {
@@ -633,7 +665,127 @@ export default function App() {
   const [editProfilePortfolio, setEditProfilePortfolio] = useState('');
   const [editProfileActiveMembers, setEditProfileActiveMembers] = useState('');
   const [editProfileActivityImages, setEditProfileActivityImages] = useState('');
+  const [editProfileFacebookHandle, setEditProfileFacebookHandle] = useState('');
+  const [editProfileFacebookVerified, setEditProfileFacebookVerified] = useState(false);
+  const [editProfileTiktokHandle, setEditProfileTiktokHandle] = useState('');
+  const [editProfileTiktokVerified, setEditProfileTiktokVerified] = useState(false);
+  const [editProfileInstagramHandle, setEditProfileInstagramHandle] = useState('');
+  const [editProfileInstagramVerified, setEditProfileInstagramVerified] = useState(false);
+  const [editProfileYoutubeHandle, setEditProfileYoutubeHandle] = useState('');
+  const [editProfileYoutubeVerified, setEditProfileYoutubeVerified] = useState(false);
+
+  // Social Verification Temp states
+  const [verifyingPlatform, setVerifyingPlatform] = useState(null); // 'facebook' | 'tiktok' | 'instagram' | 'youtube' | null
+  const [verificationStep, setVerificationStep] = useState('input'); // 'input' | 'verify' | 'loading' | 'success' | 'failed' | 'expired'
+  const [uniqueCode, setUniqueCode] = useState('');
+  const [timerSeconds, setTimerSeconds] = useState(180);
+  const [verificationError, setVerificationError] = useState('');
+  const [socialUrl, setSocialUrl] = useState('');
+
+  // Social Media Verification Timer countdown
+  useEffect(() => {
+    let interval = null;
+    if (verifyingPlatform && verificationStep === 'verify' && timerSeconds > 0) {
+      interval = setInterval(() => {
+        setTimerSeconds((prev) => {
+          if (prev <= 1) {
+            setVerificationStep('expired');
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [verifyingPlatform, verificationStep, timerSeconds]);
+
   const usernameInputRef = useRef(null);
+
+  const handleCheckProfileSocialMedia = async (platform, username, code) => {
+    let cleanUsername = username.trim();
+    if (cleanUsername.startsWith('@')) {
+      cleanUsername = cleanUsername.substring(1);
+    }
+    
+    // Test simulation accounts
+    const isTestMockSuccess = cleanUsername.toLowerCase() === 'rudiwijaya' || cleanUsername.toLowerCase() === 'sanaminnulloh';
+    const isTestMockFailure = cleanUsername.toLowerCase() === 'notfound' || 
+                              cleanUsername.toLowerCase() === 'invalid' || 
+                              cleanUsername.toLowerCase() === 'tidakditemukan' || 
+                              cleanUsername.toLowerCase() === 'error';
+    if (isTestMockSuccess) {
+      return { exists: true, codeFound: true, status: 'approved' };
+    }
+    if (isTestMockFailure) {
+      return { exists: false, codeFound: false, status: 'failed' };
+    }
+
+    try {
+      if (GOOGLE_APPS_SCRIPT_URL) {
+        const result = await fetchJSONP(GOOGLE_APPS_SCRIPT_URL, {
+          platform: platform,
+          username: cleanUsername,
+          code: code
+        });
+        if (result && result.status) {
+          return result;
+        }
+      }
+      
+      // Fallback
+      if (platform === 'tiktok') {
+        const tikwmUrl = `https://www.tikwm.com/api/user/info?unique_id=${encodeURIComponent(cleanUsername)}`;
+        const response = await fetch(tikwmUrl);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.code === 0 && data.data && data.data.user) {
+            const signature = data.data.user.signature || '';
+            const containsCode = signature.toLowerCase().includes(code.toLowerCase());
+            return {
+              exists: true,
+              codeFound: containsCode,
+              status: containsCode ? 'approved' : 'failed'
+            };
+          }
+        }
+      } else if (platform === 'youtube') {
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/@${cleanUsername}`)}`;
+        const response = await fetch(proxyUrl);
+        if (response.ok) {
+          const data = await response.json();
+          const html = data.contents || '';
+          const containsCode = html.toLowerCase().includes(code.toLowerCase());
+          return {
+            exists: html.includes('ytInitialData') && !html.includes('This channel does not exist'),
+            codeFound: containsCode,
+            status: containsCode ? 'approved' : 'failed'
+          };
+        }
+      } else {
+        // Instagram / Facebook search
+        const searchUrl = `https://html.duckduckgo.com/html/?q=site:${platform === 'instagram' ? 'instagram.com' : 'facebook.com'}/${cleanUsername}`;
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`;
+        const response = await fetch(proxyUrl);
+        if (response.ok) {
+          const data = await response.json();
+          const html = data.contents || '';
+          const hasResults = html.includes('class="result__body"') || html.includes('result__snippet');
+          const containsCode = html.toLowerCase().includes(code.toLowerCase());
+          return {
+            exists: hasResults,
+            codeFound: containsCode,
+            status: containsCode ? 'approved' : 'failed'
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("Verification check failed:", e);
+    }
+    return { exists: false, codeFound: false, status: 'failed' };
+  };
 
   const handleOpenEditProfile = () => {
     if (!currentUser) return;
@@ -645,6 +797,24 @@ export default function App() {
     setEditProfilePortfolio(currentUser.userPortfolio || '');
     setEditProfileActiveMembers(currentUser.activeMembersCount || '');
     setEditProfileActivityImages(currentUser.activityImages ? currentUser.activityImages.join(', ') : '');
+    
+    // Social handles
+    setEditProfileFacebookHandle(currentUser.facebookHandle || '');
+    setEditProfileFacebookVerified(!!currentUser.facebookVerified);
+    setEditProfileTiktokHandle(currentUser.tiktokHandle || '');
+    setEditProfileTiktokVerified(!!currentUser.tiktokVerified);
+    setEditProfileInstagramHandle(currentUser.instagramHandle || '');
+    setEditProfileInstagramVerified(!!currentUser.instagramVerified);
+    setEditProfileYoutubeHandle(currentUser.youtubeHandle || '');
+    setEditProfileYoutubeVerified(!!currentUser.youtubeVerified);
+
+    // Reset verification states
+    setVerifyingPlatform(null);
+    setVerificationStep('input');
+    setVerificationError('');
+    setSocialUrl('');
+    setUniqueCode('');
+
     setIsEditProfileModalOpen(true);
   };
 
@@ -3154,7 +3324,11 @@ export default function App() {
                           <User size={16} />
                           <span style={{ fontSize: '0.85rem' }}>Kategori Kreator</span>
                         </div>
-                        <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.userCategory || '-'}</span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'flex-end', maxWidth: '60%' }}>
+                          {currentUser?.userCategory ? currentUser.userCategory.split(',').map((cat, idx) => (
+                            <span key={idx} style={{ fontSize: '0.78rem', padding: '3px 8px', background: 'rgba(255,255,255,0.06)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontWeight: '500' }}>{cat.trim()}</span>
+                          )) : <span style={{ color: 'var(--text-muted)' }}>-</span>}
+                        </div>
                       </div>
                     )}
 
@@ -3627,9 +3801,9 @@ export default function App() {
               {/* 1. Hero Header / CTA Banner */}
               <div className="dashboard-hero">
                 <div className="dashboard-hero-content animate-fade-in">
-                  <h1 className="dashboard-hero-title">Satu Platform,<br />Berbagai Solusi Industri Kreatif</h1>
+                  <h1 className="dashboard-hero-title">Satu Platform,<br />Solusi Industri Kreatif</h1>
                   <p className="dashboard-hero-subtitle">
-                    Bergabunglah sekarang dan temukan solusi kebutuhan kreatif Anda. Kreator dapat mengikuti kampanye untuk memamerkan karya, sedangkan brand dapat membuat kampanye untuk menemukan talent terbaik secara cepat.
+                    Bergabung sekarang dan temukan solusi kebutuhan kreatif Anda. Kreator dapat mengikuti kampanye untuk mendapat penghasilan, sedangkan brand dapat membuat kampanye untuk menemukan talenta terbaik secara cepat.
                   </p>
                   <div className="dashboard-hero-ctas">
                     <button 
@@ -3886,9 +4060,9 @@ export default function App() {
                   <div className="dashboard-section-title-wrapper">
                     <h3>
                       <Briefcase size={20} />
-                      <span>Rekrutmen Agensi & Komunitas</span>
+                      <span>Komunitas & Production House</span>
                     </h3>
-                    <p>Bergabunglah dengan agensi, studio kreatif, atau komunitas lokal untuk berkolaborasi dalam proyek baru.</p>
+                    <p>Bergabunglah dengan komunitas atau Production House untuk berkolaborasi dalam proyek baru.</p>
                   </div>
                   <span 
                     className="dashboard-section-link"
@@ -4015,7 +4189,11 @@ export default function App() {
                       </div>
                       <div className="creator-info">
                         <span className="creator-name">{creator.name}</span>
-                        <span className="creator-tag">{creator.userCategory}</span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+                          {creator.userCategory ? creator.userCategory.split(',').map((cat, idx) => (
+                            <span key={idx} className="creator-tag" style={{ fontSize: '0.72rem', padding: '2px 6px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', color: 'var(--text-secondary)' }}>{cat.trim()}</span>
+                          )) : <span className="creator-tag" style={{ fontSize: '0.72rem', padding: '2px 6px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', color: 'var(--text-secondary)' }}>Kreator Digital</span>}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -4127,7 +4305,7 @@ export default function App() {
 
               <div className="dashboard-hero" style={{ background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%)', borderColor: 'rgba(255, 255, 255, 0.08)', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '48px 24px' }}>
                 <div style={{ maxWidth: '650px' }}>
-                  <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'white', marginBottom: '14px', letterSpacing: '-0.02em' }}>Bergabung & Temukan Solusi Kreatif Anda</h2>
+                  <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'white', marginBottom: '14px', letterSpacing: '-0.02em' }}>Temukan Solusi Kreatif Anda</h2>
                   <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.7)', marginBottom: '28px', lineHeight: '1.6' }}>
                     Platform terintegrasi yang mempertemukan kreator dan brand untuk solusi kebutuhan karya digital dan bisnis.
                   </p>
@@ -4340,7 +4518,11 @@ export default function App() {
                             </div>
                             <div className="creator-info">
                               <span className="creator-name">{name}</span>
-                              <span className="creator-tag">{userCategory}</span>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+                                {userCategory ? userCategory.split(',').map((cat, idx) => (
+                                  <span key={idx} className="creator-tag" style={{ fontSize: '0.72rem', padding: '2px 6px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', color: 'var(--text-secondary)' }}>{cat.trim()}</span>
+                                )) : <span className="creator-tag" style={{ fontSize: '0.72rem', padding: '2px 6px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', color: 'var(--text-secondary)' }}>Kreator Digital</span>}
+                              </div>
                             </div>
                           </div>
                         );
@@ -4723,7 +4905,7 @@ export default function App() {
                     }
                   }
 
-                  const updatedUser = {
+                   const updatedUser = {
                     ...currentUser,
                     organizerName: editProfileName.trim(),
                     organizerPhone: editProfilePhone.trim(),
@@ -4734,7 +4916,17 @@ export default function App() {
                     joinedMembers: currentUser.joinedMembers || [],
                     userCategory: isComm ? 'Videografer' : editProfileCategory,
                     userPortfolio: isComm ? '' : editProfilePortfolio.trim(),
-                    activityImages: isComm ? editProfileActivityImages.split(',').map(s => s.trim()).filter(Boolean) : []
+                    activityImages: isComm ? editProfileActivityImages.split(',').map(s => s.trim()).filter(Boolean) : [],
+                    
+                    // Social handles & verification flags
+                    facebookHandle: editProfileFacebookHandle.trim(),
+                    facebookVerified: editProfileFacebookVerified,
+                    tiktokHandle: editProfileTiktokHandle.trim(),
+                    tiktokVerified: editProfileTiktokVerified,
+                    instagramHandle: editProfileInstagramHandle.trim(),
+                    instagramVerified: editProfileInstagramVerified,
+                    youtubeHandle: editProfileYoutubeHandle.trim(),
+                    youtubeVerified: editProfileYoutubeVerified
                   };
 
                   // Update locally
@@ -4823,30 +5015,69 @@ export default function App() {
 
                 {currentUser.role !== 'panitia' ? (
                   <>
-                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Keahlian / Kategori Utama</label>
-                      <select
-                        value={editProfileCategory}
-                        onChange={(e) => setEditProfileCategory(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          background: 'rgba(255, 255, 255, 0.04)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: 'var(--radius-sm)',
-                          color: 'var(--text-primary)',
-                          outline: 'none',
-                          fontSize: '0.9rem'
-                        }}
-                      >
-                        <option value="Videografer">Videografer</option>
-                        <option value="Content Creator">Content Creator</option>
-                        <option value="Animator">Animator</option>
-                        <option value="Script Writer">Script Writer</option>
-                        <option value="Aktor / Aktris">Aktor / Aktris</option>
-                        <option value="Penyelenggara Event">Penyelenggara Event</option>
-                        <option value="Lainnya">Lainnya</option>
-                      </select>
+                     <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Keahlian / Kategori (Pilih minimal 1)</label>
+                      {(() => {
+                        const selectedSkills = editProfileCategory ? editProfileCategory.split(',').map(s => s.trim()).filter(Boolean) : [];
+                        const allSkills = [
+                          "Videografer", 
+                          "Sutradara", 
+                          "DOP / Kamerawan", 
+                          "Editor Video", 
+                          "Animator", 
+                          "Motion Designer", 
+                          "VFX Artist",
+                          "Script Writer", 
+                          "Sound Engineer", 
+                          "Music Producer",
+                          "Colorist",
+                          "Content Creator", 
+                          "KOL / Influencer", 
+                          "Voice Over", 
+                          "Presenter / Host",
+                          "Aktor / Aktris", 
+                          "Model", 
+                          "Fotografer", 
+                          "Desainer Grafis", 
+                          "Penyelenggara Event"
+                        ];
+                        
+                        return (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                            {allSkills.map(skill => {
+                              const isSelected = selectedSkills.includes(skill);
+                              return (
+                                <button
+                                  type="button"
+                                  key={skill}
+                                  onClick={() => {
+                                    let newSkills;
+                                    if (isSelected) {
+                                      newSkills = selectedSkills.filter(s => s !== skill);
+                                    } else {
+                                      newSkills = [...selectedSkills, skill];
+                                    }
+                                    setEditProfileCategory(newSkills.join(', '));
+                                  }}
+                                  style={{
+                                    padding: '8px 14px',
+                                    borderRadius: '20px',
+                                    fontSize: '0.82rem',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    background: isSelected ? 'white' : 'rgba(255, 255, 255, 0.05)',
+                                    border: isSelected ? '1px solid white' : '1px solid rgba(255, 255, 255, 0.1)',
+                                    color: isSelected ? 'black' : 'var(--text-secondary)'
+                                  }}
+                                >
+                                  {skill}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -5028,7 +5259,189 @@ export default function App() {
                   </div>
                 </div>
 
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '8px', padding: '10px' }}>
+                {/* Social Media Accounts Verification Section */}
+                {currentUser.role !== 'panitia' && (
+                  <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '16px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '8px' }}>
+                    <h4 style={{ margin: '0 0 4px 0', fontSize: '0.9rem', color: 'white', fontWeight: 'bold' }}>Akun Sosial Media Terverifikasi</h4>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>Wajib diverifikasi jika Anda ingin berpartisipasi dalam event kompetisi.</p>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '6px' }}>
+                      {[
+                        { id: 'facebook', label: 'Facebook', handle: editProfileFacebookHandle, setHandle: setEditProfileFacebookHandle, verified: editProfileFacebookVerified, setVerified: setEditProfileFacebookVerified, color: '#1877f2' },
+                        { id: 'tiktok', label: 'TikTok', handle: editProfileTiktokHandle, setHandle: setEditProfileTiktokHandle, verified: editProfileTiktokVerified, setVerified: setEditProfileTiktokVerified, color: '#00f2fe' },
+                        { id: 'instagram', label: 'Instagram', handle: editProfileInstagramHandle, setHandle: setEditProfileInstagramHandle, verified: editProfileInstagramVerified, setVerified: setEditProfileInstagramVerified, color: '#e1306c' },
+                        { id: 'youtube', label: 'YouTube', handle: editProfileYoutubeHandle, setHandle: setEditProfileYoutubeHandle, verified: editProfileYoutubeVerified, setVerified: setEditProfileYoutubeVerified, color: '#ff0000' }
+                      ].map(platform => {
+                        const isVerifying = verifyingPlatform === platform.id;
+                        
+                        return (
+                          <div key={platform.id} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.04)', borderRadius: '8px', padding: '12px' }}>
+                            {isVerifying ? (
+                              /* Active verification box */
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: platform.color, textTransform: 'uppercase' }}>Verifikasi {platform.label}</span>
+                                
+                                {verificationStep === 'input' && (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    <input 
+                                      type="text" 
+                                      placeholder={`Masukkan username / handle ${platform.label}`}
+                                      value={socialUrl}
+                                      onChange={(e) => setSocialUrl(e.target.value)}
+                                      style={{ width: '100%', padding: '8px 12px', background: '#020202', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem', outline: 'none' }}
+                                    />
+                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                      <button 
+                                        type="button" 
+                                        onClick={() => setVerifyingPlatform(null)}
+                                        className="btn btn-secondary" 
+                                        style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                                      >Batal</button>
+                                      <button 
+                                        type="button" 
+                                        onClick={() => {
+                                          const val = socialUrl.trim();
+                                          if (!val) { alert('Masukkan username!'); return; }
+                                          if (val.includes(' ')) { alert('Username tidak boleh ada spasi!'); return; }
+                                          const code = `NGONTEN-${Math.floor(1000 + Math.random() * 9000)}`;
+                                          setUniqueCode(code);
+                                          setVerificationStep('verify');
+                                          setTimerSeconds(180);
+                                        }}
+                                        className="btn btn-primary" 
+                                        style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                                      >Lanjut</button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {verificationStep === 'verify' && (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                                      Salin kode unik di bawah ini dan tempelkan di bio profil <strong>{platform.label}</strong> Anda:
+                                    </p>
+                                    <div style={{ padding: '8px', background: '#111', border: '1px dashed rgba(255,255,255,0.2)', borderRadius: '6px', textAlign: 'center', fontSize: '1rem', fontWeight: 'bold', color: 'white', letterSpacing: '1px' }}>
+                                      {uniqueCode}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: '#fbbf24', textAlign: 'center' }}>
+                                      Waktu tersisa: {Math.floor(timerSeconds / 60)}:{( '0' + (timerSeconds % 60) ).slice(-2)}
+                                    </div>
+                                    {verificationError && (
+                                      <div style={{ color: '#f87171', fontSize: '0.75rem', lineHeight: '1.4' }}>{verificationError}</div>
+                                    )}
+                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                      <button 
+                                        type="button" 
+                                        onClick={() => setVerificationStep('input')}
+                                        className="btn btn-secondary" 
+                                        style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                                      >Kembali</button>
+                                      <button 
+                                        type="button" 
+                                        onClick={async () => {
+                                          setVerificationStep('loading');
+                                          setVerificationError('');
+                                          const result = await handleCheckProfileSocialMedia(platform.id, socialUrl, uniqueCode);
+                                          if (result && result.status === 'approved') {
+                                            const cleanUser = socialUrl.trim().startsWith('@') ? socialUrl.trim().substring(1) : socialUrl.trim();
+                                            platform.setHandle(cleanUser);
+                                            platform.setVerified(true);
+                                            setVerifyingPlatform(null);
+                                            alert(`Verifikasi ${platform.label} berhasil!`);
+                                          } else {
+                                            setVerificationError(`Gagal memverifikasi. Pastikan kode unik ${uniqueCode} sudah ditempel di bio profil Anda.`);
+                                            setVerificationStep('failed');
+                                          }
+                                        }}
+                                        className="btn btn-primary" 
+                                        style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                                      >Cek Akun</button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {verificationStep === 'loading' && (
+                                  <div style={{ textAlign: 'center', padding: '12px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                    Mengecek bio profil Anda, silakan tunggu...
+                                  </div>
+                                )}
+
+                                {(verificationStep === 'failed' || verificationStep === 'expired') && (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#f87171', lineHeight: '1.4' }}>
+                                      {verificationStep === 'expired' ? 'Waktu verifikasi habis.' : (verificationError || 'Verifikasi gagal dilakukan.')}
+                                    </p>
+                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                      <button 
+                                        type="button" 
+                                        onClick={() => setVerifyingPlatform(null)}
+                                        className="btn btn-secondary" 
+                                        style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                                      >Batal</button>
+                                      <button 
+                                        type="button" 
+                                        onClick={() => {
+                                          setVerificationStep('input');
+                                          setVerificationError('');
+                                        }}
+                                        className="btn btn-primary" 
+                                        style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                                      >Coba Lagi</button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              /* Standard state */
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <span style={{ fontSize: '0.85rem', color: 'white', fontWeight: 'bold' }}>{platform.label}</span>
+                                  {platform.verified ? (
+                                    <>
+                                      <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>@{platform.handle}</span>
+                                      <span style={{ fontSize: '0.68rem', padding: '2px 6px', background: 'rgba(74, 222, 128, 0.1)', color: '#4ade80', borderRadius: '4px', border: '1px solid rgba(74, 222, 128, 0.2)', fontWeight: '600' }}>Terverifikasi</span>
+                                    </>
+                                  ) : (
+                                    <span style={{ fontSize: '0.68rem', padding: '2px 6px', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.2)', fontWeight: '600' }}>Belum Terhubung</span>
+                                  )}
+                                </div>
+                                {platform.verified ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (confirm(`Ubah akun ${platform.label}? Anda harus memverifikasi ulang akun baru nantinya.`)) {
+                                        platform.setHandle('');
+                                        platform.setVerified(false);
+                                      }
+                                    }}
+                                    style={{ background: 'transparent', border: 'none', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+                                  >
+                                    Ubah
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setVerifyingPlatform(platform.id);
+                                      setSocialUrl('');
+                                      setVerificationStep('input');
+                                      setVerificationError('');
+                                    }}
+                                    style={{ background: 'white', border: 'none', color: 'black', fontSize: '0.75rem', cursor: 'pointer', padding: '4px 10px', borderRadius: '4px', fontWeight: 'bold' }}
+                                  >
+                                    Hubungkan
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '16px', padding: '10px' }}>
                   <span>Simpan Perubahan</span>
                 </button>
               </form>

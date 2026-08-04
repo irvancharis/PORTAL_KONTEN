@@ -3119,141 +3119,242 @@ export default function EventsUserPortal({
                     </form>
                   )
                 ) : (
-                  /* ORIGINAL COMPETITION SOCIAL MEDIA LINKING FORM */
-                  <>
-                    <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '600' }}>Pilih Platform Sosial Media</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
-                      {[
-                        { id: 'instagram', label: 'Instagram', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>, color: '#e1306c' },
-                        { id: 'tiktok', label: 'TikTok', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>, color: '#00f2fe' },
-                        { id: 'youtube', label: 'YouTube', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17z"/><polygon points="10 15 15 12 10 9"/></svg>, color: '#ff0000' },
-                        { id: 'facebook', label: 'Facebook', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, color: '#1877f2' }
-                      ].map(p => {
-                        const isSelected = selectedPlatform === p.id;
-                        return (
-                          <button
-                            type="button"
-                            key={p.id}
-                            onClick={() => setSelectedPlatform(p.id)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '10px',
-                              padding: '14px 16px',
-                              borderRadius: '8px',
-                              background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255,255,255,0.02)',
-                              border: isSelected ? '1px solid #ffffff' : '1px solid var(--border-color)',
-                              color: isSelected ? '#ffffff' : 'var(--text-secondary)',
-                              cursor: 'pointer',
-                              fontWeight: '600',
-                              fontSize: '0.9rem',
-                              transition: 'all 0.2s',
-                              outline: 'none'
-                            }}
-                          >
-                            <span style={{ color: isSelected ? '#ffffff' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
-                              {p.svg}
-                            </span>
-                            <span>{p.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                  (() => {
+                    const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
+                    
+                    const verifiedAccounts = [];
+                    if (userProfile.instagramVerified && userProfile.instagramHandle) {
+                      verifiedAccounts.push({ id: 'instagram', label: 'Instagram', handle: userProfile.instagramHandle });
+                    }
+                    if (userProfile.tiktokVerified && userProfile.tiktokHandle) {
+                      verifiedAccounts.push({ id: 'tiktok', label: 'TikTok', handle: userProfile.tiktokHandle });
+                    }
+                    if (userProfile.youtubeVerified && userProfile.youtubeHandle) {
+                      verifiedAccounts.push({ id: 'youtube', label: 'YouTube', handle: userProfile.youtubeHandle });
+                    }
+                    if (userProfile.facebookVerified && userProfile.facebookHandle) {
+                      verifiedAccounts.push({ id: 'facebook', label: 'Facebook', handle: userProfile.facebookHandle });
+                    }
 
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', background: '#ffffff', border: '1px solid #ffffff', padding: '14px 16px', borderRadius: '8px', marginBottom: '20px', fontSize: '0.85rem', color: '#000000', lineHeight: '1.5', boxShadow: '0 4px 20px rgba(255, 255, 255, 0.15)' }}>
-                      <AlertTriangle size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#000000' }} />
-                      <span style={{ fontWeight: '500' }}>
-                        <strong style={{ fontWeight: '800', textDecoration: 'underline' }}>PENTING:</strong> Akun sosial media ini wajib menjadi akun yang Anda gunakan untuk mempublikasikan video hasil karya kompetisi Anda nantinya.
-                      </span>
-                    </div>
-
-                    {/* ticket price and payment */}
-                    {registeringEvent.ticketPrice > 0 && (() => {
-                      const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
-                      const activeBal = userProfile ? (userProfile.walletBalance || 0) : (currentUser.walletBalance || 0);
-                      const isInsufficient = activeBal < registeringEvent.ticketPrice;
+                    if (verifiedAccounts.length === 0) {
                       return (
-                        <div style={{
-                          background: 'rgba(255, 255, 255, 0.02)',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
-                          padding: '16px',
-                          borderRadius: '8px',
-                          marginBottom: '20px'
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Biaya Pendaftaran / Tiket:</span>
-                            <strong style={{ color: '#4ade80', fontSize: '1.05rem' }}>Rp {registeringEvent.ticketPrice.toLocaleString('id-ID')}</strong>
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Saldo Dompet Anda:</span>
-                            <strong style={{ color: 'white', fontSize: '1.05rem' }}>Rp {activeBal.toLocaleString('id-ID')}</strong>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '8px 0' }}>
+                          <div style={{ padding: '16px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#f87171', fontSize: '0.85rem', lineHeight: '1.5' }}>
+                            <strong style={{ display: 'block', marginBottom: '6px', fontSize: '0.9rem' }}>⚠️ Akun Sosial Media Belum Terverifikasi!</strong>
+                            Anda belum memverifikasi akun sosial media di profil Anda. Untuk dapat berpartisipasi dalam event kompetisi ini, Anda wajib memverifikasi minimal satu akun sosial media Anda terlebih dahulu.
                           </div>
                           
-                          {isInsufficient ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '12px' }}>
-                              <p style={{ margin: 0, fontSize: '0.78rem', color: '#f87171', lineHeight: '1.4' }}>
-                                * Saldo Anda kurang sebesar <strong>Rp {(registeringEvent.ticketPrice - activeBal).toLocaleString('id-ID')}</strong>.
-                              </p>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const deficit = registeringEvent.ticketPrice - activeBal;
-                                  setUsers(prevUsers => prevUsers.map(u => {
-                                    if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
-                                      return { ...u, walletBalance: (u.walletBalance || 0) + deficit };
-                                    }
-                                    return u;
-                                  }));
-                                  alert(`Top Up Sukses! Dana sebesar Rp ${deficit.toLocaleString('id-ID')} ditambahkan ke dompet Anda.`);
-                                }}
-                                className="btn"
-                                style={{
-                                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                  color: 'white',
-                                  border: 'none',
-                                  padding: '8px 16px',
-                                  borderRadius: '20px',
-                                  fontWeight: 'bold',
-                                  fontSize: '0.8rem',
-                                  cursor: 'pointer',
-                                  textAlign: 'center',
-                                  display: 'inline-flex',
-                                  justifyContent: 'center',
-                                  alignItems: 'center',
-                                  gap: '6px'
-                                }}
-                              >
-                                <Wallet size={14} />
-                                <span>Top Up Instan & Bayar</span>
-                              </button>
-                            </div>
-                          ) : (
-                            <div style={{ fontSize: '0.78rem', color: '#4ade80', marginTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '8px' }}>
-                              ✓ Saldo Anda mencukupi. Biaya pendaftaran akan langsung dipotong setelah verifikasi sukses.
-                            </div>
-                          )}
+                          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '12px' }}>
+                            <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
+                            <button 
+                              type="button" 
+                              className="btn btn-primary" 
+                              style={{ padding: '10px 20px', fontWeight: 'bold' }}
+                              onClick={() => {
+                                setRegisteringEvent(null);
+                                resetVerificationForm();
+                                if (onEditProfileClick) onEditProfileClick();
+                              }}
+                            >
+                              Verifikasi Sekarang di Profil
+                            </button>
+                          </div>
                         </div>
                       );
-                    })()}
+                    }
 
-                    <form onSubmit={handleLanjutVerifikasi} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                      <div className="form-group">
-                        <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: '500' }}>Username / Handle {selectedPlatform.toUpperCase()}</label>
-                        <input
-                          type="text"
-                          required
-                          value={socialUrl}
-                          onChange={(e) => setSocialUrl(e.target.value)}
-                          placeholder={`Contoh: @username atau username Anda`}
-                          style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
-                        />
+                    // Pre-select first verified account if current selected is not verified
+                    const currentExists = verifiedAccounts.some(a => a.id === selectedPlatform);
+                    if (!currentExists && verifiedAccounts.length > 0) {
+                      // We must do this asynchronously or inside a render-safe check
+                      // to avoid setting state during render.
+                      setTimeout(() => {
+                        setSelectedPlatform(verifiedAccounts[0].id);
+                        setSocialUrl(verifiedAccounts[0].handle);
+                      }, 0);
+                    } else if (currentExists && socialUrl !== (verifiedAccounts.find(a => a.id === selectedPlatform)?.handle || '')) {
+                      setTimeout(() => {
+                        setSocialUrl(verifiedAccounts.find(a => a.id === selectedPlatform)?.handle || '');
+                      }, 0);
+                    }
+
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <label style={{ display: 'block', color: 'white', fontSize: '0.9rem', fontWeight: '600' }}>Pilih Akun Sosial Media Terverifikasi Anda:</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          {verifiedAccounts.map(acc => {
+                            const isSelected = selectedPlatform === acc.id;
+                            return (
+                              <button
+                                type="button"
+                                key={acc.id}
+                                onClick={() => {
+                                  setSelectedPlatform(acc.id);
+                                  setSocialUrl(acc.handle);
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  padding: '14px 16px',
+                                  borderRadius: '8px',
+                                  background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255,255,255,0.02)',
+                                  border: isSelected ? '1px solid #ffffff' : '1px solid var(--border-color)',
+                                  color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+                                  cursor: 'pointer',
+                                  fontWeight: '600',
+                                  fontSize: '0.9rem',
+                                  transition: 'all 0.2s',
+                                  outline: 'none',
+                                  textAlign: 'left'
+                                }}
+                              >
+                                <div>
+                                  <span style={{ textTransform: 'capitalize', color: 'white', marginRight: '6px' }}>{acc.label}</span>
+                                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>@{acc.handle}</span>
+                                </div>
+                                {isSelected && <span style={{ color: '#4ade80', fontSize: '0.8rem', fontWeight: 'bold' }}>✓ Terpilih</span>}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* ticket price and payment */}
+                        {registeringEvent.ticketPrice > 0 && (() => {
+                          const activeBal = userProfile.walletBalance || 0;
+                          const isInsufficient = activeBal < registeringEvent.ticketPrice;
+                          return (
+                            <div style={{
+                              background: 'rgba(255, 255, 255, 0.02)',
+                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              marginTop: '8px'
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Biaya Pendaftaran / Tiket:</span>
+                                <strong style={{ color: '#4ade80', fontSize: '1.05rem' }}>Rp {registeringEvent.ticketPrice.toLocaleString('id-ID')}</strong>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Saldo Dompet Anda:</span>
+                                <strong style={{ color: 'white', fontSize: '1.05rem' }}>Rp {activeBal.toLocaleString('id-ID')}</strong>
+                              </div>
+                              
+                              {isInsufficient ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '12px' }}>
+                                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#f87171', lineHeight: '1.4' }}>
+                                    * Saldo Anda kurang sebesar <strong>Rp {(registeringEvent.ticketPrice - activeBal).toLocaleString('id-ID')}</strong>.
+                                  </p>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const deficit = registeringEvent.ticketPrice - activeBal;
+                                      setUsers(prevUsers => prevUsers.map(u => {
+                                        if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
+                                          return { ...u, walletBalance: (u.walletBalance || 0) + deficit };
+                                        }
+                                        return u;
+                                      }));
+                                      alert(`Top Up Sukses! Dana sebesar Rp ${deficit.toLocaleString('id-ID')} ditambahkan ke dompet Anda.`);
+                                    }}
+                                    className="btn"
+                                    style={{
+                                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '8px 16px',
+                                      borderRadius: '20px',
+                                      fontWeight: 'bold',
+                                      fontSize: '0.8rem',
+                                      cursor: 'pointer',
+                                      textAlign: 'center',
+                                      display: 'inline-flex',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                      gap: '6px'
+                                    }}
+                                  >
+                                    <Wallet size={14} />
+                                    <span>Top Up Instan & Bayar</span>
+                                  </button>
+                                </div>
+                              ) : (
+                                <div style={{ fontSize: '0.78rem', color: '#4ade80', marginTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '8px' }}>
+                                  ✓ Saldo Anda mencukupi. Biaya pendaftaran akan langsung dipotong setelah konfirmasi pendaftaran.
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '12px' }}>
+                          <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
+                          {(() => {
+                            const activeBal = userProfile.walletBalance || 0;
+                            const hasIncompleteProfile = !userProfile.organizerName || !userProfile.organizerPhone;
+                            const isInsufficient = registeringEvent.ticketPrice > 0 && activeBal < registeringEvent.ticketPrice;
+                            const isDisabled = hasIncompleteProfile || isInsufficient;
+                            
+                            return (
+                              <button 
+                                type="button" 
+                                disabled={isDisabled}
+                                onClick={() => {
+                                  // Instant registration
+                                  const ticketPrice = registeringEvent.ticketPrice || 0;
+                                  if (ticketPrice > 0) {
+                                    setUsers(prevUsers => prevUsers.map(u => {
+                                      if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
+                                        return { ...u, walletBalance: Math.max(0, (u.walletBalance || 0) - ticketPrice) };
+                                      }
+                                      if (u.username.toLowerCase() === (registeringEvent.creator || '').toLowerCase()) {
+                                        return { ...u, walletBalance: (u.walletBalance || 0) + ticketPrice };
+                                      }
+                                      return u;
+                                    }));
+                                  }
+
+                                  const tktCode = `TKT-${Math.floor(100000 + Math.random() * 900000)}`;
+                                  setGeneratedTicketCode(tktCode);
+
+                                  const targetPlatform = selectedPlatform || verifiedAccounts[0].id;
+                                  const targetHandle = verifiedAccounts.find(a => a.id === targetPlatform)?.handle || verifiedAccounts[0].handle;
+                                  const generatedLink = targetPlatform === 'youtube' ? `https://youtube.com/@${targetHandle}` : `https://${targetPlatform}.com/${targetHandle}`;
+
+                                  const newPart = {
+                                    id: `part_${Date.now()}`,
+                                    eventId: registeringEvent.id,
+                                    eventTitle: registeringEvent.title,
+                                    name: userProfile.organizerName || currentUser.username,
+                                    username: currentUser.username,
+                                    email: userProfile.email || `${currentUser.username}@ngonten.id`,
+                                    contact: `@${targetHandle}`,
+                                    socialPlatform: targetPlatform,
+                                    socialLink: generatedLink,
+                                    status: 'approved',
+                                    verifiedAt: new Date().toISOString(),
+                                    registeredAt: new Date().toISOString(),
+                                    ticketCode: tktCode,
+                                    isCheckedIn: false,
+                                    checkedInAt: null,
+                                    ticketPrice: ticketPrice,
+                                    isPaid: ticketPrice > 0
+                                  };
+
+                                  setEventParticipants([...eventParticipants, newPart]);
+                                  setVerificationStep('success');
+                                }}
+                                className="btn btn-primary" 
+                                style={{ padding: '10px 20px', fontWeight: 'bold', opacity: isDisabled ? 0.5 : 1, cursor: isDisabled ? 'not-allowed' : 'pointer' }}
+                              >
+                                {registeringEvent.ticketPrice > 0 ? 'Beli Tiket & Daftar Instan' : 'Daftar Instan Sekarang'}
+                              </button>
+                            );
+                          })()}
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '12px' }}>
-                        <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
-                        <button type="submit" className="btn btn-primary" style={{ padding: '10px 20px' }}>Lanjut ke Verifikasi Kode</button>
-                      </div>
-                    </form>
-                  </>
+                    );
+                  })()
                 )}
               </div>
             )}
