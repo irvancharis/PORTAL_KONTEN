@@ -3627,9 +3627,9 @@ export default function App() {
               {/* 1. Hero Header / CTA Banner */}
               <div className="dashboard-hero">
                 <div className="dashboard-hero-content animate-fade-in">
-                  <h1 className="dashboard-hero-title">Hub Kolaborasi & Portofolio<br />Pelaku Industri Kreatif Indonesia</h1>
+                  <h1 className="dashboard-hero-title">Bikin Portofolio Kece, Ketemu Brand Gede,<br />& Rilis Karya Terbaikmu</h1>
                   <p className="dashboard-hero-subtitle">
-                    Mempertemukan kreator, komunitas, dan brand nasional dalam satu platform dinamis. Temukan talent terbaik, bangun portofolio orisinal, dan penuhi kebutuhan industri kreatif dengan lebih cepat dan mudah di ngonten.id.
+                    Wadah nongkrong dan kolaborasi paling asyik buat kreator, komunitas, dan brand Indonesia. Mau pamer karya, cari job, rekrut tim kreatif, atau bikin kompetisi? Semua bisa diselesaikan lebih cepat dan seru di ngonten.id.
                   </p>
                   <div className="dashboard-hero-ctas">
                     <button 
@@ -3694,9 +3694,9 @@ export default function App() {
                   <div className="dashboard-section-title-wrapper">
                     <h3>
                       <Tv size={20} />
-                      <span>Jelajahi Showcase Karya Digital Pilihan</span>
+                      <span>Showcase Karya Kreatif Terpopuler</span>
                     </h3>
-                    <p>Galeri karya kreatif buatan kreator lokal (desain, foto, video, animasi) terbaik tanpa iklan</p>
+                    <p>Intip karya digital terkeren (desain, foto, video, animasi) buatan kreator lokal. Saatnya karyamu ikutan nampang di sini!</p>
                   </div>
                 </div>
                 <div className="movie-grid youtube-grid">
@@ -3724,9 +3724,9 @@ export default function App() {
                     <div className="dashboard-section-title-wrapper">
                       <h4 className="split-column-title">
                         <Calendar size={18} />
-                        <span>Event & Kolaborasi Kreator</span>
+                        <span>Event & Kolaborasi Seru</span>
                       </h4>
-                      <p style={{ margin: 0 }}>Workshop, sharing session, kolaborasi, dan networking kreator digital nasional</p>
+                      <p style={{ margin: 0 }}>Pantengin workshop, sharing session, dan ajang kumpul bareng kreator digital lainnya.</p>
                     </div>
                   </div>
                   <div className="split-list" style={{ marginTop: '12px' }}>
@@ -3800,9 +3800,9 @@ export default function App() {
                     <div className="dashboard-section-title-wrapper">
                       <h4 className="split-column-title">
                         <Award size={18} />
-                        <span>Kompetisi Karya Digital Aktif</span>
+                        <span>Kompetisi Lomba Kreatif</span>
                       </h4>
-                      <p style={{ margin: 0 }}>Tantang kreativitasmu dalam desain, foto, video, & animasi untuk brand campaign nasional</p>
+                      <p style={{ margin: 0 }}>Sikat tantangan seru dari brand nasional, pamerin skill-mu, dan bawa pulang hadiah uang tunai!</p>
                     </div>
                   </div>
                   <div className="split-list" style={{ marginTop: '12px' }}>
@@ -3905,9 +3905,9 @@ export default function App() {
                   <div className="dashboard-section-title-wrapper">
                     <h3>
                       <Briefcase size={20} />
-                      <span>Agensi, Studio & Komunitas Kreatif</span>
+                      <span>Komunitas & Agensi Lagi Nyari Crew</span>
                     </h3>
-                    <p>Bergabunglah dengan agensi, studio, dan komunitas lokal untuk kolaborasi project kreatif</p>
+                    <p>Jangan jalan sendirian! Temukan agensi, studio kreatif, atau komunitas lokal buat diajak kolaborasi bareng.</p>
                   </div>
                   <span 
                     className="dashboard-section-link"
@@ -3997,9 +3997,9 @@ export default function App() {
                   <div className="dashboard-section-title-wrapper">
                     <h3>
                       <TrendingUp size={20} />
-                      <span>Kreator Terpopuler Minggu Ini</span>
+                      <span>Kreator Paling Populer Pekan Ini</span>
                     </h3>
-                    <p>Apresiasi desainer, fotografer, videografer, animator, dan kreator digital yang aktif berkarya</p>
+                    <p>Kasih apresiasi buat desainer, animator, editor, dan talent keren yang karyanya lagi naik daun. Siapa tahu giliranmu selanjutnya!</p>
                   </div>
                 </div>
                 <div className="creators-grid">
@@ -4058,24 +4058,24 @@ export default function App() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {[
                     {
-                      q: "Apa itu ngonten.id?",
-                      a: "ngonten.id adalah hub kolaborasi pelaku industri kreatif Indonesia yang mempertemukan kreator, komunitas, dan brand nasional dalam satu platform terpadu. Tujuannya adalah mempermudah dan mempercepat pemenuhan kebutuhan industri kreatif seperti pencarian talent, verifikasi portofolio profesional, rekrutmen kru, dan penyelenggaraan event kompetisi."
+                      q: "Apa sih ngonten.id itu?",
+                      a: "ngonten.id itu wadah nongkrong sekaligus kolaborasi buat semua pelaku industri kreatif Indonesia. Kami mempertemukan para kreator, komunitas kreatif, dan brand nasional dalam satu tempat. Singkatnya, kami bantu kreator buat cari proyekan/pamer karya, dan bantu brand ketemu talent terbaik dengan cara yang lebih mudah dan cepat."
                     },
                     {
-                      q: "Bagaimana cara kreator mendapatkan uang di ngonten.id?",
-                      a: "Kreator dapat menghasilkan uang dengan memenangkan kompetisi kreatif/lomba yang diadakan oleh brand nasional dan agensi di platform, serta menerima pembagian hasil (benefit views) dari karya digital orisinal yang diunggah di situs."
+                      q: "Gimana cara kreator dapat cuan di sini?",
+                      a: "Gampang banget, ada dua cara: 1) Ikutan dan menangin kompetisi kreatif/lomba berhadiah yang diadakan oleh brand-brand di platform ini, atau 2) Dapet pembagian hasil (benefit views) tiap kali ada yang nonton karya video/film pendek orisinal yang kamu unggah."
                     },
                     {
-                      q: "Apakah mendaftar di ngonten.id dipungut biaya?",
-                      a: "Pendaftaran di ngonten.id adalah 100% gratis. Namun, bagi kreator yang ingin meningkatkan peluang karir, akun Premium menyediakan prioritas akses informasi proyek, unlock detail halaman portofolio (kontak langsung, statistik performa, & CV lengkap agar brand/industri dapat menilai dan merekrut Anda dengan lebih mudah), serta diskon potongan admin penarikan saldo."
+                      q: "Apakah daftarnya beneran gratis?",
+                      a: "Beneran 100% gratis tis! Siapa pun bisa langsung bikin akun dan pakai fitur dasarnya. Tapi kalau kamu mau karir kreatifmu melejit lebih cepat, ada opsi akun Premium. Dengan Premium, kamu dapet prioritas info proyek terupdate, profil portofoliomu bisa di-unlock detailnya (kontak langsung & CV) biar gampang dihubungi brand/industri, plus potongan biaya admin dompet yang super murah."
                     },
                     {
-                      q: "Bagaimana sistem penarikan saldo (withdrawal)?",
-                      a: "Dana dari kemenangan lomba atau benefit views akan masuk ke Dompet Kreator Anda. Penarikan saldo dapat dilakukan kapan saja ke rekening bank/e-wallet (minimal Rp 50.000) dengan potongan biaya admin otomatis sebesar 5% untuk akun biasa, dan hanya 2% bagi akun Premium."
+                      q: "Gimana sistem penarikan saldo (withdrawal)?",
+                      a: "Semua cuan hasil menang lomba atau views bakal masuk ke Dompet Kreator Anda. Kamu bisa cairkan langsung ke rekening bank atau e-wallet (DANA, OVO, Gopay, dll) minimal Rp 50.000. Untuk biaya admin penarikan saldo standar dipotong 5%, sedangkan akun Premium cuma dipotong 2% aja!"
                     },
                     {
-                      q: "Bagaimana cara komunitas atau agensi merekrut crew?",
-                      a: "Komunitas atau agensi dapat mendaftarkan profil mereka, membuka slot lowongan crew, dan menetapkan kuota yang dibutuhkan. Kreator lain dapat mendaftar langsung untuk mulai berkolaborasi secara cepat dan efisien."
+                      q: "Komunitas atau agensi bisa rekrut tim juga?",
+                      a: "Bisa banget! Tinggal bikin profil komunitasmu, pasang lowongan crew, dan tentukan kuota tim yang kamu butuhkan. Kreator lain bisa langsung daftar buat kolaborasi bareng dalam proyek kreatif selanjutnya."
                     }
                   ].map((faq, idx) => {
                     const isOpen = activeFaqIndex === idx;
