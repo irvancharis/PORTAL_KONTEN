@@ -3627,9 +3627,9 @@ export default function App() {
               {/* 1. Hero Header / CTA Banner */}
               <div className="dashboard-hero">
                 <div className="dashboard-hero-content animate-fade-in">
-                  <h1 className="dashboard-hero-title">Kembangkan Portofolio, Temukan Proyek,<br />& Rilis Karya Terbaik Anda</h1>
+                  <h1 className="dashboard-hero-title">Ikuti & Buat Kampanye Kreatif<br />dalam Satu Platform Terpadu</h1>
                   <p className="dashboard-hero-subtitle">
-                    Platform kolaborasi bagi kreator, komunitas, dan brand di Indonesia. Bagikan portofolio profesional Anda, ikuti kompetisi, rekrut tim kreatif, atau bangun kerja sama industri dengan lebih mudah dan cepat di ngonten.id.
+                    Wadah kolaborasi pelaku industri kreatif di Indonesia. Kreator dapat mengikuti kampanye kreatif untuk mengembangkan portofolio, sedangkan brand atau komunitas dapat membuat kampanye untuk menemukan talent terbaik secara lebih mudah dan cepat.
                   </p>
                   <div className="dashboard-hero-ctas">
                     <button 
@@ -3641,29 +3641,22 @@ export default function App() {
                       style={{ borderRadius: '30px', padding: '12px 28px', fontWeight: 'bold', fontSize: '0.92rem' }}
                     >
                       <Film size={16} />
-                      <span>Mulai Eksplorasi Karya</span>
+                      <span>Ikut Kampanye (Kreator)</span>
                     </button>
-                    {!currentUser ? (
-                      <button 
-                        className="btn btn-outline" 
-                        onClick={() => handleOpenLoginModal('register')}
-                        style={{ borderRadius: '30px', padding: '12px 28px', fontWeight: 'bold', fontSize: '0.92rem', borderColor: 'rgba(255,255,255,0.2)' }}
-                      >
-                        <UserPlus size={16} />
-                        <span>Bergabung Sekarang</span>
-                      </button>
-                    ) : (
-                      currentUser.role !== 'pro' && currentUser.role !== 'member' && (
-                        <button 
-                          className="btn btn-outline" 
-                          onClick={() => setShowPremiumModal(true)}
-                          style={{ borderRadius: '30px', padding: '12px 28px', fontWeight: 'bold', fontSize: '0.92rem', borderColor: 'rgba(255,255,255,0.2)' }}
-                        >
-                          <Sparkles size={16} style={{ color: 'white' }} />
-                          <span>Mulai Berlangganan</span>
-                        </button>
-                      )
-                    )}
+                    <button 
+                      className="btn btn-outline" 
+                      onClick={() => {
+                        if (whatsappAdmin) {
+                          window.open(whatsappAdmin, '_blank');
+                        } else {
+                          window.open('https://wa.me/6281234567890', '_blank');
+                        }
+                      }}
+                      style={{ borderRadius: '30px', padding: '12px 28px', fontWeight: 'bold', fontSize: '0.92rem', borderColor: 'rgba(255,255,255,0.2)' }}
+                    >
+                      <Briefcase size={16} />
+                      <span>Buat Kampanye (Brand)</span>
+                    </button>
                   </div>
 
                   {/* Stats Counter Rows */}
@@ -4157,9 +4150,9 @@ export default function App() {
                   <div className="glass-panel" style={{ padding: '32px 24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', transition: 'transform 0.2s', textAlign: 'left' }}>
                     <div>
                       <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'white', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'inline-block', marginBottom: '16px' }}>UNTUK KREATOR & TALENT</span>
-                      <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'white', marginBottom: '10px', lineHeight: '1.4' }}>Mulai dan kembangkan potensi karya digital Anda.</h3>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'white', marginBottom: '10px', lineHeight: '1.4' }}>Ikuti kampanye kreatif & kembangkan karya digital Anda.</h3>
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
-                        Bagikan portofolio terbaik Anda secara gratis, ikuti kompetisi, dapatkan akses prioritas informasi proyek terbaru, dan tarik saldo dengan admin fee hanya 2% bagi anggota Premium.
+                        Tunjukkan keahlian Anda, ikuti berbagai tantangan kampanye dari brand nasional, bangun portofolio profesional, dan tarik hasil pendapatan Anda dengan biaya admin super hemat.
                       </p>
                     </div>
                     <button 
@@ -4173,31 +4166,31 @@ export default function App() {
                       }}
                       style={{ borderRadius: '30px', padding: '12px 24px', fontWeight: 'bold', fontSize: '0.88rem', width: '100%', justifyContent: 'center' }}
                     >
-                      {!currentUser ? 'Mulai Sebagai Kreator' : 'Jelajahi Projek & Event'}
+                      {!currentUser ? 'Ikut Kampanye Sekarang' : 'Jelajahi Kampanye Aktif'}
                     </button>
                   </div>
 
                   {/* Cluster 2: Brand / Industri */}
                   <div className="glass-panel" style={{ padding: '32px 24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', transition: 'transform 0.2s', textAlign: 'left' }}>
                     <div>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'white', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'inline-block', marginBottom: '16px' }}>UNTUK BRAND, AGENSI & KOMUNITAS</span>
-                      <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'white', marginBottom: '10px', lineHeight: '1.4' }}>Temukan talent dan kreator terbaik untuk mengembangkan bisnis.</h3>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'white', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'inline-block', marginBottom: '16px' }}>UNTUK BRAND & PARTNER</span>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'white', marginBottom: '10px', lineHeight: '1.4' }}>Buat kampanye kreatif & temukan talent terbaik untuk bisnis Anda.</h3>
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
-                        Buka lowongan kru komunitas, selenggarakan lomba berhadiah untuk menjaring karya terbaik, serta unlock detail halaman portofolio talent untuk review CV & kontak langsung secara instan.
+                        Selenggarakan kompetisi kreatif untuk menjaring karya berkualitas, buka lowongan kolaborasi kru agensi secara cepat, dan unlock detail portofolio talent untuk dihubungi secara langsung.
                       </p>
                     </div>
                     <button 
                       className="btn btn-outline"
                       onClick={() => {
-                        if (!currentUser) {
-                          handleOpenLoginModal('register');
+                        if (whatsappAdmin) {
+                          window.open(whatsappAdmin, '_blank');
                         } else {
-                          handleTabChange('communities');
+                          window.open('https://wa.me/6281234567890', '_blank');
                         }
                       }}
                       style={{ borderRadius: '30px', padding: '12px 24px', fontWeight: 'bold', fontSize: '0.88rem', width: '100%', justifyContent: 'center', borderColor: 'rgba(255,255,255,0.15)' }}
                     >
-                      {!currentUser ? 'Mulai Sebagai Partner' : 'Cari Talent & Komunitas'}
+                      <span>Buat Kampanye Sekarang</span>
                     </button>
                   </div>
 
