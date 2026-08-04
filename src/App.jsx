@@ -4147,9 +4147,9 @@ export default function App() {
               {/* 6. Bottom Join CTA Banner */}
               <div className="dashboard-hero" style={{ background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%)', borderColor: 'rgba(255, 255, 255, 0.08)', textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <div style={{ maxWidth: '650px' }}>
-                  <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'white', marginBottom: '14px', letterSpacing: '-0.02em' }}>Penuhi Kebutuhan Industri Kreatif Bersama Kami</h2>
+                  <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'white', marginBottom: '14px', letterSpacing: '-0.02em' }}>Menghubungkan Kreator, Komunitas, & Brand dalam Satu Hub Dinamis</h2>
                   <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.7)', marginBottom: '28px', lineHeight: '1.6' }}>
-                    Pendaftaran gratis untuk kreator, agensi, dan brand. Bagikan portofolio profesional Anda, buka lowongan kolaborasi komunitas, atau temukan talent terbaik untuk proyek kreatif Anda hanya di ngonten.id.
+                    Pendaftaran gratis untuk semua pelaku industri. Dapatkan akses prioritas ke info proyek terbaru, buka lowongan kolaborasi kru secara cepat, serta dapatkan portofolio terperinci yang memudahkan brand dalam menyeleksi talent terbaik.
                   </p>
                   <button 
                     className="btn btn-primary"
