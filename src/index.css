@@ -4,7 +4,7 @@
   --bg-main: #020202; /* Pure deepest black */
   --bg-card: rgba(255, 255, 255, 0.03); /* Sleek white glass */
   --bg-card-hover: rgba(255, 255, 255, 0.07);
-  --bg-navbar: rgba(2, 2, 2, 0.9);
+  --bg-navbar: #020202;
   --border-color: rgba(255, 255, 255, 0.08);
   --border-hover: rgba(255, 255, 255, 0.35); /* Pure white outline on hover */
   --primary: #ffffff; /* Primary action is white */
@@ -3566,5 +3566,44 @@ select option {
   padding-left: 12px;
   margin: 0;
   letter-spacing: -0.01em;
+}
+
+/* Widescreen Desktop Grid Alignments (min-width: 1024px) */
+@media (min-width: 1024px) {
+  .movie-grid.youtube-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  .recruiting-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  .creators-grid {
+    grid-template-columns: repeat(5, 1fr) !important;
+  }
+}
+
+/* Medium Screens (tablet landscape, smaller desktop) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .movie-grid.youtube-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .recruiting-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .creators-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+/* Mobile Screens */
+@media (max-width: 767px) {
+  .movie-grid.youtube-grid {
+    grid-template-columns: repeat(1, 1fr) !important;
+  }
+  .recruiting-grid {
+    grid-template-columns: repeat(1, 1fr) !important;
+  }
+  .creators-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
 
