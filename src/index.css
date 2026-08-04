@@ -608,13 +608,11 @@ select option {
   font-weight: 600;
 }
 
-/* YouTube Watch Page Layout */
 .watch-page-layout {
   display: grid;
   grid-template-columns: 1fr 380px;
   gap: 24px;
-  max-width: 1350px;
-  margin: 20px auto 0;
+  margin-top: 20px;
 }
 
 .watch-main-column {
