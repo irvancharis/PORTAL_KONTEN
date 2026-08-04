@@ -85,7 +85,7 @@ export default function PWAInstallPrompt() {
           </div>
           <div className="pwa-text">
             <h4>Instal Aplikasi Web</h4>
-            <p>Instal untuk menikmati streaming lebih cepat, hemat data, dan akses langsung dari homescreen Anda!</p>
+            <p>Instal untuk akses lebih cepat, buat & ikuti kampanye kreatif, serta temukan solusi industri kreatif Anda langsung dari homescreen!</p>
           </div>
         </div>
         

@@ -18,7 +18,7 @@ export default defineConfig({
       manifest: {
         name: 'ngonten.id Premium',
         short_name: 'ngonten.id',
-        description: 'Platform streaming film berkualitas tinggi tanpa iklan dan portal kompetisi event video kreatif di ngonten.id.',
+        description: 'Satu platform untuk ikut dan buat kampanye kreatif. Temukan berbagai solusi kebutuhan industri kreatif Anda di ngonten.id.',
         theme_color: '#090d16',
         background_color: '#090d16',
         display: 'standalone',

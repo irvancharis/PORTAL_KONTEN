@@ -2312,15 +2312,15 @@ export default function App() {
         };
       } else {
         // General Events Page
-        document.title = 'Event - ngonten.id';
+        document.title = 'Kampanye & Event Kreatif - ngonten.id';
         if (metaDesc) {
-          metaDesc.setAttribute('content', 'Ikuti berbagai kompetisi event video kreatif (Short Film, Music Video, UGC, Dokumenter) dan raih total hadiah jutaan rupiah.');
+          metaDesc.setAttribute('content', 'Ikuti berbagai kampanye kreatif, kompetisi video, UGC, dan temukan kolaborasi proyek bernilai tinggi dengan hadiah jutaan rupiah.');
         }
       }
     } else if (activeTab === 'wallet') {
       document.title = 'Dompet Saya - ngonten.id';
       if (metaDesc) {
-        metaDesc.setAttribute('content', 'Kelola pendapatan Anda dari views video and lakukan penarikan saldo dengan mudah di ngonten.id.');
+        metaDesc.setAttribute('content', 'Kelola pendapatan Anda dari hasil kemenangan kampanye dan lakukan penarikan saldo dengan mudah di ngonten.id.');
       }
     } else if (activeTab === 'watchlist') {
       document.title = 'Daftar Tontonan - ngonten.id';
@@ -2334,9 +2334,9 @@ export default function App() {
       }
     } else {
       // General Homepage / Discover
-      document.title = 'ngonten.id';
+      document.title = 'ngonten.id - Satu Platform, Solusi Industri Kreatif';
       if (metaDesc) {
-        metaDesc.setAttribute('content', 'Platform streaming film berkualitas tinggi tanpa iklan serta portal kompetisi event video kreatif dengan berbagai pilihan kategori dan hadiah menarik di ngonten.id.');
+        metaDesc.setAttribute('content', 'Wadah kolaborasi terbaik untuk ikut dan buat kampanye kreatif. Temukan berbagai solusi proyek video, konten kreatif, dan temukan talenta terbaik dengan mudah di ngonten.id.');
       }
     }
     
