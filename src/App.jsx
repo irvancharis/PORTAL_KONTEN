@@ -3693,6 +3693,8 @@ export default function App() {
                 </div>
               </div>
 
+              <div className="section-divider"></div>
+
               {/* 3. Event & Kompetisi Grid */}
               <div className="dashboard-split-grid animate-fade-in">
                 {/* Upcoming Events */}
@@ -3808,6 +3810,8 @@ export default function App() {
                 </div>
               </div>
 
+              <div className="section-divider"></div>
+
               {/* 4. Komunitas / PH Merekrut */}
               <div className="dashboard-section animate-fade-in">
                 <div className="dashboard-section-header">
@@ -3888,6 +3892,8 @@ export default function App() {
                   })}
                 </div>
               </div>
+
+              <div className="section-divider"></div>
 
               {/* 5. Kreator Naik Daun */}
               <div className="dashboard-section animate-fade-in">

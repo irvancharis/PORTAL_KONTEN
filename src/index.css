@@ -3143,7 +3143,7 @@ select option {
 .dashboard-container {
   display: flex;
   flex-direction: column;
-  gap: 48px;
+  gap: 64px;
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
@@ -3603,5 +3603,13 @@ select option {
   .creators-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+}
+
+/* Subtle Gradient Section Divider */
+.section-divider {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08) 50%, transparent);
+  margin: 10px 0;
 }
 
