@@ -208,6 +208,8 @@ export default function AdminPanel({
   setEventFlatFee,
   withdrawalFeePercent = 0,
   setWithdrawalFeePercent,
+  withdrawalFeePercentPremium = 5,
+  setWithdrawalFeePercentPremium,
   customRoles = [],
   setCustomRoles,
   financialJournals = [],
@@ -5483,32 +5485,62 @@ export default function AdminPanel({
                   </span>
                 </div>
 
-                <div className="form-group" style={{ marginBottom: '24px' }}>
-                  <label style={{ fontSize: '0.85rem', marginBottom: '6px', display: 'block', color: 'white', fontWeight: 'bold' }}>Biaya Penarikan Saldo (%)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    placeholder="Contoh: 2"
-                    value={withdrawalFeePercent || ''}
-                    onChange={(e) => {
-                      const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
-                      setWithdrawalFeePercent(val);
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      background: 'rgba(255, 255, 255, 0.04)',
-                      border: '1px solid rgba(167, 139, 250, 0.3)',
-                      borderRadius: 'var(--radius-sm)',
-                      color: 'white',
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: '0.9rem'
-                    }}
-                  />
-                  <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                    Persentase biaya admin yang dipotong otomatis dari nominal penarikan saldo peserta.
-                  </span>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                  <div className="form-group">
+                    <label style={{ fontSize: '0.85rem', marginBottom: '6px', display: 'block', color: 'white', fontWeight: 'bold' }}>Biaya Tarik Saldo Standar (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="Contoh: 10"
+                      value={withdrawalFeePercent || ''}
+                      onChange={(e) => {
+                        const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                        setWithdrawalFeePercent(val);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        border: '1px solid rgba(167, 139, 250, 0.3)',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'white',
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: '0.9rem'
+                      }}
+                    />
+                    <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      Potongan admin otomatis untuk akun kreator standar.
+                    </span>
+                  </div>
+
+                  <div className="form-group">
+                    <label style={{ fontSize: '0.85rem', marginBottom: '6px', display: 'block', color: 'white', fontWeight: 'bold' }}>Biaya Tarik Saldo Premium (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="Contoh: 5"
+                      value={withdrawalFeePercentPremium || ''}
+                      onChange={(e) => {
+                        const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                        setWithdrawalFeePercentPremium(val);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        border: '1px solid rgba(167, 139, 250, 0.3)',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'white',
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: '0.9rem'
+                      }}
+                    />
+                    <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      Potongan admin otomatis untuk akun kreator Premium.
+                    </span>
+                  </div>
                 </div>
               </>
             )}

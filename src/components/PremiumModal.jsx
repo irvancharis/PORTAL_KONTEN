@@ -237,15 +237,19 @@ export default function PremiumModal({
                     <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', fontSize: '0.88rem', display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text-secondary)' }}>
                       <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Check size={16} style={{ color: '#ffffff' }} />
-                        <span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Akses Seluruh Episode & Film</span>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Akses Full Seluruh Karya & Film (Tanpa Iklan)</span>
                       </li>
                       <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Check size={16} style={{ color: '#ffffff' }} />
-                        <span>Kualitas 4K Ultra HD & 1080p</span>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Biaya Admin Payout Wallet Hanya 5% (Hemat 50%)</span>
                       </li>
                       <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Check size={16} style={{ color: '#ffffff' }} />
-                        <span>100% Tanpa Iklan / Affiliate</span>
+                        <span>Featured Portfolio & Badge Verified di Profil</span>
+                      </li>
+                      <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Check size={16} style={{ color: '#ffffff' }} />
+                        <span>Akses Prioritas & Kuota Khusus Event Eksklusif</span>
                       </li>
                     </ul>
                   </div>

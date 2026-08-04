@@ -987,7 +987,8 @@ export default function App() {
               paymentInstructions: dbSettings?.paymentInstructions || '- Bank BCA: 1234567890 a.n. ngonten.id\n- DANA: 081234567890 a.n. Admin\n- OVO: 081234567890',
               minWithdrawalAmount: dbSettings?.minWithdrawalAmount || 50000,
               eventAdminFee: dbSettings?.eventAdminFee || 0,
-              withdrawalFeePercent: dbSettings?.withdrawalFeePercent || 0
+              withdrawalFeePercent: dbSettings?.withdrawalFeePercent || 0,
+              withdrawalFeePercentPremium: dbSettings?.withdrawalFeePercentPremium || 5
             };
             await saveFirestoreSettings(initialSettings);
             dbSettings = initialSettings;
@@ -1017,6 +1018,9 @@ export default function App() {
             }
             if (dbSettings.withdrawalFeePercent !== undefined) {
               setWithdrawalFeePercent(dbSettings.withdrawalFeePercent);
+            }
+            if (dbSettings.withdrawalFeePercentPremium !== undefined) {
+              setWithdrawalFeePercentPremium(dbSettings.withdrawalFeePercentPremium);
             }
           }
 
@@ -1739,6 +1743,7 @@ export default function App() {
         minWithdrawalAmount,
         eventAdminFee,
         withdrawalFeePercent,
+        withdrawalFeePercentPremium,
         dbInitialized: true
       });
       if (success) {
@@ -1804,6 +1809,11 @@ export default function App() {
     return saved ? parseInt(saved) : 0;
   });
 
+  const [withdrawalFeePercentPremium, setWithdrawalFeePercentPremium] = useState(() => {
+    const saved = localStorage.getItem('portal-withdrawal-fee-percent-premium');
+    return saved ? parseInt(saved) : 5;
+  });
+
   // Save Membership & Subscription Settings to localStorage when modified
   useEffect(() => {
     localStorage.setItem('portal-whatsapp-admin', whatsappAdmin);
@@ -1832,6 +1842,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('portal-withdrawal-fee-percent', withdrawalFeePercent.toString());
   }, [withdrawalFeePercent]);
+
+  useEffect(() => {
+    localStorage.setItem('portal-withdrawal-fee-percent-premium', withdrawalFeePercentPremium.toString());
+  }, [withdrawalFeePercentPremium]);
 
   // Save activeTab to localStorage when modified
   useEffect(() => {
@@ -2540,6 +2554,8 @@ export default function App() {
               setEventFlatFee={setEventFlatFee}
               withdrawalFeePercent={withdrawalFeePercent}
               setWithdrawalFeePercent={setWithdrawalFeePercent}
+              withdrawalFeePercentPremium={withdrawalFeePercentPremium}
+              setWithdrawalFeePercentPremium={setWithdrawalFeePercentPremium}
               customRoles={customRoles}
               setCustomRoles={setCustomRoles}
               financialJournals={financialJournals}
@@ -2561,6 +2577,7 @@ export default function App() {
               setWithdrawals={handleSetWithdrawals}
               minWithdrawalAmount={minWithdrawalAmount}
               withdrawalFeePercent={withdrawalFeePercent}
+              withdrawalFeePercentPremium={withdrawalFeePercentPremium}
               eventParticipants={eventParticipants}
             />
           ) : activeTab === 'communities' ? (
@@ -3500,6 +3517,8 @@ export default function App() {
                   setEventFlatFee={setEventFlatFee}
                   withdrawalFeePercent={withdrawalFeePercent}
                   setWithdrawalFeePercent={setWithdrawalFeePercent}
+                  withdrawalFeePercentPremium={withdrawalFeePercentPremium}
+                  setWithdrawalFeePercentPremium={setWithdrawalFeePercentPremium}
                   customRoles={customRoles}
                   setCustomRoles={setCustomRoles}
                   financialJournals={financialJournals}

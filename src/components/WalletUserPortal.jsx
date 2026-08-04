@@ -17,6 +17,7 @@ export default function WalletUserPortal({
   setWithdrawals,
   minWithdrawalAmount = 50000,
   withdrawalFeePercent = 0,
+  withdrawalFeePercentPremium = 5,
   eventParticipants = []
 }) {
   const [isWdModalOpen, setIsWdModalOpen] = useState(false);
@@ -26,6 +27,9 @@ export default function WalletUserPortal({
   const [wdMethod, setWdMethod] = useState('Dana');
   const [wdPassword, setWdPassword] = useState('');
   const [txFilter, setTxFilter] = useState('all'); // 'all', 'credit', 'debit'
+
+  const isPremium = currentUser && currentUser.isPremium === true;
+  const activeFeePercent = isPremium ? withdrawalFeePercentPremium : withdrawalFeePercent;
 
   if (!currentUser) {
     return (
@@ -206,7 +210,7 @@ export default function WalletUserPortal({
     }));
 
     // 2. Add withdrawal request
-    const feeAmount = Math.round(amountToWithdraw * (withdrawalFeePercent || 0) / 100);
+    const feeAmount = Math.round(amountToWithdraw * (activeFeePercent || 0) / 100);
     const netAmount = amountToWithdraw - feeAmount;
     const newWd = {
       id: `wd_${Date.now()}`,
@@ -526,14 +530,14 @@ export default function WalletUserPortal({
                 </span>
                 <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Biaya Penarikan ({(withdrawalFeePercent || 0)}%):</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>Biaya Penarikan ({(activeFeePercent || 0)}%):</span>
                     <span style={{ color: 'white', fontWeight: 'bold' }}>
-                      {(withdrawalFeePercent || 0) > 0 ? `- Rp ${Math.round(wdAmount * withdrawalFeePercent / 100).toLocaleString('id-ID')}` : 'Gratis'}
+                      {(activeFeePercent || 0) > 0 ? `- Rp ${Math.round(wdAmount * activeFeePercent / 100).toLocaleString('id-ID')}` : 'Gratis'}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
                     <span style={{ color: 'white' }}>Total Bersih Diterima:</span>
-                    <span style={{ color: 'white', fontSize: '0.98rem', borderBottom: '1px solid white', pb: '2px' }}>Rp {Math.max(0, wdAmount - Math.round(wdAmount * (withdrawalFeePercent || 0) / 100)).toLocaleString('id-ID')}</span>
+                    <span style={{ color: 'white', fontSize: '0.98rem', borderBottom: '1px solid white', pb: '2px' }}>Rp {Math.max(0, wdAmount - Math.round(wdAmount * (activeFeePercent || 0) / 100)).toLocaleString('id-ID')}</span>
                   </div>
                 </div>
               </div>
