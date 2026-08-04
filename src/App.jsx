@@ -3603,13 +3603,13 @@ export default function App() {
               {/* 1. Hero Header / CTA Banner */}
               <div className="dashboard-hero">
                 <div className="dashboard-hero-content animate-fade-in">
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 14px', borderRadius: '30px', marginBottom: '16px' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 14px', borderRadius: '30px', marginBottom: '20px' }}>
                     <Sparkles size={14} style={{ color: '#fbbf24' }} />
-                    <span style={{ fontSize: '0.78rem', fontWeight: 'bold', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.5px' }}>WADAH KREATOR VIDEO INDONESIA</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.8px' }}>THE INDEPENDENT FILMMAKER HUB</span>
                   </div>
-                  <h1 className="dashboard-hero-title">Ekosistem Video Kreatif & Hub Komunitas Film Indie</h1>
+                  <h1 className="dashboard-hero-title">Tempat Karya Menjadi Nyata,<br />Sineas Lokal Menjadi Juara</h1>
                   <p className="dashboard-hero-subtitle">
-                    Temukan dan saksikan film indie lokal terbaik, ikuti kompetisi kreator video kreatif, bergabung dengan production house impianmu, dan bangun portofolio sineasmu hanya di ngonten.id.
+                    Nonton film indie lokal berkualitas tinggi tanpa iklan, ikuti berbagai kompetisi video kreatif berskala nasional, temukan crew kolaborasi, dan bangun portofolio sineas profesionalmu hanya di ngonten.id.
                   </p>
                   <div className="dashboard-hero-ctas">
                     <button 
@@ -3618,32 +3618,52 @@ export default function App() {
                         const targetEl = document.getElementById('new-releases-section');
                         if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      style={{ borderRadius: '30px', padding: '12px 24px', fontWeight: 'bold' }}
+                      style={{ borderRadius: '30px', padding: '12px 28px', fontWeight: 'bold', fontSize: '0.92rem' }}
                     >
                       <Film size={16} />
-                      <span>Mulai Menonton</span>
+                      <span>Mulai Eksplorasi Karya</span>
                     </button>
                     {!currentUser ? (
                       <button 
                         className="btn btn-outline" 
                         onClick={() => handleOpenLoginModal('register')}
-                        style={{ borderRadius: '30px', padding: '12px 24px', fontWeight: 'bold', borderColor: 'rgba(255,255,255,0.2)' }}
+                        style={{ borderRadius: '30px', padding: '12px 28px', fontWeight: 'bold', fontSize: '0.92rem', borderColor: 'rgba(255,255,255,0.2)' }}
                       >
                         <UserPlus size={16} />
-                        <span>Daftar Akun Baru</span>
+                        <span>Bergabung Sekarang</span>
                       </button>
                     ) : (
                       currentUser.role !== 'pro' && currentUser.role !== 'member' && (
                         <button 
                           className="btn btn-outline" 
                           onClick={() => setShowPremiumModal(true)}
-                          style={{ borderRadius: '30px', padding: '12px 24px', fontWeight: 'bold', borderColor: 'rgba(255,255,255,0.2)' }}
+                          style={{ borderRadius: '30px', padding: '12px 28px', fontWeight: 'bold', fontSize: '0.92rem', borderColor: 'rgba(255,255,255,0.2)' }}
                         >
                           <Sparkles size={16} style={{ color: '#fbbf24' }} />
-                          <span>Upgrade Premium</span>
+                          <span>Mulai Berlangganan</span>
                         </button>
                       )
                     )}
+                  </div>
+
+                  {/* Stats Counter Rows */}
+                  <div className="dashboard-stats-row">
+                    <div className="stat-item">
+                      <span className="stat-number">15+</span>
+                      <span className="stat-label">Film Pilihan</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-number">Rp 250Jt+</span>
+                      <span className="stat-label">Hadiah Kompetisi</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-number">50+</span>
+                      <span className="stat-label">PH & Komunitas</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-number">5.000+</span>
+                      <span className="stat-label">Kreator Terdaftar</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3653,10 +3673,10 @@ export default function App() {
                 <div className="dashboard-section-header">
                   <div className="dashboard-section-title-wrapper">
                     <h3>
-                      <Tv size={18} />
-                      <span>Film & Video Baru Rilis</span>
+                      <Tv size={20} />
+                      <span>Saksikan Karya Sinema Indie Pilihan</span>
                     </h3>
-                    <p>Tonton karya terbaik sineas lokal tanpa gangguan iklan</p>
+                    <p>Streaming film pendek indie buatan kreator lokal terbaik tanpa gangguan iklan</p>
                   </div>
                 </div>
                 <div className="movie-grid youtube-grid">
@@ -3682,9 +3702,9 @@ export default function App() {
                     <div className="dashboard-section-title-wrapper">
                       <h4 className="split-column-title">
                         <Calendar size={18} />
-                        <span>Event & Kegiatan Mendatang</span>
+                        <span>Event & Kolaborasi Sineas</span>
                       </h4>
-                      <p style={{ margin: 0 }}>Webinar, workshop, screening, dan networking</p>
+                      <p style={{ margin: 0 }}>Screening, workshop, diskusi, dan networking sineas nasional</p>
                     </div>
                   </div>
                   <div className="split-list" style={{ marginTop: '12px' }}>
@@ -3714,13 +3734,13 @@ export default function App() {
                                   <span>📍 {evt.location || 'Online'}</span>
                                 </span>
                               </div>
-                              <span style={{ fontSize: '0.8rem', color: '#fbbf24', fontWeight: 'bold' }}>Detail →</span>
+                              <span style={{ fontSize: '0.8rem', color: '#fbbf24', fontWeight: 'bold' }}>Lihat Event →</span>
                             </div>
                           );
                         })
                     ) : (
                       <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                        Belum ada event umum yang terdaftar.
+                        Belum ada jadwal event terdekat. Ikuti terus pembaruannya!
                       </div>
                     )}
                   </div>
@@ -3732,9 +3752,9 @@ export default function App() {
                     <div className="dashboard-section-title-wrapper">
                       <h4 className="split-column-title">
                         <Award size={18} />
-                        <span>Kompetisi Video Terbuka</span>
+                        <span>Kompetisi Video Kreatif Aktif</span>
                       </h4>
-                      <p style={{ margin: 0 }}>Tantang dirimu dan rebut hadiah jutaan rupiah</p>
+                      <p style={{ margin: 0 }}>Tantang kreativitasmu, menangkan campaign, dan raih hadiah</p>
                     </div>
                   </div>
                   <div className="split-list" style={{ marginTop: '12px' }}>
@@ -3764,13 +3784,13 @@ export default function App() {
                                   <span>📅 Batas: {evt.deadline || 'Segera'}</span>
                                 </span>
                               </div>
-                              <span style={{ fontSize: '0.8rem', color: '#fbbf24', fontWeight: 'bold' }}>Ikuti →</span>
+                              <span style={{ fontSize: '0.8rem', color: '#fbbf24', fontWeight: 'bold' }}>Ikuti Lomba →</span>
                             </div>
                           );
                         })
                     ) : (
                       <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                        Belum ada kompetisi aktif saat ini.
+                        Kompetisi baru akan segera hadir. Siapkan ide karyamu!
                       </div>
                     )}
                   </div>
@@ -3782,8 +3802,8 @@ export default function App() {
                 <div className="dashboard-section-header">
                   <div className="dashboard-section-title-wrapper">
                     <h3>
-                      <Briefcase size={18} />
-                      <span>Komunitas & Production House Merekrut</span>
+                      <Briefcase size={20} />
+                      <span>Production House & Komunitas Crew</span>
                     </h3>
                     <p>Bergabunglah dengan rumah produksi lokal untuk kolaborasi project video kreatif</p>
                   </div>
@@ -3791,7 +3811,7 @@ export default function App() {
                     className="dashboard-section-link"
                     onClick={() => handleTabChange('communities')}
                   >
-                    Jelajahi Semua Komunitas →
+                    Cari Komunitas Lain →
                   </span>
                 </div>
                 <div className="recruiting-grid">
@@ -3815,7 +3835,7 @@ export default function App() {
                           window.dispatchEvent(new PopStateEvent('popstate'));
                         }}
                       >
-                        <span className="recruiting-badge">MEREKRUT</span>
+                        <span className="recruiting-badge">OPEN RECRUITMENT</span>
                         <div style={{ display: 'flex', gap: '14px', alignItems: 'center', textAlign: 'left' }}>
                           <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
                             {comm.avatar ? (
@@ -3826,12 +3846,20 @@ export default function App() {
                           </div>
                           <div>
                             <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>{comm.name || comm.username}</strong>
-                            <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{members.length} Anggota</span>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{members.length} Crew Bergabung</span>
                           </div>
                         </div>
+
+                        {/* Recruiting Positions list */}
+                        <div className="recruiting-positions">
+                          <span className="position-badge">Videografer</span>
+                          <span className="position-badge">Editor</span>
+                          <span className="position-badge">Scriptwriter</span>
+                        </div>
+
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                            <span>Kekuatan Komunitas:</span>
+                            <span>Kekuatan Crew:</span>
                             <span style={{ color: 'white', fontWeight: 'bold' }}>{current}/{target}</span>
                           </div>
                           <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -3849,10 +3877,10 @@ export default function App() {
                 <div className="dashboard-section-header">
                   <div className="dashboard-section-title-wrapper">
                     <h3>
-                      <TrendingUp size={18} />
-                      <span>Kreator Naik Daun</span>
+                      <TrendingUp size={20} />
+                      <span>Kreator Terpopuler Minggu Ini</span>
                     </h3>
-                    <p>Kenali bertalenta lokal kreatif minggu ini yang membagikan karyanya</p>
+                    <p>Apresiasi sineas dan pembuat konten video lokal yang aktif membagikan karyanya</p>
                   </div>
                 </div>
                 <div className="creators-grid">
@@ -3896,10 +3924,10 @@ export default function App() {
 
               {/* 6. Bottom Join CTA Banner */}
               <div className="dashboard-hero" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(5, 150, 105, 0.05) 100%)', borderColor: 'rgba(16, 185, 129, 0.15)', textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <div style={{ maxWidth: '600px' }}>
-                  <h2 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'white', marginBottom: '12px' }}>Ayo Mulai Ngonten Sekarang!</h2>
-                  <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.7)', marginBottom: '24px', lineHeight: '1.6' }}>
-                    Daftar sebagai kreator secara gratis, ikuti kompetisi video kreatif berhadiah jutaan rupiah, atau hubungkan komunitas film indie-mu ke dalam platform ngonten.id.
+                <div style={{ maxWidth: '650px' }}>
+                  <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'white', marginBottom: '14px', letterSpacing: '-0.02em' }}>Siap Mengembangkan Karya Videomu?</h2>
+                  <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.7)', marginBottom: '28px', lineHeight: '1.6' }}>
+                    Daftar gratis sebagai kreator untuk membangun portofolio sineasmu, mengikuti berbagai kompetisi brand nasional, atau hubungkan kru produksimu di ngonten.id.
                   </p>
                   <button 
                     className="btn btn-primary"
@@ -3910,9 +3938,9 @@ export default function App() {
                         handleTabChange('events');
                       }
                     }}
-                    style={{ borderRadius: '30px', padding: '12px 32px', fontWeight: 'bold' }}
+                    style={{ borderRadius: '30px', padding: '14px 36px', fontWeight: 'bold', fontSize: '0.95rem' }}
                   >
-                    {!currentUser ? 'Gabung Sekarang' : 'Telusuri Event Kompetisi'}
+                    {!currentUser ? 'Mulai Bergabung Sekarang' : 'Jelajahi Event & Kompetisi'}
                   </button>
                 </div>
               </div>
