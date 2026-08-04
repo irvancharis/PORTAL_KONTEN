@@ -3709,9 +3709,29 @@ export default function App() {
                     </div>
                   </div>
                   <div className="split-list" style={{ marginTop: '12px' }}>
-                    {events.filter(e => e.eventType === 'regular' || !e.eventType).length > 0 ? (
+                    {events.filter(e => {
+                      const isRegular = e.eventType === 'regular' || !e.eventType;
+                      if (!isRegular) return false;
+                      if (e.deadline) {
+                        const isDeadlinePassed = e.deadline.includes('T')
+                          ? new Date().getTime() > new Date(e.deadline).getTime()
+                          : new Date().getTime() > new Date(e.deadline + 'T23:59:59').getTime();
+                        if (isDeadlinePassed) return false;
+                      }
+                      return true;
+                    }).length > 0 ? (
                       events
-                        .filter(e => e.eventType === 'regular' || !e.eventType)
+                        .filter(e => {
+                          const isRegular = e.eventType === 'regular' || !e.eventType;
+                          if (!isRegular) return false;
+                          if (e.deadline) {
+                            const isDeadlinePassed = e.deadline.includes('T')
+                              ? new Date().getTime() > new Date(e.deadline).getTime()
+                              : new Date().getTime() > new Date(e.deadline + 'T23:59:59').getTime();
+                            if (isDeadlinePassed) return false;
+                          }
+                          return true;
+                        })
                         .slice(0, 3)
                         .map(evt => {
                           const eventSlug = slugify(evt.title) + '-' + evt.id;
@@ -3765,9 +3785,55 @@ export default function App() {
                     </div>
                   </div>
                   <div className="split-list" style={{ marginTop: '12px' }}>
-                    {events.filter(e => e.eventType === 'competition').length > 0 ? (
+                    {events.filter(e => {
+                      const isComp = e.eventType === 'competition';
+                      if (!isComp) return false;
+                      if (e.deadline) {
+                        const isDeadlinePassed = e.deadline.includes('T')
+                          ? new Date().getTime() > new Date(e.deadline).getTime()
+                          : new Date().getTime() > new Date(e.deadline + 'T23:59:59').getTime();
+                        if (isDeadlinePassed) return false;
+                      }
+                      if (e.budgetMode === 'views') {
+                        const initialBudget = e.campaignBudget || 0;
+                        const eventSubs = eventSubmissions.filter(s => s.eventId === e.id);
+                        const totalPayout = eventSubs.reduce((sum, sub) => {
+                          const views = sub.views || 0;
+                          const step = e.benefitViewsStep || 1000;
+                          const minViews = e.minEarningViews || 0;
+                          const amount = e.benefitAmount || 0;
+                          const payout = views >= minViews ? Math.floor(views / step) * amount : 0;
+                          return sum + payout;
+                        }, 0);
+                        if (initialBudget - totalPayout <= 0) return false;
+                      }
+                      return true;
+                    }).length > 0 ? (
                       events
-                        .filter(e => e.eventType === 'competition')
+                        .filter(e => {
+                          const isComp = e.eventType === 'competition';
+                          if (!isComp) return false;
+                          if (e.deadline) {
+                            const isDeadlinePassed = e.deadline.includes('T')
+                              ? new Date().getTime() > new Date(e.deadline).getTime()
+                              : new Date().getTime() > new Date(e.deadline + 'T23:59:59').getTime();
+                            if (isDeadlinePassed) return false;
+                          }
+                          if (e.budgetMode === 'views') {
+                            const initialBudget = e.campaignBudget || 0;
+                            const eventSubs = eventSubmissions.filter(s => s.eventId === e.id);
+                            const totalPayout = eventSubs.reduce((sum, sub) => {
+                              const views = sub.views || 0;
+                              const step = e.benefitViewsStep || 1000;
+                              const minViews = e.minEarningViews || 0;
+                              const amount = e.benefitAmount || 0;
+                              const payout = views >= minViews ? Math.floor(views / step) * amount : 0;
+                              return sum + payout;
+                            }, 0);
+                            if (initialBudget - totalPayout <= 0) return false;
+                          }
+                          return true;
+                        })
                         .slice(0, 3)
                         .map(evt => {
                           const eventSlug = slugify(evt.title) + '-' + evt.id;
