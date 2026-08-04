@@ -3935,12 +3935,8 @@ export default function App() {
                           window.dispatchEvent(new PopStateEvent('popstate'));
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                          <span className="recruiting-badge">OPEN RECRUITMENT</span>
-                          <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>{members.length} Crew</span>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '14px', alignItems: 'center', textAlign: 'left', minWidth: 0 }}>
+                        {/* 1. Left Block: Avatar & Name */}
+                        <div style={{ display: 'flex', gap: '14px', alignItems: 'center', textAlign: 'left', minWidth: '220px', flex: '1.2' }}>
                           <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
                             {comm.avatar ? (
                               <img src={comm.avatar} alt={comm.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
@@ -3956,15 +3952,22 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Recruiting Positions list */}
-                        <div className="recruiting-positions">
-                          <span className="position-badge">Desainer</span>
-                          <span className="position-badge">Fotografer</span>
-                          <span className="position-badge">Videografer</span>
-                          <span className="position-badge">Animator</span>
+                        {/* 2. Middle Block: Recruitment & Positions */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '240px', flex: '1.5' }}>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <span className="recruiting-badge" style={{ margin: 0 }}>OPEN RECRUITMENT</span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>{members.length} Crew</span>
+                          </div>
+                          <div className="recruiting-positions" style={{ marginTop: 0 }}>
+                            <span className="position-badge">Desainer</span>
+                            <span className="position-badge">Fotografer</span>
+                            <span className="position-badge">Videografer</span>
+                            <span className="position-badge">Animator</span>
+                          </div>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {/* 3. Strength Block: Crew Progress */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '160px', flex: '1' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                             <span>Kekuatan Crew:</span>
                             <span style={{ color: 'white', fontWeight: 'bold' }}>{current}/{target}</span>
@@ -3973,6 +3976,11 @@ export default function App() {
                             <div style={{ width: `${Math.min(100, percentage)}%`, height: '100%', background: '#ffffff', transition: 'width 0.3s' }} />
                           </div>
                         </div>
+
+                        {/* 4. Right Block: Action Link */}
+                        <span className="split-card-link-text" style={{ flexShrink: 0, fontWeight: 'bold', fontSize: '0.88rem' }}>
+                          Lihat Komunitas →
+                        </span>
                       </div>
                     );
                   })}
@@ -4202,6 +4210,9 @@ export default function App() {
                                 <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{members.length} Anggota</span>
                               </div>
                             </div>
+                            <span className="split-card-link-text" style={{ flexShrink: 0, fontWeight: 'bold', fontSize: '0.88rem' }}>
+                              Lihat Komunitas →
+                            </span>
                           </div>
                         );
                       })}

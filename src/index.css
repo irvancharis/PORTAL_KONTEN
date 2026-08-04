@@ -3378,16 +3378,17 @@ select option {
 
 /* Recruiting Communities Section */
 .recruiting-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
 }
 
 .recruiting-card {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 18px;
-  padding: 24px;
+  padding: 20px 24px;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -3396,6 +3397,15 @@ select option {
   position: relative;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+@media (min-width: 992px) {
+  .recruiting-card {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 32px !important;
+  }
 }
 
 .recruiting-card:hover {
@@ -3567,9 +3577,6 @@ select option {
   .movie-grid.youtube-grid {
     grid-template-columns: repeat(4, 1fr) !important;
   }
-  .recruiting-grid {
-    grid-template-columns: repeat(4, 1fr) !important;
-  }
   .creators-grid {
     grid-template-columns: repeat(5, 1fr) !important;
   }
@@ -3580,9 +3587,6 @@ select option {
   .movie-grid.youtube-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
-  .recruiting-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
   .creators-grid {
     grid-template-columns: repeat(3, 1fr) !important;
   }
@@ -3591,9 +3595,6 @@ select option {
 /* Mobile Screens */
 @media (max-width: 767px) {
   .movie-grid.youtube-grid {
-    grid-template-columns: repeat(1, 1fr) !important;
-  }
-  .recruiting-grid {
     grid-template-columns: repeat(1, 1fr) !important;
   }
   .creators-grid {
