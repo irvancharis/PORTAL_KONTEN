@@ -3603,12 +3603,11 @@ select option {
   }
 }
 
-/* Subtle Gradient Section Divider */
 .section-divider {
   height: 1px;
   width: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08) 50%, transparent);
-  margin: 10px 0;
+  margin: -24px 0;
 }
 
 .event-portal-list-container {
