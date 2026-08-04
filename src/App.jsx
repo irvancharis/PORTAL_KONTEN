@@ -2585,7 +2585,7 @@ export default function App() {
                 const isRegularUser = currentUser && !(currentUser.isCommunity || currentUser.role === 'panitia');
 
                 return (
-                  <div className="profile-view-container animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+                  <div className="profile-view-container animate-fade-in" style={{ width: '100%' }}>
                     {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && (
                       <div style={{
                         background: '#ffffff',
@@ -2899,7 +2899,7 @@ export default function App() {
               }
 
               return (
-                <div className="profile-view-container animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+                <div className="profile-view-container animate-fade-in" style={{ width: '100%' }}>
                   {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && (
                     <div style={{
                       background: '#ffffff',
