@@ -158,8 +158,8 @@ export default function Sidebar({
         onClick={() => handleNav(item.id, isSubTab)}
         title={item.label}
         style={{
-          background: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-          borderLeft: isActive ? '3px solid #ffffff' : '3px solid transparent',
+          background: isActive ? 'var(--primary-glow)' : 'transparent',
+          borderLeft: isActive ? '3px solid var(--primary)' : '3px solid transparent',
           transition: 'all 0.2s ease',
           marginBottom: '2px',
           position: 'relative',
@@ -170,7 +170,7 @@ export default function Sidebar({
         }}
       >
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Icon size={18} className="sidebar-icon" style={{ color: isActive ? '#ffffff' : 'var(--text-secondary)' }} />
+          <Icon size={18} className="sidebar-icon" style={{ color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)' }} />
           {badgeCount > 0 && (
             <span 
               className={item.id === 'watchlist' ? "sidebar-badge" : "animate-glow-red"}
@@ -190,7 +190,7 @@ export default function Sidebar({
                 alignItems: 'center',
                 justifyContent: 'center',
                 boxShadow: '0 0 6px rgba(239, 68, 68, 0.6)',
-                border: '1.5px solid #0b0f19',
+                border: '1.5px solid var(--bg-main)',
                 zIndex: 2
               }}
             >
@@ -198,7 +198,7 @@ export default function Sidebar({
             </span>
           )}
         </div>
-        <span className="sidebar-label" style={{ color: isActive ? 'white' : 'var(--text-secondary)' }}>{item.label}</span>
+        <span className="sidebar-label" style={{ color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{item.label}</span>
       </button>
     );
   };

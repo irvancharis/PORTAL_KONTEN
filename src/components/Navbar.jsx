@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, Search, Film, X, User, Sparkles, ChevronDown, LogOut, Bell, Edit } from 'lucide-react';
+import { Menu, Search, Film, X, User, Sparkles, ChevronDown, LogOut, Bell, Edit, Sun, Moon } from 'lucide-react';
 
 const slugify = (text) => {
   if (!text) return '';
@@ -15,6 +15,8 @@ const slugify = (text) => {
 };
 
 export default function Navbar({
+  theme,
+  setTheme,
   searchQuery,
   setSearchQuery,
   selectedGenre,
@@ -703,7 +705,38 @@ export default function Navbar({
         )}
 
         {/* Right: User Avatar / Login Button */}
-        <div className="navbar-right">
+        <div className="navbar-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Theme Toggle Button */}
+          <button
+            onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
+            title={`Aktifkan Mode ${theme === 'dark' ? 'Terang' : 'Gelap'}`}
+            style={{
+              background: 'var(--primary-glow)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '50%',
+              width: '38px',
+              height: '38px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: 'var(--text-primary)',
+              transition: 'all 0.2s',
+              outline: 'none',
+              padding: 0
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--border-color)';
+              e.currentTarget.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--primary-glow)';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+
           {currentUser ? (
             <div 
               className="user-logged-in-container" 
@@ -947,7 +980,7 @@ export default function Navbar({
                     height: '24px',
                     borderRadius: '50%',
                     background: 'var(--primary)',
-                    color: '#020202',
+                    color: 'var(--bg-main)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

@@ -91,7 +91,9 @@ import {
   MapPin,
   Clock,
   DollarSign,
-  HelpCircle
+  HelpCircle,
+  Copy,
+  Check
 } from 'lucide-react';
 
 const slugify = (text) => {
@@ -167,6 +169,20 @@ export default function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedCommunityId, setSelectedCommunityId] = useState(null);
   const [communitySearchQuery, setCommunitySearchQuery] = useState('');
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('portal-theme') || 'light';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'light') {
+      root.classList.add('light-theme');
+    } else {
+      root.classList.remove('light-theme');
+    }
+    localStorage.setItem('portal-theme', theme);
+  }, [theme]);
+
   const [isPageLoading, setIsPageLoading] = useState(false);
   
   // Movie selection (watch page) states
@@ -681,6 +697,7 @@ export default function App() {
   const [timerSeconds, setTimerSeconds] = useState(180);
   const [verificationError, setVerificationError] = useState('');
   const [socialUrl, setSocialUrl] = useState('');
+  const [isCopied, setIsCopied] = useState(false);
 
   // Social Media Verification Timer countdown
   useEffect(() => {
@@ -725,13 +742,17 @@ export default function App() {
 
     try {
       if (GOOGLE_APPS_SCRIPT_URL) {
-        const result = await fetchJSONP(GOOGLE_APPS_SCRIPT_URL, {
-          platform: platform,
-          username: cleanUsername,
-          code: code
-        });
-        if (result && result.status) {
-          return result;
+        try {
+          const result = await fetchJSONP(GOOGLE_APPS_SCRIPT_URL, {
+            platform: platform,
+            username: cleanUsername,
+            code: code
+          });
+          if (result && result.status) {
+            return result;
+          }
+        } catch (scriptErr) {
+          console.warn("Apps Script verification failed, trying client-side fallback:", scriptErr);
         }
       }
       
@@ -2353,6 +2374,7 @@ export default function App() {
   // 4. Trigger top loading bar animation on page/tab/subtab changes
   useEffect(() => {
     setIsPageLoading(true);
+    window.scrollTo({ top: 0, behavior: 'instant' });
     const timer = setTimeout(() => {
       setIsPageLoading(false);
     }, 450);
@@ -2622,6 +2644,8 @@ export default function App() {
       {isPageLoading && <div className="top-loading-bar" />}
       {/* Header */}
       <Navbar 
+        theme={theme}
+        setTheme={setTheme}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         selectedGenre={selectedGenre}
@@ -2807,9 +2831,9 @@ export default function App() {
                             fontSize: '0.82rem',
                             borderRadius: '20px',
                             fontWeight: 'bold',
-                            background: '#020202',
-                            color: '#ffffff',
-                            border: '1px solid #020202',
+                            background: 'var(--bg-main)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--border-color)',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
@@ -2894,19 +2918,19 @@ export default function App() {
                       <div className="event-detail-grid" style={{ marginTop: '24px' }}>
                         {/* Left Column */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Bio / Deskripsi</h3>
+                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-primary)', margin: '0 0 16px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>Bio / Deskripsi</h3>
                             <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
                               {comm.description || 'Belum ada deskripsi profil.'}
                             </p>
                           </div>
 
                           {comm.activityImages && comm.activityImages.length > 0 && (
-                            <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
-                              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Foto Kegiatan & Dokumentasi</h3>
+                            <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
+                              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-primary)', margin: '0 0 16px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>Foto Kegiatan & Dokumentasi</h3>
                               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px', marginTop: '12px' }}>
                                 {comm.activityImages.map((imgUrl, imgIdx) => (
-                                  <div key={imgIdx} style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.08)', aspectRatio: '16/10', background: '#0c0c0c' }}>
+                                  <div key={imgIdx} style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)', aspectRatio: '16/10', background: 'var(--bg-main)' }}>
                                     <img 
                                       src={imgUrl} 
                                       alt={`Kegiatan ${imgIdx + 1}`} 
@@ -2921,8 +2945,8 @@ export default function App() {
                           )}
 
                           {/* Agenda Kegiatan Komunitas */}
-                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Agenda Kegiatan</h3>
+                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-primary)', margin: '0 0 16px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>Agenda Kegiatan</h3>
                             {(() => {
                               const allAgendas = comm.agendas || [];
                               const isOwner = currentUser && currentUser.username === comm.username;
@@ -2933,37 +2957,37 @@ export default function App() {
                                   <div className="table-responsive" style={{ marginTop: '12px', overflowX: 'auto' }}>
                                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                                       <thead>
-                                        <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                                          <th style={{ padding: '12px 16px', color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.82rem', fontWeight: '600' }}>Waktu / Tanggal</th>
-                                          <th style={{ padding: '12px 16px', color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.82rem', fontWeight: '600' }}>Agenda / Keterangan</th>
-                                          <th style={{ padding: '12px 16px', color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.82rem', fontWeight: '600' }}>Lokasi</th>
-                                          <th style={{ padding: '12px 16px', color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.82rem', fontWeight: '600', textAlign: 'right' }}>Akses</th>
+                                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                          <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: '600' }}>Waktu / Tanggal</th>
+                                          <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: '600' }}>Agenda / Keterangan</th>
+                                          <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: '600' }}>Lokasi</th>
+                                          <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: '600', textAlign: 'right' }}>Akses</th>
                                         </tr>
                                       </thead>
                                       <tbody>
                                         {allAgendas.map((agenda) => {
                                           const canViewDetails = agenda.publishTo === 'public' || isMember;
                                           return (
-                                            <tr key={agenda.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)', transition: 'background 0.2s' }}>
-                                              <td style={{ padding: '16px', whiteSpace: 'nowrap', fontSize: '0.85rem', color: 'white', verticalAlign: 'top' }}>
+                                            <tr key={agenda.id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }}>
+                                              <td style={{ padding: '16px', whiteSpace: 'nowrap', fontSize: '0.85rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
                                                 <strong style={{ display: 'block' }}>{agenda.date}</strong>
-                                                {agenda.time && <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.4)', marginTop: '2px' }}>Pukul {agenda.time}</div>}
+                                                {agenda.time && <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>Pukul {agenda.time}</div>}
                                               </td>
-                                              <td style={{ padding: '16px', fontSize: '0.85rem', color: 'white', verticalAlign: 'top' }}>
+                                              <td style={{ padding: '16px', fontSize: '0.85rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
                                                 <div style={{ fontWeight: 'bold', marginBottom: '4px', fontSize: '0.92rem' }}>
                                                   {canViewDetails ? agenda.title : '🔒 [Agenda Khusus Anggota]'}
                                                 </div>
                                                 {canViewDetails ? (
-                                                  <div style={{ fontSize: '0.82rem', color: 'rgba(255, 255, 255, 0.5)', lineHeight: '1.5' }}>
+                                                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
                                                     {agenda.description || '-'}
                                                   </div>
                                                 ) : (
-                                                  <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.35)', fontStyle: 'italic' }}>
+                                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                                                     Detail agenda hanya terlihat oleh anggota resmi komunitas ini.
                                                   </div>
                                                 )}
                                               </td>
-                                              <td style={{ padding: '16px', fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.6)', verticalAlign: 'top' }}>
+                                              <td style={{ padding: '16px', fontSize: '0.85rem', color: 'var(--text-secondary)', verticalAlign: 'top' }}>
                                                 {canViewDetails ? (agenda.location || '-') : '-'}
                                               </td>
                                               <td style={{ padding: '16px', whiteSpace: 'nowrap', verticalAlign: 'top', textAlign: 'right' }}>
@@ -2972,9 +2996,9 @@ export default function App() {
                                                   padding: '4px 10px',
                                                   borderRadius: '20px',
                                                   fontWeight: 'bold',
-                                                  background: agenda.publishTo === 'public' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)',
-                                                  color: agenda.publishTo === 'public' ? '#ffffff' : 'rgba(255, 255, 255, 0.6)',
-                                                  border: '1px solid rgba(255, 255, 255, 0.12)'
+                                                  background: 'var(--primary-glow)',
+                                                  color: agenda.publishTo === 'public' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                                  border: '1px solid var(--border-color)'
                                                 }}>
                                                   {agenda.publishTo === 'public' ? 'Publik' : 'Anggota'}
                                                 </span>
@@ -2997,41 +3021,41 @@ export default function App() {
 
                         {/* Right Column */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
+                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
                             {currentUser && currentUser.username === comm.username ? (
                               <>
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Status Keaktifan</h3>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-primary)', margin: '0 0 16px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>Status Keaktifan</h3>
                                 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem' }}>
                                   <span style={{ color: 'var(--text-secondary)' }}>Target Anggota:</span>
-                                  <strong style={{ color: 'white' }}>{target} Orang</strong>
+                                  <strong style={{ color: 'var(--text-primary)' }}>{target} Orang</strong>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '0.9rem' }}>
                                   <span style={{ color: 'var(--text-secondary)' }}>Anggota Tergabung:</span>
-                                  <strong style={{ color: 'white' }}>{current} Orang</strong>
+                                  <strong style={{ color: 'var(--text-primary)' }}>{current} Orang</strong>
                                 </div>
 
-                                <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', marginBottom: '12px' }}>
+                                <div style={{ width: '100%', height: '8px', background: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden', marginBottom: '12px' }}>
                                   <div style={{ 
                                     width: `${Math.min(100, percentage)}%`, 
                                     height: '100%', 
-                                    background: '#ffffff',
+                                    background: 'var(--primary)',
                                     transition: 'width 0.3s ease'
                                   }} />
                                 </div>
                                 
                                 {!isActive ? (
-                                  <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', display: 'block', lineHeight: '1.4' }}>
+                                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', lineHeight: '1.4' }}>
                                     *Kurang {target - current} anggota untuk mencapai status aktif
                                   </span>
                                 ) : (
-                                  <span style={{ fontSize: '0.78rem', color: '#ffffff', display: 'block', lineHeight: '1.4', fontWeight: 'bold' }}>
+                                  <span style={{ fontSize: '0.78rem', color: 'var(--text-primary)', display: 'block', lineHeight: '1.4', fontWeight: 'bold' }}>
                                     ✓ Komunitas telah mencapai target anggota aktif.
                                   </span>
                                 )}
                               </>
                             ) : (
-                              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Keanggotaan</h3>
+                              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-primary)', margin: '0 0 16px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>Keanggotaan</h3>
                             )}
 
                             {isRegularUser && (() => {
@@ -3063,13 +3087,13 @@ export default function App() {
 
                           </div>
 
-                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Daftar Anggota ({current} Orang)</h3>
+                          <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-primary)', margin: '0 0 16px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>Daftar Anggota ({current} Orang)</h3>
                             {members.length > 0 ? (
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
                                 {members.map((m, idx) => (
-                                  <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.8rem', color: 'white' }}>
-                                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#ffffff', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                  <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--primary-glow)', padding: '6px 12px', borderRadius: '20px', border: '1px solid var(--border-color)', fontSize: '0.8rem', color: 'var(--text-primary)' }}>
+                                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'var(--primary)', color: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
                                       {m.charAt(0)}
                                     </div>
                                     <span>{m}</span>
@@ -3121,9 +3145,9 @@ export default function App() {
                           fontSize: '0.82rem',
                           borderRadius: '20px',
                           fontWeight: 'bold',
-                          background: '#020202',
-                          color: '#ffffff',
-                          border: '1px solid #020202',
+                          background: 'var(--bg-main)',
+                          color: 'var(--text-primary)',
+                          border: '1px solid var(--border-color)',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
@@ -3277,7 +3301,7 @@ export default function App() {
                     </div>
 
                     {/* Avatar */}
-                    <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '16px', border: '4px solid rgba(255, 255, 255, 0.1)' }}>
+                    <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'var(--primary)', color: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '16px', border: '4px solid var(--border-color)' }}>
                       {currentUser?.organizerAvatar ? (
                         <img src={currentUser.organizerAvatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                       ) : (
@@ -3285,10 +3309,10 @@ export default function App() {
                       )}
                     </div>
 
-                    <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 8px 0' }}>{currentUser?.organizerName || currentUser?.username}</h2>
+                    <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 8px 0', color: 'var(--text-primary)' }}>{currentUser?.organizerName || currentUser?.username}</h2>
                     {isCurrentUserCommunity && (
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'rgba(255,200,0,0.1)', padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(255,200,0,0.2)', fontWeight: 'bold' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'var(--primary-glow)', padding: '4px 12px', borderRadius: '20px', border: '1px solid var(--border-color)', fontWeight: 'bold' }}>
                           Komunitas
                         </span>
                       </div>
@@ -3297,36 +3321,36 @@ export default function App() {
 
                   {/* Profile Details Container */}
                   <div className="profile-card-details glass-panel">
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 8px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Detail Data Profil</h3>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 8px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', color: 'var(--text-primary)' }}>Detail Data Profil</h3>
                     
                     {/* Email */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
                         <Mail size={16} />
                         <span style={{ fontSize: '0.85rem' }}>Email</span>
                       </div>
-                      <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.email || '-'}</span>
+                      <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>{currentUser?.email || '-'}</span>
                     </div>
 
                     {/* WhatsApp */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
                         <Phone size={16} />
                         <span style={{ fontSize: '0.85rem' }}>WhatsApp / HP</span>
                       </div>
-                      <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{currentUser?.organizerPhone || '-'}</span>
+                      <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>{currentUser?.organizerPhone || '-'}</span>
                     </div>
 
                     {/* Kategori Kreator */}
                     {!isCurrentUserCommunity && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
                           <User size={16} />
                           <span style={{ fontSize: '0.85rem' }}>Kategori Kreator</span>
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'flex-end', maxWidth: '60%' }}>
                           {currentUser?.userCategory ? currentUser.userCategory.split(',').map((cat, idx) => (
-                            <span key={idx} style={{ fontSize: '0.78rem', padding: '3px 8px', background: 'rgba(255,255,255,0.06)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontWeight: '500' }}>{cat.trim()}</span>
+                            <span key={idx} style={{ fontSize: '0.78rem', padding: '3px 8px', background: 'var(--primary-glow)', borderRadius: '12px', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontWeight: '500' }}>{cat.trim()}</span>
                           )) : <span style={{ color: 'var(--text-muted)' }}>-</span>}
                         </div>
                       </div>
@@ -3334,7 +3358,7 @@ export default function App() {
 
                     {/* Link Portofolio */}
                     {!isCurrentUserCommunity && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
                           <Globe size={16} />
                           <span style={{ fontSize: '0.85rem' }}>Link Portofolio</span>
@@ -3348,6 +3372,40 @@ export default function App() {
                         )}
                       </div>
                     )}
+
+                    {/* Connected Social Media */}
+                    {!isCurrentUserCommunity && (() => {
+                      const connectedPlatforms = [
+                        { id: 'facebook', label: 'Facebook', handle: currentUser?.facebookHandle, verified: currentUser?.facebookVerified, color: '#1877f2', link: `https://facebook.com/${currentUser?.facebookHandle}` },
+                        { id: 'tiktok', label: 'TikTok', handle: currentUser?.tiktokHandle, verified: currentUser?.tiktokVerified, color: '#00f2fe', link: `https://tiktok.com/@${currentUser?.tiktokHandle}` },
+                        { id: 'instagram', label: 'Instagram', handle: currentUser?.instagramHandle, verified: currentUser?.instagramVerified, color: '#e1306c', link: `https://instagram.com/${currentUser?.instagramHandle}` },
+                        { id: 'youtube', label: 'YouTube', handle: currentUser?.youtubeHandle, verified: currentUser?.youtubeVerified, color: '#ff0000', link: `https://youtube.com/@${currentUser?.youtubeHandle}` }
+                      ].filter(p => p.handle && p.verified);
+
+                      if (connectedPlatforms.length === 0) return null;
+
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', paddingTop: '4px' }}>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 'bold', letterSpacing: '0.5px' }}>Akun Sosial Media Terhubung</span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {connectedPlatforms.map(p => (
+                              <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', padding: '8px 12px', borderRadius: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color }} />
+                                  <span style={{ fontSize: '0.82rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>{p.label}</span>
+                                  <a href={p.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem', color: 'var(--primary)', textDecoration: 'underline' }}>
+                                    @{p.handle}
+                                  </a>
+                                </div>
+                                <span style={{ fontSize: '0.75rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '2px 8px', borderRadius: '12px', fontWeight: '600' }}>
+                                  Terverifikasi
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Jumlah Anggota (Community only) */}
                     {isCurrentUserCommunity && (() => {
@@ -3450,7 +3508,7 @@ export default function App() {
                 {/* Deskripsi */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Bio / Deskripsi Singkat</span>
-                  <p style={{ fontSize: '0.9rem', margin: 0, lineHeight: '1.6', background: 'rgba(255, 255, 255, 0.01)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                  <p style={{ fontSize: '0.9rem', margin: 0, lineHeight: '1.6', background: 'var(--bg-main)', padding: '12px', borderRadius: '12px', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
                     {currentUser?.organizerDescription || 'Belum ada deskripsi profil.'}
                   </p>
                 </div>
@@ -3467,27 +3525,28 @@ export default function App() {
                     style={{ 
                       marginTop: '24px',
                       transition: 'all 0.3s ease',
-                      border: '1px solid rgba(255, 255, 255, 0.08)'
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-card)'
                     }}
                   >
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px', color: 'white' }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', color: 'var(--text-primary)' }}>
                       Persetujuan Anggota Baru
                     </h3>
                     {pendingList.length > 0 ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
                         {pendingList.map((pendingUser, idx) => (
-                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '12px 18px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <span style={{ fontSize: '0.9rem', color: 'white', fontWeight: '500' }}>{pendingUser}</span>
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--primary-glow)', padding: '12px 18px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                            <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: '500' }}>{pendingUser}</span>
                             <div style={{ display: 'flex', gap: '8px' }}>
                               <button 
                                 onClick={() => handleApproveMember(myComm.id, pendingUser)}
-                                style={{ background: 'white', color: 'black', border: 'none', padding: '8px 16px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                                style={{ background: 'var(--primary)', color: 'var(--bg-main)', border: 'none', padding: '8px 16px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s ease' }}
                               >
                                 Setujui
                               </button>
                               <button 
                                 onClick={() => handleRejectMember(myComm.id, pendingUser)}
-                                style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 16px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                                style={{ background: 'var(--primary-glow)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '8px 16px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s ease' }}
                               >
                                 Tolak
                               </button>
@@ -3507,7 +3566,7 @@ export default function App() {
               {/* Join Komunitas Section (For regular users - Show only joined communities) */}
               {!isCurrentUserCommunity && (
                 <div className="profile-card-details glass-panel" style={{ marginTop: '24px' }}>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Komunitas Saya</h3>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', color: 'var(--text-primary)' }}>Komunitas Saya</h3>
                   {(() => {
                     const communitiesList = communities.filter(c => (c.joinedMembers || []).includes(currentUser?.username));
                     if (communitiesList.length === 0) {
@@ -3533,9 +3592,9 @@ export default function App() {
                           const isActive = current >= target;
                           
                           return (
-                            <div key={comm.username} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', gap: '16px' }}>
+                            <div key={comm.username} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', background: 'var(--primary-glow)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border-color)', gap: '16px' }}>
                               <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flex: '1 1 300px' }}>
-                                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
+                                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
                                   {comm.avatar ? (
                                     <img src={comm.avatar} alt={comm.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                                   ) : (
@@ -3544,7 +3603,7 @@ export default function App() {
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                    <strong style={{ fontSize: '0.95rem', color: 'white' }}>{comm.name || comm.username}</strong>
+                                    <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{comm.name || comm.username}</strong>
                                   </div>
                                   <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                                     {comm.description || 'Komunitas Terdaftar'}
@@ -3564,9 +3623,9 @@ export default function App() {
                                     fontSize: '0.8rem',
                                     fontWeight: 'bold',
                                     borderRadius: '20px',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    background: 'rgba(255, 255, 255, 0.05)',
-                                    color: 'white',
+                                    border: '1px solid var(--border-color)',
+                                    background: 'var(--primary-glow)',
+                                    color: 'var(--text-primary)',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease'
                                   }}
@@ -4029,7 +4088,7 @@ export default function App() {
                               <div className="split-card-info">
                                 <span className="split-card-name">{evt.title}</span>
                                 <span className="split-card-meta">
-                                  <span style={{ display: 'flex', alignItems: 'center', color: 'white', fontWeight: 'bold' }}>
+                                  <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: 'bold' }}>
                                     <DollarSign size={13} style={{ marginRight: '4px', opacity: 0.8 }} />
                                     <span>Rp {(evt.campaignBudget || 0).toLocaleString('id-ID')}</span>
                                   </span>
@@ -4094,7 +4153,7 @@ export default function App() {
                       >
                         {/* 1. Left Block: Avatar & Name */}
                         <div style={{ display: 'flex', gap: '14px', alignItems: 'center', textAlign: 'left', minWidth: '220px', flex: '1.2' }}>
-                          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
+                          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary-glow)', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
                             {comm.avatar ? (
                               <img src={comm.avatar} alt={comm.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                             ) : (
@@ -4102,7 +4161,7 @@ export default function App() {
                             )}
                           </div>
                           <div style={{ minWidth: 0, flex: 1 }}>
-                            <strong style={{ fontSize: '1rem', color: 'white', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={comm.name || comm.username}>
+                            <strong style={{ fontSize: '1rem', color: 'var(--text-primary)', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={comm.name || comm.username}>
                               {comm.name || comm.username}
                             </strong>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>Kategori: Agensi / Komunitas</span>
@@ -4127,10 +4186,10 @@ export default function App() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '160px', flex: '1' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                             <span>Kekuatan Crew:</span>
-                            <span style={{ color: 'white', fontWeight: 'bold' }}>{current}/{target}</span>
+                            <span style={{ color: 'var(--text-primary)', fontWeight: 'bold' }}>{current}/{target}</span>
                           </div>
-                          <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
-                            <div style={{ width: `${Math.min(100, percentage)}%`, height: '100%', background: '#ffffff', transition: 'width 0.3s' }} />
+                          <div style={{ width: '100%', height: '6px', background: 'var(--primary-glow)', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ width: `${Math.min(100, percentage)}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.3s' }} />
                           </div>
                         </div>
 
@@ -4189,10 +4248,10 @@ export default function App() {
                       </div>
                       <div className="creator-info">
                         <span className="creator-name">{creator.name}</span>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '6px', marginTop: '8px' }}>
                           {creator.userCategory ? creator.userCategory.split(',').map((cat, idx) => (
-                            <span key={idx} className="creator-tag" style={{ fontSize: '0.72rem', padding: '2px 6px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', color: 'var(--text-secondary)' }}>{cat.trim()}</span>
-                          )) : <span className="creator-tag" style={{ fontSize: '0.72rem', padding: '2px 6px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', color: 'var(--text-secondary)' }}>Kreator Digital</span>}
+                            <span key={idx} className="creator-tag">{cat.trim()}</span>
+                          )) : <span className="creator-tag">Kreator Digital</span>}
                         </div>
                       </div>
                     </div>
@@ -4205,8 +4264,8 @@ export default function App() {
               {/* 5.5. Tanya Jawab (FAQ) */}
               <div className="dashboard-section animate-fade-in" style={{ maxWidth: '800px', marginLeft: 'auto', marginRight: 'auto', width: '100%', padding: '0 16px' }}>
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                  <h3 style={{ fontSize: '1.6rem', fontWeight: '800', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <HelpCircle size={24} style={{ color: 'white' }} />
+                  <h3 style={{ fontSize: '1.6rem', fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <HelpCircle size={24} style={{ color: 'var(--text-primary)' }} />
                     <span>Tanya Jawab (FAQ)</span>
                   </h3>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>
@@ -4242,8 +4301,8 @@ export default function App() {
                       <div 
                         key={idx} 
                         style={{ 
-                          background: 'rgba(255, 255, 255, 0.02)', 
-                          border: isOpen ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(255, 255, 255, 0.05)', 
+                          background: 'var(--bg-card)', 
+                          border: isOpen ? '1px solid var(--border-hover)' : '1px solid var(--border-color)', 
                           borderRadius: '12px', 
                           overflow: 'hidden',
                           transition: 'all 0.2s ease-in-out'
@@ -4257,7 +4316,7 @@ export default function App() {
                             background: 'transparent',
                             border: 'none',
                             outline: 'none',
-                            color: 'white',
+                            color: 'var(--text-primary)',
                             fontWeight: '600',
                             fontSize: '0.92rem',
                             display: 'flex',
@@ -4272,7 +4331,7 @@ export default function App() {
                           <span style={{ 
                             transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', 
                             transition: 'transform 0.2s', 
-                            color: isOpen ? 'white' : 'var(--text-secondary)',
+                            color: isOpen ? 'var(--text-primary)' : 'var(--text-secondary)',
                             display: 'flex',
                             alignItems: 'center'
                           }}>
@@ -4284,7 +4343,7 @@ export default function App() {
                             maxHeight: isOpen ? '200px' : '0px', 
                             overflow: 'hidden', 
                             transition: 'max-height 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                            background: 'rgba(255, 255, 255, 0.01)'
+                            background: 'var(--secondary-glow)'
                           }}
                         >
                           <p style={{ 
@@ -4303,10 +4362,10 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="dashboard-hero" style={{ background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%)', borderColor: 'rgba(255, 255, 255, 0.08)', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '48px 24px' }}>
+              <div className="dashboard-hero" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '48px 24px' }}>
                 <div style={{ maxWidth: '650px' }}>
-                  <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'white', marginBottom: '14px', letterSpacing: '-0.02em' }}>Temukan Solusi Kreatif Anda</h2>
-                  <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.7)', marginBottom: '28px', lineHeight: '1.6' }}>
+                  <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.02em' }}>Temukan Solusi Kreatif Anda</h2>
+                  <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginBottom: '28px', lineHeight: '1.6' }}>
                     Platform terintegrasi yang mempertemukan kreator dan brand untuk solusi kebutuhan karya digital dan bisnis.
                   </p>
                   <button 
@@ -4918,7 +4977,6 @@ export default function App() {
                     userPortfolio: isComm ? '' : editProfilePortfolio.trim(),
                     activityImages: isComm ? editProfileActivityImages.split(',').map(s => s.trim()).filter(Boolean) : [],
                     
-                    // Social handles & verification flags
                     facebookHandle: editProfileFacebookHandle.trim(),
                     facebookVerified: editProfileFacebookVerified,
                     tiktokHandle: editProfileTiktokHandle.trim(),
@@ -5316,14 +5374,41 @@ export default function App() {
                                 )}
 
                                 {verificationStep === 'verify' && (
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                                      Salin kode unik di bawah ini dan tempelkan di bio profil <strong>{platform.label}</strong> Anda:
-                                    </p>
-                                    <div style={{ padding: '8px', background: '#111', border: '1px dashed rgba(255,255,255,0.2)', borderRadius: '6px', textAlign: 'center', fontSize: '1rem', fontWeight: 'bold', color: 'white', letterSpacing: '1px' }}>
-                                      {uniqueCode}
-                                    </div>
-                                    <div style={{ fontSize: '0.75rem', color: '#fbbf24', textAlign: 'center' }}>
+                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                     <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                                       Salin kode unik di bawah ini dan tempelkan di bio profil <strong>{platform.label}</strong> Anda:
+                                     </p>
+                                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                       <div style={{ flex: 1, padding: '8px', background: '#111', border: '1px dashed rgba(255,255,255,0.2)', borderRadius: '6px', textAlign: 'center', fontSize: '1rem', fontWeight: 'bold', color: 'white', letterSpacing: '1px' }}>
+                                         {uniqueCode}
+                                       </div>
+                                       <button
+                                         type="button"
+                                         onClick={() => {
+                                           navigator.clipboard.writeText(uniqueCode);
+                                           setIsCopied(true);
+                                           setTimeout(() => setIsCopied(false), 2000);
+                                         }}
+                                         className="btn btn-secondary"
+                                         style={{ 
+                                           height: '38px', 
+                                           padding: '0 14px', 
+                                           fontSize: '0.75rem', 
+                                           whiteSpace: 'nowrap', 
+                                           display: 'flex', 
+                                           alignItems: 'center', 
+                                           gap: '6px',
+                                           transition: 'all 0.2s ease',
+                                           backgroundColor: isCopied ? '#10b981' : 'rgba(255, 255, 255, 0.08)',
+                                           borderColor: isCopied ? '#10b981' : 'var(--border-color)',
+                                           color: '#fff'
+                                         }}
+                                       >
+                                         {isCopied ? <Check size={14} /> : <Copy size={14} />}
+                                         {isCopied ? 'Tersalin!' : 'Salin'}
+                                       </button>
+                                     </div>
+                                     <div style={{ fontSize: '0.75rem', color: '#fbbf24', textAlign: 'center' }}>
                                       Waktu tersisa: {Math.floor(timerSeconds / 60)}:{( '0' + (timerSeconds % 60) ).slice(-2)}
                                     </div>
                                     {verificationError && (
@@ -5393,45 +5478,47 @@ export default function App() {
                               </div>
                             ) : (
                               /* Standard state */
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                  <span style={{ fontSize: '0.85rem', color: 'white', fontWeight: 'bold' }}>{platform.label}</span>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span style={{ fontSize: '0.85rem', color: 'white', fontWeight: 'bold' }}>{platform.label}</span>
+                                    {platform.verified ? (
+                                      <>
+                                        <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>@{platform.handle}</span>
+                                        <span style={{ fontSize: '0.68rem', padding: '2px 6px', background: 'rgba(74, 222, 128, 0.1)', color: '#4ade80', borderRadius: '4px', border: '1px solid rgba(74, 222, 128, 0.2)', fontWeight: '600' }}>Terverifikasi</span>
+                                      </>
+                                    ) : (
+                                      <span style={{ fontSize: '0.68rem', padding: '2px 6px', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.2)', fontWeight: '600' }}>Belum Terhubung</span>
+                                    )}
+                                  </div>
                                   {platform.verified ? (
-                                    <>
-                                      <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>@{platform.handle}</span>
-                                      <span style={{ fontSize: '0.68rem', padding: '2px 6px', background: 'rgba(74, 222, 128, 0.1)', color: '#4ade80', borderRadius: '4px', border: '1px solid rgba(74, 222, 128, 0.2)', fontWeight: '600' }}>Terverifikasi</span>
-                                    </>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (confirm(`Ubah akun ${platform.label}? Anda harus memverifikasi ulang akun baru nantinya.`)) {
+                                          platform.setHandle('');
+                                          platform.setVerified(false);
+                                        }
+                                      }}
+                                      style={{ background: 'transparent', border: 'none', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+                                    >
+                                      Ubah
+                                    </button>
                                   ) : (
-                                    <span style={{ fontSize: '0.68rem', padding: '2px 6px', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.2)', fontWeight: '600' }}>Belum Terhubung</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setVerifyingPlatform(platform.id);
+                                        setSocialUrl('');
+                                        setVerificationStep('input');
+                                        setVerificationError('');
+                                      }}
+                                      style={{ background: 'white', border: 'none', color: 'black', fontSize: '0.75rem', cursor: 'pointer', padding: '4px 10px', borderRadius: '4px', fontWeight: 'bold' }}
+                                    >
+                                      Hubungkan
+                                    </button>
                                   )}
                                 </div>
-                                {platform.verified ? (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      if (confirm(`Ubah akun ${platform.label}? Anda harus memverifikasi ulang akun baru nantinya.`)) {
-                                        platform.setHandle('');
-                                        platform.setVerified(false);
-                                      }
-                                    }}
-                                    style={{ background: 'transparent', border: 'none', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
-                                  >
-                                    Ubah
-                                  </button>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setVerifyingPlatform(platform.id);
-                                      setSocialUrl('');
-                                      setVerificationStep('input');
-                                      setVerificationError('');
-                                    }}
-                                    style={{ background: 'white', border: 'none', color: 'black', fontSize: '0.75rem', cursor: 'pointer', padding: '4px 10px', borderRadius: '4px', fontWeight: 'bold' }}
-                                  >
-                                    Hubungkan
-                                  </button>
-                                )}
                               </div>
                             )}
                           </div>
@@ -5491,15 +5578,15 @@ export default function App() {
               maxWidth: loginModalMode === 'register' && registerRole === 'panitia' ? '680px' : '400px',
               padding: '32px 28px',
               borderRadius: '16px',
-              background: '#020202',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
               position: 'relative',
               transition: 'all 0.3s ease'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <User size={18} className="accent-text" style={{ color: '#ffffff' }} />
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-primary)' }}>
+                <User size={18} className="accent-text" style={{ color: 'var(--text-primary)' }} />
                 <span>{loginModalMode === 'login' ? 'Masuk Akun' : 'Daftar Akun Baru'}</span>
               </h3>
               <button 
@@ -5522,14 +5609,14 @@ export default function App() {
               <button 
                 type="button"
                 onClick={() => { setLoginModalMode('login'); setLoginError(''); }}
-                style={{ flex: 1, padding: '10px', background: 'transparent', border: 'none', borderBottom: loginModalMode === 'login' ? '2px solid #ffffff' : 'none', color: loginModalMode === 'login' ? 'white' : 'var(--text-secondary)', fontWeight: '600', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '10px', background: 'transparent', border: 'none', borderBottom: loginModalMode === 'login' ? '2px solid var(--primary)' : 'none', color: loginModalMode === 'login' ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: '600', cursor: 'pointer' }}
               >
                 Masuk
               </button>
               <button 
                 type="button"
                 onClick={() => { setLoginModalMode('register'); setLoginError(''); }}
-                style={{ flex: 1, padding: '10px', background: 'transparent', border: 'none', borderBottom: loginModalMode === 'register' ? '2px solid #ffffff' : 'none', color: loginModalMode === 'register' ? 'white' : 'var(--text-secondary)', fontWeight: '600', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '10px', background: 'transparent', border: 'none', borderBottom: loginModalMode === 'register' ? '2px solid var(--primary)' : 'none', color: loginModalMode === 'register' ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: '600', cursor: 'pointer' }}
               >
                 Daftar
               </button>
@@ -5992,21 +6079,19 @@ export default function App() {
                       gap: '10px',
                       padding: '10px',
                       borderRadius: 'var(--radius-sm)',
-                      border: '1px solid rgba(255,255,255,0.12)',
-                      background: 'rgba(255,255,255,0.03)',
-                      color: 'white',
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--primary-glow)',
+                      color: 'var(--text-primary)',
                       fontWeight: 'bold',
                       fontSize: '0.85rem',
                       cursor: 'pointer',
                       transition: 'all 0.2s'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
-                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)';
+                      e.currentTarget.style.background = 'var(--border-color)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';
+                      e.currentTarget.style.background = 'var(--primary-glow)';
                     }}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ display: 'block' }}>

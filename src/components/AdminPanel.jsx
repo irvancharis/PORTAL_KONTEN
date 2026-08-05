@@ -2187,10 +2187,10 @@ export default function AdminPanel({
                     onClick={() => setInnerManageTab(tab.id)}
                     style={{
                       padding: '8px 16px',
-                      background: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                      border: isActive ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid transparent',
+                      background: isActive ? 'var(--primary-glow)' : 'transparent',
+                      border: isActive ? '1px solid var(--border-color)' : '1px solid transparent',
                       borderRadius: '20px',
-                      color: isActive ? 'white' : 'var(--text-secondary)',
+                      color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                       fontWeight: 'bold',
                       fontSize: '0.8rem',
                       cursor: 'pointer',
@@ -3683,10 +3683,10 @@ export default function AdminPanel({
                             alignItems: 'center', 
                             justifyContent: 'space-between',
                             gap: '24px',
-                            border: '1px solid rgba(255, 255, 255, 0.06)',
-                            background: 'rgba(15, 23, 42, 0.45)',
+                            border: '1px solid var(--border-color)',
+                            background: 'var(--bg-card)',
                             backdropFilter: 'blur(12px)',
-                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                            boxShadow: 'var(--shadow-premium)',
                             flexWrap: 'wrap',
                             width: '100%',
                             boxSizing: 'border-box',
@@ -3694,13 +3694,13 @@ export default function AdminPanel({
                             transition: 'all 0.3s ease'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(124, 58, 237, 0.06)';
-                            e.currentTarget.style.borderColor = 'rgba(167, 139, 250, 0.3)';
+                            e.currentTarget.style.background = 'var(--primary-glow)';
+                            e.currentTarget.style.borderColor = 'var(--text-secondary)';
                             e.currentTarget.style.transform = 'translateY(-2px)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(15, 23, 42, 0.45)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
+                            e.currentTarget.style.background = 'var(--bg-card)';
+                            e.currentTarget.style.borderColor = 'var(--border-color)';
                             e.currentTarget.style.transform = 'translateY(0)';
                           }}
                         >
@@ -3767,7 +3767,7 @@ export default function AdminPanel({
                               )}
                             </div>
 
-                            <h3 style={{ color: 'white', fontSize: '1.1rem', fontWeight: '700', margin: 0 }}>{evt.title}</h3>
+                            <h3 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: '700', margin: 0 }}>{evt.title}</h3>
                             <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', maxWidth: '500px' }}>
                               {evt.description}
                             </p>
@@ -3781,11 +3781,11 @@ export default function AdminPanel({
                                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
                                     Biaya Platform (Flat)
                                   </div>
-                                  <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
+                                  <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>
                                     Rp {evt.adminFee ? evt.adminFee.toLocaleString('id-ID') : 'Rp 0'}
                                   </strong>
                                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>
-                                    Harga Tiket: <span style={{ color: evt.ticketPrice > 0 ? '#4ade80' : 'white', fontWeight: 'bold' }}>{evt.ticketPrice > 0 ? `Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}</span>
+                                    Harga Tiket: <span style={{ color: evt.ticketPrice > 0 ? '#10b981' : 'var(--text-primary)', fontWeight: 'bold' }}>{evt.ticketPrice > 0 ? `Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}</span>
                                   </div>
                                 </>
                               ) : (
@@ -3793,7 +3793,7 @@ export default function AdminPanel({
                                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
                                     {evt.budgetMode === 'views' ? 'Sisa / Total Budget' : 'Prize Pool'}
                                   </div>
-                                  <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
+                                  <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>
                                     Rp {evt.campaignBudget ? evt.campaignBudget.toLocaleString('id-ID') : '0'}
                                   </strong>
                                   {evt.adminFee > 0 && (
@@ -3815,9 +3815,9 @@ export default function AdminPanel({
                               </div>
                               <span style={{ 
                                 fontSize: '0.75rem', 
-                                color: '#ffffff', 
-                                background: 'rgba(255, 255, 255, 0.06)', 
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                color: 'var(--text-primary)', 
+                                background: 'var(--primary-glow)', 
+                                border: '1px solid var(--border-color)',
                                 padding: '3px 8px', 
                                 borderRadius: '4px', 
                                 display: 'inline-block',
@@ -3834,7 +3834,7 @@ export default function AdminPanel({
                               <button 
                                 className="action-btn" 
                                 onClick={() => { setSelectedManageEvent(evt); setInnerManageTab('participants'); }} 
-                                style={{ color: '#ffffff', cursor: 'pointer', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                style={{ color: 'var(--text-primary)', cursor: 'pointer', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                 title="Kelola Event (Detail)"
                               >
                                 <Eye size={15} />
@@ -3844,10 +3844,10 @@ export default function AdminPanel({
                                 onClick={() => handleEditEvent(evt)} 
                                 disabled={isLocked}
                                 style={{ 
-                                  color: '#ffffff', 
+                                  color: 'var(--text-primary)', 
                                   cursor: isLocked ? 'not-allowed' : 'pointer', 
-                                  background: 'rgba(255, 255, 255, 0.05)', 
-                                  border: '1px solid rgba(255, 255, 255, 0.1)', 
+                                  background: 'var(--primary-glow)', 
+                                  border: '1px solid var(--border-color)', 
                                   padding: '8px', 
                                   borderRadius: '8px', 
                                   display: 'flex', 
@@ -3864,10 +3864,10 @@ export default function AdminPanel({
                                 onClick={() => handleDeleteEvent(evt.id)} 
                                 disabled={isLocked}
                                 style={{ 
-                                  color: '#f87171', 
+                                  color: '#ef4444', 
                                   cursor: isLocked ? 'not-allowed' : 'pointer', 
-                                  background: 'rgba(239, 68, 68, 0.05)', 
-                                  border: '1px solid rgba(239, 68, 68, 0.15)', 
+                                  background: 'rgba(239, 68, 68, 0.08)', 
+                                  border: '1px solid rgba(239, 68, 68, 0.2)', 
                                   padding: '8px', 
                                   borderRadius: '8px', 
                                   display: 'flex', 
@@ -4384,9 +4384,9 @@ export default function AdminPanel({
                     maxHeight: '90vh', 
                     overflowY: 'auto', 
                     borderRadius: 'var(--radius-lg)', 
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    background: '#090d16',
-                    boxShadow: '0 24px 64px rgba(0, 0, 0, 0.6)',
+                    border: '1px solid var(--border-color)',
+                    background: 'var(--bg-main)',
+                    boxShadow: 'var(--shadow-premium)',
                     position: 'relative'
                   }} 
                   onClick={(e) => e.stopPropagation()}
@@ -4417,9 +4417,9 @@ export default function AdminPanel({
                   {/* Profile Cover Banner */}
                   <div style={{
                     height: '140px',
-                    background: 'linear-gradient(135deg, #18181b 0%, #09090b 100%)',
+                    background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-main) 100%)',
                     position: 'relative',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+                    borderBottom: '1px solid var(--border-color)'
                   }} />
 
                   {/* Profile Header Block */}
@@ -4432,22 +4432,22 @@ export default function AdminPanel({
                           width: '120px',
                           height: '120px',
                           borderRadius: '50%',
-                          border: '4px solid #020202',
-                          boxShadow: '0 12px 28px rgba(0, 0, 0, 0.4)',
-                          background: '#0c101b',
+                          border: '4px solid var(--bg-main)',
+                          boxShadow: 'var(--shadow-premium)',
+                          background: 'var(--bg-card)',
                           objectFit: 'cover'
                         }}
                       />
                       <div style={{ flex: 1, minWidth: '200px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                          <h2 style={{ fontSize: '1.6rem', fontWeight: 'bold', color: 'white', margin: 0 }}>@{viewingCreatorProfile.username}</h2>
+                          <h2 style={{ fontSize: '1.6rem', fontWeight: 'bold', color: 'var(--text-primary)', margin: 0 }}>@{viewingCreatorProfile.username}</h2>
                           <div style={{ display: 'inline-flex', alignItems: 'center' }}>
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star 
                                 key={i} 
                                 size={16} 
-                                fill={i < metrics.stars ? "#ffffff" : "none"} 
-                                stroke={i < metrics.stars ? "#ffffff" : "rgba(255,255,255,0.2)"} 
+                                fill={i < metrics.stars ? "#eab308" : "none"} 
+                                stroke={i < metrics.stars ? "#eab308" : "var(--text-muted)"} 
                                 style={{ marginRight: '2px' }} 
                               />
                             ))}
@@ -4473,8 +4473,8 @@ export default function AdminPanel({
 
                     {/* Bio Description */}
                     <div style={{ 
-                      background: 'rgba(255, 255, 255, 0.02)', 
-                      border: '1px solid rgba(255, 255, 255, 0.04)',
+                      background: 'var(--bg-card)', 
+                      border: '1px solid var(--border-color)',
                       padding: '16px 20px', 
                       borderRadius: '12px',
                       color: 'var(--text-secondary)',
@@ -4482,7 +4482,7 @@ export default function AdminPanel({
                       lineHeight: '1.5',
                       marginBottom: '32px'
                     }}>
-                      <h4 style={{ margin: '0 0 8px 0', color: 'white', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bio / Deskripsi</h4>
+                      <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-primary)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bio / Deskripsi</h4>
                       <p style={{ margin: 0 }}>{viewingCreatorProfile.organizerDescription || 'Pembuat konten belum menambahkan biografi atau deskripsi profil.'}</p>
                     </div>
 
@@ -4494,27 +4494,27 @@ export default function AdminPanel({
                       marginBottom: '36px'
                     }}>
                       {[
-                        { label: 'Total Karya', value: `${metrics.submissionsCount} Film`, color: '#ffffff' },
-                        { label: 'Total Views', value: `${metrics.totalViews.toLocaleString('id-ID')} Views`, color: '#ffffff' },
-                        { label: 'Juara Event', value: `${metrics.winsCount}x Juara`, color: '#ffffff' },
-                        { label: 'Reputasi Poin', value: `${metrics.points.toLocaleString('id-ID')} Pts`, color: '#ffffff' }
+                        { label: 'Total Karya', value: `${metrics.submissionsCount} Film` },
+                        { label: 'Total Views', value: `${metrics.totalViews.toLocaleString('id-ID')} Views` },
+                        { label: 'Juara Event', value: `${metrics.winsCount}x Juara` },
+                        { label: 'Reputasi Poin', value: `${metrics.points.toLocaleString('id-ID')} Pts` }
                       ].map((item, idx) => (
                         <div key={idx} style={{
-                          background: 'rgba(255, 255, 255, 0.03)',
-                          border: '1px solid rgba(255, 255, 255, 0.05)',
+                          background: 'var(--primary-glow)',
+                          border: '1px solid var(--border-color)',
                           borderRadius: '12px',
                           padding: '16px',
                           textAlign: 'center'
                         }}>
                           <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>{item.label}</span>
-                          <strong style={{ fontSize: '1.15rem', color: item.color, fontWeight: '700' }}>{item.value}</strong>
+                          <strong style={{ fontSize: '1.15rem', color: 'var(--text-primary)', fontWeight: '700' }}>{item.value}</strong>
                         </div>
                       ))}
                     </div>
 
                     {/* Portfolio/Karya List */}
-                    <div style={{ marginBottom: '36px' }}>
-                      <h3 style={{ fontSize: '1.15rem', color: 'white', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>
+                    <div style={{ margin: '0 0 36px 0' }}>
+                      <h3 style={{ fontSize: '1.15rem', color: 'var(--text-primary)', fontWeight: 'bold', margin: '0 0 16px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
                         Portofolio Film ({creatorMovies.length})
                       </h3>
                       {creatorMovies.length > 0 ? (
@@ -4525,8 +4525,8 @@ export default function AdminPanel({
                         }}>
                           {creatorMovies.map(movie => (
                             <div key={movie.id} style={{
-                              background: 'rgba(255, 255, 255, 0.02)',
-                              border: '1px solid rgba(255, 255, 255, 0.05)',
+                              background: 'var(--bg-card)',
+                              border: '1px solid var(--border-color)',
                               borderRadius: '10px',
                               overflow: 'hidden',
                               display: 'flex',
@@ -4537,6 +4537,9 @@ export default function AdminPanel({
                                   src={movie.thumbnail || movie.imageUrl || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=3540&auto=format&fit=crop'} 
                                   alt={movie.title} 
                                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                  onError={(e) => {
+                                    e.currentTarget.src = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=3540&auto=format&fit=crop';
+                                  }}
                                 />
                                 <span style={{
                                   position: 'absolute',
@@ -4553,7 +4556,7 @@ export default function AdminPanel({
                                 </span>
                               </div>
                               <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                                <h4 style={{ color: 'white', fontSize: '0.88rem', fontWeight: 'bold', margin: '0 0 8px 0', lineBreak: 'anywhere' }}>{movie.title}</h4>
+                                <h4 style={{ color: 'var(--text-primary)', fontSize: '0.88rem', fontWeight: 'bold', margin: '0 0 8px 0', lineBreak: 'anywhere' }}>{movie.title}</h4>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                                   <span>{movie.views ? movie.views.toLocaleString('id-ID') : 0} Views</span>
                                   <span>{movie.likes ? movie.likes.length : 0} Suka</span>

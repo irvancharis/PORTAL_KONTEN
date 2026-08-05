@@ -11,4 +11,4 @@ Disallow: /watchlist/*
 Disallow: /history
 Disallow: /history/*
 
-Sitemap: https://jamkosong.web.app/sitemap.xml
+Sitemap: https://ngonten.id/sitemap.xml

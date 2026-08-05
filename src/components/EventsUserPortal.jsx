@@ -53,9 +53,9 @@ const formatIndonesianDate = (dateString) => {
 
 const getCategoryBadgeStyle = (category) => {
   return {
-    bg: 'rgba(255, 255, 255, 0.05)',
-    color: '#ffffff',
-    border: '1px solid rgba(255, 255, 255, 0.2)'
+    bg: 'var(--primary-glow)',
+    color: 'var(--text-primary)',
+    border: '1px solid var(--border-color)'
   };
 };
 
@@ -212,9 +212,9 @@ function CardCountdown({ deadline }) {
   if (!label) return null;
 
   const isEndingSoon = label.startsWith('Sisa') && !label.includes('hari');
-  const color = label === 'Telah Selesai' ? '#a3a3a3' : '#ffffff';
-  const bg = label === 'Telah Selesai' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.06)';
-  const border = label === 'Telah Selesai' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(255, 255, 255, 0.2)';
+  const color = label === 'Telah Selesai' ? 'var(--text-muted)' : 'var(--text-primary)';
+  const bg = 'var(--primary-glow)';
+  const border = '1px solid var(--border-color)';
 
   return (
     <div style={{ 
@@ -596,14 +596,24 @@ export default function EventsUserPortal({
     try {
       let verificationResult = { exists: false, codeFound: false, status: 'failed' };
 
-      // If user configured Google Apps Script Web App, call it via JSONP to bypass CORS.
+      let appsScriptSuccess = false;
       if (GOOGLE_APPS_SCRIPT_URL) {
-        verificationResult = await fetchJSONP(GOOGLE_APPS_SCRIPT_URL, {
-          platform: selectedPlatform,
-          username: cleanUsername,
-          code: uniqueCode
-        });
-      } else {
+        try {
+          const result = await fetchJSONP(GOOGLE_APPS_SCRIPT_URL, {
+            platform: selectedPlatform,
+            username: cleanUsername,
+            code: uniqueCode
+          });
+          if (result && result.status) {
+            verificationResult = result;
+            appsScriptSuccess = true;
+          }
+        } catch (scriptErr) {
+          console.warn("Apps Script verification failed, trying client-side fallback:", scriptErr);
+        }
+      }
+
+      if (!appsScriptSuccess) {
         // Client-side fallback using direct APIs and AllOrigins proxy
         if (selectedPlatform === 'tiktok') {
           // Direct check using TikWM API (CORS friendly!)
@@ -1080,12 +1090,12 @@ export default function EventsUserPortal({
 
           return (
             <div className="animate-fade-in" style={{
-              background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(9, 13, 22, 0.8) 100%)', 
+              background: 'var(--bg-card)', 
               backdropFilter: 'blur(20px)', 
               padding: '32px', 
               borderRadius: '24px', 
-              border: '1px solid rgba(255,255,255,0.04)',
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)'
+              border: '1px solid var(--border-color)',
+              boxShadow: 'var(--shadow-premium)'
             }}>
               {/* Back button */}
               <button 
@@ -1098,11 +1108,11 @@ export default function EventsUserPortal({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  background: 'var(--primary-glow)',
+                  border: '1px solid var(--border-color)',
                   padding: '10px 20px',
                   borderRadius: '30px',
-                  color: 'rgba(255, 255, 255, 0.8)',
+                  color: 'var(--text-primary)',
                   cursor: 'pointer',
                   fontSize: '0.85rem',
                   fontWeight: '600',
@@ -1112,15 +1122,15 @@ export default function EventsUserPortal({
                   outline: 'none'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                  e.currentTarget.style.color = '#ffffff';
-                  e.currentTarget.style.boxShadow = '0 0 15px rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.background = 'var(--border-color)';
+                  e.currentTarget.style.borderColor = 'var(--text-secondary)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-premium)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                  e.currentTarget.style.background = 'var(--primary-glow)';
+                  e.currentTarget.style.borderColor = 'var(--border-color)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
@@ -1137,12 +1147,12 @@ export default function EventsUserPortal({
                       {evt.eventType === 'regular' ? (
                         <span style={{ 
                           fontSize: '0.72rem', 
-                          background: 'rgba(255, 255, 255, 0.08)', 
-                          color: '#ffffff', 
+                          background: 'var(--primary-glow)', 
+                          color: 'var(--text-primary)', 
                           padding: '5px 14px', 
                           borderRadius: '20px',
                           fontWeight: 'bold',
-                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                          border: '1px solid var(--border-color)',
                           letterSpacing: '0.5px'
                         }}>
                           Acara / Seminar
@@ -1150,12 +1160,12 @@ export default function EventsUserPortal({
                       ) : (
                         <span style={{ 
                           fontSize: '0.72rem', 
-                          background: 'rgba(255, 255, 255, 0.08)', 
-                          color: '#ffffff', 
+                          background: 'var(--primary-glow)', 
+                          color: 'var(--text-primary)', 
                           padding: '5px 14px', 
                           borderRadius: '20px',
                           fontWeight: 'bold',
-                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                          border: '1px solid var(--border-color)',
                           letterSpacing: '0.5px'
                         }}>
                           Kompetisi
@@ -1183,28 +1193,25 @@ export default function EventsUserPortal({
                     </div>
                     
                     <h2 style={{ 
-                      color: 'white', 
+                      color: 'var(--text-primary)', 
                       fontSize: '2.2rem', 
                       fontWeight: '800', 
                       margin: '0 0 16px 0', 
-                      letterSpacing: '-0.8px',
-                      background: 'linear-gradient(to right, #ffffff, #e2e8f0)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
+                      letterSpacing: '-0.8px'
                     }}>{evt.title}</h2>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>
-                        <Calendar size={16} style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                        <Calendar size={16} style={{ color: 'var(--text-secondary)' }} />
                         {evt.deadline ? (
-                          <span>Batas Waktu Pendaftaran: <strong style={{ color: 'white' }}>{formatIndonesianDate(evt.deadline)}</strong></span>
+                          <span>Batas Waktu Pendaftaran: <strong style={{ color: 'var(--text-primary)' }}>{formatIndonesianDate(evt.deadline)}</strong></span>
                         ) : (
-                          <span>Batas Waktu Pendaftaran: <strong style={{ color: 'white' }}>{evt.eventType === 'regular' ? 'Tanpa Batas Waktu' : 'Tanpa Batas Waktu (Selesai saat budget habis)'}</strong></span>
+                          <span>Batas Waktu Pendaftaran: <strong style={{ color: 'var(--text-primary)' }}>{evt.eventType === 'regular' ? 'Tanpa Batas Waktu' : 'Tanpa Batas Waktu (Selesai saat budget habis)'}</strong></span>
                         )}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>
-                        <Wallet size={16} style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
-                        <span>Biaya Pendaftaran / Tiket: <strong style={{ color: evt.ticketPrice > 0 ? '#4ade80' : 'white' }}>{evt.ticketPrice > 0 ? `Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}</strong></span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                        <Wallet size={16} style={{ color: 'var(--text-secondary)' }} />
+                        <span>Biaya Pendaftaran / Tiket: <strong style={{ color: evt.ticketPrice > 0 ? '#10b981' : 'var(--text-primary)' }}>{evt.ticketPrice > 0 ? `Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}</strong></span>
                       </div>
                     </div>
                     
@@ -1220,15 +1227,15 @@ export default function EventsUserPortal({
                     evt.juknisDonts) ? (
                     <div style={{
                       padding: '24px',
-                      background: 'rgba(255, 255, 255, 0.02)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border-color)',
                       borderRadius: '16px',
                       fontSize: '0.88rem',
                       textAlign: 'left',
                       marginBottom: '24px'
                     }}>
-                      <strong style={{ color: 'white', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '20px', fontSize: '1rem', fontWeight: '800', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px', width: '100%' }}>
-                        <CheckCircle2 size={18} style={{ color: 'rgba(255, 255, 255, 0.9)' }} />
+                      <strong style={{ color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '20px', fontSize: '1rem', fontWeight: '800', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', width: '100%' }}>
+                        <CheckCircle2 size={18} style={{ color: 'var(--text-primary)' }} />
                         <span>Tugas & Cara Kerja</span>
                       </strong>
 
@@ -1236,17 +1243,17 @@ export default function EventsUserPortal({
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px' }}>
                         <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Upload ke:</span>
                         {evt.juknisPlatforms?.TikTok && (
-                          <span style={{ fontSize: '0.75rem', background: '#ffffff', color: '#000000', padding: '4px 12px', borderRadius: '12px', fontWeight: 'bold' }}>TikTok</span>
+                          <span style={{ fontSize: '0.75rem', background: 'var(--primary)', color: 'var(--bg-main)', padding: '4px 12px', borderRadius: '12px', fontWeight: 'bold' }}>TikTok</span>
                         )}
                         {evt.juknisPlatforms?.Instagram && (
-                          <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)', color: '#ffffff', padding: '4px 12px', borderRadius: '12px', fontWeight: 'bold' }}>Instagram</span>
+                          <span style={{ fontSize: '0.75rem', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '4px 12px', borderRadius: '12px', fontWeight: 'bold' }}>Instagram</span>
                         )}
                         {evt.juknisPlatforms?.YouTube && (
-                          <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)', color: '#ffffff', padding: '4px 12px', borderRadius: '12px', fontWeight: 'bold' }}>YouTube Shorts</span>
+                          <span style={{ fontSize: '0.75rem', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '4px 12px', borderRadius: '12px', fontWeight: 'bold' }}>YouTube Shorts</span>
                         )}
                         {evt.juknisDuration && (
-                          <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 12px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
-                            <Clock size={12} />
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', padding: '4px 12px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
+                            <Clock size={12} style={{ color: 'var(--text-secondary)' }} />
                             {evt.juknisDuration}
                           </span>
                         )}
@@ -1258,7 +1265,7 @@ export default function EventsUserPortal({
                           <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: '8px' }}>Bahan Sumber</span>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {evt.juknisSourceName1 && (
-                              <a href={ensureAbsoluteUrl(evt.juknisSourceLink1)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', textDecoration: 'none', color: 'white', transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}>
+                              <a href={ensureAbsoluteUrl(evt.juknisSourceLink1)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '12px', textDecoration: 'none', color: 'var(--text-primary)', transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'var(--primary-glow)'} onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-card)'}>
                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                                   <span style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>{evt.juknisSourceName1}</span>
                                   <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px', whiteSpace: 'nowrap' }}>{evt.juknisSourceLink1}</span>
@@ -1267,7 +1274,7 @@ export default function EventsUserPortal({
                               </a>
                             )}
                             {evt.juknisSourceName2 && (
-                              <a href={ensureAbsoluteUrl(evt.juknisSourceLink2)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', textDecoration: 'none', color: 'white', transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}>
+                              <a href={ensureAbsoluteUrl(evt.juknisSourceLink2)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '12px', textDecoration: 'none', color: 'var(--text-primary)', transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'var(--primary-glow)'} onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-card)'}>
                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                                   <span style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>{evt.juknisSourceName2}</span>
                                   <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px', whiteSpace: 'nowrap' }}>{evt.juknisSourceLink2}</span>
@@ -1283,7 +1290,7 @@ export default function EventsUserPortal({
                       {evt.juknisBrandName && (
                         <div style={{ marginBottom: '20px' }}>
                           <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: '8px' }}>Asset Logo / Brand</span>
-                          <a href={ensureAbsoluteUrl(evt.juknisBrandLink)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', textDecoration: 'none', color: 'white', transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}>
+                          <a href={ensureAbsoluteUrl(evt.juknisBrandLink)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '12px', textDecoration: 'none', color: 'var(--text-primary)', transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'var(--primary-glow)'} onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-card)'}>
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                               <span style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>{evt.juknisBrandName}</span>
                               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px', whiteSpace: 'nowrap' }}>{evt.juknisBrandLink}</span>
@@ -1295,9 +1302,9 @@ export default function EventsUserPortal({
 
                       {/* DOs list */}
                       {evt.juknisDos && (
-                        <div style={{ marginBottom: '20px', padding: '16px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px' }}>
-                          <span style={{ fontSize: '0.85rem', color: 'white', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>Isi Konten Harus Begini:</span>
-                          <ul style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', color: 'rgba(255,255,255,0.8)' }}>
+                        <div style={{ marginBottom: '20px', padding: '16px', background: 'var(--secondary-glow)', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>Isi Konten Harus Begini:</span>
+                          <ul style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-secondary)' }}>
                             {evt.juknisDos.split('\n').filter(Boolean).map((line, idx) => (
                               <li key={idx} style={{ lineHeight: '1.5' }}>{line}</li>
                             ))}
@@ -1313,18 +1320,18 @@ export default function EventsUserPortal({
                             JANGAN Lakukan Ini!
                           </span>
                           <span style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(239, 68, 68, 0.8)', marginBottom: '8px' }}>Awas! Kalau melanggar, konten otomatis ditolak.</span>
-                          <ul style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', color: 'rgba(255,255,255,0.8)' }}>
+                          <ul style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-secondary)' }}>
                             {evt.juknisDonts.split('\n').filter(Boolean).map((line, idx) => (
-                              <li key={idx} style={{ lineHeight: '1.5', color: '#f87171' }}>{line}</li>
+                              <li key={idx} style={{ lineHeight: '1.5', color: '#ef4444' }}>{line}</li>
                             ))}
                           </ul>
                         </div>
                       )}
 
                       {evt.juknis && (
-                        <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px dashed rgba(255,255,255,0.06)' }}>
+                        <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px dashed var(--border-color)' }}>
                           <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Catatan Tambahan</span>
-                          <div style={{ color: 'rgba(255, 255, 255, 0.7)', whiteSpace: 'pre-wrap', lineHeight: '1.7' }}>{evt.juknis}</div>
+                          <div style={{ color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', lineHeight: '1.7' }}>{evt.juknis}</div>
                         </div>
                       )}
 
@@ -1333,34 +1340,34 @@ export default function EventsUserPortal({
                     evt.juknis && (
                       <div style={{ 
                         padding: '24px',
-                        background: 'rgba(255, 255, 255, 0.02)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border-color)',
                         borderRadius: '16px',
                         fontSize: '0.88rem',
                         textAlign: 'left',
                         marginBottom: '24px'
                       }}>
-                        <strong style={{ color: 'white', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
-                          <CheckCircle2 size={18} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+                        <strong style={{ color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
+                          <CheckCircle2 size={18} style={{ color: 'var(--text-secondary)' }} />
                           <span>Petunjuk Teknis (Juknis)</span>
                         </strong>
-                        <div style={{ color: 'rgba(255, 255, 255, 0.7)', whiteSpace: 'pre-wrap', lineHeight: '1.7' }}>{evt.juknis}</div>
+                        <div style={{ color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', lineHeight: '1.7' }}>{evt.juknis}</div>
                       </div>
                     )
                   )}
 
                   <div style={{
                     padding: '24px',
-                    background: 'rgba(255, 255, 255, 0.01)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-color)',
                     borderRadius: '16px',
                     textAlign: 'left'
                   }}>
-                    <strong style={{ color: 'white', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
-                      <Users size={18} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+                    <strong style={{ color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
+                      <Users size={18} style={{ color: 'var(--text-secondary)' }} />
                       <span>Detail Penyelenggara</span>
                     </strong>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px', paddingBottom: '14px', borderBottom: '1px dashed rgba(255,255,255,0.06)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px', paddingBottom: '14px', borderBottom: '1px dashed var(--border-color)' }}>
                       <img 
                         src={orgAvatar} 
                         alt={orgName} 
@@ -1369,9 +1376,9 @@ export default function EventsUserPortal({
                           height: '48px',
                           borderRadius: '50%',
                           objectFit: 'cover',
-                          border: '2px solid rgba(255, 255, 255, 0.2)',
-                          background: 'rgba(255, 255, 255, 0.02)',
-                          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
+                          border: '2px solid var(--border-color)',
+                          background: 'var(--bg-card)',
+                          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.05)'
                         }}
                         onError={(e) => {
                           e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}&backgroundColor=262626&textColor=ffffff`;
@@ -1379,14 +1386,14 @@ export default function EventsUserPortal({
                       />
                       <div>
                         <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem', marginBottom: '2px' }}>Nama Penyelenggara / Komunitas</span>
-                        <span style={{ color: 'white', fontSize: '1.05rem', fontWeight: '700' }}>{orgName}</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '1.05rem', fontWeight: '700' }}>{orgName}</span>
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.88rem' }}>
                       {evt.organizerDescription && (
                         <div>
                           <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem', marginBottom: '2px' }}>Tentang Penyelenggara</span>
-                          <p style={{ color: 'rgba(255,255,255,0.7)', margin: '4px 0 0 0', lineHeight: '1.6' }}>{evt.organizerDescription}</p>
+                          <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0 0', lineHeight: '1.6' }}>{evt.organizerDescription}</p>
                         </div>
                       )}
                     </div>
@@ -1396,14 +1403,14 @@ export default function EventsUserPortal({
                   {evt.budgetMode === 'ranking' && (
                     <div style={{
                       padding: '24px',
-                      background: 'rgba(255, 255, 255, 0.01)',
-                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border-color)',
                       borderRadius: '16px',
                       textAlign: 'left',
                       marginTop: '24px'
                     }}>
-                      <strong style={{ color: 'white', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
-                        <Trophy size={18} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+                      <strong style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.95rem', fontWeight: '700' }}>
+                        <Trophy size={18} style={{ color: 'var(--text-secondary)' }} />
                         <span>{new Date(evt.deadline) < new Date() ? 'Pemenang Kompetisi (Final)' : 'Klasemen Sementara (Real-time)'}</span>
                       </strong>
                       {(() => {
@@ -1431,17 +1438,17 @@ export default function EventsUserPortal({
                                     display: 'flex', 
                                     alignItems: 'center', 
                                     justifyContent: 'space-between',
-                                    background: 'rgba(255, 255, 255, 0.02)',
+                                    background: 'var(--bg-card)',
                                     padding: '12px 16px',
                                     borderRadius: '10px',
-                                    border: '1px solid rgba(255, 255, 255, 0.04)'
+                                    border: '1px solid var(--border-color)'
                                   }}
                                 >
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <span style={{ 
                                       fontSize: '0.82rem', 
                                       fontWeight: '700', 
-                                      color: isTop3 ? 'white' : 'var(--text-muted)',
+                                      color: isTop3 ? 'var(--text-primary)' : 'var(--text-muted)',
                                       width: '65px',
                                       display: 'inline-block'
                                     }}>
@@ -1450,16 +1457,16 @@ export default function EventsUserPortal({
                                     <img 
                                       src={userAvatar} 
                                       alt={sub.username} 
-                                      style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.08)' }}
+                                      style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-color)' }}
                                     />
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                      <span style={{ color: 'white', fontWeight: '700', fontSize: '0.85rem' }}>{sub.username}</span>
+                                      <span style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '0.85rem' }}>{sub.username}</span>
                                       <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '200px' }}>{sub.title}</span>
                                     </div>
                                   </div>
                                   <div style={{ textAlign: 'right' }}>
                                     {isTop3 && prizeAmounts[index] > 0 && (
-                                      <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', marginBottom: '2px' }}>
+                                      <div style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '0.85rem', marginBottom: '2px' }}>
                                         Rp {prizeAmounts[index].toLocaleString('id-ID')}
                                       </div>
                                     )}
@@ -1484,67 +1491,67 @@ export default function EventsUserPortal({
                   {evt.eventType !== 'regular' && evt.campaignBudget > 0 && (
                     evt.budgetMode === 'ranking' ? (
                       <div style={{ 
-                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.01) 0%, rgba(15, 23, 42, 0.6) 100%)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border-color)',
                         borderRadius: '16px',
                         overflow: 'hidden',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                        boxShadow: 'var(--shadow-premium)',
                         fontSize: '0.85rem'
                       }}>
                         <div style={{
-                          background: 'rgba(255, 255, 255, 0.02)',
+                          background: 'var(--primary-glow)',
                           padding: '20px',
                           display: 'flex',
                           flexDirection: 'column',
                           gap: '6px',
-                          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                          borderBottom: '1px solid var(--border-color)',
                           textAlign: 'left'
                         }}>
-                          <span style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.5)', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase' }}>
                             Total Hadiah (Prize Pool)
                           </span>
-                          <strong style={{ color: 'white', fontSize: '1.65rem', fontWeight: '800', lineHeight: 1 }}>
+                          <strong style={{ color: 'var(--text-primary)', fontSize: '1.65rem', fontWeight: '800', lineHeight: 1 }}>
                             Rp {evt.campaignBudget.toLocaleString('id-ID')}
                           </strong>
                         </div>
                         
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '16px 20px', fontSize: '0.85rem', textAlign: 'left' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontWeight: '600' }}>Juara I</span>
-                            <strong style={{ color: 'white' }}>Rp {evt.prize1?.toLocaleString('id-ID')}</strong>
+                            <span style={{ color: 'var(--text-secondary)', fontWeight: '600' }}>Juara I</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>Rp {evt.prize1?.toLocaleString('id-ID')}</strong>
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '8px' }}>
-                            <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontWeight: '600' }}>Juara II</span>
-                            <strong style={{ color: 'white' }}>Rp {evt.prize2?.toLocaleString('id-ID')}</strong>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
+                            <span style={{ color: 'var(--text-secondary)', fontWeight: '600' }}>Juara II</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>Rp {evt.prize2?.toLocaleString('id-ID')}</strong>
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '8px' }}>
-                            <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontWeight: '600' }}>Juara III</span>
-                            <strong style={{ color: 'white' }}>Rp {evt.prize3?.toLocaleString('id-ID')}</strong>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
+                            <span style={{ color: 'var(--text-secondary)', fontWeight: '600' }}>Juara III</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>Rp {evt.prize3?.toLocaleString('id-ID')}</strong>
                           </div>
                         </div>
                       </div>
                     ) : (
                       <div style={{ 
-                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.01) 0%, rgba(15, 23, 42, 0.6) 100%)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border-color)',
                         borderRadius: '16px',
                         overflow: 'hidden',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                        boxShadow: 'var(--shadow-premium)',
                         fontSize: '0.85rem'
                       }}>
                         <div style={{
-                          background: 'rgba(255, 255, 255, 0.02)',
+                          background: 'var(--primary-glow)',
                           padding: '20px',
                           display: 'flex',
                           flexDirection: 'column',
                           gap: '6px',
-                          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                          borderBottom: '1px solid var(--border-color)',
                           textAlign: 'left'
                         }}>
-                          <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontWeight: '700', fontSize: '0.78rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                          <span style={{ color: 'var(--text-muted)', fontWeight: '700', fontSize: '0.78rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
                             Budget Campaign
                           </span>
-                          <strong style={{ color: 'white', fontSize: '1.5rem', fontWeight: '800', lineHeight: 1 }}>
+                          <strong style={{ color: 'var(--text-primary)', fontSize: '1.5rem', fontWeight: '800', lineHeight: 1 }}>
                             Rp {evt.campaignBudget.toLocaleString('id-ID')}
                           </strong>
                         </div>
@@ -1552,21 +1559,21 @@ export default function EventsUserPortal({
                         <div style={{ padding: '16px 20px', textAlign: 'left' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.82rem' }}>
                             <span style={{ color: 'var(--text-muted)' }}>Sisa Saldo</span>
-                            <span style={{ color: 'white', fontWeight: 'bold' }}>Rp {getEventRemainingBudget(evt).toLocaleString('id-ID')}</span>
+                            <span style={{ color: 'var(--text-primary)', fontWeight: 'bold' }}>Rp {getEventRemainingBudget(evt).toLocaleString('id-ID')}</span>
                           </div>
                           
                           {/* Budget Progress Bar */}
-                          <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden', marginBottom: '16px' }}>
+                          <div style={{ width: '100%', height: '8px', background: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden', marginBottom: '16px' }}>
                             <div style={{ 
                               width: `${(getEventRemainingBudget(evt) / evt.campaignBudget) * 100}%`, 
                               height: '100%', 
-                              background: 'linear-gradient(90deg, #e2e8f0, #ffffff)',
-                              boxShadow: '0 0 8px rgba(255, 255, 255, 0.2)'
+                              background: 'var(--primary)',
+                              boxShadow: '0 0 8px var(--primary)'
                             }}></div>
                           </div>
                           
-                          <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.7)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.02)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                            <Award size={14} style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--primary-glow)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                            <Award size={14} style={{ color: 'var(--text-secondary)' }} />
                             <span>
                               Benefit: Rp {evt.benefitAmount?.toLocaleString('id-ID')} per {evt.benefitViewsStep?.toLocaleString('id-ID')} Views
                               {evt.minEarningViews > 0 && ` (Min. ${evt.minEarningViews.toLocaleString('id-ID')} Views)`}
@@ -1813,40 +1820,40 @@ export default function EventsUserPortal({
                               onClick={() => setEnlargedTicketReg(userReg)}
                               title="Klik untuk memperbesar tiket"
                               style={{
-                                background: 'rgba(255, 255, 255, 0.02)',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                background: 'var(--bg-card)',
+                                border: '1px solid var(--border-color)',
                                 borderRadius: '16px',
                                 padding: '20px',
                                 marginBottom: '24px',
-                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.05)',
+                                boxShadow: 'var(--shadow-premium)',
                                 position: 'relative',
                                 overflow: 'hidden',
                                 cursor: 'pointer',
                                 transition: 'all 0.25s ease'
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
-                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                                e.currentTarget.style.background = 'var(--primary-glow)';
+                                e.currentTarget.style.borderColor = 'var(--text-secondary)';
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
-                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                e.currentTarget.style.background = 'var(--bg-card)';
+                                e.currentTarget.style.borderColor = 'var(--border-color)';
                               }}
                             >
                               {/* Ticket Notch decorations */}
-                              <div style={{ position: 'absolute', left: '-10px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', borderRadius: '50%', background: '#020202', borderRight: '1px solid rgba(255, 255, 255, 0.08)' }}></div>
-                              <div style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', borderRadius: '50%', background: '#020202', borderLeft: '1px solid rgba(255, 255, 255, 0.08)' }}></div>
+                              <div style={{ position: 'absolute', left: '-10px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', borderRadius: '50%', background: 'var(--bg-main)', borderRight: '1px solid var(--border-color)' }}></div>
+                              <div style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', borderRadius: '50%', background: 'var(--bg-main)', borderLeft: '1px solid var(--border-color)' }}></div>
                               
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed rgba(255,255,255,0.15)', paddingBottom: '12px', marginBottom: '14px' }}>
-                                <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>E-Tiket Resmi</span>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed var(--border-color)', paddingBottom: '12px', marginBottom: '14px' }}>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>E-Tiket Resmi</span>
                                 <span style={{ 
                                   fontSize: '0.68rem', 
-                                  background: userReg.isCheckedIn ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.03)', 
-                                  color: userReg.isCheckedIn ? '#ffffff' : 'var(--text-secondary)', 
+                                  background: userReg.isCheckedIn ? 'var(--primary-glow)' : 'var(--primary-glow)', 
+                                  color: userReg.isCheckedIn ? 'var(--text-primary)' : 'var(--text-secondary)', 
                                   padding: '3px 8px', 
                                   borderRadius: '12px',
                                   fontWeight: 'bold',
-                                  border: userReg.isCheckedIn ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)'
+                                  border: '1px solid var(--border-color)'
                                 }}>
                                   {userReg.isCheckedIn ? 'SUDAH CHECK-IN' : 'BELUM CHECK-IN'}
                                 </span>
@@ -1874,7 +1881,7 @@ export default function EventsUserPortal({
                                 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
                                   <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Kode Tiket</span>
-                                  <span style={{ fontSize: '1.15rem', color: 'white', fontWeight: '800', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
+                                  <span style={{ fontSize: '1.15rem', color: 'var(--text-primary)', fontWeight: '800', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
                                     {userReg.ticketCode || `TKT-${userReg.id.substring(userReg.id.length - 6).toUpperCase()}`}
                                   </span>
                                   <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
@@ -1883,20 +1890,20 @@ export default function EventsUserPortal({
                                 </div>
                               </div>
 
-                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', borderTop: '1px dashed rgba(255,255,255,0.06)', paddingTop: '10px' }}>
+                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', borderTop: '1px dashed var(--border-color)', paddingTop: '10px' }}>
                                 <Maximize2 size={10} />
                                 <span>Klik tiket untuk memperbesar & scan</span>
                               </div>
                               
                               {evt.ticketPrice > 0 && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', borderTop: '1px dashed rgba(255,255,255,0.06)', paddingTop: '10px', fontSize: '0.75rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', borderTop: '1px dashed var(--border-color)', paddingTop: '10px', fontSize: '0.75rem' }}>
                                   <span style={{ color: 'var(--text-muted)' }}>Status Pembayaran</span>
-                                  <strong style={{ color: '#4ade80' }}>✓ Lunas (Rp {evt.ticketPrice.toLocaleString('id-ID')})</strong>
+                                  <strong style={{ color: '#10b981' }}>✓ Lunas (Rp {evt.ticketPrice.toLocaleString('id-ID')})</strong>
                                 </div>
                               )}
                               
                               {userReg.isCheckedIn && userReg.checkedInAt && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '10px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                                   <span>Waktu Check-In:</span>
                                   <span>{new Date(userReg.checkedInAt).toLocaleTimeString('id-ID')} - {new Date(userReg.checkedInAt).toLocaleDateString('id-ID')}</span>
                                 </div>
@@ -1914,7 +1921,7 @@ export default function EventsUserPortal({
                                     top: '26px',
                                     bottom: '-26px',
                                     width: '2px',
-                                    background: userReg.status === 'approved' ? '#22c55e' : 'rgba(255, 255, 255, 0.1)',
+                                    background: userReg.status === 'approved' ? '#22c55e' : 'var(--border-color)',
                                     zIndex: 1
                                   }} />
                                   <div style={{
@@ -1924,15 +1931,15 @@ export default function EventsUserPortal({
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    background: userReg.status === 'approved' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                                    border: `2px solid ${userReg.status === 'approved' ? '#22c55e' : 'rgba(255, 255, 255, 0.2)'}`,
+                                    background: userReg.status === 'approved' ? 'rgba(34, 197, 94, 0.15)' : 'var(--primary-glow)',
+                                    border: `2px solid ${userReg.status === 'approved' ? '#22c55e' : 'var(--border-color)'}`,
                                     zIndex: 2,
                                     flexShrink: 0
                                   }}>
                                     {userReg.status === 'approved' ? <CheckCircle2 size={14} style={{ color: '#22c55e' }} /> : <Clock size={14} style={{ color: '#fbbf24' }} />}
                                   </div>
                                   <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: 'white', fontWeight: 'bold' }}>
+                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>
                                       Tahap 1: Pendaftaran & Pembelian Tiket
                                     </h4>
                                     <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
@@ -1950,15 +1957,15 @@ export default function EventsUserPortal({
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    background: userReg.isCheckedIn ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.03)',
-                                    border: `2px solid ${userReg.isCheckedIn ? '#22c55e' : 'rgba(255, 255, 255, 0.1)'}`,
+                                    background: userReg.isCheckedIn ? 'rgba(34, 197, 94, 0.15)' : 'var(--primary-glow)',
+                                    border: `2px solid ${userReg.isCheckedIn ? '#22c55e' : 'var(--border-color)'}`,
                                     zIndex: 2,
                                     flexShrink: 0
                                   }}>
-                                    {userReg.isCheckedIn ? <CheckCircle2 size={14} style={{ color: '#22c55e' }} /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />}
+                                    {userReg.isCheckedIn ? <CheckCircle2 size={14} style={{ color: '#22c55e' }} /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--text-muted)' }} />}
                                   </div>
                                   <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userReg.isCheckedIn ? 'white' : 'var(--text-muted)', fontWeight: 'bold' }}>
+                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userReg.isCheckedIn ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: 'bold' }}>
                                       Tahap 2: Kehadiran di Acara
                                     </h4>
                                     <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
@@ -1979,7 +1986,7 @@ export default function EventsUserPortal({
                                     top: '26px',
                                     bottom: '-26px',
                                     width: '2px',
-                                    background: userReg.status === 'approved' ? '#22c55e' : 'rgba(255, 255, 255, 0.1)',
+                                    background: userReg.status === 'approved' ? '#22c55e' : 'var(--border-color)',
                                     zIndex: 1
                                   }} />
                                   
@@ -2006,7 +2013,7 @@ export default function EventsUserPortal({
                                   </div>
                                   
                                   <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: 'white', fontWeight: 'bold' }}>
+                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>
                                       Tahap 1: Pendaftaran Kompetisi
                                     </h4>
                                     <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
@@ -2026,7 +2033,7 @@ export default function EventsUserPortal({
                                     top: '26px',
                                     bottom: '-26px',
                                     width: '2px',
-                                    background: (userReg.status === 'approved' && userSub) ? '#22c55e' : 'rgba(255, 255, 255, 0.1)',
+                                    background: (userReg.status === 'approved' && userSub) ? '#22c55e' : 'var(--border-color)',
                                     zIndex: 1
                                   }} />
                                   
@@ -2039,10 +2046,10 @@ export default function EventsUserPortal({
                                     justifyContent: 'center',
                                     background: 
                                       (userReg.status === 'approved' && userSub) ? 'rgba(34, 197, 94, 0.15)' :
-                                      userReg.status === 'approved' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+                                      userReg.status === 'approved' ? 'var(--primary-glow)' : 'var(--primary-glow)',
                                     border: `2px solid ${
                                       (userReg.status === 'approved' && userSub) ? '#22c55e' :
-                                      userReg.status === 'approved' ? 'white' : 'rgba(255, 255, 255, 0.1)'
+                                      userReg.status === 'approved' ? 'var(--primary)' : 'var(--border-color)'
                                     }`,
                                     zIndex: 2,
                                     flexShrink: 0
@@ -2054,13 +2061,13 @@ export default function EventsUserPortal({
                                         width: '6px', 
                                         height: '6px', 
                                         borderRadius: '50%', 
-                                        background: userReg.status === 'approved' ? 'white' : 'rgba(255,255,255,0.2)' 
+                                        background: userReg.status === 'approved' ? 'var(--primary)' : 'var(--text-muted)' 
                                       }} />
                                     )}
                                   </div>
                                   
                                   <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userReg.status === 'approved' ? 'white' : 'var(--text-muted)', fontWeight: 'bold' }}>
+                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userReg.status === 'approved' ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: 'bold' }}>
                                       Tahap 2: Pengiriman Karya Video
                                     </h4>
                                     
@@ -2184,10 +2191,10 @@ export default function EventsUserPortal({
                                     justifyContent: 'center',
                                     background: 
                                       (userSub && userSub.score !== null) ? 'rgba(34, 197, 94, 0.15)' :
-                                      userSub ? 'rgba(234, 179, 8, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                                      userSub ? 'rgba(234, 179, 8, 0.15)' : 'var(--primary-glow)',
                                     border: `2px solid ${
                                       (userSub && userSub.score !== null) ? '#22c55e' :
-                                      userSub ? '#eab308' : 'rgba(255, 255, 255, 0.1)'
+                                      userSub ? '#eab308' : 'var(--border-color)'
                                     }`,
                                     zIndex: 2,
                                     flexShrink: 0
@@ -2201,13 +2208,13 @@ export default function EventsUserPortal({
                                         width: '6px', 
                                         height: '6px', 
                                         borderRadius: '50%', 
-                                        background: 'rgba(255,255,255,0.2)' 
+                                        background: 'var(--text-muted)' 
                                       }} />
                                     )}
                                   </div>
                                   
                                   <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userSub ? 'white' : 'var(--text-muted)', fontWeight: 'bold' }}>
+                                    <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userSub ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: 'bold' }}>
                                       {evt.budgetMode === 'views' ? 'Tahap 3: Pembayaran Otomatis & Hasil' : 'Tahap 3: Penilaian Juri & Hasil'}
                                     </h4>
                                     
@@ -2283,14 +2290,14 @@ export default function EventsUserPortal({
 
           {/* User Portal Tabs */}
           {currentUser && (currentUser.role === 'user' || currentUser.role === 'panitia' || currentUser.role === 'superadmin' || currentUser.role === 'staf') && (
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px', overflowX: 'auto', width: '100%' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', overflowX: 'auto', width: '100%' }}>
               <button
                 onClick={() => changePortalTab('events')}
                 style={{
                   padding: '10px 20px',
-                  background: userPortalTab === 'events' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                  border: userPortalTab === 'events' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                  color: userPortalTab === 'events' ? 'white' : 'var(--text-secondary)',
+                  background: userPortalTab === 'events' ? 'var(--primary-glow)' : 'transparent',
+                  border: userPortalTab === 'events' ? '1px solid var(--border-color)' : '1px solid transparent',
+                  color: userPortalTab === 'events' ? 'var(--text-primary)' : 'var(--text-secondary)',
                   borderRadius: '30px',
                   fontSize: '0.88rem',
                   fontWeight: '600',
@@ -2309,9 +2316,9 @@ export default function EventsUserPortal({
                 }}
                 style={{
                   padding: '10px 20px',
-                  background: userPortalTab === 'manage' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                  border: userPortalTab === 'manage' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                  color: userPortalTab === 'manage' ? 'white' : 'var(--text-secondary)',
+                  background: userPortalTab === 'manage' ? 'var(--primary-glow)' : 'transparent',
+                  border: userPortalTab === 'manage' ? '1px solid var(--border-color)' : '1px solid transparent',
+                  color: userPortalTab === 'manage' ? 'var(--text-primary)' : 'var(--text-secondary)',
                   borderRadius: '30px',
                   fontSize: '0.88rem',
                   fontWeight: '600',
@@ -2327,9 +2334,9 @@ export default function EventsUserPortal({
                 onClick={() => changePortalTab('offers')}
                 style={{
                   padding: '10px 20px',
-                  background: userPortalTab === 'offers' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                  border: userPortalTab === 'offers' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                  color: userPortalTab === 'offers' ? 'white' : 'var(--text-secondary)',
+                  background: userPortalTab === 'offers' ? 'var(--primary-glow)' : 'transparent',
+                  border: userPortalTab === 'offers' ? '1px solid var(--border-color)' : '1px solid transparent',
+                  color: userPortalTab === 'offers' ? 'var(--text-primary)' : 'var(--text-secondary)',
                   borderRadius: '30px',
                   fontSize: '0.88rem',
                   fontWeight: '600',
@@ -2348,8 +2355,8 @@ export default function EventsUserPortal({
                   if (pendingCount > 0) {
                     return (
                       <span style={{
-                        background: '#ffffff',
-                        color: '#020202',
+                        background: 'var(--primary)',
+                        color: 'var(--bg-main)',
                         fontSize: '0.72rem',
                         fontWeight: 'bold',
                         padding: '1px 6px',
@@ -2697,13 +2704,13 @@ export default function EventsUserPortal({
                         {/* Type Badge */}
                         <span style={{ 
                             fontSize: '0.68rem', 
-                            background: 'rgba(255, 255, 255, 0.05)', 
-                            color: '#e2e8f0', 
+                            background: 'var(--primary-glow)', 
+                            color: 'var(--text-primary)', 
                             padding: '3px 10px', 
                             borderRadius: '12px',
                             fontWeight: 'bold',
                             textTransform: 'uppercase',
-                            border: '1px solid rgba(255, 255, 255, 0.1)'
+                            border: '1px solid var(--border-color)'
                           }}>
                           {evt.eventType === 'regular' ? 'Event' : 'Kompetisi'}
                         </span>
@@ -2711,7 +2718,7 @@ export default function EventsUserPortal({
                           <span style={{ 
                             fontSize: '0.68rem', 
                             background: 'rgba(16, 185, 129, 0.15)', 
-                            color: '#4ade80', 
+                            color: '#10b981', 
                             padding: '3px 10px', 
                             borderRadius: '12px',
                             fontWeight: 'bold',
@@ -2721,7 +2728,7 @@ export default function EventsUserPortal({
                           </span>
                         )}
                       </div>
-                      <h3 style={{ color: 'white', fontSize: '1.1rem', fontWeight: '700', margin: 0 }}>{evt.title}</h3>
+                      <h3 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: '700', margin: 0 }}>{evt.title}</h3>
                       <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: 0, overflow: 'hidden', textOverride: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', maxWidth: '500px' }}>
                         {evt.description}
                       </p>
@@ -3580,14 +3587,14 @@ export default function EventsUserPortal({
           boxSizing: 'border-box'
         }} onClick={() => setEnlargedTicketReg(null)}>
           <div style={{
-            background: '#121212',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
             borderRadius: '24px',
             padding: '32px',
             maxWidth: '440px',
             width: '100%',
             textAlign: 'center',
-            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)',
+            boxShadow: 'var(--shadow-premium)',
             position: 'relative',
             cursor: 'default'
           }} onClick={(e) => e.stopPropagation()}>
@@ -3599,7 +3606,7 @@ export default function EventsUserPortal({
                 position: 'absolute',
                 top: '20px',
                 right: '20px',
-                background: 'rgba(255, 255, 255, 0.05)',
+                background: 'var(--primary-glow)',
                 border: 'none',
                 borderRadius: '50%',
                 width: '36px',
@@ -3607,21 +3614,21 @@ export default function EventsUserPortal({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'white',
+                color: 'var(--text-primary)',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 outline: 'none'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--border-color)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'var(--primary-glow)'}
             >
               <X size={18} />
             </button>
 
-            <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
               Scan Tiket Masuk
             </div>
-            <h3 style={{ margin: '0 0 24px 0', color: 'white', fontSize: '1.25rem', fontWeight: 'bold', lineHeight: '1.4' }}>
+            <h3 style={{ margin: '0 0 24px 0', color: 'var(--text-primary)', fontSize: '1.25rem', fontWeight: 'bold', lineHeight: '1.4' }}>
               {(() => {
                 const foundEvent = events.find(e => e.id === enlargedTicketReg.eventId);
                 return foundEvent ? foundEvent.title : enlargedTicketReg.eventTitle;
@@ -3637,7 +3644,7 @@ export default function EventsUserPortal({
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: '24px',
-              boxShadow: '0 8px 24px rgba(255, 255, 255, 0.05)',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
               width: '200px',
               height: '200px',
               boxSizing: 'border-box'
@@ -3650,27 +3657,27 @@ export default function EventsUserPortal({
             </div>
 
             {/* Ticket Details */}
-            <div style={{ borderTop: '1px dashed rgba(255, 255, 255, 0.1)', paddingTop: '20px' }}>
-              <div style={{ fontSize: '1.4rem', color: 'white', fontWeight: '800', fontFamily: 'monospace', letterSpacing: '1px', marginBottom: '12px' }}>
+            <div style={{ borderTop: '1px dashed var(--border-color)', paddingTop: '20px' }}>
+              <div style={{ fontSize: '1.4rem', color: 'var(--text-primary)', fontWeight: '800', fontFamily: 'monospace', letterSpacing: '1px', marginBottom: '12px' }}>
                 {enlargedTicketReg.ticketCode || `TKT-${enlargedTicketReg.id.substring(enlargedTicketReg.id.length - 6).toUpperCase()}`}
               </div>
               
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left', background: 'rgba(255,255,255,0.02)', padding: '14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Nama:</span><span style={{ color: 'white', fontWeight: '600' }}>{enlargedTicketReg.name}</span></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Email:</span><span style={{ color: 'white' }}>{enlargedTicketReg.email}</span></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>WhatsApp:</span><span style={{ color: 'white' }}>{enlargedTicketReg.contact}</span></div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left', background: 'var(--primary-glow)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Nama:</span><span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{enlargedTicketReg.name}</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Email:</span><span style={{ color: 'var(--text-primary)' }}>{enlargedTicketReg.email}</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>WhatsApp:</span><span style={{ color: 'var(--text-primary)' }}>{enlargedTicketReg.contact}</span></div>
               </div>
 
               <div style={{ 
                 marginTop: '16px',
                 display: 'inline-block',
                 fontSize: '0.75rem', 
-                background: enlargedTicketReg.isCheckedIn ? 'rgba(34, 197, 94, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
-                color: enlargedTicketReg.isCheckedIn ? '#4ade80' : 'white', 
+                background: enlargedTicketReg.isCheckedIn ? 'rgba(16, 185, 129, 0.1)' : 'var(--primary-glow)', 
+                color: enlargedTicketReg.isCheckedIn ? '#10b981' : 'var(--text-primary)', 
                 padding: '6px 16px', 
                 borderRadius: '20px',
                 fontWeight: 'bold',
-                border: enlargedTicketReg.isCheckedIn ? '1px solid rgba(34, 197, 94, 0.2)' : '1px solid rgba(255, 255, 255, 0.1)'
+                border: enlargedTicketReg.isCheckedIn ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid var(--border-color)'
               }}>
                 {enlargedTicketReg.isCheckedIn ? 'SUDAH CHECK-IN' : 'BELUM CHECK-IN'}
               </div>

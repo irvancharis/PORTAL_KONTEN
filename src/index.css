@@ -232,13 +232,16 @@ select option {
 }
 
 .search-input-container input {
-  background: transparent;
-  border: none;
-  outline: none;
+  background: transparent !important;
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
   color: var(--text-primary);
   font-size: 0.9rem;
   width: 100%;
   font-family: inherit;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 .clear-btn {
@@ -1244,13 +1247,13 @@ select option {
 /* Profile Tab Responsive Layout */
 .profile-view-container {
   padding: 24px;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 .profile-card-header {
   padding: 32px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1261,8 +1264,8 @@ select option {
 .profile-card-details {
   padding: 28px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -3524,10 +3527,18 @@ select option {
 }
 
 .creator-tag {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.6);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
   font-weight: 600;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.1px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
 }
 
 /* Unified Search View */
@@ -3623,3 +3634,319 @@ select option {
   width: 100%;
 }
 
+/* ==========================================================================
+   LIGHT THEME OVERRIDES
+   ========================================================================== */
+.light-theme {
+  --bg-main: #f9fafb; /* Slate 50 */
+  --bg-card: #ffffff;
+  --bg-card-hover: #f3f4f6; /* Slate 100 */
+  --bg-navbar: #ffffff;
+  --border-color: #e5e7eb; /* Slate 200 */
+  --border-hover: #9ca3af; /* Slate 400 */
+  --primary: #111827; /* Near black */
+  --primary-glow: rgba(0, 0, 0, 0.05);
+  --secondary: #4b5563; /* Slate 600 */
+  --secondary-glow: rgba(0, 0, 0, 0.02);
+  --accent: #111827;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --shadow-premium: 0 10px 30px rgba(0, 0, 0, 0.04);
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+
+.light-theme ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.light-theme select option {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+.light-theme .glass-panel {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: var(--shadow-premium);
+}
+
+/* Modals & Backdrops */
+.light-theme .full-page-login-container,
+.light-theme .modal-backdrop {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(8px);
+}
+
+.light-theme .login-card,
+.light-theme .modal-content,
+.light-theme .dialog-box {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
+}
+
+.light-theme .login-card *,
+.light-theme .modal-content *,
+.light-theme .dialog-box * {
+  color: #111827 !important;
+}
+
+.light-theme .login-card a,
+.light-theme .modal-content a {
+  color: #2563eb !important; /* Blue 600 for links */
+}
+
+/* Override inline background: '#020202' and similar dark colors */
+.light-theme div[style*="background: #020202"],
+.light-theme div[style*="background: rgb(2, 2, 2)"],
+.light-theme div[style*="background: #111"],
+.light-theme div[style*="background: rgb(17, 17, 17)"] {
+  background-color: #ffffff !important;
+}
+
+/* Buttons */
+.light-theme .btn-secondary {
+  background: #f3f4f6 !important;
+  border-color: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+
+.light-theme .btn-secondary:hover {
+  background: #e5e7eb !important;
+}
+
+.light-theme .btn-primary {
+  background: #111827 !important;
+  color: #ffffff !important;
+}
+
+.light-theme .btn-primary:hover {
+  background: #1f2937 !important;
+}
+
+/* Text and Headings */
+.light-theme h1, 
+.light-theme h2, 
+.light-theme h3, 
+.light-theme h4, 
+.light-theme h5, 
+.light-theme h6,
+.light-theme strong {
+  color: #111827 !important;
+}
+
+/* Input Fields */
+.light-theme input,
+.light-theme textarea,
+.light-theme select {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+.light-theme .search-input-container input {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.light-theme input::placeholder,
+.light-theme textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Cards & Lists */
+.light-theme .event-card,
+.light-theme .community-card,
+.light-theme .creators-item,
+.light-theme .agenda-item {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+.light-theme .event-card:hover,
+.light-theme .community-card:hover {
+  background: #f9fafb !important;
+  border-color: #9ca3af !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Sidebar & Navigation overrides */
+.light-theme .sidebar,
+.light-theme .bottom-nav {
+  background: #ffffff !important;
+  border-right: 1px solid #e5e7eb !important;
+  border-top: 1px solid #e5e7eb !important;
+}
+
+.light-theme .sidebar-link,
+.light-theme .bottom-nav-item {
+  color: #4b5563 !important;
+}
+
+.light-theme .sidebar-link.active,
+.light-theme .bottom-nav-item.active {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+/* Section divider */
+.light-theme .section-divider {
+  background: linear-gradient(90deg, transparent, #e5e7eb 50%, transparent) !important;
+}
+
+/* Search bar styling */
+.light-theme .search-bar-container input {
+  background: #f3f4f6 !important;
+  border-color: #e5e7eb !important;
+  color: #111827 !important;
+}
+
+/* Light theme hero overrides */
+.light-theme .dashboard-hero {
+  background: radial-gradient(circle at top left, rgba(0, 194, 255, 0.04) 0%, rgba(0, 0, 0, 0) 60%),
+              linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.01) 100%) !important;
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03) !important;
+}
+
+.light-theme .dashboard-hero-title {
+  color: #111827 !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.light-theme .dashboard-hero-subtitle {
+  color: #4b5563 !important;
+}
+
+.light-theme .dashboard-stats-row {
+  border-top-color: #e5e7eb !important;
+}
+
+.light-theme .stat-number {
+  color: #111827 !important;
+}
+
+.light-theme .stat-label {
+  color: #6b7280 !important;
+}
+
+/* Light theme overrides for split cards, creators, and badges */
+.light-theme .split-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+.light-theme .split-card:hover {
+  background: #f9fafb !important;
+  border-color: #9ca3af !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.06) !important;
+}
+
+.light-theme .split-card-name {
+  color: #111827 !important;
+}
+
+.light-theme .split-card-link-text {
+  color: #6b7280 !important;
+}
+
+.light-theme .split-card:hover .split-card-link-text {
+  color: #111827 !important;
+}
+
+.light-theme .creator-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+.light-theme .creator-card:hover {
+  background: #f9fafb !important;
+  border-color: #9ca3af !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.06) !important;
+}
+
+.light-theme .creator-name {
+  color: #111827 !important;
+}
+
+.light-theme .creator-avatar {
+  border-color: #e5e7eb !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.light-theme .recruiting-badge {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #111827 !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  animation: pulse-border-glow-light 2s infinite !important;
+}
+
+@keyframes pulse-border-glow-light {
+  0% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.1); }
+  70% { box-shadow: 0 0 0 8px rgba(0, 0, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+}
+
+.light-theme .position-badge {
+  background: rgba(0, 0, 0, 0.03) !important;
+  color: #4b5563 !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ==========================================================================
+   LIGHT THEME INLINE COLOR OVERRIDES
+   ========================================================================== */
+.light-theme [style*="color: white"]:not(.btn-primary):not(.badge):not(button):not(.btn),
+.light-theme [style*="color:white"]:not(.btn-primary):not(.badge):not(button):not(.btn),
+.light-theme [style*="color: #ffffff"]:not(.btn-primary):not(.badge):not(button):not(.btn),
+.light-theme [style*="color:#ffffff"]:not(.btn-primary):not(.badge):not(button):not(.btn),
+.light-theme [style*="color: #fff"]:not(.btn-primary):not(.badge):not(button):not(.btn),
+.light-theme [style*="color:#fff"]:not(.btn-primary):not(.badge):not(button):not(.btn),
+.light-theme [style*="color: rgb(255, 255, 255)"]:not(.btn-primary):not(.badge):not(button):not(.btn),
+.light-theme [style*="color:rgb(255,255,255)"]:not(.btn-primary):not(.badge):not(button):not(.btn),
+.light-theme [style*="color: rgba(255, 255, 255"]:not(.btn-primary):not(.badge):not(button):not(.btn),
+.light-theme [style*="color:rgba(255,255,255"]:not(.btn-primary):not(.badge):not(button):not(.btn) {
+  color: var(--text-primary) !important;
+}
+
+/* Translucent border styles on Light Theme */
+.light-theme [style*="border-bottom: 1px solid rgba(255"],
+.light-theme [style*="border: 1px solid rgba(255"],
+.light-theme [style*="border:1px solid rgba(255"] {
+  border-color: var(--border-color) !important;
+}
+
+/* Ensure inputs inside login-card and modals have explicit borders and backgrounds in light theme */
+.light-theme .login-card input,
+.light-theme .login-card textarea,
+.light-theme .login-card select,
+.light-theme .modal-content input,
+.light-theme .modal-content textarea,
+.light-theme .modal-content select {
+  background-color: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  color: #111827 !important;
+}
+
+/* Ensure submit and primary buttons under login card have white text */
+.light-theme .login-card .btn-primary,
+.light-theme .login-card .btn-primary span,
+.light-theme .login-card .btn-primary * {
+  color: #ffffff !important;
+}
+
+/* Light theme overrides for creator tags */
+.light-theme .creator-tag {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.07) !important;
+  color: var(--text-secondary) !important;
+}
