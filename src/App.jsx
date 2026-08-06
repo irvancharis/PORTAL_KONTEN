@@ -3668,70 +3668,93 @@ export default function App() {
                         const members = comm.joinedMembers || [];
                         const target = Number(comm.activeMembersCount || 0);
                         const current = members.length;
-                        const isActive = current >= target;
+                        const percentage = target > 0 ? (current / target) * 100 : 0;
+                        const commSlug = slugify(comm.name || comm.username) + '-' + comm.id;
 
-                      return (
-                        <div 
-                          key={comm.id}
-                          className="glass-panel community-portal-card"
-                          onClick={() => {
-                            if (!currentUser) {
-                              handleOpenLoginModal('register');
-                              return;
-                            }
-                            const commSlug = slugify(comm.name || comm.username) + '-' + comm.id;
-                            window.history.pushState(null, '', '/community/' + commSlug);
-                            window.dispatchEvent(new PopStateEvent('popstate'));
-                          }}
-                          style={{ 
-                            borderRadius: '12px', 
-                            padding: '18px 24px', 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'space-between',
-                            gap: '24px',
-                            border: '1px solid rgba(255, 255, 255, 0.06)',
-                            background: 'rgba(15, 15, 15, 0.45)',
-                            backdropFilter: 'blur(12px)',
-                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
-                            flexWrap: 'wrap',
-                            width: '100%',
-                            boxSizing: 'border-box',
-                            cursor: 'pointer',
-                            transition: 'all 0.3s ease'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(15, 15, 15, 0.45)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
-                            e.currentTarget.style.transform = 'translateY(0)';
-                          }}
-                        >
-                          {/* Left Section: Avatar, Title & Description */}
-                          <div style={{ flex: '1 1 300px', display: 'flex', alignItems: 'center', gap: '16px', textAlign: 'left' }}>
-                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#ffffff', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
-                              {comm.avatar ? (
-                                <img src={comm.avatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                              ) : (
-                                comm.name?.charAt(0) || comm.username?.charAt(0)
-                              )}
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                <h3 style={{ color: 'white', fontSize: '1.05rem', fontWeight: '700', margin: 0 }}>{comm.name || comm.username}</h3>
+                        return (
+                          <div 
+                            key={comm.id}
+                            className="glass-panel community-portal-card"
+                            onClick={() => {
+                              if (!currentUser) {
+                                handleOpenLoginModal('register');
+                                return;
+                              }
+                              window.history.pushState(null, '', '/community/' + commSlug);
+                              window.dispatchEvent(new PopStateEvent('popstate'));
+                            }}
+                            style={{ 
+                              borderRadius: '12px', 
+                              padding: '18px 24px', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'space-between',
+                              gap: '24px',
+                              border: '1px solid rgba(255, 255, 255, 0.06)',
+                              background: 'rgba(15, 15, 15, 0.45)',
+                              backdropFilter: 'blur(12px)',
+                              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                              flexWrap: 'wrap',
+                              width: '100%',
+                              boxSizing: 'border-box',
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(15, 15, 15, 0.45)';
+                              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                            }}
+                          >
+                            {/* 1. Left Block: Avatar & Name */}
+                            <div style={{ display: 'flex', gap: '14px', alignItems: 'center', textAlign: 'left', minWidth: '220px', flex: '1.2' }}>
+                              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary-glow)', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
+                                {comm.avatar ? (
+                                  <img src={comm.avatar} alt={comm.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                                ) : (
+                                  comm.name?.charAt(0) || comm.username?.charAt(0)
+                                )}
                               </div>
-                              <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>
-                                {comm.description || 'Belum ada deskripsi profil.'}
-                              </p>
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={comm.name || comm.username}>
+                                  {comm.name || comm.username}
+                                </strong>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>Kategori: Agensi / Komunitas</span>
+                              </div>
+                            </div>
+
+                            {/* 2. Middle Block: Recruitment & Positions */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '240px', flex: '1.5', textAlign: 'left' }}>
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <span className="recruiting-badge" style={{ margin: 0 }}>OPEN RECRUITMENT</span>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>{members.length} Crew</span>
+                              </div>
+                              <div className="recruiting-positions" style={{ marginTop: 0 }}>
+                                <span className="position-badge">Desainer</span>
+                                <span className="position-badge">Fotografer</span>
+                                <span className="position-badge">Videografer</span>
+                                <span className="position-badge">Animator</span>
+                              </div>
+                            </div>
+
+                            {/* 3. Strength Block: Crew Progress */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '160px', flex: '1', textAlign: 'left' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                <span>Kekuatan Crew:</span>
+                                <span style={{ color: 'var(--text-primary)', fontWeight: 'bold' }}>{current}/{target}</span>
+                              </div>
+                              <div style={{ width: '100%', height: '6px', background: 'var(--primary-glow)', borderRadius: '3px', overflow: 'hidden' }}>
+                                <div style={{ width: `${Math.min(100, percentage)}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.3s' }} />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })
+                        );
+                      })
                   })()}
                 </div>
                 </div>
