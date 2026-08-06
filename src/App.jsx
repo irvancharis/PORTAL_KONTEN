@@ -3479,7 +3479,7 @@ export default function App() {
                       <button 
                         onClick={handleOpenEditProfile}
                         style={{ background: 'var(--primary-glow)', border: '1px solid var(--border-color)', padding: '8px 16px', borderRadius: '20px', color: 'var(--text-primary)', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--border-color)'; e.currentTarget.style.color = 'var(--bg-main)'; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--text-primary)'; e.currentTarget.style.color = 'var(--bg-card)'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--primary-glow)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
                       >
                         <Edit size={14} />
@@ -3498,41 +3498,51 @@ export default function App() {
 
                     <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 8px 0', color: 'var(--text-primary)' }}>{currentUser?.organizerName || currentUser?.username}</h2>
                     {isCurrentUserCommunity ? (
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'var(--primary-glow)', padding: '4px 12px', borderRadius: '20px', border: '1px solid var(--border-color)', fontWeight: 'bold' }}>
-                          Komunitas
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', marginTop: '4px' }}>
+                        <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: '600' }}>
+                          Status User: Komunitas / Instansi
                         </span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'var(--primary-glow)', padding: '4px 12px', borderRadius: '20px', border: '1px solid var(--border-color)', fontWeight: 'bold' }}>
+                            Komunitas
+                          </span>
+                        </div>
                       </div>
                     ) : (() => {
                       const isPremium = currentUser && (currentUser.role === 'member' || currentUser.role === 'pro') && currentUser.premiumExpiresAt;
                       return (
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
-                          {isPremium ? (
-                            <span style={{ 
-                              fontSize: '0.75rem', 
-                              color: 'var(--bg-main)', 
-                              background: 'var(--text-primary)', 
-                              padding: '4px 12px', 
-                              borderRadius: '20px', 
-                              border: '1px solid var(--border-color)', 
-                              fontWeight: '800',
-                              letterSpacing: '0.5px'
-                            }}>
-                              ★ MEMBER PREMIUM
-                            </span>
-                          ) : (
-                            <span style={{ 
-                              fontSize: '0.75rem', 
-                              color: 'var(--text-primary)', 
-                              background: 'var(--primary-glow)', 
-                              padding: '4px 12px', 
-                              borderRadius: '20px', 
-                              border: '1px solid var(--border-color)', 
-                              fontWeight: '600'
-                            }}>
-                              AKUN STANDAR
-                            </span>
-                          )}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', marginTop: '4px' }}>
+                          <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: '600' }}>
+                            Status User: Kreator / User
+                          </span>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            {isPremium ? (
+                              <span style={{ 
+                                fontSize: '0.75rem', 
+                                color: 'var(--bg-main)', 
+                                background: 'var(--text-primary)', 
+                                padding: '4px 12px', 
+                                borderRadius: '20px', 
+                                border: '1px solid var(--border-color)', 
+                                fontWeight: '800',
+                                letterSpacing: '0.5px'
+                              }}>
+                                ★ MEMBER PREMIUM
+                              </span>
+                            ) : (
+                              <span style={{ 
+                                fontSize: '0.75rem', 
+                                color: 'var(--text-primary)', 
+                                background: 'var(--primary-glow)', 
+                                padding: '4px 12px', 
+                                borderRadius: '20px', 
+                                border: '1px solid var(--border-color)', 
+                                fontWeight: '600'
+                              }}>
+                                AKUN STANDAR
+                              </span>
+                            )}
+                          </div>
                         </div>
                       );
                     })()}
@@ -3549,6 +3559,17 @@ export default function App() {
                         <span style={{ fontSize: '0.85rem' }}>Email</span>
                       </div>
                       <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>{currentUser?.email || '-'}</span>
+                    </div>
+
+                    {/* Status User */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', paddingTop: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                        <User size={16} />
+                        <span style={{ fontSize: '0.85rem' }}>Status User</span>
+                      </div>
+                      <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>
+                        {isCurrentUserCommunity ? 'Komunitas / Instansi' : 'Kreator / User'}
+                      </span>
                     </div>
 
                     {/* Status Akun */}
@@ -3593,6 +3614,25 @@ export default function App() {
                         }
                       })()}
                     </div>
+
+                    {/* Masa Aktif Premium (Only for Premium Users) */}
+                    {(() => {
+                      const isPremium = currentUser && (currentUser.role === 'member' || currentUser.role === 'pro') && currentUser.premiumExpiresAt;
+                      if (isPremium) {
+                        return (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', paddingTop: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                              <Calendar size={16} />
+                              <span style={{ fontSize: '0.85rem' }}>Masa Aktif Premium</span>
+                            </div>
+                            <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>
+                              s.d. {new Date(currentUser.premiumExpiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            </span>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
 
                     {/* WhatsApp */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', paddingTop: '10px' }}>

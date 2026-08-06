@@ -4004,10 +4004,10 @@ select option {
   right: 24px;
   background: #000000 !important;
   color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4) !important;
-  border-radius: 8px !important;
-  padding: 14px 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28) !important;
+  border-radius: 12px !important;
+  padding: 12px 18px !important;
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
@@ -4019,13 +4019,16 @@ select option {
 }
 
 .custom-toast-icon {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-radius: 6px !important;
-  padding: 6px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   color: #ffffff !important;
+  flex-shrink: 0 !important;
 }
 
 .custom-toast-message {
@@ -4046,34 +4049,36 @@ select option {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transition: color 0.2s !important;
+  transition: all 0.2s !important;
 }
 .custom-toast-close:hover {
   color: #ffffff !important;
+  transform: scale(1.1) !important;
 }
 
 /* Light theme overrides for black and white tone toast */
 .light-theme .custom-toast {
   background: #ffffff !important;
-  color: #000000 !important;
-  border: 1px solid rgba(0, 0, 0, 0.1) !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08) !important;
+  color: #111827 !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.06) !important;
 }
 
 .light-theme .custom-toast-icon {
-  background: rgba(0, 0, 0, 0.05) !important;
-  color: #000000 !important;
+  background: rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #111827 !important;
 }
 
 .light-theme .custom-toast-message {
-  color: #000000 !important;
+  color: #111827 !important;
 }
 
 .light-theme .custom-toast-close {
   color: #6b7280 !important;
 }
 .light-theme .custom-toast-close:hover {
-  color: #000000 !important;
+  color: #111827 !important;
 }
 
 /* Agenda Responsive Layouts */
