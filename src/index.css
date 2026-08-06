@@ -4130,3 +4130,31 @@ select option {
   }
 }
 
+/* Searchable Select Dropdown Option styles */
+.searchable-select-option {
+  padding: 8px 10px;
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+.searchable-select-option:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+.light-theme .searchable-select-option:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #111827 !important;
+}
+.searchable-select-option.selected {
+  background: var(--primary) !important;
+  color: var(--bg-main) !important;
+}
+.light-theme .searchable-select-option.selected {
+  background: var(--primary) !important;
+  color: #ffffff !important;
+}
+

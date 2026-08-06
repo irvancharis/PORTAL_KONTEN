@@ -235,24 +235,7 @@ const SearchableSelect = ({ value, onChange, placeholder, options }) => {
                     onChange(opt);
                     setIsOpen(false);
                   }}
-                  style={{
-                    padding: '8px 10px',
-                    borderRadius: '4px',
-                    color: opt === value ? 'white' : 'var(--text-primary)',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                    background: opt === value ? 'var(--primary)' : 'transparent',
-                    transition: 'all 0.2s',
-                    textAlign: 'left'
-                  }}
-                  onMouseEnter={(e) => { 
-                    e.currentTarget.style.background = opt === value ? 'var(--primary)' : 'rgba(255,255,255,0.06)';
-                    e.currentTarget.style.color = 'white';
-                  }}
-                  onMouseLeave={(e) => { 
-                    e.currentTarget.style.background = opt === value ? 'var(--primary)' : 'transparent';
-                    e.currentTarget.style.color = opt === value ? 'white' : 'var(--text-primary)';
-                  }}
+                  className={`searchable-select-option ${opt === value ? 'selected' : ''}`}
                 >
                   {opt}
                 </div>
