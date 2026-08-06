@@ -3597,7 +3597,7 @@ export default function App() {
                       </button>
                     </div>
                   )}
-                  <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative', zIndex: 100 }}>
                     <div>
                       <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: '0 0 8px 0', color: 'white' }}>Direktori Komunitas & Instansi</h2>
                       <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', margin: 0 }}>

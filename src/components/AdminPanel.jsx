@@ -4239,7 +4239,7 @@ export default function AdminPanel({
 
 
           {/* Search & Filter Toolbar */}
-          <div className="admin-toolbar glass-panel" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          <div className="admin-toolbar glass-panel" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap', position: 'relative', zIndex: 100 }}>
             <div className="admin-search-wrapper" style={{ flex: '1 1 300px' }}>
               <Search size={18} className="search-icon" />
               <input
