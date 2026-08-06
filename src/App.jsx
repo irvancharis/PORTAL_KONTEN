@@ -113,6 +113,139 @@ const slugify = (text) => {
     .replace(/-+$/, '');
 };
 
+const INDONESIAN_REGIONS = [
+  "Jakarta", "Bogor", "Depok", "Tangerang", "Bekasi",
+  "Bandung", "Surabaya", "Yogyakarta", "Semarang", "Surakarta (Solo)",
+  "Malang", "Medan", "Palembang", "Pekanbaru", "Padang", "Banda Aceh",
+  "Bandar Lampung", "Makassar", "Manado", "Denpasar (Bali)",
+  "Balikpapan", "Samarinda", "Pontianak", "Banjarmasin", "Mataram (Lombok)",
+  "Batam", "Jambi", "Bengkulu", "Palu", "Kendari", "Ambon", "Kupang", "Jayapura"
+].sort();
+
+const SearchableSelect = ({ value, onChange, placeholder, options }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filtered = options.filter(opt => 
+    opt.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
+      <div 
+        onClick={() => { setIsOpen(!isOpen); setSearch(''); }}
+        style={{
+          width: '100%',
+          padding: '10px 12px',
+          background: 'rgba(255, 255, 255, 0.04)',
+          border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-sm)',
+          color: value ? 'var(--text-primary)' : 'var(--text-secondary)',
+          outline: 'none',
+          fontSize: '0.9rem',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxSizing: 'border-box'
+        }}
+      >
+        <span>{value || placeholder}</span>
+        <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>▼</span>
+      </div>
+
+      {isOpen && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-sm)',
+          marginTop: '4px',
+          zIndex: 1000000000,
+          maxHeight: '180px',
+          overflowY: 'auto',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+          padding: '8px',
+          boxSizing: 'border-box'
+        }}>
+          <input 
+            type="text"
+            placeholder="Cari regional..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            autoFocus
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              padding: '8px 10px',
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '4px',
+              color: 'var(--text-primary)',
+              fontSize: '0.85rem',
+              outline: 'none',
+              marginBottom: '8px',
+              boxSizing: 'border-box'
+            }}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {filtered.length > 0 ? (
+              filtered.map(opt => (
+                <div 
+                  key={opt}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange(opt);
+                    setIsOpen(false);
+                  }}
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: '4px',
+                    color: opt === value ? 'white' : 'var(--text-primary)',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    background: opt === value ? 'var(--primary)' : 'transparent',
+                    transition: 'all 0.2s',
+                    textAlign: 'left'
+                  }}
+                  onMouseEnter={(e) => { 
+                    e.currentTarget.style.background = opt === value ? 'var(--primary)' : 'rgba(255,255,255,0.06)';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => { 
+                    e.currentTarget.style.background = opt === value ? 'var(--primary)' : 'transparent';
+                    e.currentTarget.style.color = opt === value ? 'white' : 'var(--text-primary)';
+                  }}
+                >
+                  {opt}
+                </div>
+              ))
+            ) : (
+              <div style={{ padding: '8px', fontSize: '0.82rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                Tidak ditemukan
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const formatIndonesianDate = (dateStr) => {
   if (!dateStr) return '-';
   try {
@@ -1031,8 +1164,8 @@ export default function App() {
     const password = loginPassword.trim();
     const confirm = registerConfirmPassword.trim();
 
-    if (!emailOrUser || !password || !confirm) {
-      setLoginError('Semua kolom wajib diisi!');
+    if (!emailOrUser || !password || !confirm || !registerRegional.trim()) {
+      setLoginError('Semua kolom wajib diisi, termasuk Lokasi Regional!');
       return;
     }
     if (password !== confirm) {
@@ -5297,6 +5430,11 @@ export default function App() {
                     }
                   }
 
+                  if (!editProfileRegional.trim()) {
+                    alert('Lokasi Regional wajib diisi!');
+                    return;
+                  }
+
                   setGlobalLoadingText('Sedang menyimpan perubahan profil...');
                   try {
                     const updatedUser = {
@@ -5412,22 +5550,11 @@ export default function App() {
 
                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Lokasi Regional</label>
-                  <input 
-                    type="text"
+                  <SearchableSelect 
                     value={editProfileRegional}
-                    onChange={(e) => setEditProfileRegional(e.target.value)}
-                    placeholder="Contoh: Jakarta, Bandung, Surabaya"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'rgba(255, 255, 255, 0.04)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: 'var(--radius-sm)',
-                      color: 'var(--text-primary)',
-                      outline: 'none',
-                      fontSize: '0.9rem'
-                    }}
-                    required
+                    onChange={setEditProfileRegional}
+                    placeholder="Pilih lokasi regional..."
+                    options={INDONESIAN_REGIONS}
                   />
                 </div>
 
@@ -6197,24 +6324,12 @@ export default function App() {
                       </div>
 
                       <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label htmlFor="registerRegional" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Lokasi Regional</label>
-                        <input 
-                          type="text" 
-                          id="registerRegional"
-                          placeholder="Contoh: Jakarta, Bandung, Surabaya"
+                        <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Lokasi Regional</label>
+                        <SearchableSelect 
                           value={registerRegional}
-                          onChange={(e) => setRegisterRegional(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            background: 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: 'var(--text-primary)',
-                            outline: 'none',
-                            fontSize: '0.9rem'
-                          }}
-                          required
+                          onChange={setRegisterRegional}
+                          placeholder="Pilih lokasi regional..."
+                          options={INDONESIAN_REGIONS}
                         />
                       </div>
                     </div>
@@ -6536,24 +6651,12 @@ export default function App() {
                     </div>
 
                     <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <label htmlFor="registerRegional" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Lokasi Regional</label>
-                      <input 
-                        type="text" 
-                        id="registerRegional"
-                        placeholder="Contoh: Jakarta, Bandung, Surabaya"
+                      <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Lokasi Regional</label>
+                      <SearchableSelect 
                         value={registerRegional}
-                        onChange={(e) => setRegisterRegional(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          background: 'rgba(255, 255, 255, 0.04)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: 'var(--radius-sm)',
-                          color: 'var(--text-primary)',
-                          outline: 'none',
-                          fontSize: '0.9rem'
-                        }}
-                        required
+                        onChange={setRegisterRegional}
+                        placeholder="Pilih lokasi regional..."
+                        options={INDONESIAN_REGIONS}
                       />
                     </div>
                   </>
