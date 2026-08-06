@@ -285,6 +285,7 @@ export default function AdminPanel({
   const [offerMessage, setOfferMessage] = useState('');
   const [marketplaceSearch, setMarketplaceSearch] = useState('');
   const [marketplaceLevelFilter, setMarketplaceLevelFilter] = useState('All');
+  const [marketplaceRegionalFilter, setMarketplaceRegionalFilter] = useState('');
   const [viewingCreatorProfile, setViewingCreatorProfile] = useState(null);
   const [selectedCreatorUsernames, setSelectedCreatorUsernames] = useState([]);
   const [showBulkOfferModal, setShowBulkOfferModal] = useState(false);
@@ -3977,39 +3978,74 @@ export default function AdminPanel({
               )}
             </div>
 
-            {/* Level Filter Dropdown */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '500' }}>Tingkat Level:</span>
-              <select
-                value={marketplaceLevelFilter}
-                onChange={(e) => setMarketplaceLevelFilter(e.target.value)}
-                style={{
-                  padding: '10px 16px',
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '10px',
-                  color: 'white',
-                  fontSize: '0.85rem',
-                  outline: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-                }}
-              >
-                <option value="All" style={{ background: '#0b0f19' }}>Semua Reputasi</option>
-                <option value="5" style={{ background: '#0b0f19' }}>⭐⭐⭐⭐⭐ (5 Bintang)</option>
-                <option value="4" style={{ background: '#0b0f19' }}>⭐⭐⭐⭐ (4 Bintang)</option>
-                <option value="3" style={{ background: '#0b0f19' }}>⭐⭐⭐ (3 Bintang)</option>
-                <option value="2" style={{ background: '#0b0f19' }}>⭐⭐ (2 Bintang)</option>
-                <option value="1" style={{ background: '#0b0f19' }}>⭐ (1 Bintang)</option>
-              </select>
+            {/* Level & Regional Filters */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              {/* Level Filter */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '500' }}>Tingkat Level:</span>
+                <select
+                  value={marketplaceLevelFilter}
+                  onChange={(e) => setMarketplaceLevelFilter(e.target.value)}
+                  style={{
+                    padding: '10px 16px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '10px',
+                    color: 'white',
+                    fontSize: '0.85rem',
+                    outline: 'none',
+                    cursor: 'pointer',
+                    fontWeight: '600',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                  }}
+                >
+                  <option value="All" style={{ background: '#0b0f19' }}>Semua Reputasi</option>
+                  <option value="5" style={{ background: '#0b0f19' }}>⭐⭐⭐⭐⭐ (5 Bintang)</option>
+                  <option value="4" style={{ background: '#0b0f19' }}>⭐⭐⭐⭐ (4 Bintang)</option>
+                  <option value="3" style={{ background: '#0b0f19' }}>⭐⭐⭐ (3 Bintang)</option>
+                  <option value="2" style={{ background: '#0b0f19' }}>⭐⭐ (2 Bintang)</option>
+                  <option value="1" style={{ background: '#0b0f19' }}>⭐ (1 Bintang)</option>
+                </select>
+              </div>
+
+              {/* Regional Filter */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '500' }}>Regional:</span>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Filter regional..."
+                    value={marketplaceRegionalFilter}
+                    onChange={(e) => setMarketplaceRegionalFilter(e.target.value)}
+                    style={{
+                      padding: '10px 32px 10px 16px',
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '10px',
+                      color: 'white',
+                      fontSize: '0.85rem',
+                      outline: 'none',
+                      fontWeight: '600',
+                      width: '150px'
+                    }}
+                  />
+                  {marketplaceRegionalFilter && (
+                    <button 
+                      onClick={() => setMarketplaceRegionalFilter('')}
+                      style={{ position: 'absolute', right: '10px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Creators Directory Rows Table */}
           <div className="admin-table-container glass-panel" style={{ marginBottom: '40px' }}>
             {(() => {
-              // 1. Calculate metrics and pre-filter by search & level
+              // 1. Calculate metrics and pre-filter by search & level & regional
               const creatorsList = loadedCreators
                 .filter(u => u.role === 'user')
                 .map(u => ({
@@ -4020,7 +4056,9 @@ export default function AdminPanel({
                   const matchSearch = c.username.toLowerCase().includes(marketplaceSearch.toLowerCase()) || 
                                       (c.organizerName || '').toLowerCase().includes(marketplaceSearch.toLowerCase());
                   const matchLevel = marketplaceLevelFilter === 'All' || String(c.metrics.stars) === marketplaceLevelFilter;
-                  return matchSearch && matchLevel;
+                  const matchRegional = !marketplaceRegionalFilter.trim() || 
+                                        (c.userRegional || '').toLowerCase().includes(marketplaceRegionalFilter.toLowerCase());
+                  return matchSearch && matchLevel && matchRegional;
                 })
                 .sort((a, b) => {
                   if (b.metrics.stars !== a.metrics.stars) {
@@ -4179,9 +4217,17 @@ export default function AdminPanel({
                                     background: 'rgba(255,255,255,0.02)'
                                   }}
                                 />
-                                 <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem' }}>
-                                   @{creator.username}
-                                 </span>
+                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                   <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 'bold' }}>
+                                     @{creator.username}
+                                   </span>
+                                   {creator.userRegional && (
+                                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                       <MapPin size={11} style={{ opacity: 0.7 }} />
+                                       {creator.userRegional}
+                                     </span>
+                                   )}
+                                 </div>
                               </div>
                             </td>
                             <td>

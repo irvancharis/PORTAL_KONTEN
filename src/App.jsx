@@ -699,6 +699,7 @@ export default function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [registerRegional, setRegisterRegional] = useState('');
 
   // Edit Profile Modal states
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
@@ -749,6 +750,7 @@ export default function App() {
   const [editProfileInstagramVerified, setEditProfileInstagramVerified] = useState(false);
   const [editProfileYoutubeHandle, setEditProfileYoutubeHandle] = useState('');
   const [editProfileYoutubeVerified, setEditProfileYoutubeVerified] = useState(false);
+  const [editProfileRegional, setEditProfileRegional] = useState('');
 
   // Social Verification Temp states
   const [verifyingPlatform, setVerifyingPlatform] = useState(null); // 'facebook' | 'tiktok' | 'instagram' | 'youtube' | null
@@ -878,6 +880,7 @@ export default function App() {
     setEditProfilePortfolio(currentUser.userPortfolio || '');
     setEditProfileActiveMembers(currentUser.activeMembersCount || '');
     setEditProfileActivityImages(currentUser.activityImages ? currentUser.activityImages.join(', ') : '');
+    setEditProfileRegional(currentUser.userRegional || '');
     
     // Social handles
     setEditProfileFacebookHandle(currentUser.facebookHandle || '');
@@ -1066,7 +1069,8 @@ export default function App() {
           isCommunity: isComm,
           joinedMembers: [],
           userCategory: 'Videografer',
-          userPortfolio: ''
+          userPortfolio: '',
+          userRegional: registerRegional.trim()
         };
         await saveFirestoreUser(newUser);
         if (isComm) {
@@ -1087,6 +1091,7 @@ export default function App() {
         setLoginUsername('');
         setLoginPassword('');
         setRegisterConfirmPassword('');
+        setRegisterRegional('');
         setOrganizerName('');
         setOrganizerPhone('');
         setOrganizerDescription('');
@@ -1126,7 +1131,8 @@ export default function App() {
         isCommunity: isComm,
         joinedMembers: [],
         userCategory: 'Videografer',
-        userPortfolio: ''
+        userPortfolio: '',
+        userRegional: registerRegional.trim()
       };
       await handleSetUsers(prev => [...prev, newUser]);
       if (isComm) {
@@ -1147,6 +1153,7 @@ export default function App() {
       setLoginUsername('');
       setLoginPassword('');
       setRegisterConfirmPassword('');
+      setRegisterRegional('');
       setOrganizerName('');
       setOrganizerPhone('');
       setOrganizerDescription('');
@@ -3587,6 +3594,15 @@ export default function App() {
                       </span>
                     </div>
 
+                    {/* Lokasi Regional */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', paddingTop: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                        <MapPin size={16} />
+                        <span style={{ fontSize: '0.85rem' }}>Lokasi Regional</span>
+                      </div>
+                      <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>{currentUser?.userRegional || '-'}</span>
+                    </div>
+
                     {/* Status Akun */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', paddingTop: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
@@ -5303,7 +5319,8 @@ export default function App() {
                       instagramHandle: editProfileInstagramHandle.trim(),
                       instagramVerified: editProfileInstagramVerified,
                       youtubeHandle: editProfileYoutubeHandle.trim(),
-                      youtubeVerified: editProfileYoutubeVerified
+                      youtubeVerified: editProfileYoutubeVerified,
+                      userRegional: editProfileRegional.trim()
                     };
 
                     // Update locally
@@ -5379,6 +5396,27 @@ export default function App() {
                     type="tel"
                     value={editProfilePhone}
                     onChange={(e) => setEditProfilePhone(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 'var(--radius-sm)',
+                      color: 'var(--text-primary)',
+                      outline: 'none',
+                      fontSize: '0.9rem'
+                    }}
+                    required
+                  />
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Lokasi Regional</label>
+                  <input 
+                    type="text"
+                    value={editProfileRegional}
+                    onChange={(e) => setEditProfileRegional(e.target.value)}
+                    placeholder="Contoh: Jakarta, Bandung, Surabaya"
                     style={{
                       width: '100%',
                       padding: '10px 12px',
@@ -6157,6 +6195,28 @@ export default function App() {
                           <option value="panitia" style={{ background: '#020202' }}>Komunitas / Instansi</option>
                         </select>
                       </div>
+
+                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label htmlFor="registerRegional" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Lokasi Regional</label>
+                        <input 
+                          type="text" 
+                          id="registerRegional"
+                          placeholder="Contoh: Jakarta, Bandung, Surabaya"
+                          value={registerRegional}
+                          onChange={(e) => setRegisterRegional(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--text-primary)',
+                            outline: 'none',
+                            fontSize: '0.9rem'
+                          }}
+                          required
+                        />
+                      </div>
                     </div>
 
                     {/* Right Column: Community Details (Required) */}
@@ -6473,6 +6533,28 @@ export default function App() {
                         <option value="user" style={{ background: '#020202' }}>User / Kreator</option>
                         <option value="panitia" style={{ background: '#020202' }}>Komunitas / Instansi</option>
                       </select>
+                    </div>
+
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label htmlFor="registerRegional" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Lokasi Regional</label>
+                      <input 
+                        type="text" 
+                        id="registerRegional"
+                        placeholder="Contoh: Jakarta, Bandung, Surabaya"
+                        value={registerRegional}
+                        onChange={(e) => setRegisterRegional(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
+                          outline: 'none',
+                          fontSize: '0.9rem'
+                        }}
+                        required
+                      />
                     </div>
                   </>
                 )
