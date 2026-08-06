@@ -94,6 +94,8 @@ import {
   HelpCircle,
   Copy,
   Check,
+  CheckCircle2,
+  XCircle,
   Lock,
   Unlock
 } from 'lucide-react';
@@ -702,7 +704,14 @@ export default function App() {
     // Override default alert with custom beautiful toast
     const originalAlert = window.alert;
     window.alert = (msg) => {
-      setToast({ message: msg });
+      const lower = msg.toLowerCase();
+      let type = 'success';
+      const errorKeywords = ['gagal', 'salah', 'tidak', 'belum', 'wajib', 'ditolak', 'batal', 'error', 'habis', 'kurang', 'ditutup', 'maksimal', 'spasi', 'warning', 'peringatan', 'kosong'];
+      const hasErrorWord = errorKeywords.some(keyword => lower.includes(keyword));
+      if (hasErrorWord) {
+        type = 'error';
+      }
+      setToast({ message: msg, type: type });
       // auto dismiss after 4.5 seconds
       const timer = setTimeout(() => {
         setToast(null);
@@ -6668,9 +6677,9 @@ export default function App() {
 
       {/* Custom Toast Notification */}
       {toast && (
-        <div className="custom-toast">
+        <div className={`custom-toast ${toast.type || 'success'}`}>
           <div className="custom-toast-icon">
-            <Sparkles size={18} />
+            {toast.type === 'error' ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
           </div>
           <div style={{ flex: 1 }}>
             <p className="custom-toast-message">
