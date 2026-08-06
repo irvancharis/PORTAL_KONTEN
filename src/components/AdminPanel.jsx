@@ -40,8 +40,234 @@ import {
   Shield,
   ShieldCheck,
   TrendingUp,
-  ChevronDown
+  ChevronDown,
+  MapPin
 } from 'lucide-react';
+
+const INDONESIAN_REGIONS = [
+  // DKI Jakarta (Administrative Cities)
+  "Jakarta Barat", "Jakarta Pusat", "Jakarta Selatan", "Jakarta Timur", "Jakarta Utara",
+  
+  // Aceh
+  "Banda Aceh", "Langsa", "Lhokseumawe", "Sabang", "Subulussalam",
+  
+  // Sumatera Utara
+  "Binjai", "Gunungsitoli", "Medan", "Padangsidimpuan", "Pematangsiantar", "Sibolga", "Tanjungbalai", "Tebing Tinggi",
+  
+  // Sumatera Barat
+  "Bukittinggi", "Padang", "Padang Panjang", "Pariaman", "Payakumbuh", "Sawahlunto", "Solok",
+  
+  // Riau
+  "Dumai", "Pekanbaru",
+  
+  // Kepulauan Riau
+  "Batam", "Tanjungpinang",
+  
+  // Jambi
+  "Jambi", "Sungaipenuh",
+  
+  // Sumatera Selatan
+  "Lubuklinggau", "Pagar Alam", "Palembang", "Prabumulih",
+  
+  // Kepulauan Bangka Belitung
+  "Pangkalpinang",
+  
+  // Bengkulu
+  "Bengkulu",
+  
+  // Lampung
+  "Bandar Lampung", "Metro",
+  
+  // Jawa Barat
+  "Bandung", "Bekasi", "Bogor", "Ciamis", "Cianjur", "Cirebon", "Depok", "Garut", "Indramayu", "Karawang", "Kuningan", "Majalengka", "Purwakarta", "Subang", "Sukabumi", "Sumedang", "Tasikmalaya", "Banjar", "Cimahi",
+  
+  // Banten
+  "Cilegon", "Serang", "Tangerang", "Tangerang Selatan",
+  
+  // Jawa Tengah
+  "Magelang", "Pekalongan", "Salatiga", "Semarang", "Surakarta (Solo)", "Tegal",
+  
+  // DI Yogyakarta
+  "Yogyakarta",
+  
+  // Jawa Timur
+  "Batu", "Blitar", "Kediri", "Madiun", "Malang", "Mojokerto", "Pasuruan", "Probolinggo", "Surabaya",
+  
+  // Bali
+  "Denpasar",
+  
+  // Nusa Tenggara Barat
+  "Bima", "Mataram",
+  
+  // Nusa Tenggara Timur
+  "Kupang",
+  
+  // Kalimantan Barat
+  "Pontianak", "Singkawang",
+  
+  // Kalimantan Tengah
+  "Palangka Raya",
+  
+  // Kalimantan Selatan
+  "Banjarbaru", "Banjarmasin",
+  
+  // Kalimantan Timur
+  "Balikpapan", "Bontang", "Samarinda",
+  
+  // Kalimantan Utara
+  "Tarakan",
+  
+  // Sulawesi Utara
+  "Bitung", "Kotamobagu", "Manado", "Tomohon",
+  
+  // Gorontalo
+  "Gorontalo",
+  
+  // Sulawesi Tengah
+  "Palu",
+  
+  // Sulawesi Barat
+  "Mamuju",
+  
+  // Sulawesi Selatan
+  "Makassar", "Palopo", "Parepare",
+  
+  // Sulawesi Tenggara
+  "Bau-Bau", "Kendari",
+  
+  // Maluku
+  "Ambon", "Tual",
+  
+  // Maluku Utara
+  "Ternate", "Tidore Kepulauan",
+  
+  // Papua
+  "Jayapura", "Sorong", "Merauke", "Manokwari", "Mimika"
+].sort();
+
+const SearchableSelect = ({ value, onChange, placeholder, options }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filtered = options.filter(opt => 
+    opt.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
+      <div 
+        onClick={() => { setIsOpen(!isOpen); setSearch(''); }}
+        style={{
+          width: '100%',
+          padding: '10px 12px',
+          background: 'rgba(255, 255, 255, 0.04)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '8px',
+          color: value ? 'var(--text-primary)' : 'var(--text-secondary)',
+          outline: 'none',
+          fontSize: '0.9rem',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxSizing: 'border-box'
+        }}
+      >
+        <span>{value || placeholder}</span>
+        <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>▼</span>
+      </div>
+
+      {isOpen && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '8px',
+          marginTop: '4px',
+          zIndex: 1000000000,
+          maxHeight: '180px',
+          overflowY: 'auto',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+          padding: '8px',
+          boxSizing: 'border-box'
+        }}>
+          <input 
+            type="text"
+            placeholder="Cari regional..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            autoFocus
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              padding: '8px 10px',
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '4px',
+              color: 'var(--text-primary)',
+              fontSize: '0.85rem',
+              outline: 'none',
+              marginBottom: '8px',
+              boxSizing: 'border-box'
+            }}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {filtered.length > 0 ? (
+              filtered.map(opt => (
+                <div 
+                  key={opt}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange(opt);
+                    setIsOpen(false);
+                  }}
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: '4px',
+                    color: opt === value ? 'white' : 'var(--text-primary)',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    background: opt === value ? 'var(--primary)' : 'transparent',
+                    transition: 'all 0.2s',
+                    textAlign: 'left'
+                  }}
+                  onMouseEnter={(e) => { 
+                    e.currentTarget.style.background = opt === value ? 'var(--primary)' : 'rgba(255,255,255,0.06)';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => { 
+                    e.currentTarget.style.background = opt === value ? 'var(--primary)' : 'transparent';
+                    e.currentTarget.style.color = opt === value ? 'white' : 'var(--text-primary)';
+                  }}
+                >
+                  {opt}
+                </div>
+              ))
+            ) : (
+              <div style={{ padding: '8px', fontSize: '0.82rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                Tidak ditemukan
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const formatIndonesianDate = (dateString) => {
   if (!dateString) return 'Hingga Budget Habis';
@@ -509,6 +735,8 @@ export default function AdminPanel({
   const [eventMinEarningViews, setEventMinEarningViews] = useState(0);
   const [eventBudgetMode, setEventBudgetMode] = useState('views'); // 'views' or 'ranking'
   const [eventTargetAudience, setEventTargetAudience] = useState('public'); // 'public' or 'members_only'
+  const [eventAreaMode, setEventAreaMode] = useState('all'); // 'all' or 'regional'
+  const [eventAreaRegional, setEventAreaRegional] = useState('');
   const [eventPrize1, setEventPrize1] = useState(3000000);
   const [eventPrize2, setEventPrize2] = useState(1500000);
   const [eventPrize3, setEventPrize3] = useState(500000);
@@ -822,6 +1050,10 @@ export default function AdminPanel({
   // Event action handlers
   const handleEventSubmit = (e) => {
     e.preventDefault();
+    if (eventAreaMode === 'regional' && !eventAreaRegional.trim()) {
+      alert('Silakan pilih Kota / Regional khusus untuk event ini!');
+      return;
+    }
     if (window.setGlobalLoading) window.setGlobalLoading('Sedang menyimpan event...');
 
     setTimeout(() => {
@@ -856,6 +1088,8 @@ export default function AdminPanel({
                 juknisDonts: eventJuknisDonts.trim(),
                 budgetMode: isComp ? eventBudgetMode : 'views',
                 targetAudience: eventTargetAudience,
+                areaMode: eventAreaMode,
+                areaRegional: eventAreaMode === 'regional' ? eventAreaRegional : '',
                 campaignBudget: computedBudget,
                 remainingBudget: computedBudget,
                 ticketPrice: parseInt(eventTicketPrice) || 0,
@@ -896,6 +1130,8 @@ export default function AdminPanel({
             juknisDonts: eventJuknisDonts.trim(),
             budgetMode: isComp ? eventBudgetMode : 'views',
             targetAudience: eventTargetAudience,
+            areaMode: eventAreaMode,
+            areaRegional: eventAreaMode === 'regional' ? eventAreaRegional : '',
             campaignBudget: computedBudget,
             remainingBudget: computedBudget,
             ticketPrice: parseInt(eventTicketPrice) || 0,
@@ -1226,6 +1462,8 @@ export default function AdminPanel({
     setEventType(evt.eventType || 'competition');
     setEventBudgetMode(evt.budgetMode || 'views');
     setEventTargetAudience(evt.targetAudience || 'public');
+    setEventAreaMode(evt.areaMode || 'all');
+    setEventAreaRegional(evt.areaRegional || '');
     setEventBudget(evt.campaignBudget || 5000000);
     setEventTicketPrice(evt.ticketPrice || 0);
     setEventBenefitAmount(evt.benefitAmount || 10000);
@@ -2743,7 +2981,42 @@ export default function AdminPanel({
                         <option value="Lainnya">Lainnya</option>
                       </select>
                     </div>
-                     <div className="form-group">
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px', marginTop: '4px' }}>
+                    <div className="form-group">
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Mekanisme Area / Target Regional</label>
+                      <select 
+                        value={eventAreaMode} 
+                        onChange={(e) => {
+                          setEventAreaMode(e.target.value);
+                          if (e.target.value === 'all') setEventAreaRegional('');
+                        }} 
+                        style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                      >
+                        <option value="all">Nasional (Semua Area)</option>
+                        <option value="regional">Regional Khusus (Kota Tertentu)</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Pilih Kota / Regional</label>
+                      {eventAreaMode === 'regional' ? (
+                        <SearchableSelect 
+                          value={eventAreaRegional}
+                          onChange={setEventAreaRegional}
+                          placeholder="Pilih kota khusus..."
+                          options={INDONESIAN_REGIONS}
+                        />
+                      ) : (
+                        <div style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                          Terbuka untuk Semua Area (Nasional)
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                    <div className="form-group">
                       <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Batas Pengiriman (Deadline)</label>
                       <input 
                         type="datetime-local" 
@@ -3637,6 +3910,8 @@ export default function AdminPanel({
                     setEventMinEarningViews(0);
                     setEventHasMaxParticipants(true);
                     setEventTargetAudience('public');
+                    setEventAreaMode('all');
+                    setEventAreaRegional('');
                     setEventTicketPrice(0);
                     setEventType('competition');
                     setShowEventForm(true);
@@ -3776,6 +4051,24 @@ export default function AdminPanel({
                                   border: '1px solid rgba(239, 68, 68, 0.2)'
                                 }}>
                                   Belum Bayar
+                                </span>
+                              )}
+
+                              {evt.areaMode === 'regional' && evt.areaRegional && (
+                                <span style={{ 
+                                  fontSize: '0.68rem', 
+                                  background: 'rgba(239, 68, 68, 0.15)', 
+                                  color: '#f87171', 
+                                  padding: '3px 10px', 
+                                  borderRadius: '12px',
+                                  fontWeight: 'bold',
+                                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px'
+                                }}>
+                                  <MapPin size={10} />
+                                  {evt.areaRegional}
                                 </span>
                               )}
                             </div>

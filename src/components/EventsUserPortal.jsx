@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Trophy, Calendar, Users, User, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown, X, Maximize2, ExternalLink } from 'lucide-react';
+import { Trophy, Calendar, Users, User, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown, X, Maximize2, ExternalLink, MapPin } from 'lucide-react';
 
 const slugify = (text) => {
   if (!text) return '';
@@ -1224,6 +1224,10 @@ export default function EventsUserPortal({
                         <Wallet size={16} style={{ color: 'var(--text-secondary)' }} />
                         <span>Biaya Pendaftaran / Tiket: <strong style={{ color: evt.ticketPrice > 0 ? '#10b981' : 'var(--text-primary)' }}>{evt.ticketPrice > 0 ? `Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}</strong></span>
                       </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                        <MapPin size={16} style={{ color: 'var(--text-secondary)' }} />
+                        <span>Mekanisme Area: <strong style={{ color: 'var(--text-primary)' }}>{evt.areaMode === 'regional' ? `Regional Khusus (${evt.areaRegional})` : 'Nasional (Semua Area)'}</strong></span>
+                      </div>
                     </div>
                     
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.8', margin: 0 }}>{evt.description}</p>
@@ -1763,6 +1767,32 @@ export default function EventsUserPortal({
                             const creatorCommunity = communities.find(c => c.username.toLowerCase() === evt.creator?.toLowerCase());
                             const isCommunityMember = creatorCommunity && (creatorCommunity.joinedMembers || []).includes(currentUser?.username);
                             
+                            const isRegionalEvent = evt.areaMode === 'regional';
+                            const isUserRegionalMatch = !isRegionalEvent || (evt.areaRegional && currentUser?.userRegional && currentUser.userRegional.toLowerCase().trim() === evt.areaRegional.toLowerCase().trim());
+                            
+                            if (isRegionalEvent && !isUserRegionalMatch) {
+                              return (
+                                <button 
+                                  className="btn btn-secondary" 
+                                  disabled
+                                  style={{ 
+                                    width: '100%', 
+                                    justifyContent: 'center',
+                                    background: 'rgba(239, 68, 68, 0.05)',
+                                    border: '1px solid rgba(239, 68, 68, 0.1)',
+                                    padding: '14px 28px',
+                                    borderRadius: '30px',
+                                    fontSize: '0.92rem',
+                                    fontWeight: 'bold',
+                                    color: '#ef4444',
+                                    cursor: 'not-allowed'
+                                  }}
+                                >
+                                  <span>Khusus Regional {evt.areaRegional} (Lokasi Anda: {currentUser?.userRegional || '-'})</span>
+                                </button>
+                              );
+                            }
+
                             if (isMembersOnly && !isCommunityMember) {
                               return (
                                 <button 
@@ -2777,6 +2807,25 @@ onMouseLeave={(e) => {
                             }}>
                             {evt.eventType === 'regular' ? 'Event' : 'Kompetisi'}
                           </span>
+
+                          {evt.areaMode === 'regional' && evt.areaRegional && (
+                            <span style={{ 
+                                fontSize: '0.65rem', 
+                                background: 'rgba(239, 68, 68, 0.08)', 
+                                color: '#ef4444', 
+                                padding: '2px 8px', 
+                                borderRadius: '12px',
+                                fontWeight: 'bold',
+                                textTransform: 'uppercase',
+                                border: '1px solid rgba(239, 68, 68, 0.2)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px'
+                              }}>
+                              <MapPin size={10} />
+                              {evt.areaRegional}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>

@@ -114,12 +114,104 @@ const slugify = (text) => {
 };
 
 const INDONESIAN_REGIONS = [
-  "Jakarta", "Bogor", "Depok", "Tangerang", "Bekasi",
-  "Bandung", "Surabaya", "Yogyakarta", "Semarang", "Surakarta (Solo)",
-  "Malang", "Medan", "Palembang", "Pekanbaru", "Padang", "Banda Aceh",
-  "Bandar Lampung", "Makassar", "Manado", "Denpasar (Bali)",
-  "Balikpapan", "Samarinda", "Pontianak", "Banjarmasin", "Mataram (Lombok)",
-  "Batam", "Jambi", "Bengkulu", "Palu", "Kendari", "Ambon", "Kupang", "Jayapura"
+  // DKI Jakarta (Administrative Cities)
+  "Jakarta Barat", "Jakarta Pusat", "Jakarta Selatan", "Jakarta Timur", "Jakarta Utara",
+  
+  // Aceh
+  "Banda Aceh", "Langsa", "Lhokseumawe", "Sabang", "Subulussalam",
+  
+  // Sumatera Utara
+  "Binjai", "Gunungsitoli", "Medan", "Padangsidimpuan", "Pematangsiantar", "Sibolga", "Tanjungbalai", "Tebing Tinggi",
+  
+  // Sumatera Barat
+  "Bukittinggi", "Padang", "Padang Panjang", "Pariaman", "Payakumbuh", "Sawahlunto", "Solok",
+  
+  // Riau
+  "Dumai", "Pekanbaru",
+  
+  // Kepulauan Riau
+  "Batam", "Tanjungpinang",
+  
+  // Jambi
+  "Jambi", "Sungaipenuh",
+  
+  // Sumatera Selatan
+  "Lubuklinggau", "Pagar Alam", "Palembang", "Prabumulih",
+  
+  // Kepulauan Bangka Belitung
+  "Pangkalpinang",
+  
+  // Bengkulu
+  "Bengkulu",
+  
+  // Lampung
+  "Bandar Lampung", "Metro",
+  
+  // Jawa Barat
+  "Bandung", "Bekasi", "Bogor", "Ciamis", "Cianjur", "Cirebon", "Depok", "Garut", "Indramayu", "Karawang", "Kuningan", "Majalengka", "Purwakarta", "Subang", "Sukabumi", "Sumedang", "Tasikmalaya", "Banjar", "Cimahi",
+  
+  // Banten
+  "Cilegon", "Serang", "Tangerang", "Tangerang Selatan",
+  
+  // Jawa Tengah
+  "Magelang", "Pekalongan", "Salatiga", "Semarang", "Surakarta (Solo)", "Tegal",
+  
+  // DI Yogyakarta
+  "Yogyakarta",
+  
+  // Jawa Timur
+  "Batu", "Blitar", "Kediri", "Madiun", "Malang", "Mojokerto", "Pasuruan", "Probolinggo", "Surabaya",
+  
+  // Bali
+  "Denpasar",
+  
+  // Nusa Tenggara Barat
+  "Bima", "Mataram",
+  
+  // Nusa Tenggara Timur
+  "Kupang",
+  
+  // Kalimantan Barat
+  "Pontianak", "Singkawang",
+  
+  // Kalimantan Tengah
+  "Palangka Raya",
+  
+  // Kalimantan Selatan
+  "Banjarbaru", "Banjarmasin",
+  
+  // Kalimantan Timur
+  "Balikpapan", "Bontang", "Samarinda",
+  
+  // Kalimantan Utara
+  "Tarakan",
+  
+  // Sulawesi Utara
+  "Bitung", "Kotamobagu", "Manado", "Tomohon",
+  
+  // Gorontalo
+  "Gorontalo",
+  
+  // Sulawesi Tengah
+  "Palu",
+  
+  // Sulawesi Barat
+  "Mamuju",
+  
+  // Sulawesi Selatan
+  "Makassar", "Palopo", "Parepare",
+  
+  // Sulawesi Tenggara
+  "Bau-Bau", "Kendari",
+  
+  // Maluku
+  "Ambon", "Tual",
+  
+  // Maluku Utara
+  "Ternate", "Tidore Kepulauan",
+  
+  // Papua
+  "Jayapura", "Sorong", "Merauke", "Manokwari", "Mimika"
 ].sort();
 
 const SearchableSelect = ({ value, onChange, placeholder, options }) => {
