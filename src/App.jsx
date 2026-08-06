@@ -4274,6 +4274,7 @@ export default function App() {
         })()
       ) : activeTab === 'events' ? (
             <EventsUserPortal 
+              regions={regions}
               currentUser={currentUser}
               onLoginClick={(mode, role, isLocked) => handleOpenLoginModal(mode, role, isLocked)}
               onLogout={handleLogout}

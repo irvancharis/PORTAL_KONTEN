@@ -2576,43 +2576,59 @@ export default function EventsUserPortal({
           ) : (
             <>
               {/* Search Bar & Action Buttons */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '16px', flexWrap: 'wrap', width: '100%' }}>
-            <div style={{ position: 'relative', flex: '1 1 300px', maxWidth: '400px' }}>
-              <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari event kompetisi..."
-                style={{
-                  width: '100%',
-                  padding: '10px 12px 10px 38px',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '24px',
-                  color: 'white',
-                  fontSize: '0.85rem',
-                  outline: 'none'
-                }}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '16px', flexWrap: 'wrap', width: '100%', position: 'relative', zIndex: 100 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', flex: '1 1 300px', maxWidth: '650px' }}>
+              <div style={{ position: 'relative', flex: '1 1 200px', maxWidth: '350px' }}>
+                <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cari event kompetisi..."
                   style={{
-                    position: 'absolute',
-                    right: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--text-muted)',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem'
+                    width: '100%',
+                    padding: '10px 12px 10px 38px',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '24px',
+                    color: 'white',
+                    fontSize: '0.85rem',
+                    outline: 'none',
+                    boxSizing: 'border-box'
                   }}
-                >
-                  ✕
-                </button>
-              )}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Area / Regional Filter */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '220px', flex: '1 1 200px', maxWidth: '280px' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '500', whiteSpace: 'nowrap' }}>Regional:</span>
+                <div style={{ flex: 1 }}>
+                  <SearchableSelect 
+                    value={eventAreaFilter}
+                    onChange={(val) => setEventAreaFilter(val === "Semua Regional" ? "" : val)}
+                    placeholder="Semua Regional"
+                    options={["Semua Regional", ...regions]}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Buat Event Button */}
@@ -2651,14 +2667,21 @@ export default function EventsUserPortal({
           {/* List Layout: Row Cards */}
           <div className="event-portal-list-container">
             {(() => {
-              const filtered = events.filter(evt =>
-                evt.paymentStatus === 'paid' && 
-                !isEventHiddenFromPublic(evt) && (
+              const filtered = events
+                .filter(evt => evt.paymentStatus === 'paid' && !isEventHiddenFromPublic(evt))
+                .filter(evt => {
+                  if (!eventAreaFilter) return true;
+                  if (evt.areaMode === 'regional') {
+                    return evt.areaRegional && evt.areaRegional.toLowerCase().trim() === eventAreaFilter.toLowerCase().trim();
+                  }
+                  return true;
+                })
+                .filter(evt =>
                   evt.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                   evt.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                   evt.description?.toLowerCase().includes(searchQuery.toLowerCase())
                 )
-              ).sort((a, b) => {
+              .sort((a, b) => {
                 if (!a.deadline) return 1;
                 if (!b.deadline) return -1;
                 const timeA = new Date(a.deadline).getTime();
