@@ -410,6 +410,7 @@ export default function EventsUserPortal({
   const [email, setEmail] = useState('');
   const [contact, setContact] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [eventAreaFilter, setEventAreaFilter] = useState('');
   const [visibleEventsCount, setVisibleEventsCount] = useState(12);
   const [userPortalTab, setUserPortalTab] = useState(() => {
     const path = window.location.pathname;
