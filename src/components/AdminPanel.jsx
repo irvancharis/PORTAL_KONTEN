@@ -515,7 +515,7 @@ export default function AdminPanel({
   const [depositingEvent, setDepositingEvent] = useState(null);
   const [verifyingEvent, setVerifyingEvent] = useState(null);
   const [eventTicketPrice, setEventTicketPrice] = useState(0);
-  const [eventJuknisPlatforms, setEventJuknisPlatforms] = useState({ TikTok: false, Instagram: false, YouTube: false });
+  const [eventJuknisPlatforms, setEventJuknisPlatforms] = useState({ TikTok: false, Instagram: false, YouTube: false, Facebook: false });
   const [eventJuknisDuration, setEventJuknisDuration] = useState('');
   const [eventJuknisSourceName1, setEventJuknisSourceName1] = useState('');
   const [eventJuknisSourceLink1, setEventJuknisSourceLink1] = useState('');
@@ -821,17 +821,61 @@ export default function AdminPanel({
   // Event action handlers
   const handleEventSubmit = (e) => {
     e.preventDefault();
-    const isRanking = eventBudgetMode === 'ranking';
-    const isComp = eventType === 'competition';
-    const computedBudget = !isComp ? 0 : (isRanking 
-      ? (parseInt(eventPrize1) || 0) + (parseInt(eventPrize2) || 0) + (parseInt(eventPrize3) || 0)
-      : (parseInt(eventBudget) || 0));
+    if (window.setGlobalLoading) window.setGlobalLoading('Sedang menyimpan event...');
 
-    if (editingEventId) {
-      setEvents(events.map(evt => {
-        if (evt.id === editingEventId) {
-          return {
-            ...evt,
+    setTimeout(() => {
+      try {
+        const isRanking = eventBudgetMode === 'ranking';
+        const isComp = eventType === 'competition';
+        const computedBudget = !isComp ? 0 : (isRanking 
+          ? (parseInt(eventPrize1) || 0) + (parseInt(eventPrize2) || 0) + (parseInt(eventPrize3) || 0)
+          : (parseInt(eventBudget) || 0));
+
+        if (editingEventId) {
+          setEvents(events.map(evt => {
+            if (evt.id === editingEventId) {
+              return {
+                ...evt,
+                title: eventTitle.trim(),
+                category: eventCategory,
+                eventType: eventType,
+                deadline: (!isComp || (eventBudgetMode === 'views' && !eventHasDeadline)) ? '' : eventDeadline,
+                maxParticipants: eventHasMaxParticipants ? (parseInt(eventMaxParticipants) || 0) : 0,
+                description: eventDescription.trim(),
+                juknis: eventJuknis.trim(),
+                juknisPlatforms: eventJuknisPlatforms,
+                juknisDuration: eventJuknisDuration.trim(),
+                juknisSourceName1: eventJuknisSourceName1.trim(),
+                juknisSourceLink1: eventJuknisSourceLink1.trim(),
+                juknisSourceName2: eventJuknisSourceName2.trim(),
+                juknisSourceLink2: eventJuknisSourceLink2.trim(),
+                juknisBrandName: eventJuknisBrandName.trim(),
+                juknisBrandLink: eventJuknisBrandLink.trim(),
+                juknisDos: eventJuknisDos.trim(),
+                juknisDonts: eventJuknisDonts.trim(),
+                budgetMode: isComp ? eventBudgetMode : 'views',
+                targetAudience: eventTargetAudience,
+                campaignBudget: computedBudget,
+                remainingBudget: computedBudget,
+                ticketPrice: parseInt(eventTicketPrice) || 0,
+                benefitAmount: (!isComp || isRanking) ? 0 : (parseInt(eventBenefitAmount) || 0),
+                benefitViewsStep: (!isComp || isRanking) ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
+                minEarningViews: (!isComp || isRanking) ? 0 : (parseInt(eventMinEarningViews) || 0),
+                prize1: (isComp && isRanking) ? (parseInt(eventPrize1) || 0) : 0,
+                prize2: (isComp && isRanking) ? (parseInt(eventPrize2) || 0) : 0,
+                prize3: (isComp && isRanking) ? (parseInt(eventPrize3) || 0) : 0,
+                paymentStatus: evt.paymentStatus || 'pending',
+                adminFee: evt.paymentStatus === 'paid' ? (evt.adminFee !== undefined ? evt.adminFee : 0) : (eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((computedBudget * (eventAdminFee || 0)) / 100))
+              };
+            }
+            return evt;
+          }));
+          setEditingEventId(null);
+          setShowEventForm(false);
+          alert('Event berhasil diperbarui!');
+        } else {
+          const newEvent = {
+            id: `evt_${Date.now()}`,
             title: eventTitle.trim(),
             category: eventCategory,
             eventType: eventType,
@@ -854,69 +898,33 @@ export default function AdminPanel({
             campaignBudget: computedBudget,
             remainingBudget: computedBudget,
             ticketPrice: parseInt(eventTicketPrice) || 0,
-            benefitAmount: (!isComp || isRanking) ? 0 : (parseInt(eventBenefitAmount) || 0),
-            benefitViewsStep: (!isComp || isRanking) ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
-            minEarningViews: (!isComp || isRanking) ? 0 : (parseInt(eventMinEarningViews) || 0),
-            prize1: (isComp && isRanking) ? (parseInt(eventPrize1) || 0) : 0,
-            prize2: (isComp && isRanking) ? (parseInt(eventPrize2) || 0) : 0,
-            prize3: (isComp && isRanking) ? (parseInt(eventPrize3) || 0) : 0,
-            paymentStatus: evt.paymentStatus || 'pending',
-            adminFee: evt.paymentStatus === 'paid' ? (evt.adminFee !== undefined ? evt.adminFee : 0) : (eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((computedBudget * (eventAdminFee || 0)) / 100))
+            // views mode
+            benefitAmount: isRanking ? 0 : (parseInt(eventBenefitAmount) || 0),
+            benefitViewsStep: isRanking ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
+            minEarningViews: isRanking ? 0 : (parseInt(eventMinEarningViews) || 0),
+            // ranking mode
+            prize1: isRanking ? (parseInt(eventPrize1) || 0) : 0,
+            prize2: isRanking ? (parseInt(eventPrize2) || 0) : 0,
+            prize3: isRanking ? (parseInt(eventPrize3) || 0) : 0,
+            paymentStatus: 'pending',
+            adminFee: eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((computedBudget * (eventAdminFee || 0)) / 100),
+            organizerName: currentUser?.organizerName || currentUser?.username || 'Panitia Portal',
+            organizerPhone: currentUser?.organizerPhone || '',
+            organizerDescription: currentUser?.organizerDescription || '',
+            creator: currentUser?.username || 'Panitia',
+            creatorId: currentUser?.id || 'panitia_id'
           };
+          setEvents([...events, newEvent]);
+          setShowEventForm(false);
+          alert('Event baru berhasil dibuat! Silakan selesaikan pembayaran biaya event di daftar event agar event aktif.');
+          if (onEventCreatedOrUpdated) {
+            onEventCreatedOrUpdated(newEvent);
+          }
         }
-        return evt;
-      }));
-      setEditingEventId(null);
-      setShowEventForm(false);
-      alert('Event berhasil diperbarui!');
-    } else {
-      const newEvent = {
-        id: `evt_${Date.now()}`,
-        title: eventTitle.trim(),
-        category: eventCategory,
-        eventType: eventType,
-        deadline: (!isComp || (eventBudgetMode === 'views' && !eventHasDeadline)) ? '' : eventDeadline,
-        maxParticipants: eventHasMaxParticipants ? (parseInt(eventMaxParticipants) || 0) : 0,
-        description: eventDescription.trim(),
-        juknis: eventJuknis.trim(),
-        juknisPlatforms: eventJuknisPlatforms,
-        juknisDuration: eventJuknisDuration.trim(),
-        juknisSourceName1: eventJuknisSourceName1.trim(),
-        juknisSourceLink1: eventJuknisSourceLink1.trim(),
-        juknisSourceName2: eventJuknisSourceName2.trim(),
-        juknisSourceLink2: eventJuknisSourceLink2.trim(),
-        juknisBrandName: eventJuknisBrandName.trim(),
-        juknisBrandLink: eventJuknisBrandLink.trim(),
-        juknisDos: eventJuknisDos.trim(),
-        juknisDonts: eventJuknisDonts.trim(),
-        budgetMode: isComp ? eventBudgetMode : 'views',
-        targetAudience: eventTargetAudience,
-        campaignBudget: computedBudget,
-        remainingBudget: computedBudget,
-        ticketPrice: parseInt(eventTicketPrice) || 0,
-        // views mode
-        benefitAmount: isRanking ? 0 : (parseInt(eventBenefitAmount) || 0),
-        benefitViewsStep: isRanking ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
-        minEarningViews: isRanking ? 0 : (parseInt(eventMinEarningViews) || 0),
-        // ranking mode
-        prize1: isRanking ? (parseInt(eventPrize1) || 0) : 0,
-        prize2: isRanking ? (parseInt(eventPrize2) || 0) : 0,
-        prize3: isRanking ? (parseInt(eventPrize3) || 0) : 0,
-        paymentStatus: 'pending',
-        adminFee: eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((computedBudget * (eventAdminFee || 0)) / 100),
-        organizerName: currentUser?.organizerName || currentUser?.username || 'Panitia Portal',
-        organizerPhone: currentUser?.organizerPhone || '',
-        organizerDescription: currentUser?.organizerDescription || '',
-        creator: currentUser?.username || 'Panitia',
-        creatorId: currentUser?.id || 'panitia_id'
-      };
-      setEvents([...events, newEvent]);
-      setShowEventForm(false);
-      alert('Event baru berhasil dibuat! Silakan selesaikan pembayaran biaya event di daftar event agar event aktif.');
-      if (onEventCreatedOrUpdated) {
-        onEventCreatedOrUpdated(newEvent);
+      } finally {
+        if (window.setGlobalLoading) window.setGlobalLoading(null);
       }
-    }
+    }, 850);
   };
 
   const getPanitiaPayments = () => {
@@ -1204,7 +1212,7 @@ export default function AdminPanel({
     setEventHasMaxParticipants((evt.maxParticipants || 0) > 0);
     setEventDescription(evt.description || '');
     setEventJuknis(evt.juknis || '');
-    setEventJuknisPlatforms(evt.juknisPlatforms || { TikTok: false, Instagram: false, YouTube: false });
+    setEventJuknisPlatforms(evt.juknisPlatforms || { TikTok: false, Instagram: false, YouTube: false, Facebook: false });
     setEventJuknisDuration(evt.juknisDuration || '');
     setEventJuknisSourceName1(evt.juknisSourceName1 || '');
     setEventJuknisSourceLink1(evt.juknisSourceLink1 || '');
@@ -2994,7 +3002,7 @@ export default function AdminPanel({
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '16px' }}>
                       <div className="form-group" style={{ marginBottom: 0 }}>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>Platform Upload</label>
-                        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
                           <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
                             <input type="checkbox" checked={eventJuknisPlatforms.TikTok} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, TikTok: e.target.checked })} style={{ width: '16px', height: '16px' }} />
                             <span>TikTok</span>
@@ -3006,6 +3014,10 @@ export default function AdminPanel({
                           <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
                             <input type="checkbox" checked={eventJuknisPlatforms.YouTube} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, YouTube: e.target.checked })} style={{ width: '16px', height: '16px' }} />
                             <span>YouTube Shorts</span>
+                          </label>
+                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
+                            <input type="checkbox" checked={eventJuknisPlatforms.Facebook} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, Facebook: e.target.checked })} style={{ width: '16px', height: '16px' }} />
+                            <span>Facebook</span>
                           </label>
                         </div>
                       </div>
@@ -3608,7 +3620,7 @@ export default function AdminPanel({
                     setEventMaxParticipants(50);
                     setEventDescription('');
                     setEventJuknis('');
-                    setEventJuknisPlatforms({ TikTok: false, Instagram: false, YouTube: false });
+                    setEventJuknisPlatforms({ TikTok: false, Instagram: false, YouTube: false, Facebook: false });
                     setEventJuknisDuration('');
                     setEventJuknisSourceName1('');
                     setEventJuknisSourceLink1('');
@@ -4253,29 +4265,27 @@ export default function AdminPanel({
                         display: 'inline-flex', 
                         alignItems: 'center', 
                         justifyContent: 'center', 
-                        background: 'rgba(255, 255, 255, 0.03)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        background: 'var(--bg-card-hover)',
+                        border: '1px solid var(--border-color)',
                         width: '44px',
                         height: '44px',
                         borderRadius: '50%',
-                        color: 'rgba(255, 255, 255, 0.8)',
+                        color: 'var(--text-primary)',
                         cursor: isLoadingMoreCreators ? 'not-allowed' : 'pointer',
                         transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                       }}
                       onMouseEnter={(e) => {
                         if (!isLoadingMoreCreators) {
-                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                          e.currentTarget.style.color = '#ffffff';
+                          e.currentTarget.style.background = 'var(--border-color)';
+                          e.currentTarget.style.color = 'var(--text-primary)';
                           e.currentTarget.style.transform = 'translateY(-2px)';
                           e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.15)';
                         }
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                        e.currentTarget.style.background = 'var(--bg-card-hover)';
+                        e.currentTarget.style.color = 'var(--text-primary)';
                         e.currentTarget.style.transform = 'translateY(0)';
                         e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
                       }}
@@ -5859,9 +5869,9 @@ export default function AdminPanel({
                     padding: '10px 24px', 
                     fontSize: '0.85rem', 
                     fontWeight: '600',
-                    color: 'rgba(255, 255, 255, 0.8)',
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    color: 'var(--text-primary)',
+                    background: 'var(--bg-card-hover)',
+                    border: '1px solid var(--border-color)',
                     borderRadius: '30px',
                     cursor: isLoadingMoreUsers ? 'not-allowed' : 'pointer',
                     transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -5869,17 +5879,15 @@ export default function AdminPanel({
                   }}
                   onMouseEnter={(e) => {
                     if (!isLoadingMoreUsers) {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.18)';
-                      e.currentTarget.style.color = '#ffffff';
+                      e.currentTarget.style.background = 'var(--border-color)';
+                      e.currentTarget.style.color = 'var(--text-primary)';
                       e.currentTarget.style.transform = 'translateY(-1px)';
                       e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.15)';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                    e.currentTarget.style.background = 'var(--bg-card-hover)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
                   }}
@@ -6547,61 +6555,122 @@ export default function AdminPanel({
                 Daftar Agenda Komunitas ({agendaList.length})
               </h3>
               {agendaList.length > 0 ? (
-                <div className="table-responsive">
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Tanggal / Waktu</th>
-                        <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Judul Agenda</th>
-                        <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Deskripsi</th>
-                        <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Lokasi</th>
-                        <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Publikasi</th>
-                        <th style={{ padding: '14px 16px', color: 'var(--text-secondary)', textAlign: 'right' }}>Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {agendaList.map((agenda) => (
-                        <tr key={agenda.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
-                          <td style={{ padding: '14px 16px', color: 'white', fontSize: '0.88rem', whiteSpace: 'nowrap' }}>
-                            <strong>{agenda.date}</strong>
-                            {agenda.time && <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px' }}>Pukul {agenda.time}</div>}
-                          </td>
-                          <td style={{ padding: '14px 16px', color: 'white', fontSize: '0.88rem', fontWeight: 'bold' }}>
-                            {agenda.title}
-                          </td>
-                          <td style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontSize: '0.85rem', maxWidth: '300px' }}>
-                            {agenda.description || '-'}
-                          </td>
-                          <td style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                            {agenda.location || '-'}
-                          </td>
-                          <td style={{ padding: '14px 16px' }}>
-                            <span style={{
-                              fontSize: '0.75rem',
-                              padding: '4px 10px',
-                              borderRadius: '20px',
-                              fontWeight: 'bold',
-                              background: agenda.publishTo === 'public' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)',
-                              color: agenda.publishTo === 'public' ? '#10b981' : '#3b82f6',
-                              border: agenda.publishTo === 'public' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(59, 130, 246, 0.2)'
-                            }}>
-                              {agenda.publishTo === 'public' ? 'Publik' : 'Khusus Anggota'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                            <button
-                              className="btn btn-secondary btn-sm"
-                              onClick={() => handleDeleteAgenda(agenda.id)}
-                              style={{ padding: '6px 12px', fontSize: '0.78rem', background: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}
-                            >
-                              Hapus
-                            </button>
-                          </td>
+                <>
+                  {/* Desktop view */}
+                  <div className="table-responsive agenda-desktop-table">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Tanggal / Waktu</th>
+                          <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Judul Agenda</th>
+                          <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Deskripsi</th>
+                          <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Lokasi</th>
+                          <th style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>Publikasi</th>
+                          <th style={{ padding: '14px 16px', color: 'var(--text-secondary)', textAlign: 'right' }}>Aksi</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {agendaList.map((agenda) => (
+                          <tr key={agenda.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
+                            <td style={{ padding: '14px 16px', color: 'white', fontSize: '0.88rem', whiteSpace: 'nowrap' }}>
+                              <strong>{formatIndonesianDate(agenda.date)}</strong>
+                              {agenda.time && <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px' }}>Pukul {agenda.time}</div>}
+                            </td>
+                            <td style={{ padding: '14px 16px', color: 'white', fontSize: '0.88rem', fontWeight: 'bold' }}>
+                              {agenda.title}
+                            </td>
+                            <td style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontSize: '0.85rem', maxWidth: '300px' }}>
+                              {agenda.description || '-'}
+                            </td>
+                            <td style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                              {agenda.location || '-'}
+                            </td>
+                            <td style={{ padding: '14px 16px' }}>
+                              <span style={{
+                                fontSize: '0.75rem',
+                                padding: '4px 10px',
+                                borderRadius: '20px',
+                                fontWeight: 'bold',
+                                background: agenda.publishTo === 'public' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                                color: agenda.publishTo === 'public' ? '#10b981' : '#3b82f6',
+                                border: agenda.publishTo === 'public' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(59, 130, 246, 0.2)'
+                              }}>
+                                {agenda.publishTo === 'public' ? 'Publik' : 'Khusus Anggota'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => handleDeleteAgenda(agenda.id)}
+                                style={{ padding: '6px 12px', fontSize: '0.78rem', background: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}
+                              >
+                                Hapus
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile view */}
+                  <div className="agenda-mobile-list">
+                    {agendaList.map((agenda) => (
+                      <div 
+                        key={agenda.id} 
+                        style={{ 
+                          background: 'var(--primary-glow)', 
+                          border: '1px solid var(--border-color)', 
+                          borderRadius: '12px', 
+                          padding: '16px', 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          gap: '12px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <strong style={{ fontSize: '0.85rem', color: 'white' }}>{formatIndonesianDate(agenda.date)}</strong>
+                            {agenda.time && <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Pukul {agenda.time}</div>}
+                          </div>
+                          <span style={{
+                            fontSize: '0.72rem',
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            fontWeight: 'bold',
+                            background: agenda.publishTo === 'public' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                            color: agenda.publishTo === 'public' ? '#10b981' : '#3b82f6',
+                            border: agenda.publishTo === 'public' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(59, 130, 246, 0.2)',
+                            flexShrink: 0
+                          }}>
+                            {agenda.publishTo === 'public' ? 'Publik' : 'Khusus Anggota'}
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'white' }}>{agenda.title}</div>
+                          <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{agenda.description || '-'}</div>
+                        </div>
+
+                        {agenda.location && (
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            <strong>Lokasi:</strong> {agenda.location}
+                          </div>
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '8px', borderTop: '1px dashed var(--border-color)' }}>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => handleDeleteAgenda(agenda.id)}
+                            style={{ padding: '6px 12px', fontSize: '0.78rem', background: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}
+                          >
+                            Hapus
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               ) : (
                 <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', padding: '36px' }}>
                   Belum ada agenda yang dibuat. Klik "+ Tambah Agenda Baru" untuk menambahkan agenda pertama Anda.
@@ -8531,14 +8600,14 @@ export default function AdminPanel({
           boxSizing: 'border-box'
         }} onClick={() => setShowQRScanner(false)}>
           <div style={{
-            background: '#121212',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
+            background: 'rgba(20, 24, 33, 0.98)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
             borderRadius: '24px',
-            padding: '32px',
-            maxWidth: '440px',
+            padding: '32px 24px',
+            maxWidth: '400px',
             width: '100%',
             textAlign: 'center',
-            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.05)',
             position: 'relative',
             cursor: 'default'
           }} onClick={(e) => e.stopPropagation()}>
@@ -8550,42 +8619,76 @@ export default function AdminPanel({
                 position: 'absolute',
                 top: '20px',
                 right: '20px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: 'none',
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
                 borderRadius: '50%',
-                width: '36px',
-                height: '36px',
+                width: '32px',
+                height: '32px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'white',
+                color: 'var(--text-secondary)',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                outline: 'none'
+                outline: 'none',
+                zIndex: 4
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.color = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                e.currentTarget.style.color = 'var(--text-secondary)';
+              }}
             >
-              <X size={18} />
+              <X size={16} />
             </button>
 
-            <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
-              Panitia Event
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '8px' }}>
+              <div className="badge" style={{ 
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.68rem', 
+                color: '#38bdf8', 
+                fontWeight: '700', 
+                textTransform: 'uppercase', 
+                letterSpacing: '1.5px', 
+                background: 'rgba(56, 189, 248, 0.08)',
+                border: '1px solid rgba(56, 189, 248, 0.2)',
+                padding: '4px 12px',
+                borderRadius: '20px'
+              }}>
+                <Camera size={12} style={{ color: '#38bdf8' }} />
+                <span>Panitia Event</span>
+              </div>
             </div>
-            <h3 style={{ margin: '0 0 20px 0', color: 'white', fontSize: '1.25rem', fontWeight: 'bold' }}>
+
+            <div className="badge" style={{ 
+              margin: '0 0 20px 0', 
+              color: '#fffffe', 
+              fontSize: '1.25rem', 
+              fontWeight: 'bold',
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              display: 'block'
+            }}>
               Scan QR Tiket Masuk
-            </h3>
+            </div>
 
             {/* Video preview container */}
             <div style={{
               position: 'relative',
               width: '100%',
               aspectRatio: '1',
-              background: '#000000',
+              background: '#090d16',
               borderRadius: '16px',
               overflow: 'hidden',
               marginBottom: '20px',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              boxShadow: 'inset 0 4px 10px rgba(0,0,0,0.5)'
             }}>
               <video 
                 ref={videoRef}
@@ -8596,16 +8699,22 @@ export default function AdminPanel({
                 }}
               />
               
+              {/* Scan HUD Overlay brackets */}
+              <div style={{ position: 'absolute', top: '16px', left: '16px', width: '20px', height: '20px', borderTop: '3px solid #38bdf8', borderLeft: '3px solid #38bdf8', borderTopLeftRadius: '4px' }} />
+              <div style={{ position: 'absolute', top: '16px', right: '16px', width: '20px', height: '20px', borderTop: '3px solid #38bdf8', borderRight: '3px solid #38bdf8', borderTopRightRadius: '4px' }} />
+              <div style={{ position: 'absolute', bottom: '16px', left: '16px', width: '20px', height: '20px', borderBottom: '3px solid #38bdf8', borderLeft: '3px solid #38bdf8', borderBottomLeftRadius: '4px' }} />
+              <div style={{ position: 'absolute', bottom: '16px', right: '16px', width: '20px', height: '20px', borderBottom: '3px solid #38bdf8', borderRight: '3px solid #38bdf8', borderBottomRightRadius: '4px' }} />
+
               {/* Scan box Overlay border animation */}
               <div style={{
                 position: 'absolute',
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: '65%',
-                height: '65%',
-                border: '2px solid #ffffff',
-                boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
+                width: '60%',
+                height: '60%',
+                border: '1px dashed rgba(56, 189, 248, 0.4)',
+                boxShadow: '0 0 0 9999px rgba(9, 13, 22, 0.65)',
                 borderRadius: '8px',
                 pointerEvents: 'none'
               }}>
@@ -8616,8 +8725,8 @@ export default function AdminPanel({
                   left: 0,
                   width: '100%',
                   height: '2px',
-                  background: '#f87171',
-                  boxShadow: '0 0 8px #ef4444',
+                  background: 'linear-gradient(90deg, rgba(56,189,248,0) 0%, rgba(56,189,248,1) 50%, rgba(56,189,248,0) 100%)',
+                  boxShadow: '0 0 8px #38bdf8',
                   animation: 'scan-laser 2s infinite linear'
                 }}></div>
               </div>
@@ -8628,24 +8737,25 @@ export default function AdminPanel({
 
             <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
               {isScanning ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#4ade80' }}>
-                  <span style={{ width: '12px', height: '12px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 1s infinite linear' }} />
-                  <span>Membidik QR Code tiket...</span>
+                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#4ade80', background: 'rgba(74, 222, 128, 0.08)', padding: '8px 18px', borderRadius: '30px', border: '1px solid rgba(74, 222, 128, 0.2)' }}>
+                  <span style={{ width: '12px', height: '12px', border: '2px solid #4ade80', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 1s infinite linear' }} />
+                  <span style={{ fontWeight: '600', fontSize: '0.8rem' }}>Membidik QR Code tiket...</span>
                 </div>
               ) : (
                 <button 
                   type="button"
                   onClick={startScanner}
                   className="btn btn-primary"
-                  style={{ background: 'white', color: 'black', border: '1px solid white', padding: '10px 24px', fontWeight: 'bold', borderRadius: '20px', cursor: 'pointer' }}
+                  style={{ padding: '12px 28px', borderRadius: '30px', fontWeight: 'bold', fontSize: '0.88rem', cursor: 'pointer' }}
                 >
-                  Aktifkan Kamera
+                  <Camera size={16} />
+                  <span>Aktifkan Kamera</span>
                 </button>
               )}
             </div>
 
-            <div style={{ marginTop: '20px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-              Arahkan kamera ke QR Code yang ada pada E-Tiket pengunjung.
+            <div className="badge" style={{ marginTop: '20px', fontSize: '0.78rem', color: '#fffffe', background: 'transparent', border: 'none', padding: 0 }}>
+              Arahkan kamera ke QR Code pada E-Tiket pengunjung.
             </div>
 
             <style>{`

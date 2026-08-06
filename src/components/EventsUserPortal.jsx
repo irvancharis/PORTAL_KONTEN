@@ -328,6 +328,14 @@ export default function EventsUserPortal({
   const [expandedJuknis, setExpandedJuknis] = useState({});
   const [selectedEvent, setSelectedEvent] = useState(null);
 
+  useEffect(() => {
+    if (selectedEvent) {
+      window.scrollTo({ top: 0 });
+      if (document.documentElement) document.documentElement.scrollTo({ top: 0 });
+      if (document.body) document.body.scrollTo({ top: 0 });
+    }
+  }, [selectedEvent]);
+
   // URL Path Listener for Event Details (Allows direct link sharing)
   useEffect(() => {
     const handlePathCheck = () => {
@@ -481,59 +489,67 @@ export default function EventsUserPortal({
       return;
     }
 
-    const approvedCount = eventParticipants.filter(p => p.eventId === registeringEvent.id && p.status === 'approved').length;
-    if (registeringEvent.maxParticipants > 0 && approvedCount >= registeringEvent.maxParticipants) {
-      alert('Maaf, kuota peserta untuk event ini sudah penuh!');
-      setRegisteringEvent(null);
-      resetVerificationForm();
-      return;
-    }
+    if (window.setGlobalLoading) window.setGlobalLoading('Sedang memproses tiket pendaftaran...');
 
-    const ticketPrice = registeringEvent.ticketPrice || 0;
-    if (ticketPrice > 0) {
-      const currentBal = userProfile.walletBalance || 0;
-      if (currentBal < ticketPrice) {
-        alert('Saldo Anda tidak mencukupi untuk membeli tiket event ini!');
-        return;
+    setTimeout(() => {
+      try {
+        const approvedCount = eventParticipants.filter(p => p.eventId === registeringEvent.id && p.status === 'approved').length;
+        if (registeringEvent.maxParticipants > 0 && approvedCount >= registeringEvent.maxParticipants) {
+          alert('Maaf, kuota peserta untuk event ini sudah penuh!');
+          setRegisteringEvent(null);
+          resetVerificationForm();
+          return;
+        }
+
+        const ticketPrice = registeringEvent.ticketPrice || 0;
+        if (ticketPrice > 0) {
+          const currentBal = userProfile.walletBalance || 0;
+          if (currentBal < ticketPrice) {
+            alert('Saldo Anda tidak mencukupi untuk membeli tiket event ini!');
+            return;
+          }
+
+          // Deduct balance
+          setUsers(prevUsers => prevUsers.map(u => {
+            if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
+              return { ...u, walletBalance: Math.max(0, (u.walletBalance || 0) - ticketPrice) };
+            }
+            if (u.username.toLowerCase() === (registeringEvent.creator || '').toLowerCase()) {
+              return { ...u, walletBalance: (u.walletBalance || 0) + ticketPrice };
+            }
+            return u;
+          }));
+        }
+
+        const tktCode = `TKT-${Math.floor(100000 + Math.random() * 900000)}`;
+        setGeneratedTicketCode(tktCode);
+
+        const newPart = {
+          id: `part_${Date.now()}`,
+          eventId: registeringEvent.id,
+          eventTitle: registeringEvent.title,
+          name: finalName,
+          username: currentUser.username,
+          email: finalEmail,
+          contact: finalPhone,
+          socialPlatform: 'ticket',
+          socialLink: '',
+          status: 'approved',
+          verifiedAt: new Date().toISOString(),
+          registeredAt: new Date().toISOString(),
+          ticketCode: tktCode,
+          isCheckedIn: false,
+          checkedInAt: null,
+          ticketPrice: ticketPrice,
+          isPaid: ticketPrice > 0
+        };
+
+        setEventParticipants([...eventParticipants, newPart]);
+        setVerificationStep('success');
+      } finally {
+        if (window.setGlobalLoading) window.setGlobalLoading(null);
       }
-
-      // Deduct balance
-      setUsers(prevUsers => prevUsers.map(u => {
-        if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
-          return { ...u, walletBalance: Math.max(0, (u.walletBalance || 0) - ticketPrice) };
-        }
-        if (u.username.toLowerCase() === (registeringEvent.creator || '').toLowerCase()) {
-          return { ...u, walletBalance: (u.walletBalance || 0) + ticketPrice };
-        }
-        return u;
-      }));
-    }
-
-    const tktCode = `TKT-${Math.floor(100000 + Math.random() * 900000)}`;
-    setGeneratedTicketCode(tktCode);
-
-    const newPart = {
-      id: `part_${Date.now()}`,
-      eventId: registeringEvent.id,
-      eventTitle: registeringEvent.title,
-      name: finalName,
-      username: currentUser.username,
-      email: finalEmail,
-      contact: finalPhone,
-      socialPlatform: 'ticket',
-      socialLink: '',
-      status: 'approved',
-      verifiedAt: new Date().toISOString(),
-      registeredAt: new Date().toISOString(),
-      ticketCode: tktCode,
-      isCheckedIn: false,
-      checkedInAt: null,
-      ticketPrice: ticketPrice,
-      isPaid: ticketPrice > 0
-    };
-
-    setEventParticipants([...eventParticipants, newPart]);
-    setVerificationStep('success');
+    }, 850);
   };
 
   // Move from input handle step to show code instruction step
@@ -569,43 +585,45 @@ export default function EventsUserPortal({
       return;
     }
 
+    if (window.setGlobalLoading) window.setGlobalLoading('Sedang memverifikasi akun sosial media...');
     setVerificationStep('loading');
 
-    let cleanUsername = usernameInput;
-    if (cleanUsername.startsWith('@')) {
-      cleanUsername = cleanUsername.substring(1);
-    }
-
-    // Determine target platform URL format for search query
-    let searchUrl = '';
-    let generatedLink = '';
-    if (selectedPlatform === 'instagram') {
-      searchUrl = `https://html.duckduckgo.com/html/?q=site:instagram.com/${cleanUsername}`;
-      generatedLink = `https://instagram.com/${cleanUsername}`;
-    } else if (selectedPlatform === 'tiktok') {
-      searchUrl = `https://html.duckduckgo.com/html/?q=site:tiktok.com/%40${cleanUsername}`;
-      generatedLink = `https://tiktok.com/@${cleanUsername}`;
-    } else if (selectedPlatform === 'youtube') {
-      searchUrl = `https://html.duckduckgo.com/html/?q=site:youtube.com/%40${cleanUsername}`;
-      generatedLink = `https://youtube.com/@${cleanUsername}`;
-    } else if (selectedPlatform === 'facebook') {
-      searchUrl = `https://html.duckduckgo.com/html/?q=site:facebook.com/${cleanUsername}`;
-      generatedLink = `https://facebook.com/${cleanUsername}`;
-    }
-
     try {
+      let cleanUsername = usernameInput;
+      if (cleanUsername.startsWith('@')) {
+        cleanUsername = cleanUsername.substring(1);
+      }
+
+      // Determine target platform URL format for search query
+      let searchUrl = '';
+      let generatedLink = '';
+      if (selectedPlatform === 'instagram') {
+        searchUrl = `https://html.duckduckgo.com/html/?q=site:instagram.com/${cleanUsername}`;
+        generatedLink = `https://instagram.com/${cleanUsername}`;
+      } else if (selectedPlatform === 'tiktok') {
+        searchUrl = `https://html.duckduckgo.com/html/?q=site:tiktok.com/%40${cleanUsername}`;
+        generatedLink = `https://tiktok.com/@${cleanUsername}`;
+      } else if (selectedPlatform === 'youtube') {
+        searchUrl = `https://html.duckduckgo.com/html/?q=site:youtube.com/%40${cleanUsername}`;
+        generatedLink = `https://youtube.com/@${cleanUsername}`;
+      } else if (selectedPlatform === 'facebook') {
+        searchUrl = `https://html.duckduckgo.com/html/?q=site:facebook.com/${cleanUsername}`;
+        generatedLink = `https://facebook.com/${cleanUsername}`;
+      }
+
       let verificationResult = { exists: false, codeFound: false, status: 'failed' };
 
+      // 1. Try checking via deployed Google Apps Script first
       let appsScriptSuccess = false;
       if (GOOGLE_APPS_SCRIPT_URL) {
         try {
-          const result = await fetchJSONP(GOOGLE_APPS_SCRIPT_URL, {
+          const res = await fetchJSONP(GOOGLE_APPS_SCRIPT_URL, {
             platform: selectedPlatform,
             username: cleanUsername,
             code: uniqueCode
           });
-          if (result && result.status) {
-            verificationResult = result;
+          if (res && res.status) {
+            verificationResult = res;
             appsScriptSuccess = true;
           }
         } catch (scriptErr) {
@@ -614,7 +632,6 @@ export default function EventsUserPortal({
       }
 
       if (!appsScriptSuccess) {
-        // Client-side fallback using direct APIs and AllOrigins proxy
         if (selectedPlatform === 'tiktok') {
           // Direct check using TikWM API (CORS friendly!)
           const tikwmUrl = `https://www.tikwm.com/api/user/info?unique_id=${encodeURIComponent(cleanUsername)}`;
@@ -894,7 +911,6 @@ export default function EventsUserPortal({
 
 
 
-  // Handle Work Submission submit
   const handleWorkSubmit = (e) => {
     e.preventDefault();
     if (!currentUser) return;
@@ -908,33 +924,41 @@ export default function EventsUserPortal({
       return;
     }
 
-    const newSub = {
-      id: `sub_${Date.now()}`,
-      eventId: submittingEvent.id,
-      eventTitle: submittingEvent.title,
-      participantName: userRegistration.name,
-      username: currentUser.username,
-      title: workTitle.trim(),
-      videoUrl: workVideoUrl.trim(),
-      description: workDescription.trim(),
-      platform: workPlatform,
-      views: 0,
-      likes: 0,
-      comments: 0,
-      status: 'submitted',
-      submittedAt: new Date().toISOString(),
-      score: null,
-      feedback: '',
-      paidBenefit: 0
-    };
+    if (window.setGlobalLoading) window.setGlobalLoading('Sedang mengirimkan karya Anda...');
 
-    setEventSubmissions([...eventSubmissions, newSub]);
-    setSubmittingEvent(null);
-    setWorkTitle('');
-    setWorkVideoUrl('');
-    setWorkDescription('');
-    setWorkPlatform('YouTube');
-    alert('Karya Anda berhasil dikirim! Panitia dan Juri akan segera menilai karya Anda.');
+    setTimeout(() => {
+      try {
+        const newSub = {
+          id: `sub_${Date.now()}`,
+          eventId: submittingEvent.id,
+          eventTitle: submittingEvent.title,
+          participantName: userRegistration.name,
+          username: currentUser.username,
+          title: workTitle.trim(),
+          videoUrl: workVideoUrl.trim(),
+          description: workDescription.trim(),
+          platform: workPlatform,
+          views: 0,
+          likes: 0,
+          comments: 0,
+          status: 'submitted',
+          submittedAt: new Date().toISOString(),
+          score: null,
+          feedback: '',
+          paidBenefit: 0
+        };
+
+        setEventSubmissions([...eventSubmissions, newSub]);
+        setSubmittingEvent(null);
+        setWorkTitle('');
+        setWorkVideoUrl('');
+        setWorkDescription('');
+        setWorkPlatform('YouTube');
+        alert('Karya Anda berhasil dikirim! Panitia dan Juri akan segera menilai karya Anda.');
+      } finally {
+        if (window.setGlobalLoading) window.setGlobalLoading(null);
+      }
+    }, 850);
   };
 
   const handleUrlChange = (url) => {
@@ -1019,8 +1043,8 @@ export default function EventsUserPortal({
       {/* Profile Completion Suggestion Banner */}
       {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && (
         <div style={{
-          background: '#ffffff',
-          border: '1px solid #ffffff',
+          background: 'rgba(245, 158, 11, 0.1)',
+          border: '1px solid rgba(245, 158, 11, 0.3)',
           borderRadius: '12px',
           padding: '16px 20px',
           marginBottom: '24px',
@@ -1032,12 +1056,12 @@ export default function EventsUserPortal({
           textAlign: 'left'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '280px' }}>
-            <div style={{ background: 'rgba(0, 0, 0, 0.06)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <AlertTriangle size={20} color="#020202" />
+            <div style={{ background: 'rgba(245, 158, 11, 0.15)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <AlertTriangle size={20} color="#f59e0b" />
             </div>
             <div>
-              <h4 style={{ margin: '0 0 4px 0', color: '#020202', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
-              <p style={{ margin: 0, color: '#4b5563', fontSize: '0.82rem', lineHeight: '1.5' }}>
+              <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
+              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.5' }}>
                 lengkapi profil Anda terlebih dahulu agar dapat mendaftar sebagai peserta event.
               </p>
             </div>
@@ -1049,21 +1073,21 @@ export default function EventsUserPortal({
               fontSize: '0.82rem',
               borderRadius: '20px',
               fontWeight: 'bold',
-              background: '#020202',
-              color: '#ffffff',
-              border: '1px solid #020202',
+              background: 'var(--bg-main)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-color)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '6px'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#1f2937';
-              e.currentTarget.style.borderColor = '#1f2937';
+              e.currentTarget.style.background = 'var(--border-color)';
+              e.currentTarget.style.color = 'var(--bg-main)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#020202';
-              e.currentTarget.style.borderColor = '#020202';
+              e.currentTarget.style.background = 'var(--bg-main)';
+              e.currentTarget.style.color = 'var(--text-primary)';
             }}
           >
             <User size={14} />
@@ -1143,68 +1167,55 @@ export default function EventsUserPortal({
                 {/* Left Column: Info & Juknis */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   <div style={{ textAlign: 'left' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
-                      {evt.eventType === 'regular' ? (
-                        <span style={{ 
-                          fontSize: '0.72rem', 
-                          background: 'var(--primary-glow)', 
-                          color: 'var(--text-primary)', 
-                          padding: '5px 14px', 
-                          borderRadius: '20px',
-                          fontWeight: 'bold',
-                          border: '1px solid var(--border-color)',
-                          letterSpacing: '0.5px'
-                        }}>
-                          Acara / Seminar
-                        </span>
-                      ) : (
-                        <span style={{ 
-                          fontSize: '0.72rem', 
-                          background: 'var(--primary-glow)', 
-                          color: 'var(--text-primary)', 
-                          padding: '5px 14px', 
-                          borderRadius: '20px',
-                          fontWeight: 'bold',
-                          border: '1px solid var(--border-color)',
-                          letterSpacing: '0.5px'
-                        }}>
-                          Kompetisi
-                        </span>
-                      )}
+                    <h2 style={{ 
+                      color: 'var(--text-primary)', 
+                      fontSize: '2.2rem', 
+                      fontWeight: '800', 
+                      margin: '0 0 10px 0', 
+                      letterSpacing: '-0.8px'
+                    }}>{evt.title}</h2>
+
+                    {/* Small category and type tags under the title */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                      <span style={{ 
+                        fontSize: '0.65rem', 
+                        background: 'var(--primary-glow)', 
+                        color: 'var(--text-primary)', 
+                        padding: '2px 8px', 
+                        borderRadius: '12px',
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                        border: '1px solid var(--border-color)'
+                      }}>
+                        {evt.eventType === 'regular' ? 'Event' : 'Kompetisi'}
+                      </span>
                       {(() => {
                         const style = getCategoryBadgeStyle(evt.category);
                         return (
                           <span style={{ 
-                            fontSize: '0.72rem', 
+                            fontSize: '0.65rem', 
                             background: style.bg, 
                             color: style.color, 
-                            padding: '5px 14px', 
-                            borderRadius: '20px',
+                            padding: '2px 8px', 
+                            borderRadius: '12px',
                             fontWeight: 'bold',
                             textTransform: 'uppercase',
-                            border: style.border,
-                            letterSpacing: '0.5px'
+                            border: style.border
                           }}>
                             {evt.category}
                           </span>
                         );
                       })()}
-                      {evt.deadline && <CardCountdown deadline={evt.deadline} />}
                     </div>
                     
-                    <h2 style={{ 
-                      color: 'var(--text-primary)', 
-                      fontSize: '2.2rem', 
-                      fontWeight: '800', 
-                      margin: '0 0 16px 0', 
-                      letterSpacing: '-0.8px'
-                    }}>{evt.title}</h2>
-                    
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                        <Calendar size={16} style={{ color: 'var(--text-secondary)' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
+                        <Calendar size={16} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
                         {evt.deadline ? (
-                          <span>Batas Waktu Pendaftaran: <strong style={{ color: 'var(--text-primary)' }}>{formatIndonesianDate(evt.deadline)}</strong></span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span>Batas Waktu Pendaftaran: <strong style={{ color: 'var(--text-primary)' }}>{formatIndonesianDate(evt.deadline)}</strong></span>
+                            <CardCountdown deadline={evt.deadline} />
+                          </div>
                         ) : (
                           <span>Batas Waktu Pendaftaran: <strong style={{ color: 'var(--text-primary)' }}>{evt.eventType === 'regular' ? 'Tanpa Batas Waktu' : 'Tanpa Batas Waktu (Selesai saat budget habis)'}</strong></span>
                         )}
@@ -1219,7 +1230,7 @@ export default function EventsUserPortal({
                   </div>
 
                   {/* Structured Technical Guidelines Card */}
-                  {((evt.juknisPlatforms && (evt.juknisPlatforms.TikTok || evt.juknisPlatforms.Instagram || evt.juknisPlatforms.YouTube)) || 
+                  {((evt.juknisPlatforms && (evt.juknisPlatforms.TikTok || evt.juknisPlatforms.Instagram || evt.juknisPlatforms.YouTube || evt.juknisPlatforms.Facebook)) || 
                     evt.juknisDuration || 
                     evt.juknisSourceName1 || 
                     evt.juknisBrandName || 
@@ -1250,6 +1261,9 @@ export default function EventsUserPortal({
                         )}
                         {evt.juknisPlatforms?.YouTube && (
                           <span style={{ fontSize: '0.75rem', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '4px 12px', borderRadius: '12px', fontWeight: 'bold' }}>YouTube Shorts</span>
+                        )}
+                        {evt.juknisPlatforms?.Facebook && (
+                          <span style={{ fontSize: '0.75rem', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '4px 12px', borderRadius: '12px', fontWeight: 'bold' }}>Facebook</span>
                         )}
                         {evt.juknisDuration && (
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', padding: '4px 12px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
@@ -2675,83 +2689,95 @@ export default function EventsUserPortal({
                       e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
                       e.currentTarget.style.transform = 'translateY(-2px)';
                     }}
-                    onMouseLeave={(e) => {
+onMouseLeave={(e) => {
                       e.currentTarget.style.background = 'rgba(15, 23, 42, 0.45)';
                       e.currentTarget.style.borderColor = userReg?.status === 'approved' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255, 255, 255, 0.06)';
                       e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
-                    {/* Left Section: Tags, Title & Desc */}
-                    <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        {(() => {
-                          const style = getCategoryBadgeStyle(evt.category);
-                          return (
-                            <span style={{ 
-                              fontSize: '0.68rem', 
-                              background: style.bg, 
-                              color: style.color, 
-                              padding: '3px 10px', 
-                              borderRadius: '12px',
-                              fontWeight: 'bold',
-                              textTransform: 'uppercase',
-                              border: style.border
-                            }}>
-                              {evt.category}
-                            </span>
-                          );
-                        })()}
-                        {/* Type Badge */}
-                        <span style={{ 
-                            fontSize: '0.68rem', 
-                            background: 'var(--primary-glow)', 
-                            color: 'var(--text-primary)', 
-                            padding: '3px 10px', 
-                            borderRadius: '12px',
-                            fontWeight: 'bold',
-                            textTransform: 'uppercase',
-                            border: '1px solid var(--border-color)'
-                          }}>
-                          {evt.eventType === 'regular' ? 'Event' : 'Kompetisi'}
-                        </span>
+                    {/* Left Section: Title, Desc, and Organizer Info with Tags */}
+                    <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left' }}>
+                      <h3 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: '700', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span>{evt.title}</span>
                         {userReg?.status === 'approved' && (
                           <span style={{ 
-                            fontSize: '0.68rem', 
-                            background: 'rgba(16, 185, 129, 0.15)', 
+                            fontSize: '0.65rem', 
+                            background: 'rgba(16, 185, 129, 0.12)', 
                             color: '#10b981', 
-                            padding: '3px 10px', 
-                            borderRadius: '12px',
+                            padding: '2px 8px', 
+                            borderRadius: '20px',
                             fontWeight: 'bold',
-                            border: '1px solid rgba(16, 185, 129, 0.2)'
+                            border: '1px solid rgba(16, 185, 129, 0.25)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
                           }}>
-                            Terdaftar
+                            ✓ Terdaftar
                           </span>
                         )}
-                      </div>
-                      <h3 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: '700', margin: 0 }}>{evt.title}</h3>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: 0, overflow: 'hidden', textOverride: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', maxWidth: '500px' }}>
+                      </h3>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', maxWidth: '500px' }}>
                         {evt.description}
                       </p>
 
-                      {/* Organizer info */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                        <img 
-                          src={orgAvatar} 
-                          alt={orgName} 
-                          style={{
-                            width: '20px',
-                            height: '20px',
-                            borderRadius: '50%',
-                            objectFit: 'cover',
-                            border: '1px solid rgba(255, 255, 255, 0.1)'
-                          }} 
-                          onError={(e) => {
-                            e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}&backgroundColor=262626&textColor=ffffff`;
-                          }}
-                        />
-                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '500' }}>
-                          {orgName}
-                        </span>
+                      {/* Organizer info & Tags */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '2px' }}>
+                        {/* Organizer Row */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <img 
+                            src={orgAvatar} 
+                            alt={orgName} 
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                              border: '1px solid rgba(255, 255, 255, 0.1)'
+                            }} 
+                            onError={(e) => {
+                              e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(orgName)}&backgroundColor=262626&textColor=ffffff`;
+                            }}
+                          />
+                          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '500' }}>
+                            {orgName}
+                          </span>
+                        </div>
+
+                        {/* Tags Row */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          {(() => {
+                            const style = getCategoryBadgeStyle(evt.category);
+                            return (
+                              <span style={{ 
+                                fontSize: '0.65rem', 
+                                background: style.bg, 
+                                color: style.color, 
+                                padding: '2px 8px', 
+                                borderRadius: '12px',
+                                fontWeight: 'bold',
+                                textTransform: 'uppercase',
+                                border: style.border
+                              }}>
+                                {evt.category}
+                              </span>
+                            );
+                          })()}
+                          
+                          <span style={{ 
+                              fontSize: '0.65rem', 
+                              background: 'var(--primary-glow)', 
+                              color: 'var(--text-primary)', 
+                              padding: '2px 8px', 
+                              borderRadius: '12px',
+                              fontWeight: 'bold',
+                              textTransform: 'uppercase',
+                              border: '1px solid var(--border-color)'
+                            }}>
+                            {evt.eventType === 'regular' ? 'Event' : 'Kompetisi'}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -2796,18 +2822,22 @@ export default function EventsUserPortal({
                         {evt.deadline ? (
                           <CardCountdown deadline={evt.deadline} />
                         ) : (
-                          <span style={{ 
-                            fontSize: '0.75rem', 
-                            color: '#ffffff', 
-                            background: 'rgba(255, 255, 255, 0.06)', 
-                            border: '1px solid rgba(255, 255, 255, 0.15)',
-                            padding: '3px 8px', 
-                            borderRadius: '4px', 
-                            display: 'inline-block',
-                            fontWeight: '600'
+                          <div style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '4px', 
+                            fontSize: '0.72rem', 
+                            color: 'var(--text-primary)', 
+                            fontWeight: 'bold',
+                            background: 'var(--primary-glow)',
+                            padding: '3px 8px',
+                            borderRadius: '20px',
+                            border: '1px solid var(--border-color)',
+                            width: 'fit-content'
                           }}>
-                            Tanpa Batas Waktu
-                          </span>
+                            <Clock size={12} style={{ color: 'var(--text-primary)' }} />
+                            <span>Tanpa Batas Waktu</span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -2987,7 +3017,7 @@ export default function EventsUserPortal({
                                 type="text"
                                 disabled
                                 value={userProfile.organizerName || userProfile.username}
-                                style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '6px', color: 'white', fontSize: '0.9rem', cursor: 'not-allowed' }}
+                                style={{ width: '100%', padding: '10px 12px', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '0.9rem', cursor: 'not-allowed' }}
                               />
                             </div>
 
@@ -2997,7 +3027,7 @@ export default function EventsUserPortal({
                                 type="text"
                                 disabled
                                 value={userProfile.organizerPhone || '-'}
-                                style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '6px', color: 'white', fontSize: '0.9rem', cursor: 'not-allowed' }}
+                                style={{ width: '100%', padding: '10px 12px', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '0.9rem', cursor: 'not-allowed' }}
                               />
                             </div>
 
@@ -3007,12 +3037,12 @@ export default function EventsUserPortal({
                                 type="text"
                                 disabled
                                 value={userProfile.email || `${userProfile.username}@gmail.com`}
-                                style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '6px', color: 'white', fontSize: '0.9rem', cursor: 'not-allowed' }}
+                                style={{ width: '100%', padding: '10px 12px', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '0.9rem', cursor: 'not-allowed' }}
                               />
                             </div>
 
                             {hasIncompleteProfile ? (
-                              <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', fontSize: '0.8rem', color: '#f87171' }}>
+                              <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '6px', fontSize: '0.8rem', color: '#dc2626' }}>
                                 <p style={{ margin: '0 0 8px 0', fontWeight: '600' }}>⚠️ Data Profil Belum Lengkap!</p>
                                 <p style={{ margin: '0 0 12px 0', fontSize: '0.75rem', lineHeight: '1.4' }}>
                                   Nama Lengkap dan No. WhatsApp wajib diisi di profil Anda untuk dapat membeli tiket / mendaftar.
@@ -3030,7 +3060,7 @@ export default function EventsUserPortal({
                                 </button>
                               </div>
                             ) : (
-                              <div style={{ marginTop: '12px', padding: '10px 12px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '6px', fontSize: '0.75rem', color: '#4ade80', lineHeight: '1.4' }}>
+                              <div style={{ marginTop: '12px', padding: '10px 12px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '6px', fontSize: '0.75rem', color: '#16a34a', lineHeight: '1.4' }}>
                                 ✓ Data profil Anda valid. E-Tiket Anda akan diterbitkan secara otomatis setelah pendaftaran dikonfirmasi.
                               </div>
                             )}
@@ -3141,6 +3171,56 @@ export default function EventsUserPortal({
                     }
                     if (userProfile.facebookVerified && userProfile.facebookHandle) {
                       verifiedAccounts.push({ id: 'facebook', label: 'Facebook', handle: userProfile.facebookHandle });
+                    }
+
+                    const requiredPlatforms = [];
+                    if (registeringEvent?.juknisPlatforms?.TikTok) requiredPlatforms.push({ id: 'tiktok', label: 'TikTok' });
+                    if (registeringEvent?.juknisPlatforms?.Instagram) requiredPlatforms.push({ id: 'instagram', label: 'Instagram' });
+                    if (registeringEvent?.juknisPlatforms?.YouTube) requiredPlatforms.push({ id: 'youtube', label: 'YouTube Shorts' });
+                    if (registeringEvent?.juknisPlatforms?.Facebook) requiredPlatforms.push({ id: 'facebook', label: 'Facebook' });
+
+                    const missingPlatforms = requiredPlatforms.filter(req => {
+                      if (req.id === 'tiktok') return !(userProfile.tiktokVerified && userProfile.tiktokHandle);
+                      if (req.id === 'instagram') return !(userProfile.instagramVerified && userProfile.instagramHandle);
+                      if (req.id === 'youtube') return !(userProfile.youtubeVerified && userProfile.youtubeHandle);
+                      if (req.id === 'facebook') return !(userProfile.facebookVerified && userProfile.facebookHandle);
+                      return false;
+                    });
+
+                    if (missingPlatforms.length > 0) {
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '8px 0' }}>
+                          <div style={{ padding: '16px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#f87171', fontSize: '0.85rem', lineHeight: '1.6' }}>
+                            <strong style={{ display: 'block', marginBottom: '8px', fontSize: '0.92rem' }}>⚠️ Koneksi Sosial Media Belum Lengkap!</strong>
+                            Event ini mewajibkan Anda untuk mengunggah konten pada platform: <strong>{requiredPlatforms.map(p => p.label).join(', ')}</strong>.
+                            <br /><br />
+                            Namun, Anda belum menghubungkan atau memverifikasi akun berikut di profil Anda:
+                            <ul style={{ margin: '8px 0 0 20px', padding: 0 }}>
+                              {missingPlatforms.map(p => (
+                                <li key={p.id} style={{ fontWeight: 'bold' }}>{p.label}</li>
+                              ))}
+                            </ul>
+                            <br />
+                            Silakan hubungkan dan verifikasi akun sosial media yang diperlukan terlebih dahulu untuk dapat berpartisipasi dalam event ini.
+                          </div>
+                          
+                          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '12px' }}>
+                            <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
+                            <button 
+                              type="button" 
+                              className="btn btn-primary" 
+                              style={{ padding: '10px 20px', fontWeight: 'bold' }}
+                              onClick={() => {
+                                setRegisteringEvent(null);
+                                resetVerificationForm();
+                                if (onEditProfileClick) onEditProfileClick();
+                              }}
+                            >
+                              Hubungkan & Verifikasi Sekarang di Profil
+                            </button>
+                          </div>
+                        </div>
+                      );
                     }
 
                     if (verifiedAccounts.length === 0) {
@@ -3577,8 +3657,8 @@ export default function EventsUserPortal({
           left: 0,
           width: '100vw',
           height: '100vh',
-          background: 'rgba(0, 0, 0, 0.9)',
-          backdropFilter: 'blur(8px)',
+          background: 'rgba(0, 0, 0, 0.92)',
+          backdropFilter: 'blur(10px)',
           zIndex: 100000,
           display: 'flex',
           alignItems: 'center',
@@ -3587,16 +3667,17 @@ export default function EventsUserPortal({
           boxSizing: 'border-box'
         }} onClick={() => setEnlargedTicketReg(null)}>
           <div style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-color)',
+            background: '#ffffff',
+            border: '2px solid #111827',
             borderRadius: '24px',
-            padding: '32px',
-            maxWidth: '440px',
+            padding: '36px 28px',
+            maxWidth: '380px',
             width: '100%',
             textAlign: 'center',
-            boxShadow: 'var(--shadow-premium)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
             position: 'relative',
-            cursor: 'default'
+            cursor: 'default',
+            overflow: 'hidden'
           }} onClick={(e) => e.stopPropagation()}>
             
             {/* Close Button */}
@@ -3606,29 +3687,61 @@ export default function EventsUserPortal({
                 position: 'absolute',
                 top: '20px',
                 right: '20px',
-                background: 'var(--primary-glow)',
-                border: 'none',
+                background: '#ffffff',
+                border: '2px solid #111827',
                 borderRadius: '50%',
-                width: '36px',
-                height: '36px',
+                width: '32px',
+                height: '32px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--text-primary)',
+                color: '#111827',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                outline: 'none'
+                outline: 'none',
+                zIndex: 4
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--border-color)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'var(--primary-glow)'}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#111827';
+                e.currentTarget.style.color = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.color = '#111827';
+              }}
             >
-              <X size={18} />
+              <X size={16} />
             </button>
 
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
+            <div className="badge" style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              background: '#111827', 
+              border: '2px solid #111827', 
+              padding: '6px 16px', 
+              borderRadius: '20px', 
+              color: '#ffffff', 
+              fontSize: '0.68rem', 
+              fontWeight: '800', 
+              textTransform: 'uppercase', 
+              letterSpacing: '1.5px', 
+              marginBottom: '14px' 
+            }}>
               Scan Tiket Masuk
             </div>
-            <h3 style={{ margin: '0 0 24px 0', color: 'var(--text-primary)', fontSize: '1.25rem', fontWeight: 'bold', lineHeight: '1.4' }}>
+
+            <h3 className="badge" style={{ 
+              margin: '0 0 16px 0', 
+              color: '#111827', 
+              fontSize: '1.05rem', 
+              fontWeight: '800', 
+              lineHeight: '1.4', 
+              padding: '0 10px',
+              background: 'transparent',
+              border: 'none',
+              display: 'block'
+            }}>
               {(() => {
                 const foundEvent = events.find(e => e.id === enlargedTicketReg.eventId);
                 return foundEvent ? foundEvent.title : enlargedTicketReg.eventTitle;
@@ -3637,52 +3750,113 @@ export default function EventsUserPortal({
 
             {/* High Contrast QR Code Container for Easy Scanning */}
             <div style={{
-              background: 'white',
-              padding: '16px',
+              background: '#ffffff',
+              padding: '12px',
               borderRadius: '16px',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: '24px',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-              width: '200px',
-              height: '200px',
+              marginBottom: '4px',
+              border: '2px solid #111827',
+              width: '210px',
+              height: '210px',
               boxSizing: 'border-box'
             }}>
               <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(enlargedTicketReg.ticketCode || `TKT-${enlargedTicketReg.id.substring(enlargedTicketReg.id.length - 6).toUpperCase()}`)}`}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(enlargedTicketReg.ticketCode || `TKT-${enlargedTicketReg.id.substring(enlargedTicketReg.id.length - 6).toUpperCase()}`)}`}
                 alt="QR Code Tiket"
                 style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               />
             </div>
 
+            {/* Dotted dividing line with aligned notches */}
+            <div style={{
+              position: 'relative',
+              borderTop: '2px dashed #111827',
+              margin: '24px -28px 20px -28px',
+              height: '0px'
+            }}>
+              {/* Left Ticket Cutout Notch */}
+              <div style={{
+                position: 'absolute',
+                left: '-12px',
+                top: '-12px',
+                width: '24px',
+                height: '24px',
+                borderRadius: '50%',
+                background: 'rgba(0, 0, 0, 0.92)',
+                borderRight: '2px solid #111827',
+                zIndex: 3
+              }} />
+              {/* Right Ticket Cutout Notch */}
+              <div style={{
+                position: 'absolute',
+                right: '-12px',
+                top: '-12px',
+                width: '24px',
+                height: '24px',
+                borderRadius: '50%',
+                background: 'rgba(0, 0, 0, 0.92)',
+                borderLeft: '2px solid #111827',
+                zIndex: 3
+              }} />
+            </div>
+
             {/* Ticket Details */}
-            <div style={{ borderTop: '1px dashed var(--border-color)', paddingTop: '20px' }}>
-              <div style={{ fontSize: '1.4rem', color: 'var(--text-primary)', fontWeight: '800', fontFamily: 'monospace', letterSpacing: '1px', marginBottom: '12px' }}>
+            <div>
+              <div className="badge" style={{ 
+                fontSize: '1.15rem', 
+                color: '#111827', 
+                fontWeight: '800', 
+                fontFamily: 'monospace', 
+                letterSpacing: '2px', 
+                marginBottom: '12px',
+                background: 'transparent',
+                border: 'none',
+                display: 'block'
+              }}>
                 {enlargedTicketReg.ticketCode || `TKT-${enlargedTicketReg.id.substring(enlargedTicketReg.id.length - 6).toUpperCase()}`}
               </div>
               
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left', background: 'var(--primary-glow)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Nama:</span><span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{enlargedTicketReg.name}</span></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Email:</span><span style={{ color: 'var(--text-primary)' }}>{enlargedTicketReg.email}</span></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>WhatsApp:</span><span style={{ color: 'var(--text-primary)' }}>{enlargedTicketReg.contact}</span></div>
+              <div style={{ 
+                fontSize: '0.74rem', 
+                color: '#111827', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '6px', 
+                textAlign: 'left', 
+                background: '#f8fafc', 
+                padding: '10px 14px', 
+                borderRadius: '12px', 
+                border: '2px solid #111827'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#475569', fontSize: '0.72rem', fontWeight: '600' }}>Nama:</span>
+                  <span style={{ color: '#111827', fontWeight: '800' }}>{enlargedTicketReg.name}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#475569', fontSize: '0.72rem', fontWeight: '600' }}>Email:</span>
+                  <span style={{ color: '#111827', fontWeight: '700' }}>{enlargedTicketReg.email}</span>
+                </div>
               </div>
 
-              <div style={{ 
+              <div className="badge" style={{ 
                 marginTop: '16px',
-                display: 'inline-block',
-                fontSize: '0.75rem', 
-                background: enlargedTicketReg.isCheckedIn ? 'rgba(16, 185, 129, 0.1)' : 'var(--primary-glow)', 
-                color: enlargedTicketReg.isCheckedIn ? '#10b981' : 'var(--text-primary)', 
-                padding: '6px 16px', 
-                borderRadius: '20px',
-                fontWeight: 'bold',
-                border: enlargedTicketReg.isCheckedIn ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid var(--border-color)'
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.7rem', 
+                background: enlargedTicketReg.isCheckedIn ? '#111827' : '#ffffff', 
+                color: enlargedTicketReg.isCheckedIn ? '#ffffff' : '#111827', 
+                padding: '6px 14px', 
+                borderRadius: '30px',
+                fontWeight: '800',
+                letterSpacing: '0.5px',
+                border: '2px solid #111827'
               }}>
-                {enlargedTicketReg.isCheckedIn ? 'SUDAH CHECK-IN' : 'BELUM CHECK-IN'}
+                <span>{enlargedTicketReg.isCheckedIn ? 'SUDAH CHECK-IN' : 'BELUM CHECK-IN'}</span>
               </div>
             </div>
-
           </div>
         </div>,
         document.body

@@ -333,7 +333,17 @@ export default function WalletUserPortal({
           <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
             <button 
               onClick={() => setTxFilter('all')} 
-              style={{ padding: '6px 12px', fontSize: '0.8rem', border: 'none', background: txFilter === 'all' ? 'rgba(255,255,255,0.08)' : 'transparent', color: txFilter === 'all' ? 'white' : 'var(--text-secondary)', cursor: 'pointer', borderRadius: '6px', fontWeight: '500' }}
+              style={{ 
+                padding: '6px 12px', 
+                fontSize: '0.8rem', 
+                border: 'none', 
+                background: txFilter === 'all' ? 'var(--text-primary)' : 'transparent', 
+                color: txFilter === 'all' ? 'var(--bg-main)' : 'var(--text-secondary)', 
+                cursor: 'pointer', 
+                borderRadius: '6px', 
+                fontWeight: '600',
+                transition: 'all 0.2s'
+              }}
             >
               Semua
             </button>

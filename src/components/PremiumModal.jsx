@@ -58,7 +58,7 @@ export default function PremiumModal({
     }
   };
 
-  const handleConfirmSubmit = async (e) => {
+  const handleConfirmSubmit = (e) => {
     e.preventDefault();
     if (!currentUser) return;
     if (!senderBank.trim() || !senderName.trim()) {
@@ -70,31 +70,34 @@ export default function PremiumModal({
       return;
     }
 
-    setFormSubmitting(true);
-    const newConfirmation = {
-      id: `pay_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-      userId: currentUser.id,
-      username: currentUser.username,
-      bankName: senderBank.trim(),
-      senderName: senderName.trim(),
-      receiptImg: transferReceipt,
-      status: 'pending',
-      amount: formatAmountWithUnique(selectedPlan.price, uniqueCode),
-      timestamp: new Date().toISOString()
-    };
+    if (window.setGlobalLoading) window.setGlobalLoading('Sedang mengirim konfirmasi pembayaran...');
 
-    try {
-      if (setConfirmations) {
-        await setConfirmations(prev => [newConfirmation, ...prev]);
+    setTimeout(async () => {
+      const newConfirmation = {
+        id: `pay_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        userId: currentUser.id,
+        username: currentUser.username,
+        bankName: senderBank.trim(),
+        senderName: senderName.trim(),
+        receiptImg: transferReceipt,
+        status: 'pending',
+        amount: formatAmountWithUnique(selectedPlan.price, uniqueCode),
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        if (setConfirmations) {
+          await setConfirmations(prev => [newConfirmation, ...prev]);
+        }
+        alert('Konfirmasi pembayaran dikirim! Admin akan segera memverifikasi tontonan Anda.');
+        onClose();
+      } catch (err) {
+        console.error(err);
+        alert('Gagal mengirim bukti pembayaran.');
+      } finally {
+        if (window.setGlobalLoading) window.setGlobalLoading(null);
       }
-      alert('Konfirmasi pembayaran dikirim! Admin akan segera memverifikasi tontonan Anda.');
-      onClose();
-    } catch (err) {
-      console.error(err);
-      alert('Gagal mengirim bukti pembayaran.');
-    } finally {
-      setFormSubmitting(false);
-    }
+    }, 850);
   };
 
   const hasPending = currentUser && confirmations.some(c => c.userId === currentUser.id && c.status === 'pending');

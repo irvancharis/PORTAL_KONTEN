@@ -93,7 +93,9 @@ import {
   DollarSign,
   HelpCircle,
   Copy,
-  Check
+  Check,
+  Lock,
+  Unlock
 } from 'lucide-react';
 
 const slugify = (text) => {
@@ -107,6 +109,21 @@ const slugify = (text) => {
     .replace(/\-\-+/g, '-')
     .replace(/^-+/, '')
     .replace(/-+$/, '');
+};
+
+const formatIndonesianDate = (dateStr) => {
+  if (!dateStr) return '-';
+  try {
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      // YYYY-MM-DD
+      const date = new Date(parts[0], parts[1] - 1, parts[2]);
+      return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  return dateStr;
 };
 
 const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbww9byb9H5SIW_HknSEVJJe-oY9S--NaeKSPjcQ6IBACzoQc38oZ36bQqm__60gncIxxA/exec';
@@ -669,10 +686,36 @@ export default function App() {
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
 
   // Edit Profile Modal states
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [globalLoadingText, setGlobalLoadingText] = useState(null);
+  const [zoomImage, setZoomImage] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    window.setGlobalLoading = setGlobalLoadingText;
+    
+    // Override default alert with custom beautiful toast
+    const originalAlert = window.alert;
+    window.alert = (msg) => {
+      setToast({ message: msg });
+      // auto dismiss after 4.5 seconds
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 4500);
+      return () => clearTimeout(timer);
+    };
+
+    return () => {
+      window.setGlobalLoading = null;
+      window.alert = originalAlert;
+    };
+  }, []);
+
   const [editProfileName, setEditProfileName] = useState('');
   const [editProfilePhone, setEditProfilePhone] = useState('');
   const [editProfileDescription, setEditProfileDescription] = useState('');
@@ -870,6 +913,7 @@ export default function App() {
     e.preventDefault();
     const emailOrUser = loginUsername.trim();
     const password = loginPassword;
+    setGlobalLoadingText('Sedang masuk ke akun Anda...');
 
     if (isFirebaseConfigured() && auth) {
       try {
@@ -922,6 +966,8 @@ export default function App() {
           console.error("Firebase Login failed:", err);
           setLoginError('Email/Username atau password salah.');
         }
+      } finally {
+        setGlobalLoadingText(null);
       }
     } else {
       const foundUser = users.find(
@@ -939,6 +985,7 @@ export default function App() {
       } else {
         setLoginError('Username atau password salah.');
       }
+      setGlobalLoadingText(null);
     }
   };
 
@@ -980,6 +1027,8 @@ export default function App() {
         return;
       }
     }
+
+    setGlobalLoadingText('Sedang mendaftarkan akun baru...');
 
     if (isFirebaseConfigured() && auth) {
       try {
@@ -1038,10 +1087,13 @@ export default function App() {
         } else {
           setLoginError('Pendaftaran gagal: ' + err.message);
         }
+      } finally {
+        setGlobalLoadingText(null);
       }
     } else {
       if (users.some(u => u.username.toLowerCase() === emailOrUser.toLowerCase())) {
         setLoginError('Username sudah digunakan oleh user lain!');
+        setGlobalLoadingText(null);
         return;
       }
       const newUser = {
@@ -1086,6 +1138,7 @@ export default function App() {
       setUserCategory('Videografer');
       setUserPortfolio('');
       setLoginError('');
+      setGlobalLoadingText(null);
     }
   };
 
@@ -2801,8 +2854,8 @@ export default function App() {
                   <div className="profile-view-container animate-fade-in" style={{ width: '100%' }}>
                     {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && (
                       <div style={{
-                        background: '#ffffff',
-                        border: '1px solid #ffffff',
+                        background: 'rgba(245, 158, 11, 0.1)',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
                         borderRadius: '12px',
                         padding: '16px 20px',
                         marginBottom: '24px',
@@ -2814,12 +2867,12 @@ export default function App() {
                         textAlign: 'left'
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '280px' }}>
-                          <div style={{ background: 'rgba(0, 0, 0, 0.06)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <AlertTriangle size={20} color="#020202" />
+                          <div style={{ background: 'rgba(245, 158, 11, 0.15)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <AlertTriangle size={20} color="#f59e0b" />
                           </div>
                           <div>
-                            <h4 style={{ margin: '0 0 4px 0', color: '#020202', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
-                            <p style={{ margin: 0, color: '#4b5563', fontSize: '0.82rem', lineHeight: '1.5' }}>
+                            <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
+                            <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.5' }}>
                               lengkapi profil Anda terlebih dahulu agar dapat bergabung dengan komunitas dan mendaftar sebagai peserta event.
                             </p>
                           </div>
@@ -2855,11 +2908,11 @@ export default function App() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '8px',
-                        background: 'rgba(255, 255, 255, 0.03)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        background: 'var(--primary-glow)',
+                        border: '1px solid var(--border-color)',
                         padding: '10px 20px',
                         borderRadius: '30px',
-                        color: 'rgba(255, 255, 255, 0.8)',
+                        color: 'var(--text-primary)',
                         cursor: 'pointer',
                         fontSize: '0.85rem',
                         fontWeight: '600',
@@ -2868,10 +2921,12 @@ export default function App() {
                         outline: 'none'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.background = 'var(--border-color)';
+                        e.currentTarget.style.color = 'var(--bg-main)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                        e.currentTarget.style.background = 'var(--primary-glow)';
+                        e.currentTarget.style.color = 'var(--text-primary)';
                       }}
                     >
                       ← Kembali ke Daftar Komunitas
@@ -2880,7 +2935,7 @@ export default function App() {
                     <div className="community-detail-card glass-panel">
                       {/* Community Header Block */}
                       <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap' }}>
-                        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#ffffff', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 'bold', textTransform: 'uppercase', border: '3px solid rgba(255, 255, 255, 0.1)', flexShrink: 0 }}>
+                        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#ffffff', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 'bold', textTransform: 'uppercase', border: '3px solid var(--border-color)', flexShrink: 0 }}>
                           {comm.avatar ? (
                             <img src={comm.avatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                           ) : (
@@ -2892,12 +2947,12 @@ export default function App() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                               <span style={{ 
                                 fontSize: '0.72rem', 
-                                background: isActive ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)', 
-                                color: isActive ? '#ffffff' : 'rgba(255,255,255,0.5)', 
+                                background: 'var(--primary-glow)', 
+                                color: 'var(--text-primary)', 
                                 padding: '5px 14px', 
                                 borderRadius: '20px',
                                 fontWeight: 'bold',
-                                border: '1px solid rgba(255,255,255,0.15)',
+                                border: '1px solid var(--border-color)',
                                 letterSpacing: '0.5px'
                               }}>
                                 {isActive ? 'KOMUNITAS AKTIF' : 'KOMUNITAS BELUM AKTIF'}
@@ -2905,7 +2960,7 @@ export default function App() {
                             </div>
                           )}
                           <h2 style={{ 
-                            color: 'white', 
+                            color: 'var(--text-primary)', 
                             fontSize: '2.2rem', 
                             fontWeight: '800', 
                             margin: 0, 
@@ -2930,7 +2985,11 @@ export default function App() {
                               <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-primary)', margin: '0 0 16px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>Foto Kegiatan & Dokumentasi</h3>
                               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px', marginTop: '12px' }}>
                                 {comm.activityImages.map((imgUrl, imgIdx) => (
-                                  <div key={imgIdx} style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)', aspectRatio: '16/10', background: 'var(--bg-main)' }}>
+                                  <div 
+                                    key={imgIdx} 
+                                    onClick={() => setZoomImage(imgUrl)}
+                                    style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)', aspectRatio: '16/10', background: 'var(--bg-main)', cursor: 'zoom-in' }}
+                                  >
                                     <img 
                                       src={imgUrl} 
                                       alt={`Kegiatan ${imgIdx + 1}`} 
@@ -2954,61 +3013,170 @@ export default function App() {
 
                               if (allAgendas.length > 0) {
                                 return (
-                                  <div className="table-responsive" style={{ marginTop: '12px', overflowX: 'auto' }}>
-                                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                                      <thead>
-                                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                          <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: '600' }}>Waktu / Tanggal</th>
-                                          <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: '600' }}>Agenda / Keterangan</th>
-                                          <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: '600' }}>Lokasi</th>
-                                          <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: '600', textAlign: 'right' }}>Akses</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {allAgendas.map((agenda) => {
-                                          const canViewDetails = agenda.publishTo === 'public' || isMember;
-                                          return (
-                                            <tr key={agenda.id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }}>
-                                              <td style={{ padding: '16px', whiteSpace: 'nowrap', fontSize: '0.85rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
-                                                <strong style={{ display: 'block' }}>{agenda.date}</strong>
-                                                {agenda.time && <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>Pukul {agenda.time}</div>}
-                                              </td>
-                                              <td style={{ padding: '16px', fontSize: '0.85rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
-                                                <div style={{ fontWeight: 'bold', marginBottom: '4px', fontSize: '0.92rem' }}>
-                                                  {canViewDetails ? agenda.title : '🔒 [Agenda Khusus Anggota]'}
-                                                </div>
-                                                {canViewDetails ? (
-                                                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                                                    {agenda.description || '-'}
+                                  <>
+                                    {/* Desktop Table View */}
+                                    <div className="table-responsive agenda-desktop-table" style={{ marginTop: '12px', overflowX: 'auto' }}>
+                                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                        <thead>
+                                          <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                            <th style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontSize: '0.82rem', fontWeight: 'bold' }}>Waktu / Tanggal</th>
+                                            <th style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontSize: '0.82rem', fontWeight: 'bold' }}>Agenda / Keterangan</th>
+                                            <th style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontSize: '0.82rem', fontWeight: 'bold' }}>Lokasi</th>
+                                            <th style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontSize: '0.82rem', fontWeight: 'bold', textAlign: 'right' }}>Akses</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {allAgendas.map((agenda) => {
+                                            const canViewDetails = agenda.publishTo === 'public' || isMember;
+                                            return (
+                                              <tr key={agenda.id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }}>
+                                                <td style={{ padding: '16px', whiteSpace: 'nowrap', fontSize: '0.85rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
+                                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                      <Calendar size={14} style={{ color: 'var(--text-secondary)' }} />
+                                                      <strong style={{ fontWeight: 'bold' }}>{formatIndonesianDate(agenda.date)}</strong>
+                                                    </div>
+                                                    {agenda.time && (
+                                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--text-secondary)', marginLeft: '20px' }}>
+                                                        <Clock size={12} />
+                                                        <span>Pukul {agenda.time}</span>
+                                                      </div>
+                                                    )}
                                                   </div>
-                                                ) : (
-                                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                                                    Detail agenda hanya terlihat oleh anggota resmi komunitas ini.
+                                                </td>
+                                                <td style={{ padding: '16px', fontSize: '0.85rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
+                                                  <div style={{ fontWeight: 'bold', marginBottom: '4px', fontSize: '0.92rem' }}>
+                                                    {canViewDetails ? (
+                                                      agenda.title
+                                                    ) : (
+                                                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
+                                                        <Lock size={13} /> Agenda Khusus Anggota
+                                                      </span>
+                                                    )}
+                                                  </div>
+                                                  {canViewDetails ? (
+                                                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                                                      {agenda.description || '-'}
+                                                    </div>
+                                                  ) : (
+                                                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                                      Detail agenda hanya terlihat oleh anggota resmi komunitas ini.
+                                                    </div>
+                                                  )}
+                                                </td>
+                                                <td style={{ padding: '16px', fontSize: '0.85rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
+                                                  {canViewDetails ? (
+                                                    agenda.location ? (
+                                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <MapPin size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                                                        <span>{agenda.location}</span>
+                                                      </div>
+                                                    ) : '-'
+                                                  ) : '-'}
+                                                </td>
+                                                <td style={{ padding: '16px', whiteSpace: 'nowrap', verticalAlign: 'top', textAlign: 'right' }}>
+                                                  <span style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    fontSize: '0.72rem',
+                                                    padding: '4px 10px',
+                                                    borderRadius: '20px',
+                                                    fontWeight: 'bold',
+                                                    background: agenda.publishTo === 'public' ? 'var(--primary-glow)' : 'rgba(0,0,0,0.04)',
+                                                    color: 'var(--text-primary)',
+                                                    border: '1px solid var(--border-color)'
+                                                  }}>
+                                                    {agenda.publishTo === 'public' ? <Unlock size={10} /> : <Lock size={10} />}
+                                                    {agenda.publishTo === 'public' ? 'Publik' : 'Anggota'}
+                                                  </span>
+                                                </td>
+                                              </tr>
+                                            );
+                                          })}
+                                        </tbody>
+                                      </table>
+                                    </div>
+
+                                    {/* Mobile Cards List View */}
+                                    <div className="agenda-mobile-list">
+                                      {allAgendas.map((agenda) => {
+                                        const canViewDetails = agenda.publishTo === 'public' || isMember;
+                                        return (
+                                          <div 
+                                            key={agenda.id} 
+                                            style={{ 
+                                              background: 'var(--primary-glow)', 
+                                              border: '1px solid var(--border-color)', 
+                                              borderRadius: '12px', 
+                                              padding: '16px', 
+                                              display: 'flex', 
+                                              flexDirection: 'column', 
+                                              gap: '12px',
+                                              transition: 'all 0.2s'
+                                            }}
+                                          >
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                  <Calendar size={14} style={{ color: 'var(--text-secondary)' }} />
+                                                  <strong style={{ fontWeight: 'bold', fontSize: '0.85rem', color: 'var(--text-primary)' }}>{formatIndonesianDate(agenda.date)}</strong>
+                                                </div>
+                                                {agenda.time && (
+                                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--text-secondary)', marginLeft: '20px' }}>
+                                                    <Clock size={12} />
+                                                    <span>Pukul {agenda.time}</span>
                                                   </div>
                                                 )}
-                                              </td>
-                                              <td style={{ padding: '16px', fontSize: '0.85rem', color: 'var(--text-secondary)', verticalAlign: 'top' }}>
-                                                {canViewDetails ? (agenda.location || '-') : '-'}
-                                              </td>
-                                              <td style={{ padding: '16px', whiteSpace: 'nowrap', verticalAlign: 'top', textAlign: 'right' }}>
-                                                <span style={{
-                                                  fontSize: '0.72rem',
-                                                  padding: '4px 10px',
-                                                  borderRadius: '20px',
-                                                  fontWeight: 'bold',
-                                                  background: 'var(--primary-glow)',
-                                                  color: agenda.publishTo === 'public' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                                                  border: '1px solid var(--border-color)'
-                                                }}>
-                                                  {agenda.publishTo === 'public' ? 'Publik' : 'Anggota'}
-                                                </span>
-                                              </td>
-                                            </tr>
-                                          );
-                                        })}
-                                      </tbody>
-                                    </table>
-                                  </div>
+                                              </div>
+                                              <span style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
+                                                fontSize: '0.68rem',
+                                                padding: '4px 10px',
+                                                borderRadius: '20px',
+                                                fontWeight: 'bold',
+                                                background: agenda.publishTo === 'public' ? 'var(--primary-glow)' : 'rgba(0,0,0,0.04)',
+                                                color: 'var(--text-primary)',
+                                                border: '1px solid var(--border-color)',
+                                                flexShrink: 0
+                                              }}>
+                                                {agenda.publishTo === 'public' ? <Unlock size={9} /> : <Lock size={9} />}
+                                                {agenda.publishTo === 'public' ? 'Publik' : 'Anggota'}
+                                              </span>
+                                            </div>
+
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                              <div style={{ fontWeight: 'bold', fontSize: '0.92rem', color: 'var(--text-primary)' }}>
+                                                {canViewDetails ? (
+                                                  agenda.title
+                                                ) : (
+                                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
+                                                    <Lock size={13} /> Agenda Khusus Anggota
+                                                  </span>
+                                                )}
+                                              </div>
+                                              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                                                {canViewDetails ? (
+                                                  agenda.description || '-'
+                                                ) : (
+                                                  <span style={{ fontStyle: 'italic' }}>Detail agenda hanya terlihat oleh anggota resmi komunitas ini.</span>
+                                                )}
+                                              </div>
+                                            </div>
+
+                                            {canViewDetails && agenda.location && (
+                                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', paddingTop: '8px', borderTop: '1px dashed var(--border-color)' }}>
+                                                <MapPin size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                                                <span style={{ color: 'var(--text-primary)' }}>{agenda.location}</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </>
                                 );
                               }
 
@@ -3059,31 +3227,50 @@ export default function App() {
                             )}
 
                             {isRegularUser && (() => {
-                              const pending = comm.pendingMembers || [];
-                              const isPending = pending.includes(currentUser?.username);
-                              return (
-                                <div style={{ marginTop: '16px' }}>
-                                  <button
-                                    onClick={() => handleToggleJoinCommunity(comm.username)}
-                                    style={{
-                                      width: '100%',
-                                      padding: '12px',
-                                      fontSize: '0.9rem',
-                                      fontWeight: 'bold',
-                                      borderRadius: '30px',
-                                      border: (isJoined || isPending) ? '1px solid rgba(255, 255, 255, 0.2)' : 'none',
-                                      background: (isJoined || isPending) ? 'rgba(255, 255, 255, 0.05)' : 'white',
-                                      color: (isJoined || isPending) ? 'white' : 'black',
-                                      cursor: 'pointer',
-                                      transition: 'all 0.2s ease'
-                                    }}
-                                  >
-                                    {isJoined ? 'Keluar Komunitas' : isPending ? 'Menunggu Persetujuan (Batalkan)' : 'Join Komunitas'}
-                                  </button>
-                                </div>
-                              );
-                            })()}
+                               const pending = comm.pendingMembers || [];
+                               const isPending = pending.includes(currentUser?.username);
+                               
+                               if (isJoined) {
+                                 return (
+                                   <div style={{ 
+                                     marginTop: '16px', 
+                                     display: 'flex', 
+                                     alignItems: 'center', 
+                                     justifyContent: 'center', 
+                                     gap: '8px', 
+                                     padding: '12px', 
+                                     background: 'var(--primary-glow)', 
+                                     borderRadius: '30px', 
+                                     border: '1px solid var(--border-color)' 
+                                   }}>
+                                     <Check size={16} style={{ color: 'var(--text-primary)' }} />
+                                     <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>Tergabung sebagai Anggota</span>
+                                   </div>
+                                 );
+                               }
 
+                               return (
+                                 <div style={{ marginTop: '16px' }}>
+                                   <button
+                                     onClick={() => handleToggleJoinCommunity(comm.username)}
+                                     style={{
+                                       width: '100%',
+                                       padding: '12px',
+                                       fontSize: '0.9rem',
+                                       fontWeight: 'bold',
+                                       borderRadius: '30px',
+                                       border: '1px solid var(--border-color)',
+                                       background: isPending ? 'var(--primary-glow)' : 'var(--text-primary)',
+                                       color: isPending ? 'var(--text-primary)' : 'var(--bg-main)',
+                                       cursor: 'pointer',
+                                       transition: 'all 0.2s ease'
+                                     }}
+                                   >
+                                     {isPending ? 'Menunggu Persetujuan (Batalkan)' : 'Join Komunitas'}
+                                   </button>
+                                 </div>
+                               );
+                             })()}
 
                           </div>
 
@@ -3115,8 +3302,8 @@ export default function App() {
                 <div className="profile-view-container animate-fade-in" style={{ width: '100%' }}>
                   {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && (
                     <div style={{
-                      background: '#ffffff',
-                      border: '1px solid #ffffff',
+                      background: 'rgba(245, 158, 11, 0.1)',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
                       borderRadius: '12px',
                       padding: '16px 20px',
                       marginBottom: '24px',
@@ -3128,12 +3315,12 @@ export default function App() {
                       textAlign: 'left'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '280px' }}>
-                        <div style={{ background: 'rgba(0, 0, 0, 0.06)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <AlertTriangle size={20} color="#020202" />
+                        <div style={{ background: 'rgba(245, 158, 11, 0.15)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <AlertTriangle size={20} color="#f59e0b" />
                         </div>
                         <div>
-                          <h4 style={{ margin: '0 0 4px 0', color: '#020202', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
-                          <p style={{ margin: 0, color: '#4b5563', fontSize: '0.82rem', lineHeight: '1.5' }}>
+                          <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
+                          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.5' }}>
                             lengkapi profil Anda terlebih dahulu agar dapat bergabung dengan komunitas dan mendaftar sebagai peserta event.
                           </p>
                         </div>
@@ -3291,9 +3478,9 @@ export default function App() {
                     <div style={{ position: 'absolute', top: '24px', right: '24px' }}>
                       <button 
                         onClick={handleOpenEditProfile}
-                        style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '8px 16px', borderRadius: '20px', color: '#ffffff', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; }}
+                        style={{ background: 'var(--primary-glow)', border: '1px solid var(--border-color)', padding: '8px 16px', borderRadius: '20px', color: 'var(--text-primary)', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--border-color)'; e.currentTarget.style.color = 'var(--bg-main)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--primary-glow)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
                       >
                         <Edit size={14} />
                         <span>Edit Profil</span>
@@ -3310,13 +3497,45 @@ export default function App() {
                     </div>
 
                     <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 8px 0', color: 'var(--text-primary)' }}>{currentUser?.organizerName || currentUser?.username}</h2>
-                    {isCurrentUserCommunity && (
+                    {isCurrentUserCommunity ? (
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                         <span style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'var(--primary-glow)', padding: '4px 12px', borderRadius: '20px', border: '1px solid var(--border-color)', fontWeight: 'bold' }}>
                           Komunitas
                         </span>
                       </div>
-                    )}
+                    ) : (() => {
+                      const isPremium = currentUser && (currentUser.role === 'member' || currentUser.role === 'pro') && currentUser.premiumExpiresAt;
+                      return (
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+                          {isPremium ? (
+                            <span style={{ 
+                              fontSize: '0.75rem', 
+                              color: 'var(--bg-main)', 
+                              background: 'var(--text-primary)', 
+                              padding: '4px 12px', 
+                              borderRadius: '20px', 
+                              border: '1px solid var(--border-color)', 
+                              fontWeight: '800',
+                              letterSpacing: '0.5px'
+                            }}>
+                              ★ MEMBER PREMIUM
+                            </span>
+                          ) : (
+                            <span style={{ 
+                              fontSize: '0.75rem', 
+                              color: 'var(--text-primary)', 
+                              background: 'var(--primary-glow)', 
+                              padding: '4px 12px', 
+                              borderRadius: '20px', 
+                              border: '1px solid var(--border-color)', 
+                              fontWeight: '600'
+                            }}>
+                              AKUN STANDAR
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Profile Details Container */}
@@ -3332,8 +3551,51 @@ export default function App() {
                       <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>{currentUser?.email || '-'}</span>
                     </div>
 
+                    {/* Status Akun */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', paddingTop: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                        <Sparkles size={16} />
+                        <span style={{ fontSize: '0.85rem' }}>Status Akun</span>
+                      </div>
+                      {(() => {
+                        const isPremium = currentUser && (currentUser.role === 'member' || currentUser.role === 'pro') && currentUser.premiumExpiresAt;
+                        if (isPremium) {
+                          const expiryDateStr = new Date(currentUser.premiumExpiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                          return (
+                            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                              <span style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                ★ Premium
+                              </span>
+                              <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>Berlaku s.d. {expiryDateStr}</span>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Standar / Gratis</span>
+                              <button
+                                onClick={() => setShowPremiumModal(true)}
+                                style={{
+                                  background: 'var(--text-primary)',
+                                  border: '1px solid var(--border-color)',
+                                  color: 'var(--bg-main)',
+                                  fontSize: '0.74rem',
+                                  fontWeight: '800',
+                                  padding: '4px 10px',
+                                  borderRadius: '6px',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Upgrade
+                              </button>
+                            </div>
+                          );
+                        }
+                      })()}
+                    </div>
+
                     {/* WhatsApp */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', paddingTop: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
                         <Phone size={16} />
                         <span style={{ fontSize: '0.85rem' }}>WhatsApp / HP</span>
@@ -3418,7 +3680,7 @@ export default function App() {
                       
                       return (
                         <>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
                               <User size={16} />
                               <span style={{ fontSize: '0.85rem' }}>Target Anggota untuk Aktif</span>
@@ -3426,7 +3688,7 @@ export default function App() {
                             <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{target} Orang</span>
                           </div>
 
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
                               <Users size={16} />
                               <span style={{ fontSize: '0.85rem' }}>Anggota Tergabung</span>
@@ -3434,7 +3696,7 @@ export default function App() {
                             <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{current} Orang</span>
                           </div>
 
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '12px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Status Keaktifan</span>
                               <span style={{ 
@@ -3450,7 +3712,7 @@ export default function App() {
                             </div>
                             
                             <div style={{ width: '100%', marginTop: '4px' }}>
-                              <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                              <div style={{ width: '100%', height: '8px', background: 'var(--primary-glow)', borderRadius: '4px', overflow: 'hidden' }}>
                                 <div style={{ 
                                   width: `${Math.min(100, percentage)}%`, 
                                   height: '100%', 
@@ -3466,13 +3728,13 @@ export default function App() {
                             </div>
                           </div>
 
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '12px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
                             <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Daftar Anggota Komunitas</span>
                             {myJoinedMembers.length > 0 ? (
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
                                 {myJoinedMembers.map((m, idx) => (
-                                  <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.8rem', color: 'white' }}>
-                                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#ffffff', color: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                  <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--primary-glow)', padding: '6px 12px', borderRadius: '20px', border: '1px solid var(--border-color)', fontSize: '0.8rem', color: 'var(--text-primary)' }}>
+                                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'var(--text-primary)', color: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
                                       {m.charAt(0)}
                                     </div>
                                     <span>{m}</span>
@@ -4964,68 +5226,73 @@ export default function App() {
                     }
                   }
 
-                   const updatedUser = {
-                    ...currentUser,
-                    organizerName: editProfileName.trim(),
-                    organizerPhone: editProfilePhone.trim(),
-                    organizerDescription: editProfileDescription.trim(),
-                    organizerAvatar: editProfileAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(editProfileName.trim())}&backgroundColor=262626&textColor=ffffff`,
-                    activeMembersCount: isComm ? editProfileActiveMembers.trim() : '',
-                    isCommunity: isComm,
-                    joinedMembers: currentUser.joinedMembers || [],
-                    userCategory: isComm ? 'Videografer' : editProfileCategory,
-                    userPortfolio: isComm ? '' : editProfilePortfolio.trim(),
-                    activityImages: isComm ? editProfileActivityImages.split(',').map(s => s.trim()).filter(Boolean) : [],
-                    
-                    facebookHandle: editProfileFacebookHandle.trim(),
-                    facebookVerified: editProfileFacebookVerified,
-                    tiktokHandle: editProfileTiktokHandle.trim(),
-                    tiktokVerified: editProfileTiktokVerified,
-                    instagramHandle: editProfileInstagramHandle.trim(),
-                    instagramVerified: editProfileInstagramVerified,
-                    youtubeHandle: editProfileYoutubeHandle.trim(),
-                    youtubeVerified: editProfileYoutubeVerified
-                  };
-
-                  // Update locally
-                  setCurrentUser(updatedUser);
-                  setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
-                  
-                  if (isComm) {
-                    const existingComm = communities.find(c => c.username.toLowerCase() === currentUser.username.toLowerCase());
-                    const updatedComm = {
-                      id: currentUser.username,
-                      username: currentUser.username,
-                      name: updatedUser.organizerName,
-                      phone: updatedUser.organizerPhone,
-                      description: updatedUser.organizerDescription,
-                      avatar: updatedUser.organizerAvatar,
-                      activeMembersCount: updatedUser.activeMembersCount,
-                      joinedMembers: existingComm ? (existingComm.joinedMembers || []) : [],
-                      pendingMembers: existingComm ? (existingComm.pendingMembers || []) : [],
-                      activityImages: updatedUser.activityImages || []
+                  setGlobalLoadingText('Sedang menyimpan perubahan profil...');
+                  try {
+                    const updatedUser = {
+                      ...currentUser,
+                      organizerName: editProfileName.trim(),
+                      organizerPhone: editProfilePhone.trim(),
+                      organizerDescription: editProfileDescription.trim(),
+                      organizerAvatar: editProfileAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(editProfileName.trim())}&backgroundColor=262626&textColor=ffffff`,
+                      activeMembersCount: isComm ? editProfileActiveMembers.trim() : '',
+                      isCommunity: isComm,
+                      joinedMembers: currentUser.joinedMembers || [],
+                      userCategory: isComm ? 'Videografer' : editProfileCategory,
+                      userPortfolio: isComm ? '' : editProfilePortfolio.trim(),
+                      activityImages: isComm ? editProfileActivityImages.split(',').map(s => s.trim()).filter(Boolean) : [],
+                      
+                      facebookHandle: editProfileFacebookHandle.trim(),
+                      facebookVerified: editProfileFacebookVerified,
+                      tiktokHandle: editProfileTiktokHandle.trim(),
+                      tiktokVerified: editProfileTiktokVerified,
+                      instagramHandle: editProfileInstagramHandle.trim(),
+                      instagramVerified: editProfileInstagramVerified,
+                      youtubeHandle: editProfileYoutubeHandle.trim(),
+                      youtubeVerified: editProfileYoutubeVerified
                     };
+
+                    // Update locally
+                    setCurrentUser(updatedUser);
+                    setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
                     
-                    let updatedCommunities = [...communities];
-                    if (existingComm) {
-                      updatedCommunities = communities.map(c => c.username.toLowerCase() === currentUser.username.toLowerCase() ? updatedComm : c);
-                    } else {
-                      updatedCommunities.push(updatedComm);
+                    if (isComm) {
+                      const existingComm = communities.find(c => c.username.toLowerCase() === currentUser.username.toLowerCase());
+                      const updatedComm = {
+                        id: currentUser.username,
+                        username: currentUser.username,
+                        name: updatedUser.organizerName,
+                        phone: updatedUser.organizerPhone,
+                        description: updatedUser.organizerDescription,
+                        avatar: updatedUser.organizerAvatar,
+                        activeMembersCount: updatedUser.activeMembersCount,
+                        joinedMembers: existingComm ? (existingComm.joinedMembers || []) : [],
+                        pendingMembers: existingComm ? (existingComm.pendingMembers || []) : [],
+                        activityImages: updatedUser.activityImages || []
+                      };
+                      
+                      let updatedCommunities = [...communities];
+                      if (existingComm) {
+                        updatedCommunities = communities.map(c => c.username.toLowerCase() === currentUser.username.toLowerCase() ? updatedComm : c);
+                      } else {
+                        updatedCommunities.push(updatedComm);
+                      }
+                      await handleSetCommunities(updatedCommunities);
                     }
-                    await handleSetCommunities(updatedCommunities);
-                  }
 
-                  // Save to Firestore if available
-                  if (isFirebaseConfigured() && auth) {
-                    try {
-                      await saveFirestoreUser(updatedUser);
-                    } catch (err) {
-                      console.error("Failed to update profile in firestore:", err);
+                    // Save to Firestore if available
+                    if (isFirebaseConfigured() && auth) {
+                      try {
+                        await saveFirestoreUser(updatedUser);
+                      } catch (err) {
+                        console.error("Failed to update profile in firestore:", err);
+                      }
                     }
-                  }
 
-                  setIsEditProfileModalOpen(false);
-                  alert('Profil Anda berhasil diperbarui!');
+                    setIsEditProfileModalOpen(false);
+                    alert('Profil Anda berhasil diperbarui!');
+                  } finally {
+                    setGlobalLoadingText(null);
+                  }
                 }}
                 style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
               >
@@ -5657,24 +5924,44 @@ export default function App() {
 
                   <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label htmlFor="loginPassword" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Password</label>
-                    <input 
-                      type="password" 
-                      id="loginPassword" 
-                      placeholder="Masukkan password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        background: 'rgba(255, 255, 255, 0.04)',
-                        border: '1px solid var(--border-color)',
-                        borderRadius: 'var(--radius-sm)',
-                        color: 'var(--text-primary)',
-                        outline: 'none',
-                        fontSize: '0.9rem'
-                      }}
-                      required
-                    />
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <input 
+                        type={showPassword ? "text" : "password"} 
+                        id="loginPassword" 
+                        placeholder="Masukkan password"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 40px 10px 12px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
+                          outline: 'none',
+                          fontSize: '0.9rem'
+                        }}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          position: 'absolute',
+                          right: '12px',
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--text-secondary)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: 0
+                        }}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
                   </div>
                 </>
               ) : (
@@ -5709,46 +5996,86 @@ export default function App() {
 
                       <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <label htmlFor="loginPassword" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Password</label>
-                        <input 
-                          type="password" 
-                          id="loginPassword" 
-                          placeholder="Masukkan password"
-                          value={loginPassword}
-                          onChange={(e) => setLoginPassword(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            background: 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: 'var(--text-primary)',
-                            outline: 'none',
-                            fontSize: '0.9rem'
-                          }}
-                          required
-                        />
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                          <input 
+                            type={showPassword ? "text" : "password"} 
+                            id="loginPassword" 
+                            placeholder="Masukkan password"
+                            value={loginPassword}
+                            onChange={(e) => setLoginPassword(e.target.value)}
+                            style={{
+                              width: '100%',
+                              padding: '10px 40px 10px 12px',
+                              background: 'rgba(255, 255, 255, 0.04)',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: 'var(--radius-sm)',
+                              color: 'var(--text-primary)',
+                              outline: 'none',
+                              fontSize: '0.9rem'
+                            }}
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{
+                              position: 'absolute',
+                              right: '12px',
+                              background: 'none',
+                              border: 'none',
+                              color: 'var(--text-secondary)',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              padding: 0
+                            }}
+                          >
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
                       </div>
 
                       <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <label htmlFor="registerConfirm" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Konfirmasi Password</label>
-                        <input 
-                          type="password" 
-                          id="registerConfirm" 
-                          placeholder="Konfirmasi password Anda"
-                          value={registerConfirmPassword}
-                          onChange={(e) => setRegisterConfirmPassword(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            background: 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: 'var(--text-primary)',
-                            outline: 'none',
-                            fontSize: '0.9rem'
-                          }}
-                          required
-                        />
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                          <input 
+                            type={showConfirmPassword ? "text" : "password"} 
+                            id="registerConfirm" 
+                            placeholder="Konfirmasi password Anda"
+                            value={registerConfirmPassword}
+                            onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                            style={{
+                              width: '100%',
+                              padding: '10px 40px 10px 12px',
+                              background: 'rgba(255, 255, 255, 0.04)',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: 'var(--radius-sm)',
+                              color: 'var(--text-primary)',
+                              outline: 'none',
+                              fontSize: '0.9rem'
+                            }}
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            style={{
+                              position: 'absolute',
+                              right: '12px',
+                              background: 'none',
+                              border: 'none',
+                              color: 'var(--text-secondary)',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              padding: 0
+                            }}
+                          >
+                            {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
                       </div>
 
                       <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -5986,46 +6313,86 @@ export default function App() {
 
                     <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <label htmlFor="loginPassword" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Password</label>
-                      <input 
-                        type="password" 
-                        id="loginPassword" 
-                        placeholder="Masukkan password"
-                        value={loginPassword}
-                        onChange={(e) => setLoginPassword(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          background: 'rgba(255, 255, 255, 0.04)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: 'var(--radius-sm)',
-                          color: 'var(--text-primary)',
-                          outline: 'none',
-                          fontSize: '0.9rem'
-                        }}
-                        required
-                      />
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <input 
+                          type={showPassword ? "text" : "password"} 
+                          id="loginPassword" 
+                          placeholder="Masukkan password"
+                          value={loginPassword}
+                          onChange={(e) => setLoginPassword(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 40px 10px 12px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--text-primary)',
+                            outline: 'none',
+                            fontSize: '0.9rem'
+                          }}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          style={{
+                            position: 'absolute',
+                            right: '12px',
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--text-secondary)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: 0
+                          }}
+                        >
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
                     </div>
 
                     <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <label htmlFor="registerConfirm" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Konfirmasi Password</label>
-                      <input 
-                        type="password" 
-                        id="registerConfirm" 
-                        placeholder="Konfirmasi password Anda"
-                        value={registerConfirmPassword}
-                        onChange={(e) => setRegisterConfirmPassword(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          background: 'rgba(255, 255, 255, 0.04)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: 'var(--radius-sm)',
-                          color: 'var(--text-primary)',
-                          outline: 'none',
-                          fontSize: '0.9rem'
-                        }}
-                        required
-                      />
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <input 
+                          type={showConfirmPassword ? "text" : "password"} 
+                          id="registerConfirm" 
+                          placeholder="Konfirmasi password Anda"
+                          value={registerConfirmPassword}
+                          onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 40px 10px 12px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--text-primary)',
+                            outline: 'none',
+                            fontSize: '0.9rem'
+                          }}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          style={{
+                            position: 'absolute',
+                            right: '12px',
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--text-secondary)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: 0
+                          }}
+                        >
+                          {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
                     </div>
 
                     <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -6163,6 +6530,121 @@ export default function App() {
         </div>
       )}
 
+
+      {/* Global Loading Overlay */}
+      {globalLoadingText && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 999999,
+            gap: '16px'
+          }}
+        >
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '4px solid rgba(255, 255, 254, 0.15)',
+            borderTop: '4px solid #fffffe',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+          <span className="badge" style={{ color: '#fffffe', fontSize: '1.05rem', fontWeight: '600', letterSpacing: '0.5px' }}>
+            {globalLoadingText}
+          </span>
+        </div>
+      )}
+
+      {/* Lightbox Image Zoom Overlay */}
+      {zoomImage && (
+        <div 
+          className="lightbox-overlay"
+          onClick={() => setZoomImage(null)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0, 0, 0, 0.9)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000000,
+            cursor: 'zoom-out'
+          }}
+        >
+          <button 
+            onClick={() => setZoomImage(null)}
+            style={{
+              position: 'absolute',
+              top: '24px',
+              right: '24px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffffff',
+              cursor: 'pointer',
+              fontSize: '1.2rem',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+          >
+            ✕
+          </button>
+          <img 
+            className="lightbox-image"
+            src={zoomImage} 
+            alt="Kegiatan Zoom" 
+            style={{
+              maxWidth: '90%',
+              maxHeight: '85%',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+              border: '2px solid rgba(255,255,255,0.1)'
+            }}
+          />
+        </div>
+      )}
+
+      {/* Custom Toast Notification */}
+      {toast && (
+        <div className="custom-toast">
+          <div className="custom-toast-icon">
+            <Sparkles size={18} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <p className="custom-toast-message">
+              {toast.message}
+            </p>
+          </div>
+          <button 
+            onClick={() => setToast(null)}
+            className="custom-toast-close"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* PWA Prompt */}
       <PWAInstallPrompt />

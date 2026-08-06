@@ -774,22 +774,23 @@ export default function Navbar({
                     <Bell size={18} style={{ color: unreadCount > 0 ? 'white' : 'var(--text-secondary)' }} />
                     {unreadCount > 0 && (
                       <span 
-                        className="animate-glow-red"
+                        className="badge animate-glow-red"
                         style={{
                           position: 'absolute',
-                          top: '-2px',
-                          right: '-2px',
+                          top: '-1px',
+                          right: '-1px',
                           background: '#ef4444',
                           color: 'white',
                           borderRadius: '50%',
-                          fontSize: '0.65rem',
-                          fontWeight: 'bold',
-                          width: '18px',
-                          height: '18px',
+                          fontSize: '0.62rem',
+                          fontWeight: '800',
+                          width: '16px',
+                          height: '16px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          border: '2px solid #0f172a'
+                          border: '1.5px solid var(--bg-navbar)',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.15)'
                         }}
                       >
                         {unreadCount}
@@ -823,8 +824,8 @@ export default function Navbar({
                       </div>
                       
                       {notificationsList.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          {notificationsList.map(notif => {
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {notificationsList.map((notif, index) => {
                             // Color mapping for different notification types
                             let indicatorColor = '#94a3b8';
                             if (notif.type === 'participant' || notif.type === 'user-registration') {
@@ -838,99 +839,109 @@ export default function Navbar({
                             }
 
                             return (
-                              <div 
-                                key={notif.id} 
-                                onClick={() => {
-                                  setIsNotificationOpen(false);
-                                  // Mark notification as dismissed/read
-                              setDismissedNotifs(prev => {
-                                    const updated = [...prev, notif.id];
-                                    localStorage.setItem('portal-dismissed-notifications', JSON.stringify(updated));
-                                    return updated;
-                                  });
-                                  if (notif.tab === 'profile-approvals') {
-                                    setActiveTab('profile');
-                                    window.history.pushState(null, '', '/profile');
-                                    window.dispatchEvent(new Event('popstate'));
-                                    setTimeout(() => {
-                                      const el = document.getElementById('persetujuan-anggota');
-                                      if (el) {
-                                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                        el.style.borderColor = '#ffffff';
-                                        el.style.boxShadow = '0 0 25px rgba(255, 255, 255, 0.25)';
-                                        setTimeout(() => {
-                                          el.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                                          el.style.boxShadow = 'none';
-                                        }, 2000);
-                                      }
-                                    }, 400);
-                                  } else if (notif.tab === 'wallet') {
-                                    setActiveTab('wallet');
-                                    window.history.pushState(null, '', '/wallet');
-                                    window.dispatchEvent(new Event('popstate'));
-                                  } else if (notif.tab === 'user-events') {
-                                    if (notif.eventId) {
-                                      const slug = slugify(notif.eventTitle || '');
-                                      const url = `/event/${slug}-${notif.eventId}`;
-                                      setActiveTab('events');
-                                      window.history.pushState(null, '', url);
+                              <React.Fragment key={notif.id}>
+                                <div 
+                                  onClick={() => {
+                                    setIsNotificationOpen(false);
+                                    // Mark notification as dismissed/read
+                                    setDismissedNotifs(prev => {
+                                      const updated = [...prev, notif.id];
+                                      localStorage.setItem('portal-dismissed-notifications', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                    if (notif.tab === 'profile-approvals') {
+                                      setActiveTab('profile');
+                                      window.history.pushState(null, '', '/profile');
                                       window.dispatchEvent(new Event('popstate'));
-                                    } else {
-                                      setActiveTab('events');
-                                      window.history.pushState(null, '', '/events');
+                                      setTimeout(() => {
+                                        const el = document.getElementById('persetujuan-anggota');
+                                        if (el) {
+                                          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                          el.style.borderColor = '#ffffff';
+                                          el.style.boxShadow = '0 0 25px rgba(255, 255, 255, 0.25)';
+                                          setTimeout(() => {
+                                            el.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                            el.style.boxShadow = 'none';
+                                          }, 2000);
+                                        }
+                                      }, 400);
+                                    } else if (notif.tab === 'wallet') {
+                                      setActiveTab('wallet');
+                                      window.history.pushState(null, '', '/wallet');
                                       window.dispatchEvent(new Event('popstate'));
-                                    }
-                                  } else {
-                                    setActiveTab('admin');
-                                    let targetTab = notif.tab;
-                                    if (notif.tab === 'event-participants' || notif.tab === 'event-submissions' || notif.type === 'event-winners' || notif.type === 'event-payment') {
-                                      targetTab = 'event-manage';
+                                    } else if (notif.tab === 'user-events') {
                                       if (notif.eventId) {
-                                        localStorage.setItem('portal-selected-manage-event-id', notif.eventId);
-                                        localStorage.setItem('portal-inner-manage-tab', 
-                                          notif.tab === 'event-participants' ? 'participants' : 
-                                          notif.tab === 'event-submissions' ? 'submissions' : 
-                                          notif.type === 'event-winners' ? 'judging' : 'finance'
-                                        );
-                                        localStorage.setItem('portal-notif-navigating', 'true');
+                                        const slug = slugify(notif.eventTitle || '');
+                                        const url = `/event/${slug}-${notif.eventId}`;
+                                        setActiveTab('events');
+                                        window.history.pushState(null, '', url);
+                                        window.dispatchEvent(new Event('popstate'));
+                                      } else {
+                                        setActiveTab('events');
+                                        window.history.pushState(null, '', '/events');
+                                        window.dispatchEvent(new Event('popstate'));
                                       }
+                                    } else {
+                                      setActiveTab('admin');
+                                      let targetTab = notif.tab;
+                                      if (notif.tab === 'event-participants' || notif.tab === 'event-submissions' || notif.type === 'event-winners' || notif.type === 'event-payment') {
+                                        targetTab = 'event-manage';
+                                        if (notif.eventId) {
+                                          localStorage.setItem('portal-selected-manage-event-id', notif.eventId);
+                                          localStorage.setItem('portal-inner-manage-tab', 
+                                            notif.tab === 'event-participants' ? 'participants' : 
+                                            notif.tab === 'event-submissions' ? 'submissions' : 
+                                            notif.type === 'event-winners' ? 'judging' : 'finance'
+                                          );
+                                          localStorage.setItem('portal-notif-navigating', 'true');
+                                        }
+                                      }
+                                      if (onAdminSubTabChange) {
+                                        onAdminSubTabChange(targetTab);
+                                      }
+                                      window.history.pushState(null, '', `/admin/${targetTab}`);
+                                      window.dispatchEvent(new Event('popstate'));
                                     }
-                                    if (onAdminSubTabChange) {
-                                      onAdminSubTabChange(targetTab);
-                                    }
-                                    window.history.pushState(null, '', `/admin/${targetTab}`);
-                                    window.dispatchEvent(new Event('popstate'));
-                                  }
-                                }}
-                                style={{ 
-                                  padding: '12px', 
-                                  background: 'rgba(255, 255, 255, 0.02)', 
-                                  border: '1px solid rgba(255, 255, 255, 0.05)', 
-                                  borderLeft: `3.5px solid ${indicatorColor}`,
-                                  borderRadius: '8px', 
-                                  cursor: 'pointer',
-                                  transition: 'all 0.2s ease',
-                                  textAlign: 'left'
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
-                                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-                                  e.currentTarget.style.transform = 'translateX(2px)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
-                                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
-                                  e.currentTarget.style.transform = 'translateX(0)';
-                                }}
-                              >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px', gap: '8px' }}>
-                                  <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'white', lineHeight: '1.2' }}>{notif.title}</span>
-                                  <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', background: 'rgba(255,255,255,0.04)', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                    {formatTimeAgo(notif.timestamp)}
-                                  </span>
+                                  }}
+                                  style={{ 
+                                    padding: '12px', 
+                                    background: 'rgba(255, 255, 255, 0.02)', 
+                                    border: '1px solid rgba(255, 255, 255, 0.05)', 
+                                    borderLeft: `3.5px solid ${indicatorColor}`,
+                                    borderRadius: '8px', 
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    textAlign: 'left'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                                    e.currentTarget.style.transform = 'translateX(2px)';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                                    e.currentTarget.style.transform = 'translateX(0)';
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px', gap: '8px' }}>
+                                    <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'white', lineHeight: '1.2' }}>{notif.title}</span>
+                                    <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', background: 'rgba(255,255,255,0.04)', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                      {formatTimeAgo(notif.timestamp)}
+                                    </span>
+                                  </div>
+                                  <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>{notif.message}</p>
                                 </div>
-                                <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>{notif.message}</p>
-                              </div>
+                                {index < notificationsList.length - 1 && (
+                                  <div style={{ 
+                                    height: '1px', 
+                                    background: 'var(--border-color)', 
+                                    marginTop: '6px',
+                                    marginBottom: '6px',
+                                    opacity: 0.6
+                                  }} />
+                                )}
+                              </React.Fragment>
                             );
                           })}
                         </div>

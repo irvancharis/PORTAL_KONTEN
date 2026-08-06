@@ -100,7 +100,7 @@ export default function BottomNav({
             className={`bottom-nav-item ${isActive ? 'active' : ''}`}
             onClick={() => handleNavClick(item)}
           >
-            <Icon size={20} />
+            <Icon size={20} strokeWidth={isActive ? 2.8 : 2} />
             <span>{item.label}</span>
           </button>
         );
