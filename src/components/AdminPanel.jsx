@@ -4303,34 +4303,15 @@ export default function AdminPanel({
               </div>
 
               {/* Regional Filter */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '500' }}>Regional:</span>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <input
-                    type="text"
-                    placeholder="Filter regional..."
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: '220px' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '500', whiteSpace: 'nowrap' }}>Regional:</span>
+                <div style={{ flex: 1 }}>
+                  <SearchableSelect 
                     value={marketplaceRegionalFilter}
-                    onChange={(e) => setMarketplaceRegionalFilter(e.target.value)}
-                    style={{
-                      padding: '10px 32px 10px 16px',
-                      background: 'rgba(255, 255, 255, 0.03)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '10px',
-                      color: 'white',
-                      fontSize: '0.85rem',
-                      outline: 'none',
-                      fontWeight: '600',
-                      width: '150px'
-                    }}
+                    onChange={(val) => setMarketplaceRegionalFilter(val === "Semua Regional" ? "" : val)}
+                    placeholder="Semua Regional"
+                    options={["Semua Regional", ...(regions.length > 0 ? regions : INDONESIAN_REGIONS)]}
                   />
-                  {marketplaceRegionalFilter && (
-                    <button 
-                      onClick={() => setMarketplaceRegionalFilter('')}
-                      style={{ position: 'absolute', right: '10px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
                 </div>
               </div>
             </div>

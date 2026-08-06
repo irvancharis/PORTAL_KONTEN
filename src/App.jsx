@@ -415,6 +415,7 @@ export default function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedCommunityId, setSelectedCommunityId] = useState(null);
   const [communitySearchQuery, setCommunitySearchQuery] = useState('');
+  const [communityRegionalFilter, setCommunityRegionalFilter] = useState('');
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('portal-theme') || 'light';
   });
@@ -3620,25 +3621,39 @@ export default function App() {
                         Temukan komunitas kreatif pilihan dan bergabunglah untuk mengikuti event/kompetisi khusus anggota mereka.
                       </p>
                     </div>
-                    <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
-                      <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-                      <input 
-                        type="text"
-                        placeholder="Cari nama atau deskripsi komunitas..."
-                        value={communitySearchQuery}
-                        onChange={(e) => setCommunitySearchQuery(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '10px 16px 10px 40px',
-                          background: 'rgba(255, 255, 255, 0.04)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '30px',
-                          color: 'white',
-                          fontSize: '0.9rem',
-                          outline: 'none',
-                          boxSizing: 'border-box'
-                        }}
-                      />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', width: '100%' }}>
+                      <div style={{ position: 'relative', flex: '1 1 300px', maxWidth: '400px' }}>
+                        <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                        <input 
+                          type="text"
+                          placeholder="Cari nama atau deskripsi komunitas..."
+                          value={communitySearchQuery}
+                          onChange={(e) => setCommunitySearchQuery(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 16px 10px 40px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '30px',
+                            color: 'white',
+                            fontSize: '0.9rem',
+                            outline: 'none',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '220px' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '500', whiteSpace: 'nowrap' }}>Regional:</span>
+                        <div style={{ flex: 1 }}>
+                          <SearchableSelect 
+                            value={communityRegionalFilter}
+                            onChange={(val) => setCommunityRegionalFilter(val === "Semua Regional" ? "" : val)}
+                            placeholder="Semua Regional"
+                            options={["Semua Regional", ...regions]}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -3646,6 +3661,10 @@ export default function App() {
                     {(() => {
                       const filtered = communities
                         .filter(comm => !currentUser || comm.username.toLowerCase() !== currentUser.username.toLowerCase())
+                        .filter(comm => {
+                          if (!communityRegionalFilter) return true;
+                          return comm.userRegional && comm.userRegional.toLowerCase().trim() === communityRegionalFilter.toLowerCase().trim();
+                        })
                         .filter(comm => {
                           const query = communitySearchQuery.toLowerCase().trim();
                           if (!query) return true;
