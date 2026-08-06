@@ -800,7 +800,7 @@ export default function Navbar({
 
                   {isNotificationOpen && (
                     <div 
-                      className="glass-panel animate-fade-in" 
+                      className="glass-panel animate-fade-in notification-dropdown" 
                       style={{ 
                         position: 'absolute', 
                         top: '46px', 
@@ -820,7 +820,19 @@ export default function Navbar({
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px', marginBottom: '12px' }}>
                         <span style={{ fontWeight: '700', fontSize: '0.88rem', color: 'white' }}>Notifikasi Terbaru</span>
-                        <span style={{ fontSize: '0.7rem', color: 'white', background: 'rgba(255, 255, 255, 0.08)', padding: '3px 10px', borderRadius: '20px', fontWeight: 'bold', border: '1px solid rgba(255, 255, 255, 0.12)' }}>{unreadCount} Baru</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '0.7rem', color: 'white', background: 'rgba(255, 255, 255, 0.08)', padding: '3px 10px', borderRadius: '20px', fontWeight: 'bold', border: '1px solid rgba(255, 255, 255, 0.12)' }}>{unreadCount} Baru</span>
+                          <button 
+                            className="mobile-only-close"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsNotificationOpen(false);
+                            }}
+                            style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px', display: 'none', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
                       </div>
                       
                       {notificationsList.length > 0 ? (

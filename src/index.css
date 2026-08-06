@@ -4158,3 +4158,31 @@ select option {
   color: #ffffff !important;
 }
 
+/* Notification Dropdown Responsive Styles */
+.notification-dropdown {
+  position: absolute !important;
+  top: 46px !important;
+  right: 0 !important;
+  left: auto !important;
+  width: 320px !important;
+  max-height: 380px !important;
+}
+
+@media (max-width: 768px) {
+  .notification-dropdown {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: calc(100vw - 32px) !important;
+    max-width: 340px !important;
+    max-height: 70vh !important;
+    margin: 0 !important;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65), 0 20px 25px -5px rgba(0, 0, 0, 0.6) !important;
+  }
+  
+  .mobile-only-close {
+    display: inline-flex !important;
+  }
+}
+
