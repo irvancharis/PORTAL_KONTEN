@@ -8,7 +8,8 @@ import {
   doc, 
   setDoc, 
   deleteDoc, 
-  getDoc 
+  getDoc,
+  writeBatch 
 } from "firebase/firestore";
 import { 
   getAuth, 
@@ -496,6 +497,43 @@ export const deleteFirestoreCommunity = async (communityId) => {
     return true;
   } catch (e) {
     console.error("Error deleting community from Firestore:", e);
+    return false;
+  }
+};
+
+// Regions CRUD & Seeding
+export const getFirestoreRegions = async () => {
+  if (!db) return null;
+  try {
+    const querySnapshot = await getDocs(collection(db, "regions"));
+    const list = [];
+    querySnapshot.forEach((doc) => {
+      list.push({ id: doc.id, ...doc.data() });
+    });
+    return list;
+  } catch (e) {
+    console.error("Error fetching regions from Firestore:", e);
+    return null;
+  }
+};
+
+export const seedFirestoreRegions = async (regionsList) => {
+  if (!db) return false;
+  try {
+    const chunkSize = 400;
+    for (let i = 0; i < regionsList.length; i += chunkSize) {
+      const chunk = regionsList.slice(i, i + chunkSize);
+      const batch = writeBatch(db);
+      chunk.forEach((name) => {
+        const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        batch.set(doc(db, "regions", id), { name });
+      });
+      await batch.commit();
+      console.log(`Seeded batch of ${chunk.length} regions to Firestore.`);
+    }
+    return true;
+  } catch (e) {
+    console.error("Error seeding regions to Firestore:", e);
     return false;
   }
 };

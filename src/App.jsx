@@ -55,7 +55,9 @@ import {
   deleteFirestoreFinancialJournal,
   getFirestoreCommunities,
   saveFirestoreCommunity,
-  deleteFirestoreCommunity
+  deleteFirestoreCommunity,
+  getFirestoreRegions,
+  seedFirestoreRegions
 } from './firebase';
 import { 
   Bookmark, 
@@ -976,6 +978,7 @@ export default function App() {
   const [editProfileYoutubeHandle, setEditProfileYoutubeHandle] = useState('');
   const [editProfileYoutubeVerified, setEditProfileYoutubeVerified] = useState(false);
   const [editProfileRegional, setEditProfileRegional] = useState('');
+  const [regions, setRegions] = useState(INDONESIAN_REGIONS);
 
   // Social Verification Temp states
   const [verifyingPlatform, setVerifyingPlatform] = useState(null); // 'facebook' | 'tiktok' | 'instagram' | 'youtube' | null
@@ -1531,7 +1534,8 @@ export default function App() {
             dbOffers,
             dbUsers,
             dbFinancialJournals,
-            dbCommunities
+            dbCommunities,
+            dbRegions
           ] = await Promise.all([
             getFirestoreMovies(),
             getFirestoreConfirmations(),
@@ -1542,7 +1546,8 @@ export default function App() {
             getFirestoreOffers(),
             getFirestoreUsers(),
             getFirestoreFinancialJournals(),
-            getFirestoreCommunities()
+            getFirestoreCommunities(),
+            getFirestoreRegions()
           ]);
  
           if (dbMovies) setMovies(dbMovies);
@@ -1583,6 +1588,16 @@ export default function App() {
               setCommunities([defaultComm]);
             } else {
               setCommunities(dbCommunities);
+            }
+          }
+
+          if (dbRegions) {
+            if (dbRegions.length === 0) {
+              await seedFirestoreRegions(INDONESIAN_REGIONS);
+              setRegions(INDONESIAN_REGIONS);
+            } else {
+              const loadedRegionsList = dbRegions.map(r => r.name).sort();
+              setRegions(loadedRegionsList);
             }
           }
 
@@ -3014,6 +3029,7 @@ export default function App() {
 
           {activeTab === 'admin' && currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role) ? (
             <AdminPanel 
+              regions={regions}
               movies={movies} 
               setMovies={handleSetMovies} 
               affiliateLinks={affiliateLinks}
@@ -4272,6 +4288,7 @@ export default function App() {
               communities={communities}
               renderEventManagement={(onSaveSuccess, autoOpenForm) => (
                 <AdminPanel 
+                  regions={regions}
                   movies={movies} 
                   setMovies={handleSetMovies} 
                   affiliateLinks={affiliateLinks}
@@ -5646,7 +5663,7 @@ export default function App() {
                     value={editProfileRegional}
                     onChange={setEditProfileRegional}
                     placeholder="Pilih lokasi regional..."
-                    options={INDONESIAN_REGIONS}
+                    options={regions}
                   />
                 </div>
 
@@ -6421,7 +6438,7 @@ export default function App() {
                           value={registerRegional}
                           onChange={setRegisterRegional}
                           placeholder="Pilih lokasi regional..."
-                          options={INDONESIAN_REGIONS}
+                          options={regions}
                         />
                       </div>
                     </div>
@@ -6748,7 +6765,7 @@ export default function App() {
                         value={registerRegional}
                         onChange={setRegisterRegional}
                         placeholder="Pilih lokasi regional..."
-                        options={INDONESIAN_REGIONS}
+                        options={regions}
                       />
                     </div>
                   </>

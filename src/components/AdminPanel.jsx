@@ -394,6 +394,7 @@ const getDefaultPermissions = (role, customRoles = []) => {
 };
 
 export default function AdminPanel({ 
+  regions = [],
   movies, 
   setMovies, 
   affiliateLinks = [], 
@@ -3005,7 +3006,7 @@ export default function AdminPanel({
                           value={eventAreaRegional}
                           onChange={setEventAreaRegional}
                           placeholder="Pilih kota khusus..."
-                          options={INDONESIAN_REGIONS}
+                          options={regions.length > 0 ? regions : INDONESIAN_REGIONS}
                         />
                       ) : (
                         <div style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
