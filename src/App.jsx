@@ -628,6 +628,14 @@ export default function App() {
     }
   }, [currentUser]);
 
+  const prevUserRef = useRef(null);
+  useEffect(() => {
+    if (currentUser && !prevUserRef.current) {
+      window.scrollTo(0, 0);
+    }
+    prevUserRef.current = currentUser;
+  }, [currentUser]);
+
   // Automatic premium membership expiration check (30 days limit) for current user
   useEffect(() => {
     if (currentUser && (currentUser.role === 'member' || currentUser.role === 'pro') && currentUser.premiumExpiresAt) {
@@ -2215,6 +2223,7 @@ export default function App() {
   // 2. Path-based Router & Event Listener
   useEffect(() => {
     const handlePathRoute = () => {
+      window.scrollTo(0, 0);
       const path = window.location.pathname;
 
       if (path && path !== '/') {
@@ -2446,6 +2455,7 @@ export default function App() {
   // Handle Tab Change and update URL path
   function handleTabChange(tabId) {
     setSelectedCommunityId(null);
+    window.scrollTo(0, 0);
     const adminSubTabs = [
       'event-dashboard', 'event-manage', 'creator-marketplace', 
       'movies', 'affiliates', 'membership', 'confirmations', 'withdrawals', 'finance-report', 'users', 'roles', 'community-members', 'community-agendas'
