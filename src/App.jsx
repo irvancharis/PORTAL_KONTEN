@@ -3517,53 +3517,49 @@ export default function App() {
 
                     <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 8px 0', color: 'var(--text-primary)' }}>{currentUser?.organizerName || currentUser?.username}</h2>
                     {isCurrentUserCommunity ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', marginTop: '4px' }}>
-                        <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: '600' }}>
-                          Status User: Komunitas / Instansi
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'var(--primary-glow)', padding: '4px 12px', borderRadius: '20px', border: '1px solid var(--border-color)', fontWeight: 'bold' }}>
+                          Komunitas / Instansi
                         </span>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'var(--primary-glow)', padding: '4px 12px', borderRadius: '20px', border: '1px solid var(--border-color)', fontWeight: 'bold' }}>
-                            Komunitas
-                          </span>
-                        </div>
                       </div>
                     ) : (() => {
                       const isPremium = currentUser && (currentUser.role === 'member' || currentUser.role === 'pro') && currentUser.premiumExpiresAt;
-                      return (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', marginTop: '4px' }}>
-                          <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: '600' }}>
-                            Status User: Kreator / User
-                          </span>
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            {isPremium ? (
-                              <span style={{ 
-                                fontSize: '0.75rem', 
-                                color: 'var(--bg-main)', 
-                                background: 'var(--text-primary)', 
-                                padding: '4px 12px', 
-                                borderRadius: '20px', 
-                                border: '1px solid var(--border-color)', 
-                                fontWeight: '800',
-                                letterSpacing: '0.5px'
-                              }}>
-                                ★ MEMBER PREMIUM
-                              </span>
-                            ) : (
-                              <span style={{ 
-                                fontSize: '0.75rem', 
-                                color: 'var(--text-primary)', 
-                                background: 'var(--primary-glow)', 
-                                padding: '4px 12px', 
-                                borderRadius: '20px', 
-                                border: '1px solid var(--border-color)', 
-                                fontWeight: '600'
-                              }}>
-                                AKUN STANDAR
-                              </span>
-                            )}
+                      if (isPremium) {
+                        const expiryDateStr = new Date(currentUser.premiumExpiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                        return (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', marginTop: '4px' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 'bold', background: 'rgba(16, 185, 129, 0.1)', padding: '4px 14px', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                              ★ Premium Aktif s.d. {expiryDateStr}
+                            </span>
                           </div>
-                        </div>
-                      );
+                        );
+                      } else {
+                        return (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: '500' }}>
+                              Akun belum Premium
+                            </span>
+                            <button
+                              onClick={() => setShowPremiumModal(true)}
+                              style={{
+                                background: 'var(--text-primary)',
+                                border: '1px solid var(--border-color)',
+                                color: 'var(--bg-main)',
+                                fontSize: '0.75rem',
+                                fontWeight: '800',
+                                padding: '6px 16px',
+                                borderRadius: '20px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+                            >
+                              Upgrade ke Premium
+                            </button>
+                          </div>
+                        );
+                      }
                     })()}
                   </div>
 
