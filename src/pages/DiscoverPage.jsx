@@ -510,14 +510,28 @@ export default function DiscoverPage({
                               }}
                             >
                               <div className="split-card-info">
-                                <span className="split-card-name">{evt.title}</span>
-                                <span className="split-card-meta">
-                                  <span style={{ display: 'flex', alignItems: 'center' }}>
-                                    <Calendar size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
-                                    <span>{evt.date || 'Segera'}</span>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '6px' }}>
+                                  <span style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
+                                    fontSize: '0.7rem',
+                                    fontWeight: 'bold',
+                                    background: 'rgba(244, 114, 182, 0.1)',
+                                    color: '#f472b6'
+                                  }}>
+                                    {evt.category || 'Event'}
                                   </span>
-                                  <span style={{ display: 'flex', alignItems: 'center' }}>
-                                    <MapPin size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
+                                </div>
+                                <span className="split-card-name">{evt.title}</span>
+                                <span className="split-card-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px', marginTop: '6px' }}>
+                                  <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                    <Calendar size={13} style={{ marginRight: '6px', opacity: 0.7 }} />
+                                    <span>{evt.date ? new Date(evt.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Segera'}</span>
+                                  </span>
+                                  <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                    <MapPin size={13} style={{ marginRight: '6px', opacity: 0.7 }} />
                                     <span>{evt.location || 'Online'}</span>
                                   </span>
                                 </span>
@@ -612,15 +626,29 @@ export default function DiscoverPage({
                               }}
                             >
                               <div className="split-card-info">
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '6px' }}>
+                                  <span style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
+                                    fontSize: '0.7rem',
+                                    fontWeight: 'bold',
+                                    background: evt.juknisPlatforms?.GoogleReview ? 'rgba(74, 222, 128, 0.1)' : 'rgba(96, 165, 250, 0.1)',
+                                    color: evt.juknisPlatforms?.GoogleReview ? '#4ade80' : '#60a5fa'
+                                  }}>
+                                    {evt.juknisPlatforms?.GoogleReview ? 'Google Review' : evt.category || 'Kompetisi'}
+                                  </span>
+                                </div>
                                 <span className="split-card-name">{evt.title}</span>
-                                <span className="split-card-meta">
-                                  <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: 'bold' }}>
-                                    <DollarSign size={13} style={{ marginRight: '4px', opacity: 0.8 }} />
+                                <span className="split-card-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px', marginTop: '8px' }}>
+                                  <span style={{ display: 'flex', alignItems: 'center', color: '#4ade80', fontWeight: '800', fontSize: '1.05rem' }}>
+                                    <DollarSign size={15} style={{ marginRight: '2px', opacity: 0.9 }} />
                                     <span>Rp {(evt.campaignBudget || 0).toLocaleString('id-ID')}</span>
                                   </span>
-                                  <span style={{ display: 'flex', alignItems: 'center' }}>
-                                    <Clock size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
-                                    <span>Batas: {evt.deadline || 'Segera'}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', color: '#f87171', fontWeight: '600' }}>
+                                    <Clock size={13} style={{ marginRight: '5px', opacity: 0.8 }} />
+                                    <span>Batas: {evt.deadline ? new Date(evt.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Segera'}</span>
                                   </span>
                                 </span>
                               </div>
