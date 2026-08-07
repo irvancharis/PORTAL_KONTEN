@@ -2517,34 +2517,36 @@ export default function AdminPanel({
                     />
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <form onSubmit={handleQuickCheckIn} style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '100%', maxWidth: '300px' }}>
-                      <input
-                        type="text"
-                        value={checkInTicketCode}
-                        onChange={(e) => setCheckInTicketCode(e.target.value)}
-                        placeholder="Kode Tiket (misal: TKT-123456)"
-                        style={{ flex: 1, padding: '8px 12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '20px', color: 'white', fontSize: '0.82rem', outline: 'none' }}
-                      />
-                      <button 
-                        type="submit" 
-                        className="btn btn-primary btn-sm"
-                        style={{ padding: '8px 16px', borderRadius: '20px', background: 'white', color: 'black', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}
-                      >
-                        Check-In
-                      </button>
-                    </form>
+                  {selectedManageEvent.ticketPrice > 0 && (
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <form onSubmit={handleQuickCheckIn} style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '100%', maxWidth: '300px' }}>
+                        <input
+                          type="text"
+                          value={checkInTicketCode}
+                          onChange={(e) => setCheckInTicketCode(e.target.value)}
+                          placeholder="Kode Tiket (misal: TKT-123456)"
+                          style={{ flex: 1, padding: '8px 12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '20px', color: 'white', fontSize: '0.82rem', outline: 'none' }}
+                        />
+                        <button 
+                          type="submit" 
+                          className="btn btn-primary btn-sm"
+                          style={{ padding: '8px 16px', borderRadius: '20px', background: 'white', color: 'black', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}
+                        >
+                          Check-In
+                        </button>
+                      </form>
 
-                    <button 
-                      type="button" 
-                      onClick={() => setShowQRScanner(true)}
-                      className="btn btn-secondary btn-sm"
-                      style={{ padding: '8px 16px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                    >
-                      <QrCode size={14} />
-                      <span>Scan QR</span>
-                    </button>
-                  </div>
+                      <button 
+                        type="button" 
+                        onClick={() => setShowQRScanner(true)}
+                        className="btn btn-secondary btn-sm"
+                        style={{ padding: '8px 16px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <QrCode size={14} />
+                        <span>Scan QR</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="admin-table-container">
@@ -2570,9 +2572,9 @@ export default function AdminPanel({
                           <tr>
                             <th>Nama Peserta</th>
                             <th>Akun Sosmed / Link</th>
-                            <th>Kode Tiket</th>
+                            {selectedManageEvent.ticketPrice > 0 && <th>Kode Tiket</th>}
                             <th>Biaya & Status</th>
-                            <th>Check-In</th>
+                            {selectedManageEvent.ticketPrice > 0 && <th>Check-In</th>}
                             <th>Aksi</th>
                           </tr>
                         </thead>
@@ -2595,11 +2597,13 @@ export default function AdminPanel({
                                   {part.tiktokUrl && <div><span style={{ color: 'var(--text-muted)' }}>TikTok:</span> <a href={part.tiktokUrl} target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline' }}>Profil Link</a></div>}
                                 </div>
                               </td>
-                              <td>
-                                <span style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: 'white', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '4px' }}>
-                                  {part.ticketCode || `TKT-${part.id.substring(part.id.length - 6).toUpperCase()}`}
-                                </span>
-                              </td>
+                              {selectedManageEvent.ticketPrice > 0 && (
+                                <td>
+                                  <span style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: 'white', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '4px' }}>
+                                    {part.ticketCode || `TKT-${part.id.substring(part.id.length - 6).toUpperCase()}`}
+                                  </span>
+                                </td>
+                              )}
                               <td>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                   <span style={{ fontSize: '0.8rem', color: 'white', fontWeight: 'bold' }}>
@@ -2616,26 +2620,28 @@ export default function AdminPanel({
                                   )}
                                 </div>
                               </td>
-                              <td>
-                                {part.isCheckedIn ? (
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                    <span style={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e' }}></span>
-                                      Sudah Check-In
-                                    </span>
-                                    {part.checkedInAt && (
-                                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                                        {new Date(part.checkedInAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                              {selectedManageEvent.ticketPrice > 0 && (
+                                <td>
+                                  {part.isCheckedIn ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                      <span style={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e' }}></span>
+                                        Sudah Check-In
                                       </span>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <span style={{ fontSize: '0.75rem', color: '#a3a3a3', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#a3a3a3' }}></span>
-                                    Belum Check-In
-                                  </span>
-                                )}
-                              </td>
+                                      {part.checkedInAt && (
+                                        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                                          {new Date(part.checkedInAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span style={{ fontSize: '0.75rem', color: '#a3a3a3', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#a3a3a3' }}></span>
+                                      Belum Check-In
+                                    </span>
+                                  )}
+                                </td>
+                              )}
                               <td style={{ textAlign: 'center' }}>
                                 {part.status === 'pending' ? (
                                   <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
@@ -2656,7 +2662,7 @@ export default function AdminPanel({
                                   </div>
                                 ) : (
                                   <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                                    {part.status === 'approved' && !part.isCheckedIn && (
+                                    {selectedManageEvent.ticketPrice > 0 && part.status === 'approved' && !part.isCheckedIn && (
                                       <button
                                         onClick={() => handleCheckInParticipant(part.id)}
                                         className="btn btn-primary btn-sm"
