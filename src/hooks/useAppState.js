@@ -2728,6 +2728,8 @@ export default function useAppState() {
     setLoginError,
     registerRegional,
     setRegisterRegional,
+    registerRole,
+    setRegisterRole,
     isEditProfileModalOpen,
     setIsEditProfileModalOpen,
     globalLoadingText,
@@ -2832,6 +2834,15 @@ export default function useAppState() {
     setCommunities,
     sidebarEvents,
     sidebarParticipants,
-    sidebarSubmissions
+    sidebarSubmissions,
+    handleSetMovies,
+    handleSetAffiliateLinks,
+    handleSetUsers,
+    handleSetEvents,
+    handleSetEventParticipants,
+    handleSetEventSubmissions,
+    handleSetWithdrawals,
+    handleSetOffers,
+    handleSetFinancialJournals
   };
 }

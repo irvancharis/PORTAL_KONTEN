@@ -166,6 +166,8 @@ export default function App() {
     setLoginError,
     registerRegional,
     setRegisterRegional,
+    registerRole,
+    setRegisterRole,
     isEditProfileModalOpen,
     setIsEditProfileModalOpen,
     globalLoadingText,
@@ -270,7 +272,16 @@ export default function App() {
     setCommunities,
     sidebarEvents,
     sidebarParticipants,
-    sidebarSubmissions
+    sidebarSubmissions,
+    handleSetMovies,
+    handleSetAffiliateLinks,
+    handleSetUsers,
+    handleSetEvents,
+    handleSetEventParticipants,
+    handleSetEventSubmissions,
+    handleSetWithdrawals,
+    handleSetOffers,
+    handleSetFinancialJournals
   } = state;
 
     return (
