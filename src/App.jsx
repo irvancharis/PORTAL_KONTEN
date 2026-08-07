@@ -242,7 +242,6 @@ export default function App() {
     allYears,
     allCountries,
     isLoadingDB,
-    handleResize,
     handleCheckProfileSocialMedia,
     handleOpenEditProfile,
     handleOpenLoginModal,

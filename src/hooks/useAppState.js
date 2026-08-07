@@ -2804,7 +2804,6 @@ export default function useAppState() {
     allYears,
     allCountries,
     isLoadingDB,
-    handleResize,
     handleCheckProfileSocialMedia,
     handleOpenEditProfile,
     handleOpenLoginModal,
