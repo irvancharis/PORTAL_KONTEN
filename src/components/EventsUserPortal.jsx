@@ -1075,9 +1075,6 @@ export default function EventsUserPortal({
         } else {
           setEventSubmissions([...eventSubmissions, newSub]);
         }
-        if (handleAwardEventGift && submittingEvent.hasGift) {
-          handleAwardEventGift(submittingEvent, currentUser);
-        }
         setSubmittingEvent(null);
         setWorkTitle('');
         setWorkVideoUrl('');

@@ -287,7 +287,8 @@ export default function App() {
     handleSetFinancialJournals,
     gifts,
     handleSetGifts,
-    handleAwardEventGift
+    handleAwardEventGift,
+    handleRedeemGiftCode
   } = state;
 
     return (
@@ -416,6 +417,7 @@ export default function App() {
               gifts={gifts}
               setGifts={handleSetGifts}
               handleAwardEventGift={handleAwardEventGift}
+              handleRedeemGiftCode={handleRedeemGiftCode}
             />
           ) : activeTab === 'wallet' ? (
             <WalletUserPortal 
@@ -542,6 +544,7 @@ export default function App() {
                   gifts={gifts}
                   setGifts={handleSetGifts}
                   handleAwardEventGift={handleAwardEventGift}
+                  handleRedeemGiftCode={handleRedeemGiftCode}
                 />
               )}
             />

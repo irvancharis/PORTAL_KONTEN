@@ -381,6 +381,9 @@ export default function useAppState() {
       return;
     }
 
+    const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const giftCode = event.giftType === 'cash' ? '' : `VCH-${event.id.replace('evt_', '').substring(0, 4).toUpperCase()}-${randomSuffix}`;
+
     const newGift = {
       id: `gift_${Date.now()}`,
       eventId: event.id,
@@ -391,6 +394,8 @@ export default function useAppState() {
       giftName: event.giftName || 'Hadiah Tambahan',
       giftValue: valueNum,
       giftDescription: event.giftDescription || '',
+      giftCode: giftCode,
+      status: event.giftType === 'cash' ? 'used' : 'active',
       createdAt: new Date().toISOString()
     };
 
@@ -424,6 +429,44 @@ export default function useAppState() {
       };
       await handleSetFinancialJournals(prev => [...prev, newJournal]);
     }
+  };
+
+  const handleRedeemGiftCode = async (code) => {
+    if (!code) return { success: false, message: 'Kode voucher tidak boleh kosong!' };
+    
+    let foundGift = null;
+    const codeTrimmed = code.toLowerCase().trim();
+    
+    // Check in local gifts state
+    const updated = gifts.map(g => {
+      if (g.giftCode && g.giftCode.toLowerCase().trim() === codeTrimmed) {
+        foundGift = g;
+        if (g.status === 'used') {
+          return g;
+        }
+        return {
+          ...g,
+          status: 'used',
+          usedAt: new Date().toISOString()
+        };
+      }
+      return g;
+    });
+
+    if (!foundGift) {
+      return { success: false, message: 'Kode voucher tidak valid atau tidak terdaftar!' };
+    }
+
+    if (foundGift.status === 'used') {
+      return { success: false, message: `Voucher ini sudah digunakan pada ${new Date(foundGift.usedAt).toLocaleString('id-ID')}!` };
+    }
+
+    await handleSetGifts(updated);
+    return { 
+      success: true, 
+      message: `Voucher "${foundGift.giftName}" (Rp ${foundGift.giftValue.toLocaleString('id-ID')}) milik @${foundGift.recipientUsername} berhasil ditukarkan!`, 
+      gift: foundGift 
+    };
   };
 
   const handleSetOffers = async (newOffers) => {
@@ -2972,6 +3015,7 @@ export default function useAppState() {
     handleSetFinancialJournals,
     gifts,
     handleSetGifts,
-    handleAwardEventGift
+    handleAwardEventGift,
+    handleRedeemGiftCode
   };
 }

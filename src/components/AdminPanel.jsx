@@ -332,7 +332,11 @@ export default function AdminPanel({
   onKickMember,
   onApproveMember,
   onRejectMember,
-  onSaveAgenda
+  onSaveAgenda,
+  gifts = [],
+  setGifts,
+  handleAwardEventGift,
+  handleRedeemGiftCode
 }) {
   const isPanitia = currentUser && (currentUser.role === 'panitia' || currentUser.role === 'user');
   const myEvents = isPanitia 
@@ -1585,6 +1589,14 @@ export default function AdminPanel({
         // Transfer wallet to creator/participant
         handleTransferWallet(sub.username, payoutAmount);
 
+        // Auto award event gift if event has gift
+        if (handleAwardEventGift && evt.hasGift) {
+          const recipientUser = users.find(u => u.username.toLowerCase() === sub.username.toLowerCase());
+          if (recipientUser) {
+            handleAwardEventGift(evt, recipientUser);
+          }
+        }
+
         // Deduct remaining budget
         setEvents(prev => prev.map(event => {
           if (event.id === evt.id) {
@@ -1658,6 +1670,14 @@ export default function AdminPanel({
         // Transfer wallet to creator/participant
         handleTransferWallet(judgingSubmission.username, payoutAmount);
         finalPaidBenefit = payoutAmount;
+
+        // Auto award event gift if event has gift
+        if (handleAwardEventGift && evt.hasGift) {
+          const recipientUser = users.find(u => u.username.toLowerCase() === judgingSubmission.username.toLowerCase());
+          if (recipientUser) {
+            handleAwardEventGift(evt, recipientUser);
+          }
+        }
 
         // Deduct remaining budget
         setEvents(prev => prev.map(event => {
@@ -2443,6 +2463,11 @@ export default function AdminPanel({
                   count: eventSubmissions.filter(s => s.eventId === selectedManageEvent.id && (selectedManageEvent.budgetMode === 'submit' ? s.status === 'submitted' : s.score === null)).length 
                 },
                 selectedManageEvent.eventType !== 'regular' && selectedManageEvent.budgetMode !== 'views' && selectedManageEvent.budgetMode !== 'submit' && { id: 'judging', label: 'Penjurian & Pemenang', count: 0 },
+                selectedManageEvent.hasGift && {
+                  id: 'gifts',
+                  label: 'Kelola Voucher / Gift',
+                  count: (gifts || []).filter(g => g.eventId === selectedManageEvent.id && g.giftType === 'voucher' && g.status === 'active').length
+                },
                 { id: 'finance', label: 'Keuangan Event', count: 0 }
               ].filter(Boolean).map(tab => {
                 const isActive = innerManageTab === tab.id;
@@ -2934,6 +2959,166 @@ export default function AdminPanel({
                   ) : (
                     <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                       Belum ada catatan transaksi untuk event ini.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {innerManageTab === 'gifts' && (
+              <div className="inner-tab-content animate-fade-in">
+                {/* Redeem Voucher Code Form */}
+                <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px', marginBottom: '24px' }}>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '0.95rem', margin: '0 0 6px 0' }}>
+                    Proses Penukaran Voucher (Redeem)
+                  </h4>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', margin: '0 0 16px 0' }}>
+                    Masukkan kode voucher dari peserta untuk memverifikasi dan mengubah statusnya menjadi sudah digunakan.
+                  </p>
+                  
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    const codeInput = e.target.elements.voucherCode;
+                    const res = await handleRedeemGiftCode(codeInput.value);
+                    alert(res.message);
+                    if (res.success) {
+                      codeInput.value = '';
+                    }
+                  }} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                    <input
+                      name="voucherCode"
+                      type="text"
+                      placeholder="Masukkan Kode Voucher (contoh: VCH-XXXX-XXXXXX)"
+                      style={{
+                        flex: 1,
+                        minWidth: '240px',
+                        padding: '10px 14px',
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '8px',
+                        color: 'var(--text-primary)',
+                        fontSize: '0.88rem',
+                        outline: 'none'
+                      }}
+                      required
+                    />
+                    <button
+                      type="submit"
+                      className="btn"
+                      style={{
+                        padding: '10px 24px',
+                        background: 'var(--text-primary)',
+                        color: 'var(--bg-main)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Verifikasi & Tukar
+                    </button>
+                  </form>
+                </div>
+
+                {/* Gifts Issued List Table */}
+                <h4 style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '0.95rem', marginBottom: '12px' }}>
+                  Daftar Hadiah & Voucher Terbit
+                </h4>
+                <div className="admin-table-container">
+                  {(gifts || []).filter(g => g.eventId === selectedManageEvent.id).length > 0 ? (
+                    <table className="admin-table" style={{ width: '100%' }}>
+                      <thead>
+                        <tr>
+                          <th>Tanggal</th>
+                          <th>Penerima</th>
+                          <th>Tipe</th>
+                          <th>Nama Hadiah</th>
+                          <th>Kode Voucher</th>
+                          <th style={{ textAlign: 'center' }}>Status</th>
+                          <th style={{ textAlign: 'right' }}>Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(gifts || []).filter(g => g.eventId === selectedManageEvent.id).map(g => (
+                          <tr key={g.id} className="table-row-hover">
+                            <td>
+                              {new Date(g.createdAt || Date.now()).toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric'
+                              })}
+                            </td>
+                            <td>
+                              <strong>{g.recipientName}</strong>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>@{g.recipientUsername}</div>
+                            </td>
+                            <td>
+                              <span style={{
+                                fontSize: '0.72rem',
+                                padding: '2px 8px',
+                                borderRadius: '12px',
+                                textTransform: 'capitalize',
+                                color: g.giftType === 'cash' ? '#4ade80' : g.giftType === 'voucher' ? '#38bdf8' : '#f472b6',
+                                background: g.giftType === 'cash' ? 'rgba(74,222,128,0.1)' : g.giftType === 'voucher' ? 'rgba(56,189,248,0.1)' : 'rgba(244,114,182,0.1)'
+                              }}>
+                                {g.giftType === 'cash' ? 'Cash' : g.giftType === 'voucher' ? 'Voucher' : 'Lainnya'}
+                              </span>
+                            </td>
+                            <td>
+                              <strong>{g.giftName}</strong>
+                              {g.giftValue > 0 && <div>Rp {g.giftValue.toLocaleString('id-ID')}</div>}
+                            </td>
+                            <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                              {g.giftCode || '-'}
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              {g.giftType === 'cash' ? (
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>-</span>
+                              ) : (
+                                <span style={{
+                                  fontSize: '0.72rem',
+                                  padding: '2px 8px',
+                                  borderRadius: '12px',
+                                  fontWeight: 'bold',
+                                  color: g.status === 'used' ? 'var(--text-muted)' : '#4ade80',
+                                  background: g.status === 'used' ? 'rgba(255,255,255,0.05)' : 'rgba(74,222,128,0.1)'
+                                }}>
+                                  {g.status === 'used' ? 'Sudah Ditukar' : 'Aktif'}
+                                </span>
+                              )}
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              {g.giftType === 'voucher' && g.status === 'active' && (
+                                <button
+                                  onClick={async () => {
+                                    if (window.confirm(`Tandai voucher "${g.giftName}" milik @${g.recipientUsername} sebagai sudah digunakan?`)) {
+                                      const res = await handleRedeemGiftCode(g.giftCode);
+                                      alert(res.message);
+                                    }
+                                  }}
+                                  className="btn"
+                                  style={{
+                                    padding: '4px 10px',
+                                    fontSize: '0.75rem',
+                                    background: 'var(--text-primary)',
+                                    color: 'var(--bg-main)',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  Tandai Digunakan
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      Belum ada hadiah/voucher yang diterbitkan untuk event ini.
                     </div>
                   )}
                 </div>

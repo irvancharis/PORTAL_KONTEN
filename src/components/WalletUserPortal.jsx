@@ -336,12 +336,12 @@ export default function WalletUserPortal({
           style={{
             background: 'none',
             border: 'none',
-            color: activeWalletTab === 'transactions' ? 'white' : 'var(--text-secondary)',
+            color: activeWalletTab === 'transactions' ? 'var(--text-primary)' : 'var(--text-secondary)',
             fontSize: '1rem',
             fontWeight: 'bold',
             padding: '8px 16px 12px 16px',
             cursor: 'pointer',
-            borderBottom: activeWalletTab === 'transactions' ? '3px solid white' : 'none',
+            borderBottom: activeWalletTab === 'transactions' ? '3px solid var(--text-primary)' : 'none',
             outline: 'none',
             transition: 'all 0.2s'
           }}
@@ -353,12 +353,12 @@ export default function WalletUserPortal({
           style={{
             background: 'none',
             border: 'none',
-            color: activeWalletTab === 'gifts' ? 'white' : 'var(--text-secondary)',
+            color: activeWalletTab === 'gifts' ? 'var(--text-primary)' : 'var(--text-secondary)',
             fontSize: '1rem',
             fontWeight: 'bold',
             padding: '8px 16px 12px 16px',
             cursor: 'pointer',
-            borderBottom: activeWalletTab === 'gifts' ? '3px solid white' : 'none',
+            borderBottom: activeWalletTab === 'gifts' ? '3px solid var(--text-primary)' : 'none',
             outline: 'none',
             transition: 'all 0.2s'
           }}
@@ -507,8 +507,10 @@ export default function WalletUserPortal({
                 <thead>
                   <tr>
                     <th style={{ width: '150px' }}>Tanggal</th>
-                    <th style={{ width: '140px' }}>Tipe Gift</th>
+                    <th style={{ width: '120px' }}>Tipe Gift</th>
                     <th>Nama Hadiah (Gift)</th>
+                    <th>Kode Voucher</th>
+                    <th style={{ textAlign: 'center' }}>Status</th>
                     <th>Event Kompetisi</th>
                     <th>Keterangan / Cara Klaim</th>
                   </tr>
@@ -537,13 +539,32 @@ export default function WalletUserPortal({
                         </span>
                       </td>
                       <td>
-                        <strong style={{ color: 'white', fontSize: '0.88rem' }}>{g.giftName}</strong>
+                        <strong style={{ color: 'var(--text-primary)', fontSize: '0.88rem' }}>{g.giftName}</strong>
                         {g.giftType === 'cash' && g.giftValue > 0 && (
                           <div style={{ fontSize: '0.75rem', color: '#4ade80' }}>+ Rp {g.giftValue.toLocaleString('id-ID')}</div>
                         )}
                       </td>
+                      <td style={{ color: 'var(--text-primary)', fontSize: '0.85rem', fontFamily: 'monospace' }}>
+                        {g.giftCode || '-'}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {g.giftType === 'cash' ? (
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>-</span>
+                        ) : (
+                          <span style={{
+                            fontSize: '0.75rem',
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            fontWeight: '600',
+                            color: g.status === 'used' ? 'var(--text-muted)' : '#4ade80',
+                            background: g.status === 'used' ? 'rgba(255,255,255,0.05)' : 'rgba(74,222,128,0.1)'
+                          }}>
+                            {g.status === 'used' ? 'Sudah Ditukar' : 'Aktif'}
+                          </span>
+                        )}
+                      </td>
                       <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{g.eventTitle}</td>
-                      <td style={{ color: 'white', fontSize: '0.85rem', whiteSpace: 'pre-wrap' }}>{g.giftDescription || '-'}</td>
+                      <td style={{ color: 'var(--text-primary)', fontSize: '0.85rem', whiteSpace: 'pre-wrap' }}>{g.giftDescription || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
