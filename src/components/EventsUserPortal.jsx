@@ -3442,6 +3442,146 @@ onMouseLeave={(e) => {
                   (() => {
                     const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
                     
+                    const isGoogleReview = registeringEvent?.juknisPlatforms?.GoogleReview === true;
+                    if (isGoogleReview) {
+                      const activeBal = userProfile.walletBalance || 0;
+                      const isInsufficient = activeBal < registeringEvent.ticketPrice;
+                      const hasIncompleteProfile = !userProfile.organizerName || !userProfile.organizerPhone;
+                      const isDisabled = hasIncompleteProfile || isInsufficient;
+                      
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                          <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                            <p style={{ margin: '0 0 10px 0', color: 'white', fontWeight: 'bold' }}>Pendaftaran Event Google Review</p>
+                            Pendaftaran untuk event ini tidak memerlukan verifikasi akun sosial media. Setelah mendaftar, Anda dapat langsung membuat ulasan di Google Maps dan mengirimkan bukti ulasan berupa teks serta tangkapan layar (screenshot) pada menu pengiriman karya.
+                          </div>
+                          
+                          {/* ticket price and payment if any */}
+                          {registeringEvent.ticketPrice > 0 && (
+                            <div style={{
+                              background: 'rgba(255, 255, 255, 0.02)',
+                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              marginTop: '8px'
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Biaya Pendaftaran / Tiket:</span>
+                                <strong style={{ color: '#4ade80', fontSize: '1.05rem' }}>Rp {registeringEvent.ticketPrice.toLocaleString('id-ID')}</strong>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Saldo Dompet Anda:</span>
+                                <strong style={{ color: 'white', fontSize: '1.05rem' }}>Rp {activeBal.toLocaleString('id-ID')}</strong>
+                              </div>
+                              
+                              {isInsufficient ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '12px' }}>
+                                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#f87171', lineHeight: '1.4' }}>
+                                    * Saldo Anda kurang sebesar <strong>Rp {(registeringEvent.ticketPrice - activeBal).toLocaleString('id-ID')}</strong>.
+                                  </p>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const deficit = registeringEvent.ticketPrice - activeBal;
+                                      setUsers(prevUsers => prevUsers.map(u => {
+                                        if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
+                                          return { ...u, walletBalance: (u.walletBalance || 0) + deficit };
+                                        }
+                                        return u;
+                                      }));
+                                      alert(`Top Up Sukses! Dana sebesar Rp ${deficit.toLocaleString('id-ID')} ditambahkan ke dompet Anda.`);
+                                    }}
+                                    className="btn"
+                                    style={{
+                                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '8px 16px',
+                                      borderRadius: '20px',
+                                      fontWeight: 'bold',
+                                      fontSize: '0.8rem',
+                                      cursor: 'pointer',
+                                      textAlign: 'center',
+                                      display: 'inline-flex',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                      gap: '6px'
+                                    }}
+                                  >
+                                    <Wallet size={14} />
+                                    <span>Top Up Instan & Bayar</span>
+                                  </button>
+                                </div>
+                              ) : (
+                                <div style={{ fontSize: '0.78rem', color: '#4ade80', marginTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '8px' }}>
+                                  ✓ Saldo Anda mencukupi. Biaya pendaftaran akan langsung dipotong setelah konfirmasi pendaftaran.
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {hasIncompleteProfile && (
+                            <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '6px', fontSize: '0.8rem', color: '#dc2626' }}>
+                              <p style={{ margin: '0 0 6px 0', fontWeight: '600' }}>⚠️ Data Profil Belum Lengkap!</p>
+                              Nama Lengkap dan No. WhatsApp wajib diisi di profil Anda untuk dapat berpartisipasi.
+                            </div>
+                          )}
+
+                          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '12px' }}>
+                            <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
+                            <button 
+                              type="button" 
+                              disabled={isDisabled}
+                              onClick={() => {
+                                const ticketPrice = registeringEvent.ticketPrice || 0;
+                                if (ticketPrice > 0) {
+                                  setUsers(prevUsers => prevUsers.map(u => {
+                                    if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
+                                      return { ...u, walletBalance: Math.max(0, (u.walletBalance || 0) - ticketPrice) };
+                                    }
+                                    if (u.username.toLowerCase() === (registeringEvent.creator || '').toLowerCase()) {
+                                      return { ...u, walletBalance: (u.walletBalance || 0) + ticketPrice };
+                                    }
+                                    return u;
+                                  }));
+                                }
+
+                                const tktCode = `TKT-${Math.floor(100000 + Math.random() * 900000)}`;
+                                setGeneratedTicketCode(tktCode);
+
+                                const newPart = {
+                                  id: `part_${Date.now()}`,
+                                  eventId: registeringEvent.id,
+                                  eventTitle: registeringEvent.title,
+                                  name: userProfile.organizerName || currentUser.username,
+                                  username: currentUser.username,
+                                  email: userProfile.email || `${currentUser.username}@ngonten.id`,
+                                  contact: '-',
+                                  socialPlatform: 'GoogleReview',
+                                  socialLink: '',
+                                  status: 'approved',
+                                  verifiedAt: new Date().toISOString(),
+                                  registeredAt: new Date().toISOString(),
+                                  ticketCode: tktCode,
+                                  isCheckedIn: false,
+                                  checkedInAt: null,
+                                  ticketPrice: ticketPrice,
+                                  isPaid: ticketPrice > 0
+                                };
+
+                                setEventParticipants([...eventParticipants, newPart]);
+                                setVerificationStep('success');
+                              }}
+                              className="btn btn-primary" 
+                              style={{ padding: '10px 20px', fontWeight: 'bold', opacity: isDisabled ? 0.5 : 1, cursor: isDisabled ? 'not-allowed' : 'pointer' }}
+                            >
+                              {registeringEvent.ticketPrice > 0 ? 'Beli Tiket & Daftar Instan' : 'Daftar Sekarang'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+                    
                     const verifiedAccounts = [];
                     if (userProfile.instagramVerified && userProfile.instagramHandle) {
                       verifiedAccounts.push({ id: 'instagram', label: 'Instagram', handle: userProfile.instagramHandle });
@@ -3849,6 +3989,8 @@ onMouseLeave={(e) => {
                       const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
                       return <>Pendaftaran atas nama <strong>{userProfile.organizerName || userProfile.username}</strong> berhasil disetujui. E-Tiket Anda telah aktif.</>;
                     })()
+                  ) : registeringEvent.juknisPlatforms?.GoogleReview ? (
+                    <>Pendaftaran Anda berhasil disetujui. Silakan langsung membuat ulasan di Google Maps dan mengirimkan bukti ulasan pada menu kirim karya.</>
                   ) : (
                     <>Sistem mendeteksi akun <strong>@{socialUrl.trim()}</strong> Anda valid. Pendaftaran kompetisi disetujui secara otomatis.</>
                   )}
