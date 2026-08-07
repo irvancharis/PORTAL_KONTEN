@@ -2812,7 +2812,6 @@ export default function useAppState() {
     handleRegisterSubmit,
     handleGoogleLogin,
     handleLogout,
-    initFirestore,
     handleToggleJoinCommunity,
     handleKickMember,
     handleApproveMember,

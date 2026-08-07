@@ -250,7 +250,6 @@ export default function App() {
     handleRegisterSubmit,
     handleGoogleLogin,
     handleLogout,
-    initFirestore,
     handleToggleJoinCommunity,
     handleKickMember,
     handleApproveMember,
