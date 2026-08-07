@@ -509,7 +509,7 @@ export default function Navbar({
                   { id: 'events', label: 'Event' },
                   { id: 'communities', label: 'Komunitas' }
                 ] : []),
-                { id: 'wallet', label: 'Dompet Saya', requiresUser: true }
+                { id: 'wallet', label: 'Dompet', requiresUser: true }
               ]
                 .filter(tab => !tab.requiresUser || currentUser)
                 .map(tab => {

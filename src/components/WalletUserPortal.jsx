@@ -18,7 +18,9 @@ export default function WalletUserPortal({
   minWithdrawalAmount = 50000,
   withdrawalFeePercent = 0,
   withdrawalFeePercentPremium = 5,
-  eventParticipants = []
+  eventParticipants = [],
+  gifts = [],
+  setGifts
 }) {
   const [isWdModalOpen, setIsWdModalOpen] = useState(false);
   const [wdAmount, setWdAmount] = useState(0);
@@ -27,6 +29,7 @@ export default function WalletUserPortal({
   const [wdMethod, setWdMethod] = useState('Dana');
   const [wdPassword, setWdPassword] = useState('');
   const [txFilter, setTxFilter] = useState('all'); // 'all', 'credit', 'debit'
+  const [activeWalletTab, setActiveWalletTab] = useState('transactions'); // 'transactions', 'gifts'
 
   const isPremium = currentUser && currentUser.isPremium === true;
   const activeFeePercent = isPremium ? withdrawalFeePercentPremium : withdrawalFeePercent;
@@ -36,7 +39,7 @@ export default function WalletUserPortal({
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: '16px' }}>
         <Wallet size={48} style={{ color: 'var(--text-muted)' }} />
         <h3 style={{ color: 'white' }}>Masuk Akun Diperlukan</h3>
-        <p style={{ color: 'var(--text-secondary)' }}>Silakan masuk ke akun Anda terlebih dahulu untuk melihat dompet kreator.</p>
+        <p style={{ color: 'var(--text-secondary)' }}>Silakan masuk ke akun Anda terlebih dahulu untuk melihat dompet Anda.</p>
       </div>
     );
   }
@@ -237,6 +240,8 @@ export default function WalletUserPortal({
     return true;
   });
 
+  const myGifts = gifts.filter(g => g.recipientUsername?.toLowerCase() === currentUser.username.toLowerCase());
+
   return (
     <div className="wallet-portal-container animate-fade-in-up" style={{ color: 'var(--text-primary)' }}>
       {/* Header Banner */}
@@ -324,10 +329,49 @@ export default function WalletUserPortal({
         </div>
       </div>
 
+      {/* Tab Switching Headers */}
+      <div style={{ display: 'flex', gap: '16px', borderBottom: '1px solid var(--border-color)', marginBottom: '24px', paddingBottom: '4px' }}>
+        <button
+          onClick={() => setActiveWalletTab('transactions')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: activeWalletTab === 'transactions' ? 'white' : 'var(--text-secondary)',
+            fontSize: '1rem',
+            fontWeight: 'bold',
+            padding: '8px 16px 12px 16px',
+            cursor: 'pointer',
+            borderBottom: activeWalletTab === 'transactions' ? '3px solid white' : 'none',
+            outline: 'none',
+            transition: 'all 0.2s'
+          }}
+        >
+          Mutasi Saldo
+        </button>
+        <button
+          onClick={() => setActiveWalletTab('gifts')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: activeWalletTab === 'gifts' ? 'white' : 'var(--text-secondary)',
+            fontSize: '1rem',
+            fontWeight: 'bold',
+            padding: '8px 16px 12px 16px',
+            cursor: 'pointer',
+            borderBottom: activeWalletTab === 'gifts' ? '3px solid white' : 'none',
+            outline: 'none',
+            transition: 'all 0.2s'
+          }}
+        >
+          Gift & Voucher Saya ({myGifts.length})
+        </button>
+      </div>
+
       {/* Transaction History Section */}
-      <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: 0 }}>Riwayat Mutasi Saldo</h3>
+      {activeWalletTab === 'transactions' && (
+        <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: 0 }}>Riwayat Mutasi Saldo</h3>
           
           {/* Filters */}
           <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
@@ -451,6 +495,67 @@ export default function WalletUserPortal({
           )}
         </div>
       </div>
+      )}
+
+      {/* Gifts & Vouchers Section */}
+      {activeWalletTab === 'gifts' && (
+        <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', marginBottom: '20px' }}>Daftar Hadiah Tambahan (Gift & Voucher)</h3>
+          <div className="admin-table-container">
+            {myGifts.length > 0 ? (
+              <table className="admin-table" style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: '150px' }}>Tanggal</th>
+                    <th style={{ width: '140px' }}>Tipe Gift</th>
+                    <th>Nama Hadiah (Gift)</th>
+                    <th>Event Kompetisi</th>
+                    <th>Keterangan / Cara Klaim</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {myGifts.map((g) => (
+                    <tr key={g.id} className="table-row-hover">
+                      <td style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                        {new Date(g.createdAt || Date.now()).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </td>
+                      <td>
+                        <span style={{
+                          fontSize: '0.75rem',
+                          padding: '3px 10px',
+                          borderRadius: '12px',
+                          fontWeight: '600',
+                          textTransform: 'capitalize',
+                          color: g.giftType === 'cash' ? '#4ade80' : g.giftType === 'voucher' ? '#38bdf8' : g.giftType === 'product' ? '#f472b6' : '#a78bfa',
+                          background: g.giftType === 'cash' ? 'rgba(74,222,128,0.1)' : g.giftType === 'voucher' ? 'rgba(56,189,248,0.1)' : g.giftType === 'product' ? 'rgba(244,114,182,0.1)' : 'rgba(167,139,250,0.1)'
+                        }}>
+                          {g.giftType === 'cash' ? 'Saldo Dompet' : g.giftType === 'voucher' ? 'Voucher' : g.giftType === 'product' ? 'Produk/Merch' : 'Lainnya'}
+                        </span>
+                      </td>
+                      <td>
+                        <strong style={{ color: 'white', fontSize: '0.88rem' }}>{g.giftName}</strong>
+                        {g.giftType === 'cash' && g.giftValue > 0 && (
+                          <div style={{ fontSize: '0.75rem', color: '#4ade80' }}>+ Rp {g.giftValue.toLocaleString('id-ID')}</div>
+                        )}
+                      </td>
+                      <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{g.eventTitle}</td>
+                      <td style={{ color: 'white', fontSize: '0.85rem', whiteSpace: 'pre-wrap' }}>{g.giftDescription || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                Belum ada hadiah tambahan yang diklaim untuk akun Anda.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Withdrawal Form Modal */}
       {isWdModalOpen && createPortal(

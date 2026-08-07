@@ -639,6 +639,11 @@ export default function AdminPanel({
   const [eventJuknisBrandLink, setEventJuknisBrandLink] = useState('');
   const [eventJuknisDos, setEventJuknisDos] = useState('');
   const [eventJuknisDonts, setEventJuknisDonts] = useState('');
+  const [eventHasGift, setEventHasGift] = useState(false);
+  const [eventGiftType, setEventGiftType] = useState('voucher'); // 'voucher' | 'product' | 'cash' | 'other'
+  const [eventGiftName, setEventGiftName] = useState('');
+  const [eventGiftValue, setEventGiftValue] = useState(0);
+  const [eventGiftDescription, setEventGiftDescription] = useState('');
   const [checkInTicketCode, setCheckInTicketCode] = useState('');
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
@@ -971,6 +976,11 @@ export default function AdminPanel({
                 juknisBrandLink: eventJuknisBrandLink.trim(),
                 juknisDos: eventJuknisDos.trim(),
                 juknisDonts: eventJuknisDonts.trim(),
+                hasGift: eventHasGift,
+                giftType: eventGiftType,
+                giftName: eventGiftName.trim(),
+                giftValue: eventHasGift && eventGiftType === 'cash' ? (parseInt(eventGiftValue) || 0) : 0,
+                giftDescription: eventGiftDescription.trim(),
                 budgetMode: isComp ? eventBudgetMode : 'views',
                 targetAudience: eventTargetAudience,
                 areaMode: eventAreaMode,
@@ -1013,6 +1023,11 @@ export default function AdminPanel({
             juknisBrandLink: eventJuknisBrandLink.trim(),
             juknisDos: eventJuknisDos.trim(),
             juknisDonts: eventJuknisDonts.trim(),
+            hasGift: eventHasGift,
+            giftType: eventGiftType,
+            giftName: eventGiftName.trim(),
+            giftValue: eventHasGift && eventGiftType === 'cash' ? (parseInt(eventGiftValue) || 0) : 0,
+            giftDescription: eventGiftDescription.trim(),
             budgetMode: isComp ? eventBudgetMode : 'views',
             targetAudience: eventTargetAudience,
             areaMode: eventAreaMode,
@@ -1344,6 +1359,11 @@ export default function AdminPanel({
     setEventJuknisBrandLink(evt.juknisBrandLink || '');
     setEventJuknisDos(evt.juknisDos || '');
     setEventJuknisDonts(evt.juknisDonts || '');
+    setEventHasGift(evt.hasGift || false);
+    setEventGiftType(evt.giftType || 'voucher');
+    setEventGiftName(evt.giftName || '');
+    setEventGiftValue(evt.giftValue || 0);
+    setEventGiftDescription(evt.giftDescription || '');
     setEventType(evt.eventType || 'competition');
     setEventBudgetMode(evt.budgetMode || 'views');
     setEventTargetAudience(evt.targetAudience || 'public');
@@ -3235,6 +3255,51 @@ export default function AdminPanel({
                     </div>
                   </div>
                   
+                  {/* Hadiah Tambahan (Gift) Card */}
+                  <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
+                      <h4 style={{ color: 'white', fontSize: '0.95rem', fontWeight: 'bold', margin: 0 }}>
+                        Hadiah Tambahan (Gift) Peserta
+                      </h4>
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', color: 'white' }}>
+                        <input type="checkbox" checked={eventHasGift} onChange={(e) => setEventHasGift(e.target.checked)} style={{ width: '16px', height: '16px' }} />
+                        <span>Aktifkan Gift</span>
+                      </label>
+                    </div>
+
+                    {eventHasGift && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '12px' }} className="animate-fade-in">
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Tipe Hadiah</label>
+                            <select value={eventGiftType} onChange={(e) => setEventGiftType(e.target.value)} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem', outline: 'none' }}>
+                              <option value="voucher">Voucher (Diskon, Belanja, dll.)</option>
+                              <option value="product">Produk / Merchandise Physical</option>
+                              <option value="cash">Saldo Dompet (Cash / Uang Digital)</option>
+                              <option value="other">Lainnya</option>
+                            </select>
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Nama Hadiah (Nama Gift)</label>
+                            <input type="text" required={eventHasGift} value={eventGiftName} onChange={(e) => setEventGiftName(e.target.value)} placeholder="Misal: Voucher Belanja Rp 50.000 / Kaos Keren" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                        </div>
+
+                        {eventGiftType === 'cash' && (
+                          <div className="form-group animate-fade-in" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Nominal Saldo Hadiah (Rupiah)</label>
+                            <input type="number" required={eventHasGift && eventGiftType === 'cash'} value={eventGiftValue} onChange={(e) => setEventGiftValue(e.target.value)} placeholder="Contoh: 10000" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                        )}
+
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                          <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Deskripsi / Keterangan Cara Klaim Gift</label>
+                          <textarea rows="3" value={eventGiftDescription} onChange={(e) => setEventGiftDescription(e.target.value)} placeholder="Tuliskan keterangan detail gift atau kode voucher / link penukaran di sini..." style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none' }}></textarea>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div style={{ display: 'flex', gap: '16px', justifyContent: 'flex-end', marginTop: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
                     <button type="button" className="btn btn-secondary" onClick={() => {
                       setEditingEventId(null);
@@ -3789,6 +3854,11 @@ export default function AdminPanel({
                     setEventJuknisBrandLink('');
                     setEventJuknisDos('');
                     setEventJuknisDonts('');
+                    setEventHasGift(false);
+                    setEventGiftType('voucher');
+                    setEventGiftName('');
+                    setEventGiftValue(0);
+                    setEventGiftDescription('');
                     setEventBudget(5000000);
                     setEventBenefitAmount(10000);
                     setEventBenefitViewsStep(1000);

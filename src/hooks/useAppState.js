@@ -46,7 +46,10 @@ import {
   saveFirestoreCommunity,
   deleteFirestoreCommunity,
   getFirestoreRegions,
-  seedFirestoreRegions
+  seedFirestoreRegions,
+  getFirestoreGifts,
+  saveFirestoreGift,
+  deleteFirestoreGift
 } from '../firebase';
 import moviesData from '../data/movies.json';
 import { slugify, formatIndonesianDate, fetchJSONP } from '../utils/helpers';
@@ -307,6 +310,121 @@ export default function useAppState() {
     const saved = localStorage.getItem('portal-offers');
     return saved ? JSON.parse(saved) : [];
   });
+
+  const [gifts, setGifts] = useState(() => {
+    const saved = localStorage.getItem('portal-gifts');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('portal-gifts', JSON.stringify(gifts));
+  }, [gifts]);
+
+  const handleSetGifts = async (newGifts) => {
+    if (isFirebaseConfigured()) {
+      if (typeof newGifts === 'function') {
+        setGifts(prev => {
+          const updated = newGifts(prev);
+          (async () => {
+            if (updated.length < prev.length) {
+              const remainingIds = updated.map(g => g.id);
+              const deleted = prev.filter(g => !remainingIds.includes(g.id));
+              for (const g of deleted) {
+                await deleteFirestoreGift(g.id);
+              }
+            } else {
+              for (const g of updated) {
+                const existing = prev.find(old => old.id === g.id);
+                if (!existing || JSON.stringify(existing) !== JSON.stringify(g)) {
+                  await saveFirestoreGift(g);
+                }
+              }
+            }
+          })();
+          return updated;
+        });
+      } else {
+        const prev = gifts;
+        setGifts(newGifts);
+        if (newGifts.length < prev.length) {
+          const remainingIds = newGifts.map(g => g.id);
+          const deleted = prev.filter(g => !remainingIds.includes(g.id));
+          for (const g of deleted) {
+            await deleteFirestoreGift(g.id);
+          }
+        } else {
+          for (const g of newGifts) {
+            const existing = prev.find(old => old.id === g.id);
+            if (!existing || JSON.stringify(existing) !== JSON.stringify(g)) {
+              await saveFirestoreGift(g);
+            }
+          }
+        }
+      }
+    } else {
+      const val = typeof newGifts === 'function' ? newGifts(gifts) : newGifts;
+      setGifts(val);
+    }
+  };
+
+  const handleAwardEventGift = async (event, user) => {
+    if (!event || !event.hasGift || !user) return;
+
+    const valueNum = parseInt(event.giftValue) || 0;
+    const recipientUsername = user.username;
+    const recipientName = user.organizerName || user.username;
+
+    // Avoid duplicate gifts for the same event and participant
+    const alreadyReceived = gifts.some(g => g.eventId === event.id && g.recipientUsername.toLowerCase() === recipientUsername.toLowerCase());
+    if (alreadyReceived) {
+      console.log(`User @${recipientUsername} already received gift for event ${event.id}`);
+      return;
+    }
+
+    const newGift = {
+      id: `gift_${Date.now()}`,
+      eventId: event.id,
+      eventTitle: event.title,
+      recipientUsername: recipientUsername,
+      recipientName: recipientName,
+      giftType: event.giftType || 'voucher',
+      giftName: event.giftName || 'Hadiah Tambahan',
+      giftValue: valueNum,
+      giftDescription: event.giftDescription || '',
+      createdAt: new Date().toISOString()
+    };
+
+    // Save gift using state interceptor
+    await handleSetGifts(prev => [...prev, newGift]);
+
+    // If it's a cash gift, increase recipient's wallet balance
+    if (event.giftType === 'cash' && valueNum > 0) {
+      // Update local state and Firestore for the recipient user
+      setUsers(prev => prev.map(u => {
+        if (u.username.toLowerCase() === recipientUsername.toLowerCase()) {
+          const updatedUser = {
+            ...u,
+            walletBalance: (u.walletBalance || 0) + valueNum
+          };
+          if (isFirebaseConfigured()) {
+            saveFirestoreUser(updatedUser).catch(err => console.error("Error saving updated recipient user:", err));
+          }
+          return updatedUser;
+        }
+        return u;
+      }));
+
+      // Also create a financial journal entry (outbound) for the event
+      const newJournal = {
+        id: `journal_gift_${Date.now()}`,
+        date: new Date().toISOString(),
+        description: `Hadiah Gift Cash Event: ${event.title} (kepada @${recipientUsername})`,
+        type: 'out',
+        amount: valueNum
+      };
+      await handleSetFinancialJournals(prev => [...prev, newJournal]);
+    }
+  };
 
   const handleSetOffers = async (newOffers) => {
     if (isFirebaseConfigured()) {
@@ -1202,7 +1320,8 @@ export default function useAppState() {
             dbUsers,
             dbFinancialJournals,
             dbCommunities,
-            dbRegions
+            dbRegions,
+            dbGifts
           ] = await Promise.all([
             getFirestoreMovies(),
             getFirestoreConfirmations(),
@@ -1214,7 +1333,8 @@ export default function useAppState() {
             getFirestoreUsers(),
             getFirestoreFinancialJournals(),
             getFirestoreCommunities(),
-            getFirestoreRegions()
+            getFirestoreRegions(),
+            getFirestoreGifts()
           ]);
  
           if (dbMovies) setMovies(dbMovies);
@@ -1238,6 +1358,7 @@ export default function useAppState() {
           if (dbOffers) setOffers(dbOffers);
           if (dbUsers) setUsers(dbUsers);
           if (dbFinancialJournals) setFinancialJournals(dbFinancialJournals);
+          if (dbGifts) setGifts(dbGifts);
           
           if (dbCommunities) {
             if (dbCommunities.length === 0) {
@@ -2324,7 +2445,7 @@ export default function useAppState() {
         }
       }
     } else if (activeTab === 'wallet') {
-      document.title = 'Dompet Saya - ngonten.id';
+      document.title = 'Dompet - ngonten.id';
       if (metaDesc) {
         metaDesc.setAttribute('content', 'Kelola pendapatan Anda dari hasil kemenangan kampanye dan lakukan penarikan saldo dengan mudah di ngonten.id.');
       }
@@ -2848,6 +2969,9 @@ export default function useAppState() {
     handleSetEventSubmissions,
     handleSetWithdrawals,
     handleSetOffers,
-    handleSetFinancialJournals
+    handleSetFinancialJournals,
+    gifts,
+    handleSetGifts,
+    handleAwardEventGift
   };
 }

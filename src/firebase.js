@@ -346,6 +346,45 @@ export const deleteFirestoreEventSubmission = async (submissionId) => {
   }
 };
 
+// Gifts CRUD
+export const getFirestoreGifts = async () => {
+  if (!db) return null;
+  try {
+    const querySnapshot = await getDocs(collection(db, "gifts"));
+    const list = [];
+    querySnapshot.forEach((doc) => {
+      list.push({ id: doc.id, ...doc.data() });
+    });
+    return list;
+  } catch (e) {
+    console.error("Error fetching gifts from Firestore:", e);
+    return null;
+  }
+};
+
+export const saveFirestoreGift = async (gift) => {
+  if (!db) return false;
+  try {
+    const { id, ...data } = gift;
+    await setDoc(doc(db, "gifts", id), data);
+    return true;
+  } catch (e) {
+    console.error("Error saving gift to Firestore:", e);
+    return false;
+  }
+};
+
+export const deleteFirestoreGift = async (giftId) => {
+  if (!db) return false;
+  try {
+    await deleteDoc(doc(db, "gifts", giftId));
+    return true;
+  } catch (e) {
+    console.error("Error deleting gift from Firestore:", e);
+    return false;
+  }
+};
+
 // Withdrawals CRUD
 export const getFirestoreWithdrawals = async () => {
   if (!db) return null;

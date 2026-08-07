@@ -284,7 +284,10 @@ export default function App() {
     handleSetEventSubmissions,
     handleSetWithdrawals,
     handleSetOffers,
-    handleSetFinancialJournals
+    handleSetFinancialJournals,
+    gifts,
+    handleSetGifts,
+    handleAwardEventGift
   } = state;
 
     return (
@@ -410,6 +413,9 @@ export default function App() {
               onApproveMember={handleApproveMember}
               onRejectMember={handleRejectMember}
               onSaveAgenda={handleSaveAgenda}
+              gifts={gifts}
+              setGifts={handleSetGifts}
+              handleAwardEventGift={handleAwardEventGift}
             />
           ) : activeTab === 'wallet' ? (
             <WalletUserPortal 
@@ -424,6 +430,8 @@ export default function App() {
               withdrawalFeePercent={withdrawalFeePercent}
               withdrawalFeePercentPremium={withdrawalFeePercentPremium}
               eventParticipants={eventParticipants}
+              gifts={gifts}
+              setGifts={handleSetGifts}
             />
           ) : activeTab === 'communities' ? (
             <CommunitiesPage 
@@ -479,6 +487,7 @@ export default function App() {
               offers={offers}
               setOffers={handleSetOffers}
               communities={communities}
+              handleAwardEventGift={handleAwardEventGift}
               renderEventManagement={(onSaveSuccess, autoOpenForm) => (
                 <AdminPanel 
                   regions={regions}
@@ -530,6 +539,9 @@ export default function App() {
                   autoOpenCreateForm={autoOpenForm}
                   onEventCreatedOrUpdated={onSaveSuccess}
                   isEmbedded={true}
+                  gifts={gifts}
+                  setGifts={handleSetGifts}
+                  handleAwardEventGift={handleAwardEventGift}
                 />
               )}
             />

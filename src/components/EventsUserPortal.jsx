@@ -401,7 +401,8 @@ export default function EventsUserPortal({
   offers = [],
   setOffers,
   communities = [],
-  renderEventManagement
+  renderEventManagement,
+  handleAwardEventGift
 }) {
   const [registeringEvent, setRegisteringEvent] = useState(null); // Event model open for register
   const [generatedTicketCode, setGeneratedTicketCode] = useState('');
@@ -1058,6 +1059,9 @@ export default function EventsUserPortal({
         };
 
         setEventSubmissions([...eventSubmissions, newSub]);
+        if (handleAwardEventGift && submittingEvent.hasGift) {
+          handleAwardEventGift(submittingEvent, currentUser);
+        }
         setSubmittingEvent(null);
         setWorkTitle('');
         setWorkVideoUrl('');
