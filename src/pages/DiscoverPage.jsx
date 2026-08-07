@@ -224,21 +224,29 @@ export default function DiscoverPage({
                             fontSize: '0.68rem',
                             padding: '2px 8px',
                             borderRadius: '10px',
-                            background: 'rgba(255, 255, 255, 0.06)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            color: 'rgba(255, 255, 255, 0.8)',
+                            background: 'var(--primary-glow)',
+                            border: '1px solid var(--border-color)',
+                            color: 'var(--text-primary)',
                             fontWeight: 'bold'
                           }}>
                             {evt.eventType === 'competition' ? 'Kompetisi' : 'Event'}
                           </span>
                         </span>
                         <div className="split-card-meta">
-                          <span style={{ display: 'flex', alignItems: 'center' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
                             <Calendar size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
-                            <span>{evt.date || evt.deadline || 'Segera'}</span>
+                            <span>
+                              {evt.date 
+                                ? `Pelaksanaan: ${new Date(evt.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}` 
+                                : (evt.deadline 
+                                    ? `Batas Pendaftaran: ${new Date(evt.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}` 
+                                    : 'Tidak ada batas waktu'
+                                  )
+                              }
+                            </span>
                           </span>
                           {evt.location && (
-                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
                               <MapPin size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
                               <span>{evt.location}</span>
                             </span>
@@ -518,9 +526,9 @@ export default function DiscoverPage({
                                     borderRadius: '12px',
                                     fontSize: '0.7rem',
                                     fontWeight: 'bold',
-                                    background: 'rgba(255, 255, 255, 0.08)',
-                                    color: '#ffffff',
-                                    border: '1px solid rgba(255, 255, 255, 0.15)'
+                                    background: 'var(--primary-glow)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--border-color)'
                                   }}>
                                     {evt.category || 'Event'}
                                   </span>
@@ -529,18 +537,16 @@ export default function DiscoverPage({
                                 <span className="split-card-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px', marginTop: '8px' }}>
                                   <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                                     <Calendar size={13} style={{ marginRight: '6px', opacity: 0.7 }} />
-                                    <span>Pelaksanaan: {evt.date ? new Date(evt.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Segera'}</span>
+                                    <span>Pelaksanaan: {evt.date ? new Date(evt.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Belum ditentukan'}</span>
                                   </span>
                                   <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                                     <MapPin size={13} style={{ marginRight: '6px', opacity: 0.7 }} />
                                     <span>Lokasi: {evt.location || 'Online'}</span>
                                   </span>
-                                  {evt.deadline && (
-                                    <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', color: '#ffffff', fontWeight: '700' }}>
-                                      <Clock size={13} style={{ marginRight: '6px', opacity: 0.9 }} />
-                                      <span>Batas Pendaftaran: {new Date(evt.deadline).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                                    </span>
-                                  )}
+                                  <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-primary)', fontWeight: '700' }}>
+                                    <Clock size={13} style={{ marginRight: '6px', opacity: 0.9, color: 'var(--text-primary)' }} />
+                                    <span>Batas Pendaftaran: {evt.deadline ? new Date(evt.deadline).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Tidak ada batas waktu'}</span>
+                                  </span>
                                 </span>
                               </div>
                               <span className="split-card-link-text">Lihat Event →</span>
@@ -641,22 +647,22 @@ export default function DiscoverPage({
                                     borderRadius: '12px',
                                     fontSize: '0.7rem',
                                     fontWeight: 'bold',
-                                    background: 'rgba(255, 255, 255, 0.08)',
-                                    color: '#ffffff',
-                                    border: '1px solid rgba(255, 255, 255, 0.15)'
+                                    background: 'var(--primary-glow)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--border-color)'
                                   }}>
                                     {evt.juknisPlatforms?.GoogleReview ? 'Google Review' : evt.category || 'Kompetisi'}
                                   </span>
                                 </div>
                                 <span className="split-card-name">{evt.title}</span>
                                 <span className="split-card-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px', marginTop: '8px' }}>
-                                  <span style={{ display: 'flex', alignItems: 'center', color: '#ffffff', fontWeight: '800', fontSize: '1.05rem' }}>
+                                  <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: '800', fontSize: '1.05rem' }}>
                                     <DollarSign size={15} style={{ marginRight: '2px', opacity: 0.9 }} />
                                     <span>Rp {(evt.campaignBudget || 0).toLocaleString('id-ID')}</span>
                                   </span>
-                                  <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', color: '#f3f4f6', fontWeight: '700' }}>
-                                    <Clock size={13} style={{ marginRight: '5px', opacity: 0.9 }} />
-                                    <span>Batas Pendaftaran: {evt.deadline ? new Date(evt.deadline).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Segera'}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-primary)', fontWeight: '700' }}>
+                                    <Clock size={13} style={{ marginRight: '5px', opacity: 0.9, color: 'var(--text-primary)' }} />
+                                    <span>Batas Pendaftaran: {evt.deadline ? new Date(evt.deadline).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Tidak ada batas waktu'}</span>
                                   </span>
                                 </span>
                               </div>
