@@ -74,6 +74,30 @@ export default function PWAInstallPrompt() {
     localStorage.setItem('pwa-prompt-dismissed', 'true');
   };
 
+  const getDeviceDetails = () => {
+    if (isIOS()) {
+      return {
+        type: 'ios',
+        title: 'Instal Aplikasi iOS',
+        description: 'Instal untuk akses lebih cepat, buat & ikuti kampanye kreatif, serta temukan solusi industri kreatif Anda langsung dari homescreen iOS!',
+      };
+    } else if (/Android/i.test(navigator.userAgent)) {
+      return {
+        type: 'android',
+        title: 'Instal Aplikasi Android',
+        description: 'Instal untuk akses lebih cepat, buat & ikuti kampanye kreatif, serta temukan solusi industri kreatif Anda langsung dari homescreen Android!',
+      };
+    } else {
+      return {
+        type: 'pc',
+        title: 'Instal Aplikasi PC',
+        description: 'Instal untuk akses lebih cepat, buat & ikuti kampanye kreatif, serta temukan solusi industri kreatif Anda langsung dari desktop PC!',
+      };
+    }
+  };
+
+  const device = getDeviceDetails();
+
   if (!isVisible) return null;
 
   return (
@@ -84,8 +108,8 @@ export default function PWAInstallPrompt() {
             <Download size={20} className="pwa-download-icon" />
           </div>
           <div className="pwa-text">
-            <h4>Instal Aplikasi Web</h4>
-            <p>Instal untuk akses lebih cepat, buat & ikuti kampanye kreatif, serta temukan solusi industri kreatif Anda langsung dari homescreen!</p>
+            <h4>{device.title}</h4>
+            <p>{device.description}</p>
           </div>
         </div>
         
@@ -143,7 +167,7 @@ export default function PWAInstallPrompt() {
               </button>
             </div>
 
-            {isIOS() ? (
+            {device.type === 'ios' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
                 <p>Aplikasi ini dapat diinstal di iOS menggunakan browser <strong>Safari</strong>:</p>
                 <ol style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -158,7 +182,9 @@ export default function PWAInstallPrompt() {
                   </li>
                 </ol>
               </div>
-            ) : (
+            )}
+
+            {device.type === 'android' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
                 <p>Untuk browser Android selain Chrome atau jika tombol otomatis tidak muncul:</p>
                 <ol style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -170,6 +196,23 @@ export default function PWAInstallPrompt() {
                   </li>
                   <li>
                     Ikuti petunjuk di layar untuk menyelesaikan instalasi.
+                  </li>
+                </ol>
+              </div>
+            )}
+
+            {device.type === 'pc' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                <p>Aplikasi ini dapat diinstal di PC/Desktop Anda:</p>
+                <ol style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <li>
+                    Cari ikon <strong>Instal</strong> (<Download size={16} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} />) di bilah alamat (address bar) browser Anda di kanan atas.
+                  </li>
+                  <li>
+                    Atau ketuk menu browser (<MoreVertical size={16} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} />) dan pilih <strong>Instal Aplikasi</strong>.
+                  </li>
+                  <li>
+                    Klik <strong>Instal</strong> pada dialog konfirmasi yang muncul.
                   </li>
                 </ol>
               </div>
