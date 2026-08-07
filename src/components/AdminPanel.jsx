@@ -1575,6 +1575,15 @@ export default function AdminPanel({
     const evt = events.find(event => event.id === sub.eventId);
     if (!evt) return;
 
+    const actionLabel = action === 'approved' ? 'MENYETUJUI & MEMBAYAR' : 'MENOLAK & MEMINTA PERBAIKAN';
+    const confirmMessage = action === 'approved' 
+      ? `Apakah Anda yakin ingin ${actionLabel} ulasan dari @${sub.username}? Tindakan ini akan mentransfer saldo Rp ${(evt.benefitAmount || 0).toLocaleString('id-ID')} dari Escrow ke wallet peserta.`
+      : `Apakah Anda yakin ingin ${actionLabel} ulasan dari @${sub.username} dengan alasan: "${feedbackText.trim()}"?`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
     if (action === 'approved') {
       const payoutAmount = evt.benefitAmount || 0;
       const alreadyPaid = sub.paidBenefit || 0;
@@ -1654,6 +1663,14 @@ export default function AdminPanel({
 
     // Find the event
     const evt = events.find(event => event.id === judgingSubmission.eventId);
+
+    const confirmMessage = evt && evt.budgetMode === 'submit'
+      ? `Apakah Anda yakin ingin menyetujui karya dari @${judgingSubmission.username} dengan skor ${scoreVal}? Tindakan ini akan mentransfer reward Rp ${(evt.benefitAmount || 0).toLocaleString('id-ID')} ke wallet peserta.`
+      : `Apakah Anda yakin ingin menyimpan penilaian karya @${judgingSubmission.username} dengan skor ${scoreVal}?`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
     let finalPaidBenefit = 0;
 
     if (evt && evt.budgetMode === 'submit') {
@@ -2985,10 +3002,15 @@ export default function AdminPanel({
                   <form onSubmit={async (e) => {
                     e.preventDefault();
                     const codeInput = e.target.elements.voucherCode;
-                    const res = await handleRedeemGiftCode(codeInput.value);
-                    alert(res.message);
-                    if (res.success) {
-                      codeInput.value = '';
+                    const codeVal = codeInput.value.trim();
+                    if (!codeVal) return;
+                    
+                    if (window.confirm(`Apakah Anda yakin ingin menukarkan voucher dengan kode "${codeVal}"?`)) {
+                      const res = await handleRedeemGiftCode(codeVal);
+                      alert(res.message);
+                      if (res.success) {
+                        codeInput.value = '';
+                      }
                     }
                   }} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                     <input
