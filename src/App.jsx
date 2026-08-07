@@ -1168,8 +1168,25 @@ export default function App() {
                                             const cleanUser = socialUrl.trim().startsWith('@') ? socialUrl.trim().substring(1) : socialUrl.trim();
                                             platform.setHandle(cleanUser);
                                             platform.setVerified(true);
+                                            
+                                            const updatedUser = {
+                                              ...currentUser,
+                                              [`${platform.id}Handle`]: cleanUser,
+                                              [`${platform.id}Verified`]: true
+                                            };
+                                            setCurrentUser(updatedUser);
+                                            setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
+                                            
+                                            if (isFirebaseConfigured() && auth) {
+                                              try {
+                                                await saveFirestoreUser(updatedUser);
+                                              } catch (err) {
+                                                console.error("Failed to auto-save verified social handle:", err);
+                                              }
+                                            }
+                                            
                                             setVerifyingPlatform(null);
-                                            alert(`Verifikasi ${platform.label} berhasil!`);
+                                            alert(`Verifikasi ${platform.label} berhasil dan tersimpan secara otomatis!`);
                                           } else {
                                             setVerificationError(`Gagal memverifikasi. Pastikan kode unik ${uniqueCode} sudah ditempel di bio profil Anda.`);
                                             setVerificationStep('failed');
