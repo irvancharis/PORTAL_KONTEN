@@ -1754,7 +1754,7 @@ export default function EventsUserPortal({
                                 `Benefit: Rp ${evt.benefitAmount?.toLocaleString('id-ID')} per Ulasan yang Disetujui`
                               ) : (
                                 <>
-                                  Benefit: Rp {evt.benefitAmount?.toLocaleString('id-ID')} per {evt.benefitViewsStep?.toLocaleString('id-ID')} Views
+                                  Benefit: Rp {evt.benefitAmount?.toLocaleString('id-ID')} per {(evt.benefitViewsStep || 1000).toLocaleString('id-ID')} Views
                                   {evt.minEarningViews > 0 && ` (Min. ${evt.minEarningViews.toLocaleString('id-ID')} Views)`}
                                 </>
                               )}
@@ -2022,100 +2022,285 @@ export default function EventsUserPortal({
                         ) : (
                           // Logged In & Registered
                           <div style={{ textAlign: 'left' }}>
-                            {/* E-Tiket Card */}
-                            <div 
-                              onClick={() => setEnlargedTicketReg(userReg)}
-                              title="Klik untuk memperbesar tiket"
-                              style={{
-                                background: 'var(--bg-card)',
-                                border: '1px solid var(--border-color)',
-                                borderRadius: '16px',
-                                padding: '20px',
-                                marginBottom: '24px',
-                                boxShadow: 'var(--shadow-premium)',
-                                position: 'relative',
-                                overflow: 'hidden',
-                                cursor: 'pointer',
-                                transition: 'all 0.25s ease'
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'var(--primary-glow)';
-                                e.currentTarget.style.borderColor = 'var(--text-secondary)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'var(--bg-card)';
-                                e.currentTarget.style.borderColor = 'var(--border-color)';
-                              }}
-                            >
-                              {/* Ticket Notch decorations */}
-                              <div style={{ position: 'absolute', left: '-10px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', borderRadius: '50%', background: 'var(--bg-main)', borderRight: '1px solid var(--border-color)' }}></div>
-                              <div style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', borderRadius: '50%', background: 'var(--bg-main)', borderLeft: '1px solid var(--border-color)' }}></div>
-                              
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed var(--border-color)', paddingBottom: '12px', marginBottom: '14px' }}>
-                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>E-Tiket Resmi</span>
-                                <span style={{ 
-                                  fontSize: '0.68rem', 
-                                  background: userReg.isCheckedIn ? 'var(--primary-glow)' : 'var(--primary-glow)', 
-                                  color: userReg.isCheckedIn ? 'var(--text-primary)' : 'var(--text-secondary)', 
-                                  padding: '3px 8px', 
-                                  borderRadius: '12px',
-                                  fontWeight: 'bold',
-                                  border: '1px solid var(--border-color)'
-                                }}>
-                                  {userReg.isCheckedIn ? 'SUDAH CHECK-IN' : 'BELUM CHECK-IN'}
-                                </span>
-                              </div>
-                              
-                              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                               {/* Real QR Code Image */}
-                                <div style={{ 
-                                  background: 'white', 
-                                  borderRadius: '8px', 
-                                  padding: '4px', 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  justifyContent: 'center',
-                                  width: '48px',
-                                  height: '48px',
-                                  boxSizing: 'border-box'
-                                }}>
-                                  <img 
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(userReg.ticketCode || `TKT-${userReg.id.substring(userReg.id.length - 6).toUpperCase()}`)}`}
-                                    alt="QR Code"
-                                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                                  />
+                            {/* E-Tiket Card (Hanya jika ada penjualan tiket) */}
+                            {evt.ticketPrice > 0 && (
+                              <div 
+                                onClick={() => setEnlargedTicketReg(userReg)}
+                                title="Klik untuk memperbesar tiket"
+                                style={{
+                                  background: 'var(--bg-card)',
+                                  border: '1px solid var(--border-color)',
+                                  borderRadius: '16px',
+                                  padding: '20px',
+                                  marginBottom: '24px',
+                                  boxShadow: 'var(--shadow-premium)',
+                                  position: 'relative',
+                                  overflow: 'hidden',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.25s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = 'var(--primary-glow)';
+                                  e.currentTarget.style.borderColor = 'var(--text-secondary)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = 'var(--bg-card)';
+                                  e.currentTarget.style.borderColor = 'var(--border-color)';
+                                }}
+                              >
+                                {/* Ticket Notch decorations */}
+                                <div style={{ position: 'absolute', left: '-10px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', borderRadius: '50%', background: 'var(--bg-main)', borderRight: '1px solid var(--border-color)' }}></div>
+                                <div style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', borderRadius: '50%', background: 'var(--bg-main)', borderLeft: '1px solid var(--border-color)' }}></div>
+                                
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed var(--border-color)', paddingBottom: '12px', marginBottom: '14px' }}>
+                                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>E-Tiket Resmi</span>
+                                  <span style={{ 
+                                    fontSize: '0.68rem', 
+                                    background: userReg.isCheckedIn ? 'var(--primary-glow)' : 'var(--primary-glow)', 
+                                    color: userReg.isCheckedIn ? 'var(--text-primary)' : 'var(--text-secondary)', 
+                                    padding: '3px 8px', 
+                                    borderRadius: '12px',
+                                    fontWeight: 'bold',
+                                    border: '1px solid var(--border-color)'
+                                  }}>
+                                    {userReg.isCheckedIn ? 'SUDAH CHECK-IN' : 'BELUM CHECK-IN'}
+                                  </span>
                                 </div>
                                 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Kode Tiket</span>
-                                  <span style={{ fontSize: '1.15rem', color: 'var(--text-primary)', fontWeight: '800', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
-                                    {userReg.ticketCode || `TKT-${userReg.id.substring(userReg.id.length - 6).toUpperCase()}`}
-                                  </span>
-                                  <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                                    Nama: <strong>{userReg.name}</strong>
-                                  </span>
+                                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                                 {/* Real QR Code Image */}
+                                  <div style={{ 
+                                    background: 'white', 
+                                    borderRadius: '8px', 
+                                    padding: '4px', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    width: '48px',
+                                    height: '48px',
+                                    boxSizing: 'border-box'
+                                  }}>
+                                    <img 
+                                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(userReg.ticketCode || `TKT-${userReg.id.substring(userReg.id.length - 6).toUpperCase()}`)}`}
+                                      alt="QR Code"
+                                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                    />
+                                  </div>
+                                  
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Kode Tiket</span>
+                                    <span style={{ fontSize: '1.15rem', color: 'var(--text-primary)', fontWeight: '800', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
+                                      {userReg.ticketCode || `TKT-${userReg.id.substring(userReg.id.length - 6).toUpperCase()}`}
+                                    </span>
+                                    <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                                      Nama: <strong>{userReg.name}</strong>
+                                    </span>
+                                  </div>
                                 </div>
-                              </div>
 
-                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', borderTop: '1px dashed var(--border-color)', paddingTop: '10px' }}>
-                                <Maximize2 size={10} />
-                                <span>Klik tiket untuk memperbesar & scan</span>
+                                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', borderTop: '1px dashed var(--border-color)', paddingTop: '10px' }}>
+                                  <Maximize2 size={10} />
+                                  <span>Klik tiket untuk memperbesar & scan</span>
+                                </div>
+                                
+                                {evt.ticketPrice > 0 && (
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', borderTop: '1px dashed var(--border-color)', paddingTop: '10px', fontSize: '0.75rem' }}>
+                                    <span style={{ color: 'var(--text-muted)' }}>Status Pembayaran</span>
+                                    <strong style={{ color: '#10b981' }}>✓ Lunas (Rp {evt.ticketPrice.toLocaleString('id-ID')})</strong>
+                                  </div>
+                                )}
+                                
+                                {userReg.isCheckedIn && userReg.checkedInAt && (
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '10px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                    <span>Waktu Check-In:</span>
+                                    <span>{new Date(userReg.checkedInAt).toLocaleTimeString('id-ID')} - {new Date(userReg.checkedInAt).toLocaleDateString('id-ID')}</span>
+                                  </div>
+                                )}
                               </div>
-                              
-                              {evt.ticketPrice > 0 && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', borderTop: '1px dashed var(--border-color)', paddingTop: '10px', fontSize: '0.75rem' }}>
-                                  <span style={{ color: 'var(--text-muted)' }}>Status Pembayaran</span>
-                                  <strong style={{ color: '#10b981' }}>✓ Lunas (Rp {evt.ticketPrice.toLocaleString('id-ID')})</strong>
+                            )}
+                            {/* Panel Aksi & Status Tugas Sineas/Peserta (Tone Hitam Putih Premium) */}
+                            {evt.eventType !== 'regular' && (
+                              <div style={{
+                                background: 'var(--bg-card)',
+                                border: '2px solid var(--text-primary)',
+                                borderRadius: '16px',
+                                padding: '24px',
+                                marginBottom: '24px',
+                                textAlign: 'left',
+                                color: 'var(--text-primary)',
+                                boxShadow: 'var(--shadow-premium)'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                  <ClipboardList size={18} style={{ color: 'var(--text-primary)' }} />
+                                  <span style={{ fontSize: '0.75rem', fontWeight: '800', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+                                    Panel Tugas Anda
+                                  </span>
                                 </div>
-                              )}
-                              
-                              {userReg.isCheckedIn && userReg.checkedInAt && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '10px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                                  <span>Waktu Check-In:</span>
-                                  <span>{new Date(userReg.checkedInAt).toLocaleTimeString('id-ID')} - {new Date(userReg.checkedInAt).toLocaleDateString('id-ID')}</span>
-                                </div>
-                              )}
-                            </div>
+
+                                {userReg.status === 'pending' && (
+                                  <div>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', fontWeight: 'bold', background: 'var(--primary-glow)', color: 'var(--text-secondary)', padding: '4px 10px', borderRadius: '12px', marginBottom: '10px', border: '1px solid var(--border-color)' }}>
+                                      <Clock size={12} />
+                                      <span>MENUNGGU PERSETUJUAN DAFTAR</span>
+                                    </div>
+                                    <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                                      Pendaftaran Anda sedang diverifikasi oleh panitia. Anda baru dapat mengirimkan laporan tugas setelah pendaftaran disetujui.
+                                    </p>
+                                  </div>
+                                )}
+
+                                {userReg.status === 'rejected' && (
+                                  <div>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', fontWeight: 'bold', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '4px 10px', borderRadius: '12px', marginBottom: '10px' }}>
+                                      <XCircle size={12} />
+                                      <span>PENDAFTARAN DITOLAK</span>
+                                    </div>
+                                    <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                                      Mohon maaf, pendaftaran Anda ditolak oleh panitia. Silakan hubungi panitia untuk informasi lebih lanjut.
+                                    </p>
+                                  </div>
+                                )}
+
+                                {userReg.status === 'approved' && (!userSub || userSub.status === 'rejected') && (
+                                  <div>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', fontWeight: 'bold', background: 'var(--primary-glow)', color: 'var(--text-primary)', padding: '4px 10px', borderRadius: '12px', marginBottom: '12px', border: '1px solid var(--border-color)' }}>
+                                      <Play size={12} />
+                                      <span>TUGAS BELUM DIKIRIM</span>
+                                    </div>
+                                    
+                                    {userSub && userSub.status === 'rejected' && (
+                                      <div style={{ marginBottom: '14px', padding: '12px', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '10px' }}>
+                                        <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>Alasan Penolakan Panitia:</span>
+                                        <p style={{ margin: 0, fontSize: '0.78rem', color: '#f87171', fontStyle: 'italic', lineHeight: '1.4' }}>
+                                          "${userSub.feedback}"
+                                        </p>
+                                      </div>
+                                    )}
+
+                                    <p style={{ margin: '0 0 16px 0', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                                      {evt.budgetMode === 'submit' ? (
+                                        'Tulis ulasan bintang 5 Anda di Google Maps sesuai petunjuk juknis, ambil screenshot bukti ulasan, lalu unggah laporan Anda di bawah ini.'
+                                      ) : (
+                                        'Buat karya video terbaik Anda, unggah ke platform sosmed (YouTube/TikTok/Instagram), lalu kirimkan tautan videonya di bawah ini.'
+                                      )}
+                                    </p>
+
+                                    <button
+                                      onClick={() => setSubmittingEvent(evt)}
+                                      style={{
+                                        width: '100%',
+                                        padding: '14px',
+                                        background: 'var(--text-primary)',
+                                        color: 'var(--bg-main)',
+                                        border: 'none',
+                                        borderRadius: '30px',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.88rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: '0 4px 15px rgba(255,255,255,0.1)'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(-2px)';
+                                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(255,255,255,0.2)';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(255,255,255,0.1)';
+                                      }}
+                                    >
+                                      <Send size={14} />
+                                      <span>
+                                        {userSub && userSub.status === 'rejected' ? 'PERBAIKI & KIRIM ULANG SEKARANG' : (evt.budgetMode === 'submit' ? 'KIRIM LAPORAN ULASAN SEKARANG' : 'KIRIM TAUTAN KARYA SEKARANG')}
+                                      </span>
+                                    </button>
+                                  </div>
+                                )}
+
+                                {userReg.status === 'approved' && userSub && (userSub.status === 'submitted' || userSub.status === 'pending') && (
+                                  <div>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', fontWeight: 'bold', background: 'var(--primary-glow)', color: 'var(--text-primary)', padding: '4px 10px', borderRadius: '12px', marginBottom: '12px', border: '1px solid var(--border-color)' }}>
+                                      <Clock size={12} />
+                                      <span>SEDANG DINILAI / DIVERIFIKASI</span>
+                                    </div>
+                                    <p style={{ margin: '0 0 16px 0', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                                      Tugas Anda telah sukses terkirim dan saat ini sedang berada dalam tahap pemeriksaan oleh panitia/juri.
+                                    </p>
+                                    <div style={{ 
+                                      padding: '12px', 
+                                      background: 'rgba(255, 255, 255, 0.02)', 
+                                      border: '1px solid var(--border-color)', 
+                                      borderRadius: '10px',
+                                      fontSize: '0.78rem',
+                                      color: 'var(--text-secondary)'
+                                    }}>
+                                      <strong style={{ color: 'white', display: 'block', marginBottom: '4px' }}>Laporan Terkirim:</strong>
+                                      <div style={{ wordBreak: 'break-all' }}>{userSub.title}</div>
+                                      <div style={{ marginTop: '6px', color: 'var(--text-muted)' }}>Dikirim pada: {new Date(userSub.submittedAt).toLocaleDateString('id-ID')}</div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {userReg.status === 'approved' && userSub && userSub.status === 'approved' && (
+                                  <div>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', fontWeight: 'bold', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', padding: '4px 10px', borderRadius: '12px', marginBottom: '12px' }}>
+                                      <CheckCircle2 size={12} />
+                                      <span>TUGAS SELESAI & DISETUJUI</span>
+                                    </div>
+                                    <p style={{ margin: '0 0 16px 0', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                                      Selamat! Ulasan/karya Anda telah disetujui oleh panitia dan benefit reward telah sukses ditransfer ke dompet Anda.
+                                    </p>
+                                    <div style={{ 
+                                      padding: '14px', 
+                                      background: 'rgba(34, 197, 94, 0.05)', 
+                                      border: '1px solid rgba(34, 197, 94, 0.2)', 
+                                      borderRadius: '10px',
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      fontSize: '0.82rem'
+                                    }}>
+                                      <span style={{ color: '#4ade80', fontWeight: '600' }}>Reward Diterima</span>
+                                      <strong style={{ color: 'white', fontSize: '0.95rem' }}>Rp {(userSub.paidBenefit || evt.benefitAmount || 0).toLocaleString('id-ID')}</strong>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {userReg.status === 'approved' && userSub && userSub.status === 'reviewed' && (
+                                  <div>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', fontWeight: 'bold', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', padding: '4px 10px', borderRadius: '12px', marginBottom: '12px' }}>
+                                      <Award size={12} />
+                                      <span>PENILAIAN SELESAI</span>
+                                    </div>
+                                    <p style={{ margin: '0 0 16px 0', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                                      Karya video Anda telah dinilai oleh dewan juri. Terima kasih atas partisipasi Anda!
+                                    </p>
+                                    <div style={{ 
+                                      padding: '14px', 
+                                      background: 'rgba(255,255,255,0.02)', 
+                                      border: '1px solid var(--border-color)', 
+                                      borderRadius: '10px',
+                                      fontSize: '0.82rem'
+                                    }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                        <span style={{ color: 'var(--text-secondary)' }}>Skor Akhir Juri:</span>
+                                        <strong style={{ color: 'white' }}>{userSub.score} / 100</strong>
+                                      </div>
+                                      {userSub.feedback && (
+                                        <p style={{ margin: '8px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic', borderTop: '1px dashed var(--border-color)', paddingTop: '6px' }}>
+                                          Catatan Juri: "{userSub.feedback}"
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
 
                             {/* Unified Stepper/Timeline */}
                             {evt.eventType === 'regular' ? (
@@ -2277,127 +2462,11 @@ export default function EventsUserPortal({
                                     <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userReg.status === 'approved' ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: 'bold' }}>
                                       {evt.budgetMode === 'submit' ? 'Tahap 2: Pengisian Ulasan Google Maps' : 'Tahap 2: Pengiriman Karya Video'}
                                     </h4>
-                                    
-                                    {userReg.status !== 'approved' && (
-                                      <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                                        Menunggu persetujuan pendaftaran.
-                                      </p>
-                                    )}
-                                    
-                                    {userReg.status === 'approved' && (!userSub || userSub.status === 'rejected') && (
-                                      <div style={{ marginTop: '8px' }}>
-                                        {userSub && userSub.status === 'rejected' ? (
-                                          <div style={{ marginBottom: '10px', padding: '10px 12px', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.15)', borderRadius: '8px', fontSize: '0.78rem' }}>
-                                            <strong style={{ color: '#ef4444' }}>Ulasan Ditolak / Perlu Perbaikan:</strong>
-                                            <p style={{ margin: '4px 0 0 0', color: '#f87171', fontStyle: 'italic' }}>
-                                              "{userSub.feedback}"
-                                            </p>
-                                          </div>
-                                        ) : (
-                                          <p style={{ margin: '0 0 8px 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                                            {evt.budgetMode === 'submit' ? 'Kirim screenshot ulasan Google Maps & salinan teks Anda di sini.' : 'Kirim tautan karya video Anda untuk dinilai juri.'}
-                                          </p>
-                                        )}
-                                        <button 
-                                          className="btn btn-secondary" 
-                                          onClick={() => setSubmittingEvent(evt)}
-                                          style={{ 
-                                            width: '100%', 
-                                            justifyContent: 'center', 
-                                            borderColor: userSub && userSub.status === 'rejected' ? '#ef4444' : 'white', 
-                                            color: userSub && userSub.status === 'rejected' ? 'white' : 'black',
-                                            background: userSub && userSub.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'white',
-                                            padding: '8px 16px',
-                                            borderRadius: '30px',
-                                            fontWeight: 'bold',
-                                            fontSize: '0.8rem',
-                                            cursor: 'pointer'
-                                          }}
-                                        >
-                                          <Send size={12} />
-                                          <span>{userSub && userSub.status === 'rejected' ? 'Perbaiki & Kirim Ulang Ulasan' : (evt.budgetMode === 'submit' ? 'Kirim Ulasan Sekarang' : 'Kirim Karya Sekarang')}</span>
-                                        </button>
-                                      </div>
-                                    )}
-                                    
-                                    {userReg.status === 'approved' && userSub && userSub.status !== 'rejected' && (
-                                      <div style={{ 
-                                        border: '1px solid var(--border-color)', 
-                                        borderRadius: '12px', 
-                                        padding: '12px', 
-                                        background: 'rgba(255, 255, 255, 0.02)', 
-                                        marginTop: '8px',
-                                        fontSize: '0.8rem'
-                                      }}>
-                                        <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginBottom: '2px' }}>{evt.budgetMode === 'submit' ? 'Ulasan Terkirim:' : 'Karya Terkirim:'}</div>
-                                        <div style={{ fontWeight: 'bold', color: 'white', marginBottom: '6px' }}>{userSub.title}</div>
-                                        
-                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '6px' }}>
-                                          <span style={{ 
-                                            padding: '2px 8px', 
-                                            borderRadius: '10px', 
-                                            fontSize: '0.6rem',
-                                            color: 'white',
-                                            fontWeight: 'bold',
-                                            background: 
-                                              userSub.platform?.toLowerCase() === 'youtube' ? '#ff0000' :
-                                              userSub.platform?.toLowerCase() === 'tiktok' ? 'linear-gradient(45deg, #fe2c55, #25f4ee)' :
-                                              userSub.platform?.toLowerCase() === 'instagram' ? 'linear-gradient(45deg, #f09433, #dc2743, #bc1888)' :
-                                              userSub.platform?.toLowerCase() === 'googlereview' ? '#4285f4' : '#475569'
-                                          }}>{userSub.platform || 'Link Eksternal'}</span>
-                                          {evt.budgetMode !== 'submit' && (
-                                            <>
-                                              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Views: <strong>{userSub.views || 0}</strong></span>
-                                              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Likes: <strong>{userSub.likes || 0}</strong></span>
-                                            </>
-                                          )}
-                                        </div>
-
-                                        {/* Estimasi Pembayaran (Only for Video Views) */}
-                                        {evt.budgetMode !== 'submit' && (() => {
-                                          const step = evt.benefitViewsStep || 1000;
-                                          const amount = evt.benefitAmount || 0;
-                                          const views = userSub.views || 0;
-                                          const minViews = evt.minEarningViews || 0;
-                                          const payout = views >= minViews ? Math.floor(views / step) * amount : 0;
-                                          if (minViews > 0 && views < minViews) {
-                                            return (
-                                              <div style={{ 
-                                                padding: '8px 12px', 
-                                                background: 'rgba(255, 255, 255, 0.03)', 
-                                                border: '1px solid rgba(255, 255, 255, 0.08)', 
-                                                borderRadius: '8px',
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                fontSize: '0.75rem',
-                                                color: 'var(--text-secondary)'
-                                              }}>
-                                                <span>Batas Min. Views:</span>
-                                                <strong>{views} / {minViews} Views</strong>
-                                              </div>
-                                            );
-                                          }
-                                          if (payout === 0) return null;
-                                          return (
-                                            <div style={{ 
-                                              padding: '8px 12px', 
-                                              background: 'rgba(34, 197, 94, 0.08)', 
-                                              border: '1px solid rgba(34, 197, 94, 0.15)', 
-                                              borderRadius: '8px',
-                                              display: 'flex',
-                                              justifyContent: 'space-between',
-                                              alignItems: 'center',
-                                              fontSize: '0.75rem',
-                                              marginTop: '6px'
-                                            }}>
-                                              <span style={{ color: '#4ade80', fontWeight: '500' }}>Estimasi Pembayaran</span>
-                                              <strong style={{ color: 'white' }}>Rp {payout.toLocaleString('id-ID')}</strong>
-                                            </div>
-                                          );
-                                        })()}
-                                      </div>
-                                    )}
+                                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                                      {userReg.status !== 'approved' ? 'Menunggu persetujuan pendaftaran.' :
+                                       (userSub && userSub.status !== 'rejected') ? (evt.budgetMode === 'submit' ? '✓ Ulasan Anda telah sukses dikirim.' : '✓ Karya video Anda telah sukses dikirim.') :
+                                       (evt.budgetMode === 'submit' ? 'Tulis ulasan & unggah bukti laporan di atas.' : 'Kirim video YouTube/TikTok/Instagram Anda di atas.')}
+                                    </p>
                                   </div>
                                 </div>
 
@@ -2411,19 +2480,19 @@ export default function EventsUserPortal({
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     background: 
-                                      (userSub && userSub.status === 'approved') ? 'rgba(34, 197, 94, 0.15)' :
+                                      (userSub && (userSub.status === 'approved' || userSub.status === 'reviewed')) ? 'rgba(34, 197, 94, 0.15)' :
                                       (userSub && userSub.status === 'submitted') ? 'rgba(234, 179, 8, 0.15)' :
                                       (userSub && userSub.status === 'rejected') ? 'rgba(239, 68, 68, 0.15)' : 'var(--primary-glow)',
                                     border: `2px solid ${
-                                      (userSub && userSub.status === 'approved') ? '#22c55e' :
+                                      (userSub && (userSub.status === 'approved' || userSub.status === 'reviewed')) ? '#22c55e' :
                                       (userSub && userSub.status === 'submitted') ? '#eab308' :
                                       (userSub && userSub.status === 'rejected') ? '#ef4444' : 'var(--border-color)'
                                     }`,
                                     zIndex: 2,
                                     flexShrink: 0
                                   }}>
-                                    {(userSub && userSub.status === 'approved') ? (
-                                      <CheckCircle2 size={14} style={{ color: '#22c55e' }} />
+                                    {(userSub && (userSub.status === 'approved' || userSub.status === 'reviewed')) ? (
+                                      <Award size={13} style={{ color: '#22c55e' }} />
                                     ) : (userSub && userSub.status === 'submitted') ? (
                                       <Clock size={13} style={{ color: '#fbbf24' }} />
                                     ) : (userSub && userSub.status === 'rejected') ? (
@@ -2442,73 +2511,12 @@ export default function EventsUserPortal({
                                     <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userSub ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: 'bold' }}>
                                       {evt.budgetMode === 'submit' ? 'Tahap 3: Verifikasi Ulasan & Hasil' : (evt.budgetMode === 'views' ? 'Tahap 3: Pembayaran Otomatis & Hasil' : 'Tahap 3: Penilaian Juri & Hasil')}
                                     </h4>
-                                    
-                                    {!userSub && (
-                                      <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                                        {evt.budgetMode === 'submit' ? 'Menunggu pengiriman ulasan Google Maps Anda.' : 'Menunggu pengiriman karya video Anda.'}
-                                      </p>
-                                    )}
-                                    
-                                    {userSub && userSub.status === 'submitted' && (
-                                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#fbbf24', background: 'rgba(245, 158, 11, 0.05)', padding: '6px 12px', borderRadius: '20px', marginTop: '6px' }}>
-                                        <Clock size={12} />
-                                        <span>Menunggu Verifikasi & Persetujuan Panitia</span>
-                                      </div>
-                                    )}
-                                    
-                                    {userSub && userSub.status === 'rejected' && (
-                                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#ef4444', background: 'rgba(239, 68, 68, 0.05)', padding: '6px 12px', borderRadius: '20px', marginTop: '6px' }}>
-                                        <XCircle size={12} />
-                                        <span>Ulasan Ditolak / Perlu Perbaikan (Kembali ke Tahap 2)</span>
-                                      </div>
-                                    )}
-                                    
-                                    {userSub && userSub.status === 'approved' && (
-                                      <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)', padding: '10px 12px', borderRadius: '8px', marginTop: '8px', fontSize: '0.8rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                          <span style={{ fontSize: '0.75rem', color: '#4ade80', fontWeight: '600' }}>Status Pekerjaan</span>
-                                          <span style={{ fontSize: '0.9rem', color: '#22c55e', fontWeight: 'bold' }}>✓ Selesai & Disetujui</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
-                                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Reward Ditransfer</span>
-                                          <strong style={{ color: 'white', fontSize: '0.9rem' }}>Rp {(userSub.paidBenefit || evt.benefitAmount || 0).toLocaleString('id-ID')}</strong>
-                                        </div>
-                                        {userSub.feedback && (
-                                          <p style={{ margin: '8px 0 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '6px' }}>
-                                            Catatan: "{userSub.feedback}"
-                                          </p>
-                                        )}
-                                      </div>
-                                    )}
-
-                                    {userSub && evt.budgetMode !== 'submit' && userSub.status === 'reviewed' && (
-                                      <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)', padding: '10px 12px', borderRadius: '8px', marginTop: '8px', fontSize: '0.8rem' }}>
-                                        {evt.budgetMode === 'views' ? (
-                                          <>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                              <span style={{ fontSize: '0.75rem', color: '#4ade80', fontWeight: '600' }}>Status Pembayaran</span>
-                                              <span style={{ fontSize: '0.9rem', color: '#22c55e', fontWeight: 'bold' }}>Otomatis Cair</span>
-                                            </div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
-                                              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Total Payout Masuk</span>
-                                              <strong style={{ color: 'white', fontSize: '0.9rem' }}>Rp {(userSub.paidBenefit || 0).toLocaleString('id-ID')}</strong>
-                                            </div>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                              <span style={{ fontSize: '0.75rem', color: '#4ade80', fontWeight: '600' }}>Skor Akhir</span>
-                                              <span style={{ fontSize: '1rem', color: '#22c55e', fontWeight: 'bold' }}>{userSub.score} / 100</span>
-                                            </div>
-                                            {userSub.feedback && (
-                                              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.4' }}>
-                                                "{userSub.feedback}"
-                                              </p>
-                                            )}
-                                          </>
-                                        )}
-                                      </div>
-                                    )}
+                                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                                      {!userSub ? (evt.budgetMode === 'submit' ? 'Menunggu pengiriman laporan ulasan.' : 'Menunggu pengiriman karya video.') :
+                                       (userSub.status === 'submitted' || userSub.status === 'pending') ? (evt.budgetMode === 'submit' ? 'Sedang diverifikasi oleh panitia.' : 'Sedang dinilai oleh juri.') :
+                                       userSub.status === 'rejected' ? 'Ulasan ditolak (silakan perbaiki pada tahap 2).' :
+                                       userSub.status === 'approved' ? '✓ Tugas disetujui & reward saldo wallet cair.' : '✓ Penilaian selesai.'}
+                                    </p>
                                   </div>
                                 </div>
                               </div>
