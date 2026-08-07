@@ -17,7 +17,9 @@ import {
   Award, 
   HelpCircle, 
   Briefcase,
-  Users
+  Users,
+  Tv,
+  TrendingUp
 } from 'lucide-react';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
@@ -308,7 +310,7 @@ export default function DiscoverPage({
                         (creator.organizerName || creator.username).charAt(0)
                       )}
                     </div>
-                    <div style={{ textAlign: 'center' }}>
+                    <div style={{ textalign: 'center' }}>
                       <strong style={{ display: 'block', color: 'white', fontSize: '0.95rem' }}>{creator.organizerName || creator.username}</strong>
                       <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginTop: '4px' }}>
                         {creator.userCategory || 'Kreator Digital'}
@@ -347,6 +349,507 @@ export default function DiscoverPage({
     );
   }
 
+  // Check if we render the Landing Page / Dashboard view
+  const isDefaultDiscover = activeTab === 'discover' && !selectedGenre && filterYear === 'Semua' && filterCountry === 'Semua' && filterSemi === 'Sembunyikan';
+
+  if (isDefaultDiscover) {
+    return (
+      /* NEW DASHBOARD HOME VIEW (LANDING PAGE) */
+      <div className="dashboard-container">
+        {/* 1. Hero Header / CTA Banner */}
+        <div className="dashboard-hero">
+          <div className="dashboard-hero-content animate-fade-in">
+            <h1 className="dashboard-hero-title">Satu Platform,<br />Solusi Industri Kreatif</h1>
+            <p className="dashboard-hero-subtitle">
+              Bergabung sekarang dan temukan solusi kebutuhan kreatif Anda. Kreator dapat mengikuti kampanye untuk mendapat penghasilan, sedangkan brand dapat membuat kampanye untuk menemukan talenta terbaik secara cepat.
+            </p>
+            <div className="dashboard-hero-ctas">
+              <button 
+                className="btn btn-primary" 
+                onClick={() => {
+                  if (!currentUser) {
+                    handleOpenLoginModal('register');
+                  } else {
+                    handleTabChange('events');
+                  }
+                }}
+                style={{ borderRadius: '30px', padding: '14px 36px', fontWeight: 'bold', fontSize: '0.95rem' }}
+              >
+                {!currentUser ? 'Gabung Sekarang' : 'Jelajahi Event & Kompetisi'}
+              </button>
+            </div>
+
+            {/* Stats Counter Rows */}
+            <div className="dashboard-stats-row">
+              <div className="stat-item">
+                <span className="stat-number">15+</span>
+                <span className="stat-label">Karya Digital Pilihan</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">Rp 250Jt+</span>
+                <span className="stat-label">Hadiah Lomba</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">50+</span>
+                <span className="stat-label">PH & Studio Kreatif</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">5.000+</span>
+                <span className="stat-label">Kreator Terdaftar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Showcase Karya Kreatif Pilihan */}
+        <div id="new-releases-section" className="dashboard-section animate-fade-in">
+          <div className="dashboard-section-header">
+            <div className="dashboard-section-title-wrapper">
+              <h3>
+                <Tv size={20} />
+                <span>Showcase Karya Kreatif Pilihan</span>
+              </h3>
+              <p>Kumpulan karya digital orisinal (desain, foto, video, animasi) terbaik dari kreator lokal potensial.</p>
+            </div>
+          </div>
+          <div className="movie-grid youtube-grid">
+            {[...movies]
+              .sort((a, b) => b.year - a.year)
+              .slice(0, 4)
+              .map(movie => (
+                <MovieCard 
+                  key={movie.id} 
+                  movie={movie} 
+                  currentUser={currentUser}
+                  onSelect={handleMovieSelect}
+                />
+              ))}
+          </div>
+        </div>
+
+        <div className="section-divider"></div>
+
+        {/* 3. Event & Kompetisi Grid */}
+        <div className="dashboard-grid animate-fade-in">
+          {/* Open Events */}
+          <div className="split-column">
+            <div className="dashboard-section-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+              <div className="dashboard-section-title-wrapper">
+                <h4 className="split-column-title">
+                  <Calendar size={18} />
+                  <span>Jadwal Event & Kopdar</span>
+                </h4>
+                <p style={{ margin: 0 }}>Ikuti acara diskusi, workshop kreatif, dan kopdar regional yang diselenggarakan oleh komunitas.</p>
+              </div>
+            </div>
+            <div className="split-list" style={{ marginTop: '12px' }}>
+              {events.filter(e => {
+                const isRegular = e.eventType === 'regular' || !e.eventType;
+                if (!isRegular) return false;
+                if (e.deadline) {
+                  const isDeadlinePassed = e.deadline.includes('T')
+                    ? new Date().getTime() > new Date(e.deadline).getTime()
+                    : new Date().getTime() > new Date(e.deadline + 'T23:59:59').getTime();
+                  if (isDeadlinePassed) return false;
+                }
+                return true;
+              }).length > 0 ? (
+                events
+                  .filter(e => {
+                    const isRegular = e.eventType === 'regular' || !e.eventType;
+                    if (!isRegular) return false;
+                    if (e.deadline) {
+                      const isDeadlinePassed = e.deadline.includes('T')
+                        ? new Date().getTime() > new Date(e.deadline).getTime()
+                        : new Date().getTime() > new Date(e.deadline + 'T23:59:59').getTime();
+                      if (isDeadlinePassed) return false;
+                    }
+                    return true;
+                  })
+                  .slice(0, 3)
+                  .map(evt => {
+                    const eventSlug = slugify(evt.title) + '-' + evt.id;
+                    return (
+                      <div 
+                        key={evt.id} 
+                        className="split-card"
+                        onClick={() => {
+                          if (!currentUser) {
+                            handleOpenLoginModal('register');
+                            return;
+                          }
+                          window.history.pushState(null, '', '/event/' + eventSlug);
+                          window.dispatchEvent(new PopStateEvent('popstate'));
+                        }}
+                      >
+                        <div className="split-card-info">
+                          <span className="split-card-name">{evt.title}</span>
+                          <span className="split-card-meta">
+                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                              <Calendar size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
+                              <span>{evt.date || 'Segera'}</span>
+                            </span>
+                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                              <MapPin size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
+                              <span>{evt.location || 'Online'}</span>
+                            </span>
+                          </span>
+                        </div>
+                        <span className="split-card-link-text">Lihat Event →</span>
+                      </div>
+                    );
+                  })
+              ) : (
+                <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                  Belum ada jadwal event terdekat. Ikuti terus pembaruannya!
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Open Competitions */}
+          <div className="split-column">
+            <div className="dashboard-section-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+              <div className="dashboard-section-title-wrapper">
+                <h4 className="split-column-title">
+                  <Award size={18} />
+                  <span>Kompetisi & Lomba Kreatif</span>
+                </h4>
+                <p style={{ margin: 0 }}>Ikuti tantangan dari brand nasional, tunjukkan keahlian Anda, dan dapatkan hadiah uang tunai.</p>
+              </div>
+            </div>
+            <div className="split-list" style={{ marginTop: '12px' }}>
+              {events.filter(e => {
+                const isComp = e.eventType === 'competition';
+                if (!isComp) return false;
+                if (e.deadline) {
+                  const isDeadlinePassed = e.deadline.includes('T')
+                    ? new Date().getTime() > new Date(e.deadline).getTime()
+                    : new Date().getTime() > new Date(e.deadline + 'T23:59:59').getTime();
+                  if (isDeadlinePassed) return false;
+                }
+                if (e.budgetMode === 'views') {
+                  const initialBudget = e.campaignBudget || 0;
+                  const eventSubs = eventSubmissions.filter(s => s.eventId === e.id);
+                  const totalPayout = eventSubs.reduce((sum, sub) => {
+                    const views = sub.views || 0;
+                    const step = e.benefitViewsStep || 1000;
+                    const minViews = e.minEarningViews || 0;
+                    const amount = e.benefitAmount || 0;
+                    const payout = views >= minViews ? Math.floor(views / step) * amount : 0;
+                    return sum + payout;
+                  }, 0);
+                  if (initialBudget - totalPayout <= 0) return false;
+                }
+                return true;
+              }).length > 0 ? (
+                events
+                  .filter(e => {
+                    const isComp = e.eventType === 'competition';
+                    if (!isComp) return false;
+                    if (e.deadline) {
+                      const isDeadlinePassed = e.deadline.includes('T')
+                        ? new Date().getTime() > new Date(e.deadline).getTime()
+                        : new Date().getTime() > new Date(e.deadline + 'T23:59:59').getTime();
+                      if (isDeadlinePassed) return false;
+                    }
+                    if (e.budgetMode === 'views') {
+                      const initialBudget = e.campaignBudget || 0;
+                      const eventSubs = eventSubmissions.filter(s => s.eventId === e.id);
+                      const totalPayout = eventSubs.reduce((sum, sub) => {
+                        const views = sub.views || 0;
+                        const step = e.benefitViewsStep || 1000;
+                        const minViews = e.minEarningViews || 0;
+                        const amount = e.benefitAmount || 0;
+                        const payout = views >= minViews ? Math.floor(views / step) * amount : 0;
+                        return sum + payout;
+                      }, 0);
+                      if (initialBudget - totalPayout <= 0) return false;
+                    }
+                    return true;
+                  })
+                  .slice(0, 3)
+                  .map(evt => {
+                    const eventSlug = slugify(evt.title) + '-' + evt.id;
+                    return (
+                      <div 
+                        key={evt.id} 
+                        className="split-card"
+                        onClick={() => {
+                          if (!currentUser) {
+                            handleOpenLoginModal('register');
+                            return;
+                          }
+                          window.history.pushState(null, '', '/event/' + eventSlug);
+                          window.dispatchEvent(new PopStateEvent('popstate'));
+                        }}
+                      >
+                        <div className="split-card-info">
+                          <span className="split-card-name">{evt.title}</span>
+                          <span className="split-card-meta">
+                            <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: 'bold' }}>
+                              <DollarSign size={13} style={{ marginRight: '4px', opacity: 0.8 }} />
+                              <span>Rp {(evt.campaignBudget || 0).toLocaleString('id-ID')}</span>
+                            </span>
+                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                              <Clock size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
+                              <span>Batas: {evt.deadline || 'Segera'}</span>
+                            </span>
+                          </span>
+                        </div>
+                        <span className="split-card-link-text">Ikuti Lomba →</span>
+                      </div>
+                    );
+                  })
+              ) : (
+                <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                  Kompetisi baru akan segera hadir. Siapkan ide karyamu!
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="section-divider"></div>
+
+        {/* 4. Komunitas / PH Merekrut */}
+        <div className="dashboard-section animate-fade-in">
+          <div className="dashboard-section-header">
+            <div className="dashboard-section-title-wrapper">
+              <h3>
+                <Briefcase size={20} />
+                <span>Komunitas & Production House</span>
+              </h3>
+              <p>Bergabunglah dengan komunitas atau Production House untuk berkolaborasi dalam proyek baru.</p>
+            </div>
+            <span 
+              className="dashboard-section-link"
+              onClick={() => handleTabChange('communities')}
+            >
+              Cari Komunitas Lain →
+            </span>
+          </div>
+          <div className="recruiting-grid">
+            {communities.slice(0, 4).map(comm => {
+              const members = comm.joinedMembers || [];
+              const target = Number(comm.activeMembersCount || 0);
+              const current = members.length;
+              const percentage = target > 0 ? (current / target) * 100 : 0;
+              const commSlug = slugify(comm.name || comm.username) + '-' + comm.id;
+              
+              return (
+                <div 
+                  key={comm.id} 
+                  className="recruiting-card glass-panel"
+                  onClick={() => {
+                    if (!currentUser) {
+                      handleOpenLoginModal('register');
+                      return;
+                    }
+                    window.history.pushState(null, '', '/community/' + commSlug);
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  }}
+                >
+                  <div style={{ display: 'flex', gap: '14px', alignItems: 'center', textAlign: 'left' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary-glow)', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
+                      {comm.avatar ? (
+                        <img src={comm.avatar} alt={comm.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                      ) : (
+                        comm.name?.charAt(0) || comm.username?.charAt(0)
+                      )}
+                    </div>
+                    <div>
+                      <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>{comm.name || comm.username}</strong>
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{members.length} Crew</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', marginTop: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                      <span>Progress Crew:</span>
+                      <span>{current}/{target}</span>
+                    </div>
+                    <div style={{ width: '100%', height: '4px', background: 'var(--primary-glow)', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ width: `${Math.min(100, percentage)}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.3s' }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="section-divider"></div>
+
+        {/* 5. Kreator Pilihan */}
+        <div className="dashboard-section animate-fade-in">
+          <div className="dashboard-section-header">
+            <div className="dashboard-section-title-wrapper">
+              <h3>
+                <Users size={20} />
+                <span>Kreator & Talent Pilihan</span>
+              </h3>
+              <p>Temukan kreator berbakat dari seluruh Indonesia untuk berkolaborasi dalam karya kreatif Anda.</p>
+            </div>
+          </div>
+          <div className="creators-grid">
+            {users.filter(u => u.role !== 'superadmin' && u.role !== 'staf' && !u.isCommunity).slice(0, 5).map(creator => (
+              <div 
+                key={creator.id} 
+                className="creator-card glass-panel"
+                onClick={() => {
+                  alert(`Profil Portofolio Kreator ${creator.organizerName || creator.username} akan segera hadir.`);
+                }}
+              >
+                <div className="creator-avatar">
+                  <img 
+                    src={creator.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(creator.organizerName || creator.username)}&backgroundColor=262626&textColor=ffffff`} 
+                    alt={creator.organizerName || creator.username} 
+                    style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
+                  />
+                </div>
+                <div className="creator-info">
+                  <span className="creator-name">{creator.organizerName || creator.username}</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '6px', marginTop: '8px' }}>
+                    {creator.userCategory ? creator.userCategory.split(',').map((cat, idx) => (
+                      <span key={idx} className="creator-tag">{cat.trim()}</span>
+                    )) : <span className="creator-tag">Kreator Digital</span>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="section-divider"></div>
+
+        {/* 6. Tanya Jawab (FAQ) */}
+        <div className="dashboard-section animate-fade-in" style={{ maxWidth: '800px', marginLeft: 'auto', marginRight: 'auto', width: '100%', padding: '0 16px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <h3 style={{ fontSize: '1.6rem', fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+              <HelpCircle size={24} style={{ color: 'var(--text-primary)' }} />
+              <span>Tanya Jawab (FAQ)</span>
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>
+              Segala hal yang perlu Anda ketahui tentang ngonten.id
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {[
+              {
+                q: "Apa itu ngonten.id?",
+                a: "ngonten.id adalah platform kolaborasi pelaku industri kreatif Indonesia yang menghubungkan kreator, komunitas, dan brand dalam satu ekosistem terpadu. Kami mempermudah pemenuhan kebutuhan industri kreatif seperti pameran portofolio, rekrutmen tim, dan penyelenggaraan event kompetisi."
+              },
+              {
+                q: "Bagaimana cara kreator mendapatkan penghasilan di sini?",
+                a: "Kreator dapat memperoleh penghasilan dengan memenangkan kompetisi kreatif yang diadakan oleh brand mitra di platform, serta menerima pembagian hasil (benefit views) dari karya orisinal yang ditayangkan."
+              },
+              {
+                q: "Apakah pendaftaran di ngonten.id dikenakan biaya?",
+                a: "Pendaftaran di ngonten.id adalah 100% gratis. Namun, kami menyediakan keanggotaan Premium bagi kreator yang ingin mendapatkan prioritas akses informasi proyek, unlock detail portofolio (akses kontak & CV lengkap agar memudahkan brand mengevaluasi dan menghubungi Anda), serta potongan admin penarikan saldo yang lebih rendah."
+              },
+              {
+                q: "Bagaimana sistem penarikan saldo (withdrawal)?",
+                a: "Seluruh pendapatan dari kemenangan kompetisi atau benefit views akan masuk ke Dompet Kreator Anda. Anda dapat mencairkan saldo kapan saja ke rekening bank atau e-wallet (minimal Rp 50.000) dengan biaya admin otomatis sebesar 5% untuk akun standar, dan hanya 2% bagi akun Premium."
+              },
+              {
+                q: "Bagaimana cara komunitas atau agensi melakukan rekrutmen?",
+                a: "Komunitas atau agensi dapat mendaftarkan profil mereka, membuka lowongan proyek/crew, dan menetapkan kuota yang dibutuhkan agar kreator lain dapat mendaftar langsung secara praktis."
+              }
+            ].map((faq, idx) => {
+              const isOpen = activeFaqIndex === idx;
+              return (
+                <div 
+                  key={idx} 
+                  style={{ 
+                    background: 'var(--bg-card)', 
+                    border: isOpen ? '1px solid var(--border-hover)' : '1px solid var(--border-color)', 
+                    borderRadius: '12px', 
+                    overflow: 'hidden',
+                    transition: 'all 0.2s ease-in-out'
+                  }}
+                >
+                  <button
+                    onClick={() => setActiveFaqIndex(isOpen ? null : idx)}
+                    style={{
+                      width: '100%',
+                      padding: '16px 20px',
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      color: 'var(--text-primary)',
+                      fontWeight: '600',
+                      fontSize: '0.92rem',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      gap: '12px'
+                    }}
+                  >
+                    <span>{faq.q}</span>
+                    <span style={{ 
+                      transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', 
+                      transition: 'transform 0.2s', 
+                      color: isOpen ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}>
+                      <ChevronDown size={18} />
+                    </span>
+                  </button>
+                  <div 
+                    style={{ 
+                      maxHeight: isOpen ? '200px' : '0px', 
+                      overflow: 'hidden', 
+                      transition: 'max-height 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      background: 'var(--secondary-glow)'
+                    }}
+                  >
+                    <p style={{ 
+                      margin: 0, 
+                      padding: '0 20px 16px 20px', 
+                      color: 'var(--text-secondary)', 
+                      fontSize: '0.85rem', 
+                      lineHeight: '1.6' 
+                    }}>
+                      {faq.a}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 7. Bottom Hero */}
+        <div className="dashboard-hero" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '48px 24px' }}>
+          <div style={{ maxWidth: '650px' }}>
+            <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.02em' }}>Temukan Solusi Kreatif Anda</h2>
+            <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginBottom: '28px', lineHeight: '1.6' }}>
+              Platform terintegrasi yang mempertemukan kreator dan brand untuk solusi kebutuhan karya digital dan bisnis.
+            </p>
+            <button 
+              className="btn btn-primary"
+              onClick={() => {
+                if (!currentUser) {
+                  handleOpenLoginModal('register');
+                } else {
+                  handleTabChange('events');
+                }
+              }}
+              style={{ borderRadius: '30px', padding: '14px 36px', fontWeight: 'bold', fontSize: '0.95rem' }}
+            >
+              {!currentUser ? 'Gabung Sekarang' : 'Jelajahi Event & Kompetisi'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback: Watchlist/History or Discover with active filters
   return (
     <div className="catalog-layout">
       {activeTab === 'discover' && (
@@ -601,428 +1104,6 @@ export default function DiscoverPage({
             </button>
           )}
         </div>
-      )}
-
-      {activeTab === 'discover' && !searchQuery && (
-        <React.Fragment>
-          <div className="section-divider"></div>
-
-          {/* Open Events & Competitions Grid */}
-          <div className="dashboard-grid animate-fade-in">
-            {/* Open Events */}
-            <div className="split-column">
-              <div className="dashboard-section-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
-                <div className="dashboard-section-title-wrapper">
-                  <h4 className="split-column-title">
-                    <Calendar size={18} />
-                    <span>Jadwal Event & Kopdar</span>
-                  </h4>
-                  <p style={{ margin: 0 }}>Ikuti acara diskusi, workshop kreatif, dan kopdar regional yang diselenggarakan oleh komunitas.</p>
-                </div>
-              </div>
-              <div className="split-list" style={{ marginTop: '12px' }}>
-                {events.filter(e => {
-                  const isRegular = e.eventType === 'regular' || !e.eventType;
-                  if (!isRegular) return false;
-                  if (e.deadline) {
-                    const isDeadlinePassed = e.deadline.includes('T')
-                      ? new Date().getTime() > new Date(e.deadline).getTime()
-                      : new Date().getTime() > new Date(e.deadline + 'T23:59:59').getTime();
-                    if (isDeadlinePassed) return false;
-                  }
-                  return true;
-                }).length > 0 ? (
-                  events
-                    .filter(e => {
-                      const isRegular = e.eventType === 'regular' || !e.eventType;
-                      if (!isRegular) return false;
-                      if (e.deadline) {
-                        const isDeadlinePassed = e.deadline.includes('T')
-                          ? new Date().getTime() > new Date(e.deadline).getTime()
-                          : new Date().getTime() > new Date(e.deadline + 'T23:59:59').getTime();
-                        if (isDeadlinePassed) return false;
-                      }
-                      return true;
-                    })
-                    .slice(0, 3)
-                    .map(evt => {
-                      const eventSlug = slugify(evt.title) + '-' + evt.id;
-                      return (
-                        <div 
-                          key={evt.id} 
-                          className="split-card"
-                          onClick={() => {
-                            if (!currentUser) {
-                              handleOpenLoginModal('register');
-                              return;
-                            }
-                            window.history.pushState(null, '', '/event/' + eventSlug);
-                            window.dispatchEvent(new PopStateEvent('popstate'));
-                          }}
-                        >
-                          <div className="split-card-info">
-                            <span className="split-card-name">{evt.title}</span>
-                            <span className="split-card-meta">
-                              <span style={{ display: 'flex', alignItems: 'center' }}>
-                                <Calendar size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
-                                <span>{evt.date || 'Segera'}</span>
-                              </span>
-                              <span style={{ display: 'flex', alignItems: 'center' }}>
-                                <MapPin size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
-                                <span>{evt.location || 'Online'}</span>
-                              </span>
-                            </span>
-                          </div>
-                          <span className="split-card-link-text">Lihat Event →</span>
-                        </div>
-                      );
-                    })
-                ) : (
-                  <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                    Belum ada jadwal event terdekat. Ikuti terus pembaruannya!
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Open Competitions */}
-            <div className="split-column">
-              <div className="dashboard-section-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
-                <div className="dashboard-section-title-wrapper">
-                  <h4 className="split-column-title">
-                    <Award size={18} />
-                    <span>Kompetisi & Lomba Kreatif</span>
-                  </h4>
-                  <p style={{ margin: 0 }}>Ikuti tantangan dari brand nasional, tunjukkan keahlian Anda, dan dapatkan hadiah uang tunai.</p>
-                </div>
-              </div>
-              <div className="split-list" style={{ marginTop: '12px' }}>
-                {events.filter(e => {
-                  const isComp = e.eventType === 'competition';
-                  if (!isComp) return false;
-                  if (e.deadline) {
-                    const isDeadlinePassed = e.deadline.includes('T')
-                      ? new Date().getTime() > new Date(e.deadline).getTime()
-                      : new Date().getTime() > new Date(e.deadline + 'T23:59:59').getTime();
-                    if (isDeadlinePassed) return false;
-                  }
-                  if (e.budgetMode === 'views') {
-                    const initialBudget = e.campaignBudget || 0;
-                    const eventSubs = eventSubmissions.filter(s => s.eventId === e.id);
-                    const totalPayout = eventSubs.reduce((sum, sub) => {
-                      const views = sub.views || 0;
-                      const step = e.benefitViewsStep || 1000;
-                      const minViews = e.minEarningViews || 0;
-                      const amount = e.benefitAmount || 0;
-                      const payout = views >= minViews ? Math.floor(views / step) * amount : 0;
-                      return sum + payout;
-                    }, 0);
-                    if (initialBudget - totalPayout <= 0) return false;
-                  }
-                  return true;
-                }).length > 0 ? (
-                  events
-                    .filter(e => {
-                      const isComp = e.eventType === 'competition';
-                      if (!isComp) return false;
-                      if (e.deadline) {
-                        const isDeadlinePassed = e.deadline.includes('T')
-                          ? new Date().getTime() > new Date(e.deadline).getTime()
-                          : new Date().getTime() > new Date(e.deadline + 'T23:59:59').getTime();
-                        if (isDeadlinePassed) return false;
-                      }
-                      if (e.budgetMode === 'views') {
-                        const initialBudget = e.campaignBudget || 0;
-                        const eventSubs = eventSubmissions.filter(s => s.eventId === e.id);
-                        const totalPayout = eventSubs.reduce((sum, sub) => {
-                          const views = sub.views || 0;
-                          const step = e.benefitViewsStep || 1000;
-                          const minViews = e.minEarningViews || 0;
-                          const amount = e.benefitAmount || 0;
-                          const payout = views >= minViews ? Math.floor(views / step) * amount : 0;
-                          return sum + payout;
-                        }, 0);
-                        if (initialBudget - totalPayout <= 0) return false;
-                      }
-                      return true;
-                    })
-                    .slice(0, 3)
-                    .map(evt => {
-                      const eventSlug = slugify(evt.title) + '-' + evt.id;
-                      return (
-                        <div 
-                          key={evt.id} 
-                          className="split-card"
-                          onClick={() => {
-                            if (!currentUser) {
-                              handleOpenLoginModal('register');
-                              return;
-                            }
-                            window.history.pushState(null, '', '/event/' + eventSlug);
-                            window.dispatchEvent(new PopStateEvent('popstate'));
-                          }}
-                        >
-                          <div className="split-card-info">
-                            <span className="split-card-name">{evt.title}</span>
-                            <span className="split-card-meta">
-                              <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: 'bold' }}>
-                                <DollarSign size={13} style={{ marginRight: '4px', opacity: 0.8 }} />
-                                <span>Rp {(evt.campaignBudget || 0).toLocaleString('id-ID')}</span>
-                              </span>
-                              <span style={{ display: 'flex', alignItems: 'center' }}>
-                                <Clock size={13} style={{ marginRight: '5px', opacity: 0.6 }} />
-                                <span>Batas: {evt.deadline || 'Segera'}</span>
-                              </span>
-                            </span>
-                          </div>
-                          <span className="split-card-link-text">Ikuti Lomba →</span>
-                        </div>
-                      );
-                    })
-                ) : (
-                  <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                    Kompetisi baru akan segera hadir. Siapkan ide karyamu!
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="section-divider"></div>
-
-          {/* Komunitas / PH Merekrut */}
-          <div className="dashboard-section animate-fade-in">
-            <div className="dashboard-section-header">
-              <div className="dashboard-section-title-wrapper">
-                <h3>
-                  <Briefcase size={20} />
-                  <span>Komunitas & Production House</span>
-                </h3>
-                <p>Bergabunglah dengan komunitas atau Production House untuk berkolaborasi dalam proyek baru.</p>
-              </div>
-              <span 
-                className="dashboard-section-link"
-                onClick={() => handleTabChange('communities')}
-              >
-                Cari Komunitas Lain →
-              </span>
-            </div>
-            <div className="recruiting-grid">
-              {communities.slice(0, 4).map(comm => {
-                const members = comm.joinedMembers || [];
-                const target = Number(comm.activeMembersCount || 0);
-                const current = members.length;
-                const percentage = target > 0 ? (current / target) * 100 : 0;
-                const commSlug = slugify(comm.name || comm.username) + '-' + comm.id;
-                
-                return (
-                  <div 
-                    key={comm.id} 
-                    className="recruiting-card glass-panel"
-                    onClick={() => {
-                      if (!currentUser) {
-                        handleOpenLoginModal('register');
-                        return;
-                      }
-                      window.history.pushState(null, '', '/community/' + commSlug);
-                      window.dispatchEvent(new PopStateEvent('popstate'));
-                    }}
-                  >
-                    <div style={{ display: 'flex', gap: '14px', alignItems: 'center', textAlign: 'left' }}>
-                      <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary-glow)', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase', flexShrink: 0 }}>
-                        {comm.avatar ? (
-                          <img src={comm.avatar} alt={comm.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                        ) : (
-                          comm.name?.charAt(0) || comm.username?.charAt(0)
-                        )}
-                      </div>
-                      <div>
-                        <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>{comm.name || comm.username}</strong>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{members.length} Crew</span>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', marginTop: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                        <span>Progress Crew:</span>
-                        <span>{current}/{target}</span>
-                      </div>
-                      <div style={{ width: '100%', height: '4px', background: 'var(--primary-glow)', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div style={{ width: `${Math.min(100, percentage)}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.3s' }} />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="section-divider"></div>
-
-          {/* Kreator Pilihan */}
-          <div className="dashboard-section animate-fade-in">
-            <div className="dashboard-section-header">
-              <div className="dashboard-section-title-wrapper">
-                <h3>
-                  <Users size={20} />
-                  <span>Kreator & Talent Pilihan</span>
-                </h3>
-                <p>Temukan kreator berbakat dari seluruh Indonesia untuk berkolaborasi dalam karya kreatif Anda.</p>
-              </div>
-            </div>
-            <div className="creators-grid">
-              {users.filter(u => u.role !== 'superadmin' && u.role !== 'staf' && !u.isCommunity).slice(0, 5).map(creator => (
-                <div 
-                  key={creator.id} 
-                  className="creator-card glass-panel"
-                  onClick={() => {
-                    alert(`Profil Portofolio Kreator ${creator.organizerName || creator.username} akan segera hadir.`);
-                  }}
-                >
-                  <div className="creator-avatar">
-                    <img 
-                      src={creator.organizerAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(creator.organizerName || creator.username)}&backgroundColor=262626&textColor=ffffff`} 
-                      alt={creator.organizerName || creator.username} 
-                      style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
-                    />
-                  </div>
-                  <div className="creator-info">
-                    <span className="creator-name">{creator.organizerName || creator.username}</span>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '6px', marginTop: '8px' }}>
-                      {creator.userCategory ? creator.userCategory.split(',').map((cat, idx) => (
-                        <span key={idx} className="creator-tag">{cat.trim()}</span>
-                      )) : <span className="creator-tag">Kreator Digital</span>}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="section-divider"></div>
-
-          {/* Tanya Jawab (FAQ) */}
-          <div className="dashboard-section animate-fade-in" style={{ maxWidth: '800px', marginLeft: 'auto', marginRight: 'auto', width: '100%', padding: '0 16px' }}>
-            <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-              <h3 style={{ fontSize: '1.6rem', fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-                <HelpCircle size={24} style={{ color: 'var(--text-primary)' }} />
-                <span>Tanya Jawab (FAQ)</span>
-              </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>
-                Segala hal yang perlu Anda ketahui tentang ngonten.id
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {[
-                {
-                  q: "Apa itu ngonten.id?",
-                  a: "ngonten.id adalah platform kolaborasi pelaku industri kreatif Indonesia yang menghubungkan kreator, komunitas, dan brand dalam satu ekosistem terpadu. Kami mempermudah pemenuhan kebutuhan industri kreatif seperti pameran portofolio, rekrutmen tim, dan penyelenggaraan event kompetisi."
-                },
-                {
-                  q: "Bagaimana cara kreator mendapatkan penghasilan di sini?",
-                  a: "Kreator dapat memperoleh penghasilan dengan memenangkan kompetisi kreatif yang diadakan oleh brand mitra di platform, serta menerima pembagian hasil (benefit views) dari karya orisinal yang ditayangkan."
-                },
-                {
-                  q: "Apakah pendaftaran di ngonten.id dikenakan biaya?",
-                  a: "Pendaftaran di ngonten.id adalah 100% gratis. Namun, kami menyediakan keanggotaan Premium bagi kreator yang ingin mendapatkan prioritas akses informasi proyek, unlock detail portofolio (akses kontak & CV lengkap agar memudahkan brand mengevaluasi dan menghubungi Anda), serta potongan admin penarikan saldo yang lebih rendah."
-                },
-                {
-                  q: "Bagaimana sistem penarikan saldo (withdrawal)?",
-                  a: "Seluruh pendapatan dari kemenangan kompetisi atau benefit views akan masuk ke Dompet Kreator Anda. Anda dapat mencairkan saldo kapan saja ke rekening bank atau e-wallet (minimal Rp 50.000) dengan biaya admin otomatis sebesar 5% untuk akun standar, dan hanya 2% bagi akun Premium."
-                },
-                {
-                  q: "Bagaimana cara komunitas atau agensi melakukan rekrutmen?",
-                  a: "Komunitas atau agensi dapat mendaftarkan profil mereka, membuka lowongan proyek/crew, dan menetapkan kuota yang dibutuhkan agar kreator lain dapat mendaftar langsung secara praktis."
-                }
-              ].map((faq, idx) => {
-                const isOpen = activeFaqIndex === idx;
-                return (
-                  <div 
-                    key={idx} 
-                    style={{ 
-                      background: 'var(--bg-card)', 
-                      border: isOpen ? '1px solid var(--border-hover)' : '1px solid var(--border-color)', 
-                      borderRadius: '12px', 
-                      overflow: 'hidden',
-                      transition: 'all 0.2s ease-in-out'
-                    }}
-                  >
-                    <button
-                      onClick={() => setActiveFaqIndex(isOpen ? null : idx)}
-                      style={{
-                        width: '100%',
-                        padding: '16px 20px',
-                        background: 'transparent',
-                        border: 'none',
-                        outline: 'none',
-                        color: 'var(--text-primary)',
-                        fontWeight: '600',
-                        fontSize: '0.92rem',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        gap: '12px'
-                      }}
-                    >
-                      <span>{faq.q}</span>
-                      <span style={{ 
-                        transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', 
-                        transition: 'transform 0.2s', 
-                        color: isOpen ? 'var(--text-primary)' : 'var(--text-secondary)',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}>
-                        <ChevronDown size={18} />
-                      </span>
-                    </button>
-                    <div 
-                      style={{ 
-                        maxHeight: isOpen ? '200px' : '0px', 
-                        overflow: 'hidden', 
-                        transition: 'max-height 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                        background: 'var(--secondary-glow)'
-                      }}
-                    >
-                      <p style={{ 
-                        margin: 0, 
-                        padding: '0 20px 16px 20px', 
-                        color: 'var(--text-secondary)', 
-                        fontSize: '0.85rem', 
-                        lineHeight: '1.6' 
-                      }}>
-                        {faq.a}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="dashboard-hero" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '48px 24px' }}>
-            <div style={{ maxWidth: '650px' }}>
-              <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.02em' }}>Temukan Solusi Kreatif Anda</h2>
-              <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginBottom: '28px', lineHeight: '1.6' }}>
-                Platform terintegrasi yang mempertemukan kreator dan brand untuk solusi kebutuhan karya digital dan bisnis.
-              </p>
-              <button 
-                className="btn btn-primary"
-                onClick={() => {
-                  if (!currentUser) {
-                    handleOpenLoginModal('register');
-                  } else {
-                    handleTabChange('events');
-                  }
-                }}
-                style={{ borderRadius: '30px', padding: '14px 36px', fontWeight: 'bold', fontSize: '0.95rem' }}
-              >
-                {!currentUser ? 'Gabung Sekarang' : 'Jelajahi Event & Kompetisi'}
-              </button>
-            </div>
-          </div>
-        </React.Fragment>
       )}
     </div>
   );
