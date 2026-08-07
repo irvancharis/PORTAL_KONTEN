@@ -102,7 +102,7 @@ export default function PWAInstallPrompt() {
 
   return (
     <>
-      <div className="pwa-prompt-banner glass-panel animate-fade-in-up">
+      <div className="pwa-prompt-banner">
         <div className="pwa-prompt-content">
           <div className="pwa-icon-container">
             <Download size={20} className="pwa-download-icon" />
@@ -114,7 +114,7 @@ export default function PWAInstallPrompt() {
         </div>
         
         <div className="pwa-prompt-actions">
-          <button className="btn btn-primary btn-sm" onClick={handleInstallClick}>
+          <button className="btn btn-primary" onClick={handleInstallClick}>
             Instal Sekarang
           </button>
           <button className="btn-close-pwa" onClick={handleDismiss} aria-label="Tutup banner">
@@ -124,53 +124,22 @@ export default function PWAInstallPrompt() {
       </div>
 
       {showInstructions && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            background: 'rgba(2, 2, 2, 0.9)',
-            zIndex: 100000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '16px',
-            boxSizing: 'border-box'
-          }}
-          onClick={() => setShowInstructions(false)}
-        >
-          <div 
-            className="glass-panel"
-            style={{
-              width: '100%',
-              maxWidth: '380px',
-              padding: '24px',
-              borderRadius: '16px',
-              background: '#020202',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              position: 'relative'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: '#fff' }}>
+        <div className="pwa-instructions-overlay" onClick={() => setShowInstructions(false)}>
+          <div className="pwa-instructions-card" onClick={(e) => e.stopPropagation()}>
+            <div className="pwa-modal-header">
+              <h3 className="pwa-modal-title">
                 <Info size={18} />
                 <span>Petunjuk Instalasi</span>
               </h3>
-              <button 
-                onClick={() => setShowInstructions(false)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
+              <button className="pwa-modal-close-btn" onClick={() => setShowInstructions(false)}>
                 <X size={20} />
               </button>
             </div>
 
             {device.type === 'ios' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+              <div className="pwa-instructions-body">
                 <p>Aplikasi ini dapat diinstal di iOS menggunakan browser <strong>Safari</strong>:</p>
-                <ol style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <ol className="pwa-instructions-list">
                   <li>
                     Ketuk tombol <strong>Bagikan</strong> (<Share size={16} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} />) di toolbar Safari.
                   </li>
@@ -185,9 +154,9 @@ export default function PWAInstallPrompt() {
             )}
 
             {device.type === 'android' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+              <div className="pwa-instructions-body">
                 <p>Untuk browser Android selain Chrome atau jika tombol otomatis tidak muncul:</p>
-                <ol style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <ol className="pwa-instructions-list">
                   <li>
                     Ketuk ikon <strong>Menu</strong> (<MoreVertical size={16} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} />) di browser Anda.
                   </li>
@@ -202,9 +171,9 @@ export default function PWAInstallPrompt() {
             )}
 
             {device.type === 'pc' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+              <div className="pwa-instructions-body">
                 <p>Aplikasi ini dapat diinstal di PC/Desktop Anda:</p>
-                <ol style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <ol className="pwa-instructions-list">
                   <li>
                     Cari ikon <strong>Instal</strong> (<Download size={16} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} />) di bilah alamat (address bar) browser Anda di kanan atas.
                   </li>
@@ -218,11 +187,7 @@ export default function PWAInstallPrompt() {
               </div>
             )}
 
-            <button 
-              className="btn btn-primary btn-sm" 
-              onClick={() => setShowInstructions(false)}
-              style={{ width: '100%', marginTop: '20px', justifyContent: 'center' }}
-            >
+            <button className="btn btn-primary" onClick={() => setShowInstructions(false)}>
               Mengerti
             </button>
           </div>
