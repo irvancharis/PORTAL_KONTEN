@@ -74,6 +74,34 @@ export default function DiscoverPage({
   handleToggleJoinCommunity
 }) {
   
+  const isPlayRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/play/');
+
+  if (isPlayRoute && (!selectedMovie || !isPlaying)) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '75vh', 
+        gap: '20px',
+        color: 'var(--text-secondary)'
+      }}>
+        <div style={{ 
+          width: '40px', 
+          height: '40px', 
+          border: '3px solid rgba(255,255,255,0.03)', 
+          borderTopColor: 'var(--primary)', 
+          borderRadius: '50%', 
+          animation: 'spin 1s linear infinite' 
+        }} />
+        <span style={{ fontSize: '0.95rem', fontWeight: '500', letterSpacing: '0.5px' }}>
+          Menyiapkan Pemutar Video...
+        </span>
+      </div>
+    );
+  }
+
   if (selectedMovie && isPlaying) {
     return (
       /* YOUTUBE WATCH PAGE LAYOUT */
