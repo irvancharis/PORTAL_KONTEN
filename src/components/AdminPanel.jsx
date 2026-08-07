@@ -629,7 +629,7 @@ export default function AdminPanel({
   const [depositingEvent, setDepositingEvent] = useState(null);
   const [verifyingEvent, setVerifyingEvent] = useState(null);
   const [eventTicketPrice, setEventTicketPrice] = useState(0);
-  const [eventJuknisPlatforms, setEventJuknisPlatforms] = useState({ TikTok: false, Instagram: false, YouTube: false, Facebook: false });
+  const [eventJuknisPlatforms, setEventJuknisPlatforms] = useState({ TikTok: false, Instagram: false, YouTube: false, Facebook: false, GoogleReview: false });
   const [eventJuknisDuration, setEventJuknisDuration] = useState('');
   const [eventJuknisSourceName1, setEventJuknisSourceName1] = useState('');
   const [eventJuknisSourceLink1, setEventJuknisSourceLink1] = useState('');
@@ -1349,7 +1349,7 @@ export default function AdminPanel({
     setEventHasMaxParticipants((evt.maxParticipants || 0) > 0);
     setEventDescription(evt.description || '');
     setEventJuknis(evt.juknis || '');
-    setEventJuknisPlatforms(evt.juknisPlatforms || { TikTok: false, Instagram: false, YouTube: false, Facebook: false });
+    setEventJuknisPlatforms(evt.juknisPlatforms || { TikTok: false, Instagram: false, YouTube: false, Facebook: false, GoogleReview: false });
     setEventJuknisDuration(evt.juknisDuration || '');
     setEventJuknisSourceName1(evt.juknisSourceName1 || '');
     setEventJuknisSourceLink1(evt.juknisSourceLink1 || '');
@@ -2636,7 +2636,7 @@ export default function AdminPanel({
                               </td>
                               <td>
                                 <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', color: 'white', padding: '2px 8px', borderRadius: '12px', marginRight: '8px' }}>{sub.platform || 'YouTube'}</span>
-                                <a href={sub.videoUrl} target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline', fontSize: '0.8rem' }}>Buka Video</a>
+                                <a href={sub.videoUrl} target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline', fontSize: '0.8rem' }}>{sub.platform?.toLowerCase() === 'googlereview' ? 'Buka Maps' : 'Buka Video'}</a>
                               </td>
                               <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'white' }}>{sub.views?.toLocaleString('id-ID') || 0}</td>
                               <td style={{ textAlign: 'right', color: '#f43f5e' }}>❤️ {sub.likes?.toLocaleString('id-ID') || 0}</td>
@@ -2707,7 +2707,7 @@ export default function AdminPanel({
                                 <strong style={{ color: 'white' }}>{sub.title}</strong>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{sub.participantName}</div>
                               </td>
-                              <td><a href={sub.videoUrl} target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline', fontSize: '0.8rem' }}>Buka Video</a></td>
+                              <td><a href={sub.videoUrl} target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline', fontSize: '0.8rem' }}>{sub.platform?.toLowerCase() === 'googlereview' ? 'Buka Maps' : 'Buka Video'}</a></td>
                               <td style={{ textAlign: 'center', fontWeight: 'bold', color: sub.score !== null ? '#4ade80' : '#fbbf24' }}>
                                 {sub.score !== null ? `${sub.score} / 100` : 'Belum Dinilai'}
                               </td>
@@ -3197,6 +3197,10 @@ export default function AdminPanel({
                           <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
                             <input type="checkbox" checked={eventJuknisPlatforms.Facebook} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, Facebook: e.target.checked })} style={{ width: '16px', height: '16px' }} />
                             <span>Facebook</span>
+                          </label>
+                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
+                            <input type="checkbox" checked={eventJuknisPlatforms.GoogleReview} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, GoogleReview: e.target.checked })} style={{ width: '16px', height: '16px' }} />
+                            <span style={{ color: '#60a5fa', fontWeight: 'bold' }}>Google Review</span>
                           </label>
                         </div>
                       </div>
@@ -3844,7 +3848,7 @@ export default function AdminPanel({
                     setEventMaxParticipants(50);
                     setEventDescription('');
                     setEventJuknis('');
-                    setEventJuknisPlatforms({ TikTok: false, Instagram: false, YouTube: false, Facebook: false });
+                    setEventJuknisPlatforms({ TikTok: false, Instagram: false, YouTube: false, Facebook: false, GoogleReview: false });
                     setEventJuknisDuration('');
                     setEventJuknisSourceName1('');
                     setEventJuknisSourceLink1('');
@@ -9147,7 +9151,8 @@ export default function AdminPanel({
                       background: 
                         previewSubmission.platform?.toLowerCase() === 'youtube' ? '#ff0000' :
                         previewSubmission.platform?.toLowerCase() === 'tiktok' ? 'linear-gradient(45deg, #fe2c55, #25f4ee)' :
-                        previewSubmission.platform?.toLowerCase() === 'instagram' ? 'linear-gradient(45deg, #f09433, #dc2743, #bc1888)' : '#475569'
+                        previewSubmission.platform?.toLowerCase() === 'instagram' ? 'linear-gradient(45deg, #f09433, #dc2743, #bc1888)' :
+                        previewSubmission.platform?.toLowerCase() === 'googlereview' ? '#4285f4' : '#475569'
                     }}>
                       {previewSubmission.platform || 'Link Eksternal'}
                     </span>
@@ -9165,13 +9170,22 @@ export default function AdminPanel({
                     }}
                   >
                     <ExternalLink size={14} />
-                    <span>Buka Tautan Karya</span>
+                    <span>{previewSubmission.platform?.toLowerCase() === 'googlereview' ? 'Buka Google Maps Bisnis' : 'Buka Tautan Karya'}</span>
                   </button>
                 </div>
 
                 {/* Title & Description of Work */}
                 <h4 style={{ color: 'white', fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 6px 0' }}>{previewSubmission.title}</h4>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.5', margin: '0 0 16px 0' }}>{previewSubmission.description}</p>
+                
+                {previewSubmission.platform?.toLowerCase() === 'googlereview' && previewSubmission.screenshotFile && (
+                  <div style={{ marginBottom: '16px', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px', textAlign: 'left', fontWeight: '600' }}>Bukti Tangkapan Layar (Screenshot) Ulasan:</span>
+                    <a href={previewSubmission.screenshotFile} target="_blank" rel="noopener noreferrer">
+                      <img src={previewSubmission.screenshotFile} alt="Google Review Screenshot" style={{ maxWidth: '100%', maxHeight: '350px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'block', margin: '0 auto' }} />
+                    </a>
+                  </div>
+                )}
 
                 {/* Metrics Grid */}
                 <div style={{ 
@@ -9212,7 +9226,15 @@ export default function AdminPanel({
               <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '6px', background: 'rgba(255,255,255,0.01)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                 <p style={{ margin: 0 }}><strong>Sineas / Peserta:</strong> <span style={{ color: 'white' }}>{previewSubmission.participantName}</span></p>
                 <p style={{ margin: 0 }}><strong>Kategori Kompetisi:</strong> <span style={{ color: 'white' }}>{previewSubmission.eventTitle}</span></p>
-                <p style={{ margin: 0 }}><strong>Tautan Asli:</strong> <a href={previewSubmission.videoUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'underline', wordBreak: 'break-all' }}>{previewSubmission.videoUrl}</a></p>
+                {previewSubmission.platform?.toLowerCase() === 'googlereview' ? (
+                  <>
+                    <p style={{ margin: 0 }}><strong>Nama Akun Google:</strong> <span style={{ color: 'white', fontWeight: 'bold' }}>{previewSubmission.googleAccountName || '-'}</span></p>
+                    <p style={{ margin: 0 }}><strong>Teks Ulasan:</strong> <span style={{ color: 'white', whiteSpace: 'pre-wrap' }}>{previewSubmission.googleReviewText || '-'}</span></p>
+                    <p style={{ margin: 0 }}><strong>Tautan Maps / Bisnis:</strong> <a href={previewSubmission.videoUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'underline', wordBreak: 'break-all' }}>{previewSubmission.videoUrl}</a></p>
+                  </>
+                ) : (
+                  <p style={{ margin: 0 }}><strong>Tautan Asli:</strong> <a href={previewSubmission.videoUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'underline', wordBreak: 'break-all' }}>{previewSubmission.videoUrl}</a></p>
+                )}
               </div>
             </div>
           </div>

@@ -537,6 +537,9 @@ export default function EventsUserPortal({
   const [workVideoUrl, setWorkVideoUrl] = useState('');
   const [workDescription, setWorkDescription] = useState('');
   const [workPlatform, setWorkPlatform] = useState('YouTube');
+  const [googleAccountName, setGoogleAccountName] = useState('');
+  const [googleReviewText, setGoogleReviewText] = useState('');
+  const [googleReviewScreenshot, setGoogleReviewScreenshot] = useState('');
 
   const handleAcceptOffer = (off) => {
     // 1. Check if already registered
@@ -1038,16 +1041,17 @@ export default function EventsUserPortal({
 
     setTimeout(() => {
       try {
+        const isGoogleReview = submittingEvent.juknisPlatforms?.GoogleReview === true;
         const newSub = {
           id: `sub_${Date.now()}`,
           eventId: submittingEvent.id,
           eventTitle: submittingEvent.title,
           participantName: userRegistration.name,
           username: currentUser.username,
-          title: workTitle.trim(),
+          title: isGoogleReview ? `Google Review: ${googleAccountName.trim()}` : workTitle.trim(),
           videoUrl: workVideoUrl.trim(),
-          description: workDescription.trim(),
-          platform: workPlatform,
+          description: isGoogleReview ? workDescription.trim() : workDescription.trim(),
+          platform: isGoogleReview ? 'GoogleReview' : workPlatform,
           views: 0,
           likes: 0,
           comments: 0,
@@ -1055,7 +1059,11 @@ export default function EventsUserPortal({
           submittedAt: new Date().toISOString(),
           score: null,
           feedback: '',
-          paidBenefit: 0
+          paidBenefit: 0,
+          // Google Review specific fields
+          googleAccountName: isGoogleReview ? googleAccountName.trim() : '',
+          googleReviewText: isGoogleReview ? workDescription.trim() : '',
+          screenshotFile: isGoogleReview ? googleReviewScreenshot : ''
         };
 
         setEventSubmissions([...eventSubmissions, newSub]);
@@ -1067,6 +1075,9 @@ export default function EventsUserPortal({
         setWorkVideoUrl('');
         setWorkDescription('');
         setWorkPlatform('YouTube');
+        setGoogleAccountName('');
+        setGoogleReviewText('');
+        setGoogleReviewScreenshot('');
         alert('Karya Anda berhasil dikirim! Panitia dan Juri akan segera menilai karya Anda.');
       } finally {
         if (window.setGlobalLoading) window.setGlobalLoading(null);
@@ -4096,59 +4107,132 @@ onMouseLeave={(e) => {
 
             {/* Form */}
             <form onSubmit={handleWorkSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div className="form-group">
-                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Judul Karya Film / Konten</label>
-                <input 
-                  type="text" 
-                  required 
-                  value={workTitle} 
-                  onChange={(e) => setWorkTitle(e.target.value)} 
-                  placeholder="Masukkan judul menarik karya Anda" 
-                  style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
-                />
-              </div>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-                <div className="form-group">
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Platform Publikasi</label>
-                  <select 
-                    value={workPlatform} 
-                    onChange={(e) => setWorkPlatform(e.target.value)} 
-                    style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
-                  >
-                    <option value="YouTube">YouTube</option>
-                    <option value="TikTok">TikTok</option>
-                    <option value="Instagram">Instagram</option>
-                    <option value="Facebook">Facebook</option>
-                    <option value="Twitter / X">Twitter / X</option>
-                    <option value="Threads">Threads</option>
-                    <option value="Lainnya">Lainnya</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Tautan Karya (URL)</label>
-                  <input 
-                    type="url" 
-                    required 
-                    value={workVideoUrl} 
-                    onChange={(e) => handleUrlChange(e.target.value)} 
-                    placeholder="Contoh: https://www.youtube.com/watch?v=..." 
-                    style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
-                  />
-                </div>
-              </div>
+              {(() => {
+                const isGoogleReview = submittingEvent.juknisPlatforms?.GoogleReview === true;
+                return (
+                  <>
+                    {isGoogleReview ? (
+                      <div className="form-group">
+                        <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Nama Akun Google Anda</label>
+                        <input 
+                          type="text" 
+                          required 
+                          value={googleAccountName} 
+                          onChange={(e) => setGoogleAccountName(e.target.value)} 
+                          placeholder="Masukkan nama akun Google yang digunakan saat menulis ulasan" 
+                          style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
+                        />
+                      </div>
+                    ) : (
+                      <div className="form-group">
+                        <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Judul Karya Film / Konten</label>
+                        <input 
+                          type="text" 
+                          required 
+                          value={workTitle} 
+                          onChange={(e) => setWorkTitle(e.target.value)} 
+                          placeholder="Masukkan judul menarik karya Anda" 
+                          style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
+                        />
+                      </div>
+                    )}
+                    
+                    {isGoogleReview ? (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                        <div className="form-group">
+                          <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Platform Publikasi</label>
+                          <div style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: '#60a5fa', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                            Google Review
+                          </div>
+                        </div>
+                        <div className="form-group">
+                          <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Tautan Google Maps / Bisnis (URL)</label>
+                          <input 
+                            type="url" 
+                            required 
+                            value={workVideoUrl} 
+                            onChange={(e) => setWorkVideoUrl(e.target.value)} 
+                            placeholder="https://maps.google.com/..." 
+                            style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                        <div className="form-group">
+                          <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Platform Publikasi</label>
+                          <select 
+                            value={workPlatform} 
+                            onChange={(e) => setWorkPlatform(e.target.value)} 
+                            style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                          >
+                            <option value="YouTube">YouTube</option>
+                            <option value="TikTok">TikTok</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="Twitter / X">Twitter / X</option>
+                            <option value="Threads">Threads</option>
+                            <option value="Lainnya">Lainnya</option>
+                          </select>
+                        </div>
+                        <div className="form-group">
+                          <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Tautan Karya (URL)</label>
+                          <input 
+                            type="url" 
+                            required 
+                            value={workVideoUrl} 
+                            onChange={(e) => handleUrlChange(e.target.value)} 
+                            placeholder="Contoh: https://www.youtube.com/watch?v=..." 
+                            style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} 
+                          />
+                        </div>
+                      </div>
+                    )}
 
-              <div className="form-group">
-                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Deskripsi Singkat Karya</label>
-                <textarea 
-                  rows="5" 
-                  required 
-                  value={workDescription} 
-                  onChange={(e) => setWorkDescription(e.target.value)} 
-                  placeholder="Tuliskan latar belakang singkat, sinopsis, atau pesan penting dari karya Anda..." 
-                  style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontFamily: 'inherit', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }}
-                ></textarea>
-              </div>
+                    {isGoogleReview && (
+                      <div className="form-group animate-fade-in">
+                        <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Unggah Bukti Ulasan (Screenshot)</label>
+                        <input 
+                          type="file" 
+                          required 
+                          accept="image/*" 
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setGoogleReviewScreenshot(reader.result);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }} 
+                          style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.02)', border: '1px dashed var(--border-color)', borderRadius: '8px', color: 'var(--text-secondary)', fontSize: '0.85rem', cursor: 'pointer' }} 
+                        />
+                        {googleReviewScreenshot && (
+                          <div style={{ marginTop: '12px', textAlign: 'center' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px', textAlign: 'left' }}>Pratinjau Screenshot:</span>
+                            <img src={googleReviewScreenshot} alt="Google Review Screenshot Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', border: '1px solid var(--border-color)' }} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="form-group">
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>
+                        {isGoogleReview ? 'Salinan Teks Ulasan Anda' : 'Deskripsi Singkat Karya'}
+                      </label>
+                      <textarea 
+                        rows="5" 
+                        required 
+                        value={workDescription} 
+                        onChange={(e) => setWorkDescription(e.target.value)} 
+                        placeholder={isGoogleReview ? "Tempelkan (paste) teks ulasan lengkap yang Anda tulis di Google Maps..." : "Tuliskan latar belakang singkat, sinopsis, atau pesan penting dari karya Anda..."} 
+                        style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontFamily: 'inherit', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }}
+                      ></textarea>
+                    </div>
+                  </>
+                );
+              })()}
 
               {/* Form Buttons */}
               <div style={{ display: 'flex', gap: '16px', justifyContent: 'flex-end', marginTop: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
