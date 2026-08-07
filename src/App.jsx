@@ -3504,19 +3504,13 @@ export default function App() {
                                               <CheckCircle2 size={22} />
                                             </div>
                                             <div className="membership-status-info">
-                                              <span className="membership-status-title">Crew Terdaftar</span>
+                                              <span className="membership-status-title">Sudah Terdaftar</span>
                                               <span className="membership-status-badge joined">Aktif</span>
                                             </div>
                                           </div>
                                           <p className="membership-status-desc">
-                                            Anda telah bergabung sebagai crew resmi di komunitas ini. Nikmati akses kolaborasi eksklusif.
-                                          </p>
-                                          <button 
-                                            onClick={() => handleToggleJoinCommunity(comm.username)}
-                                            className="btn-membership-action leave"
-                                          >
-                                            Keluar Komunitas
-                                          </button>
+                                            Anda telah bergabung sebagai anggota resmi di komunitas ini. Nikmati akses kolaborasi eksklusif.
+                                          </p>                                          
                                         </div>
                                       </div>
                                     );
