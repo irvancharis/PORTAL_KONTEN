@@ -535,6 +535,12 @@ export default function DiscoverPage({
                                 </div>
                                 <span className="split-card-name">{evt.title}</span>
                                 <span className="split-card-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px', marginTop: '8px' }}>
+                                  {evt.campaignBudget > 0 && (
+                                    <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: '800', fontSize: '1.05rem' }}>
+                                      <DollarSign size={15} style={{ marginRight: '2px', opacity: 0.9 }} />
+                                      <span>Rp {(evt.campaignBudget || 0).toLocaleString('id-ID')}</span>
+                                    </span>
+                                  )}
                                   <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                                     <Calendar size={13} style={{ marginRight: '6px', opacity: 0.7 }} />
                                     <span>Pelaksanaan: {evt.date ? new Date(evt.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Belum ditentukan'}</span>

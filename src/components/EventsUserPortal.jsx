@@ -1660,7 +1660,7 @@ export default function EventsUserPortal({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   {/* Countdown and Budget widgets */}
 
-                  {evt.eventType !== 'regular' && evt.campaignBudget > 0 && (
+                  {evt.campaignBudget > 0 && (
                     evt.budgetMode === 'ranking' ? (
                       <div style={{ 
                         background: 'var(--bg-card)',
@@ -3066,18 +3066,18 @@ onMouseLeave={(e) => {
 
                     {/* Middle Section: Budget & Ticket & Deadline */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap', marginRight: '8px' }}>
-                      {evt.eventType !== 'regular' && (
+                      {evt.campaignBudget > 0 && (
                         <div style={{ minWidth: '130px', textAlign: 'left' }}>
                           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
                             {evt.budgetMode === 'ranking' ? 'Prize Pool' : 'Sisa / Total Budget'}
                           </div>
                           {evt.budgetMode === 'ranking' ? (
-                            <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
+                            <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>
                               Rp {evt.campaignBudget.toLocaleString('id-ID')}
                             </strong>
                           ) : (
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                              <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>
+                              <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>
                                 Rp {getEventRemainingBudget(evt).toLocaleString('id-ID')}
                               </strong>
                               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
@@ -3092,7 +3092,7 @@ onMouseLeave={(e) => {
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
                           {evt.eventType === 'regular' ? 'Harga Tiket' : 'Biaya Tiket'}
                         </div>
-                        <strong style={{ color: evt.ticketPrice > 0 ? '#4ade80' : 'white', fontSize: '0.95rem' }}>
+                        <strong style={{ color: evt.ticketPrice > 0 ? '#4ade80' : 'var(--text-primary)', fontSize: '0.95rem' }}>
                           {evt.ticketPrice > 0 ? `Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}
                         </strong>
                       </div>
