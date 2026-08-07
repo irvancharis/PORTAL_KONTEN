@@ -1563,6 +1563,75 @@ export default function AdminPanel({
     });
   };
 
+  const handleVerifyGoogleReview = (submissionId, action, feedbackText) => {
+    // action: 'approved' or 'rejected'
+    const sub = eventSubmissions.find(s => s.id === submissionId);
+    if (!sub) return;
+
+    const evt = events.find(event => event.id === sub.eventId);
+    if (!evt) return;
+
+    if (action === 'approved') {
+      const payoutAmount = evt.benefitAmount || 0;
+      const alreadyPaid = sub.paidBenefit || 0;
+      const currentRemaining = evt.remainingBudget !== undefined ? evt.remainingBudget : evt.campaignBudget;
+
+      if (alreadyPaid === 0) {
+        if (payoutAmount > currentRemaining) {
+          alert('Gagal menyetujui: Budget Rekber Escrow event ini tidak mencukupi untuk membayar ulasan ini!');
+          return;
+        }
+
+        // Transfer wallet to creator/participant
+        handleTransferWallet(sub.username, payoutAmount);
+
+        // Deduct remaining budget
+        setEvents(prev => prev.map(event => {
+          if (event.id === evt.id) {
+            return {
+              ...event,
+              remainingBudget: currentRemaining - payoutAmount
+            };
+          }
+          return event;
+        }));
+      }
+
+      setEventSubmissions(prev => prev.map(s => {
+        if (s.id === submissionId) {
+          return { 
+            ...s, 
+            status: 'approved',
+            feedback: feedbackText.trim(),
+            score: 100,
+            paidBenefit: payoutAmount
+          };
+        }
+        return s;
+      }));
+
+      // Update the preview submission so modal updates in real-time
+      setPreviewSubmission(prev => prev ? { ...prev, status: 'approved', feedback: feedbackText.trim(), score: 100, paidBenefit: payoutAmount } : null);
+      alert('Ulasan disetujui! Saldo benefit telah berhasil ditransfer ke wallet peserta.');
+    } else {
+      // action === 'rejected'
+      setEventSubmissions(prev => prev.map(s => {
+        if (s.id === submissionId) {
+          return { 
+            ...s, 
+            status: 'rejected',
+            feedback: feedbackText.trim(),
+            score: 0
+          };
+        }
+        return s;
+      }));
+
+      setPreviewSubmission(prev => prev ? { ...prev, status: 'rejected', feedback: feedbackText.trim(), score: 0 } : null);
+      alert('Ulasan ditolak! Catatan/alasan perbaikan telah disimpan dan dikirim ke peserta.');
+    }
+  };
+
   const handleJudgingSubmit = (e) => {
     e.preventDefault();
     const scoreVal = parseInt(judgingScore);
@@ -2368,8 +2437,12 @@ export default function AdminPanel({
             <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '16px', overflowX: 'auto' }}>
               {[
                 { id: 'participants', label: 'Pendaftaran Peserta', count: eventParticipants.filter(p => p.eventId === selectedManageEvent.id && p.status === 'pending').length },
-                selectedManageEvent.eventType !== 'regular' && { id: 'submissions', label: 'Monitoring Karya', count: eventSubmissions.filter(s => s.eventId === selectedManageEvent.id && s.score === null).length },
-                selectedManageEvent.eventType !== 'regular' && selectedManageEvent.budgetMode !== 'views' && { id: 'judging', label: 'Penjurian & Pemenang', count: 0 },
+                selectedManageEvent.eventType !== 'regular' && { 
+                  id: 'submissions', 
+                  label: selectedManageEvent.budgetMode === 'submit' ? 'Monitoring Ulasan' : 'Monitoring Karya', 
+                  count: eventSubmissions.filter(s => s.eventId === selectedManageEvent.id && (selectedManageEvent.budgetMode === 'submit' ? s.status === 'submitted' : s.score === null)).length 
+                },
+                selectedManageEvent.eventType !== 'regular' && selectedManageEvent.budgetMode !== 'views' && selectedManageEvent.budgetMode !== 'submit' && { id: 'judging', label: 'Penjurian & Pemenang', count: 0 },
                 { id: 'finance', label: 'Keuangan Event', count: 0 }
               ].filter(Boolean).map(tab => {
                 const isActive = innerManageTab === tab.id;
@@ -2659,11 +2732,15 @@ export default function AdminPanel({
                       <table className="admin-table">
                         <thead>
                           <tr>
-                            <th>Peserta & Judul Film</th>
-                            <th>Platform & Link Video</th>
-                            <th style={{ textAlign: 'right' }}>Jumlah Views</th>
-                            <th style={{ textAlign: 'right' }}>Jumlah Likes</th>
-                            {selectedManageEvent.budgetMode !== 'views' && <th style={{ textAlign: 'center' }}>Skor Juri</th>}
+                            <th>{selectedManageEvent.budgetMode === 'submit' ? 'Peserta & Google Akun' : 'Peserta & Judul Film'}</th>
+                            <th>{selectedManageEvent.budgetMode === 'submit' ? 'Platform & Maps' : 'Platform & Link Video'}</th>
+                            {selectedManageEvent.budgetMode !== 'submit' && <th style={{ textAlign: 'right' }}>Jumlah Views</th>}
+                            {selectedManageEvent.budgetMode !== 'submit' && <th style={{ textAlign: 'right' }}>Jumlah Likes</th>}
+                            {selectedManageEvent.budgetMode !== 'views' && (
+                              <th style={{ textAlign: 'center' }}>
+                                {selectedManageEvent.budgetMode === 'submit' ? 'Status Ulasan' : 'Skor Juri'}
+                              </th>
+                            )}
                             <th style={{ textAlign: 'center', width: '120px' }}>Aksi</th>
                           </tr>
                         </thead>
@@ -2678,11 +2755,23 @@ export default function AdminPanel({
                                 <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', color: 'white', padding: '2px 8px', borderRadius: '12px', marginRight: '8px' }}>{sub.platform || 'YouTube'}</span>
                                 <a href={sub.videoUrl} target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline', fontSize: '0.8rem' }}>{sub.platform?.toLowerCase() === 'googlereview' ? 'Buka Maps' : 'Buka Video'}</a>
                               </td>
-                              <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'white' }}>{sub.views?.toLocaleString('id-ID') || 0}</td>
-                              <td style={{ textAlign: 'right', color: '#f43f5e' }}>❤️ {sub.likes?.toLocaleString('id-ID') || 0}</td>
+                              {selectedManageEvent.budgetMode !== 'submit' && <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'white' }}>{sub.views?.toLocaleString('id-ID') || 0}</td>}
+                              {selectedManageEvent.budgetMode !== 'submit' && <td style={{ textAlign: 'right', color: '#f43f5e' }}>❤️ {sub.likes?.toLocaleString('id-ID') || 0}</td>}
                               {selectedManageEvent.budgetMode !== 'views' && (
                                 <td style={{ textAlign: 'center' }}>
-                                  <span style={{ fontWeight: 'bold', color: sub.score !== null ? '#4ade80' : '#fbbf24' }}>{sub.score !== null ? `${sub.score}/100` : 'Belum Dinilai'}</span>
+                                  {selectedManageEvent.budgetMode === 'submit' ? (
+                                    <span style={{ 
+                                      fontWeight: 'bold', 
+                                      color: 
+                                        sub.status === 'approved' ? '#4ade80' : 
+                                        sub.status === 'rejected' ? '#ef4444' : '#fbbf24' 
+                                    }}>
+                                      {sub.status === 'approved' ? '✓ Disetujui' : 
+                                       sub.status === 'rejected' ? '✗ Ditolak (Perlu Perbaikan)' : 'Pending'}
+                                    </span>
+                                  ) : (
+                                    <span style={{ fontWeight: 'bold', color: sub.score !== null ? '#4ade80' : '#fbbf24' }}>{sub.score !== null ? `${sub.score}/100` : 'Belum Dinilai'}</span>
+                                  )}
                                 </td>
                               )}
                               <td style={{ textAlign: 'center' }}>
@@ -9338,6 +9427,78 @@ export default function AdminPanel({
                   <p style={{ margin: 0 }}><strong>Tautan Asli:</strong> <a href={previewSubmission.videoUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'underline', wordBreak: 'break-all' }}>{previewSubmission.videoUrl}</a></p>
                 )}
               </div>
+
+              {/* Google Review Verification actions */}
+              {selectedManageEvent.budgetMode === 'submit' && (
+                <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border-color)', width: '100%', textAlign: 'left' }}>
+                  <h4 style={{ color: 'white', fontSize: '0.95rem', fontWeight: 'bold', marginBottom: '12px' }}>Persetujuan Ulasan Google Maps</h4>
+                  
+                  {previewSubmission.status === 'submitted' ? (
+                    <div>
+                      <div className="form-group" style={{ marginBottom: '16px' }}>
+                        <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                          Catatan / Alasan (Opsional untuk persetujuan, wajib jika menolak):
+                        </label>
+                        <textarea 
+                          rows="3" 
+                          placeholder="Tulis pesan penyemangat atau alasan penolakan jika ulasan kurang sesuai..." 
+                          value={judgingFeedback} 
+                          onChange={(e) => setJudgingFeedback(e.target.value)} 
+                          style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontFamily: 'inherit', fontSize: '0.85rem' }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                        <button 
+                          type="button" 
+                          className="btn" 
+                          onClick={() => {
+                            if (!judgingFeedback.trim()) {
+                              alert('Silakan tulis alasan penolakan pada kolom catatan agar peserta tahu apa yang harus diperbaiki!');
+                              return;
+                            }
+                            handleVerifyGoogleReview(previewSubmission.id, 'rejected', judgingFeedback);
+                          }}
+                          style={{ background: '#ef4444', color: 'white', padding: '10px 20px', borderRadius: '30px', fontSize: '0.85rem', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}
+                        >
+                          Tolak & Minta Perbaikan
+                        </button>
+                        <button 
+                          type="button" 
+                          className="btn" 
+                          onClick={() => handleVerifyGoogleReview(previewSubmission.id, 'approved', judgingFeedback)}
+                          style={{ background: '#10b981', color: 'white', padding: '10px 20px', borderRadius: '30px', fontSize: '0.85rem', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}
+                        >
+                          ✓ Setujui & Bayar Ulasan
+                        </button>
+                      </div>
+                    </div>
+                  ) : previewSubmission.status === 'approved' ? (
+                    <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '12px 16px', borderRadius: '8px', color: '#10b981', fontSize: '0.85rem' }}>
+                      <strong>✓ Ulasan Telah Disetujui</strong>
+                      <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)' }}>
+                        Pekerjaan selesai dan reward sebesar Rp {(selectedManageEvent.benefitAmount || 0).toLocaleString('id-ID')} telah dikirim langsung ke dompet peserta.
+                      </p>
+                      {previewSubmission.feedback && (
+                        <p style={{ margin: '8px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                          Catatan: "{previewSubmission.feedback}"
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '12px 16px', borderRadius: '8px', color: '#ef4444', fontSize: '0.85rem' }}>
+                      <strong>✗ Ulasan Ditolak (Perlu Perbaikan)</strong>
+                      <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)' }}>
+                        Peserta dipersilakan mengedit ulasan/mengirim ulang sesuai catatan perbaikan.
+                      </p>
+                      {previewSubmission.feedback && (
+                        <p style={{ margin: '8px 0 0 0', fontSize: '0.78rem', color: '#f87171', fontWeight: '500' }}>
+                          Alasan: "{previewSubmission.feedback}"
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>,

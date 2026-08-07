@@ -1066,7 +1066,15 @@ export default function EventsUserPortal({
           screenshotFile: isGoogleReview ? googleReviewScreenshot : ''
         };
 
-        setEventSubmissions([...eventSubmissions, newSub]);
+        if (isGoogleReview) {
+          // If there is an existing rejected submission, filter it out so we override it
+          setEventSubmissions(prev => {
+            const cleaned = prev.filter(s => !(s.eventId === submittingEvent.id && s.username.toLowerCase() === currentUser.username.toLowerCase()));
+            return [...cleaned, newSub];
+          });
+        } else {
+          setEventSubmissions([...eventSubmissions, newSub]);
+        }
         if (handleAwardEventGift && submittingEvent.hasGift) {
           handleAwardEventGift(submittingEvent, currentUser);
         }
@@ -1742,8 +1750,14 @@ export default function EventsUserPortal({
                           <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--primary-glow)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                             <Award size={14} style={{ color: 'var(--text-secondary)' }} />
                             <span>
-                              Benefit: Rp {evt.benefitAmount?.toLocaleString('id-ID')} per {evt.benefitViewsStep?.toLocaleString('id-ID')} Views
-                              {evt.minEarningViews > 0 && ` (Min. ${evt.minEarningViews.toLocaleString('id-ID')} Views)`}
+                              {evt.budgetMode === 'submit' ? (
+                                `Benefit: Rp ${evt.benefitAmount?.toLocaleString('id-ID')} per Ulasan yang Disetujui`
+                              ) : (
+                                <>
+                                  Benefit: Rp {evt.benefitAmount?.toLocaleString('id-ID')} per {evt.benefitViewsStep?.toLocaleString('id-ID')} Views
+                                  {evt.minEarningViews > 0 && ` (Min. ${evt.minEarningViews.toLocaleString('id-ID')} Views)`}
+                                </>
+                              )}
                             </span>
                           </div>
                         </div>
@@ -2226,7 +2240,7 @@ export default function EventsUserPortal({
                                     top: '26px',
                                     bottom: '-26px',
                                     width: '2px',
-                                    background: (userReg.status === 'approved' && userSub) ? '#22c55e' : 'var(--border-color)',
+                                    background: (userReg.status === 'approved' && userSub && userSub.status !== 'rejected') ? '#22c55e' : 'var(--border-color)',
                                     zIndex: 1
                                   }} />
                                   
@@ -2238,16 +2252,16 @@ export default function EventsUserPortal({
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     background: 
-                                      (userReg.status === 'approved' && userSub) ? 'rgba(34, 197, 94, 0.15)' :
+                                      (userReg.status === 'approved' && userSub && userSub.status !== 'rejected') ? 'rgba(34, 197, 94, 0.15)' :
                                       userReg.status === 'approved' ? 'var(--primary-glow)' : 'var(--primary-glow)',
                                     border: `2px solid ${
-                                      (userReg.status === 'approved' && userSub) ? '#22c55e' :
+                                      (userReg.status === 'approved' && userSub && userSub.status !== 'rejected') ? '#22c55e' :
                                       userReg.status === 'approved' ? 'var(--primary)' : 'var(--border-color)'
                                     }`,
                                     zIndex: 2,
                                     flexShrink: 0
                                   }}>
-                                    {(userReg.status === 'approved' && userSub) ? (
+                                    {(userReg.status === 'approved' && userSub && userSub.status !== 'rejected') ? (
                                       <CheckCircle2 size={14} style={{ color: '#22c55e' }} />
                                     ) : (
                                       <div style={{ 
@@ -2261,7 +2275,7 @@ export default function EventsUserPortal({
                                   
                                   <div style={{ flex: 1 }}>
                                     <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userReg.status === 'approved' ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: 'bold' }}>
-                                      Tahap 2: Pengiriman Karya Video
+                                      {evt.budgetMode === 'submit' ? 'Tahap 2: Pengisian Ulasan Google Maps' : 'Tahap 2: Pengiriman Karya Video'}
                                     </h4>
                                     
                                     {userReg.status !== 'approved' && (
@@ -2270,20 +2284,29 @@ export default function EventsUserPortal({
                                       </p>
                                     )}
                                     
-                                    {userReg.status === 'approved' && !userSub && (
+                                    {userReg.status === 'approved' && (!userSub || userSub.status === 'rejected') && (
                                       <div style={{ marginTop: '8px' }}>
-                                        <p style={{ margin: '0 0 8px 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                                          Kirim tautan karya video Anda untuk dinilai juri.
-                                        </p>
+                                        {userSub && userSub.status === 'rejected' ? (
+                                          <div style={{ marginBottom: '10px', padding: '10px 12px', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.15)', borderRadius: '8px', fontSize: '0.78rem' }}>
+                                            <strong style={{ color: '#ef4444' }}>Ulasan Ditolak / Perlu Perbaikan:</strong>
+                                            <p style={{ margin: '4px 0 0 0', color: '#f87171', fontStyle: 'italic' }}>
+                                              "{userSub.feedback}"
+                                            </p>
+                                          </div>
+                                        ) : (
+                                          <p style={{ margin: '0 0 8px 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                                            {evt.budgetMode === 'submit' ? 'Kirim screenshot ulasan Google Maps & salinan teks Anda di sini.' : 'Kirim tautan karya video Anda untuk dinilai juri.'}
+                                          </p>
+                                        )}
                                         <button 
                                           className="btn btn-secondary" 
                                           onClick={() => setSubmittingEvent(evt)}
                                           style={{ 
                                             width: '100%', 
                                             justifyContent: 'center', 
-                                            borderColor: 'white', 
-                                            color: 'black',
-                                            background: 'white',
+                                            borderColor: userSub && userSub.status === 'rejected' ? '#ef4444' : 'white', 
+                                            color: userSub && userSub.status === 'rejected' ? 'white' : 'black',
+                                            background: userSub && userSub.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'white',
                                             padding: '8px 16px',
                                             borderRadius: '30px',
                                             fontWeight: 'bold',
@@ -2292,12 +2315,12 @@ export default function EventsUserPortal({
                                           }}
                                         >
                                           <Send size={12} />
-                                          <span>Kirim Karya Sekarang</span>
+                                          <span>{userSub && userSub.status === 'rejected' ? 'Perbaiki & Kirim Ulang Ulasan' : (evt.budgetMode === 'submit' ? 'Kirim Ulasan Sekarang' : 'Kirim Karya Sekarang')}</span>
                                         </button>
                                       </div>
                                     )}
                                     
-                                    {userReg.status === 'approved' && userSub && (
+                                    {userReg.status === 'approved' && userSub && userSub.status !== 'rejected' && (
                                       <div style={{ 
                                         border: '1px solid var(--border-color)', 
                                         borderRadius: '12px', 
@@ -2306,7 +2329,7 @@ export default function EventsUserPortal({
                                         marginTop: '8px',
                                         fontSize: '0.8rem'
                                       }}>
-                                        <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginBottom: '2px' }}>Karya Terkirim:</div>
+                                        <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginBottom: '2px' }}>{evt.budgetMode === 'submit' ? 'Ulasan Terkirim:' : 'Karya Terkirim:'}</div>
                                         <div style={{ fontWeight: 'bold', color: 'white', marginBottom: '6px' }}>{userSub.title}</div>
                                         
                                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '6px' }}>
@@ -2319,14 +2342,19 @@ export default function EventsUserPortal({
                                             background: 
                                               userSub.platform?.toLowerCase() === 'youtube' ? '#ff0000' :
                                               userSub.platform?.toLowerCase() === 'tiktok' ? 'linear-gradient(45deg, #fe2c55, #25f4ee)' :
-                                              userSub.platform?.toLowerCase() === 'instagram' ? 'linear-gradient(45deg, #f09433, #dc2743, #bc1888)' : '#475569'
+                                              userSub.platform?.toLowerCase() === 'instagram' ? 'linear-gradient(45deg, #f09433, #dc2743, #bc1888)' :
+                                              userSub.platform?.toLowerCase() === 'googlereview' ? '#4285f4' : '#475569'
                                           }}>{userSub.platform || 'Link Eksternal'}</span>
-                                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Views: <strong>{userSub.views || 0}</strong></span>
-                                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Likes: <strong>{userSub.likes || 0}</strong></span>
+                                          {evt.budgetMode !== 'submit' && (
+                                            <>
+                                              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Views: <strong>{userSub.views || 0}</strong></span>
+                                              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Likes: <strong>{userSub.likes || 0}</strong></span>
+                                            </>
+                                          )}
                                         </div>
 
-                                        {/* Estimasi Pembayaran */}
-                                        {(() => {
+                                        {/* Estimasi Pembayaran (Only for Video Views) */}
+                                        {evt.budgetMode !== 'submit' && (() => {
                                           const step = evt.benefitViewsStep || 1000;
                                           const amount = evt.benefitAmount || 0;
                                           const views = userSub.views || 0;
@@ -2383,19 +2411,23 @@ export default function EventsUserPortal({
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     background: 
-                                      (userSub && userSub.score !== null) ? 'rgba(34, 197, 94, 0.15)' :
-                                      userSub ? 'rgba(234, 179, 8, 0.15)' : 'var(--primary-glow)',
+                                      (userSub && userSub.status === 'approved') ? 'rgba(34, 197, 94, 0.15)' :
+                                      (userSub && userSub.status === 'submitted') ? 'rgba(234, 179, 8, 0.15)' :
+                                      (userSub && userSub.status === 'rejected') ? 'rgba(239, 68, 68, 0.15)' : 'var(--primary-glow)',
                                     border: `2px solid ${
-                                      (userSub && userSub.score !== null) ? '#22c55e' :
-                                      userSub ? '#eab308' : 'var(--border-color)'
+                                      (userSub && userSub.status === 'approved') ? '#22c55e' :
+                                      (userSub && userSub.status === 'submitted') ? '#eab308' :
+                                      (userSub && userSub.status === 'rejected') ? '#ef4444' : 'var(--border-color)'
                                     }`,
                                     zIndex: 2,
                                     flexShrink: 0
                                   }}>
-                                    {(userSub && userSub.score !== null) ? (
-                                      <Award size={13} style={{ color: '#22c55e' }} />
-                                    ) : userSub ? (
+                                    {(userSub && userSub.status === 'approved') ? (
+                                      <CheckCircle2 size={14} style={{ color: '#22c55e' }} />
+                                    ) : (userSub && userSub.status === 'submitted') ? (
                                       <Clock size={13} style={{ color: '#fbbf24' }} />
+                                    ) : (userSub && userSub.status === 'rejected') ? (
+                                      <XCircle size={13} style={{ color: '#ef4444' }} />
                                     ) : (
                                       <div style={{ 
                                         width: '6px', 
@@ -2408,23 +2440,48 @@ export default function EventsUserPortal({
                                   
                                   <div style={{ flex: 1 }}>
                                     <h4 style={{ margin: '2px 0 2px 0', fontSize: '0.85rem', color: userSub ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: 'bold' }}>
-                                      {evt.budgetMode === 'views' ? 'Tahap 3: Pembayaran Otomatis & Hasil' : 'Tahap 3: Penilaian Juri & Hasil'}
+                                      {evt.budgetMode === 'submit' ? 'Tahap 3: Verifikasi Ulasan & Hasil' : (evt.budgetMode === 'views' ? 'Tahap 3: Pembayaran Otomatis & Hasil' : 'Tahap 3: Penilaian Juri & Hasil')}
                                     </h4>
                                     
                                     {!userSub && (
                                       <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                                        Menunggu pengiriman karya video Anda.
+                                        {evt.budgetMode === 'submit' ? 'Menunggu pengiriman ulasan Google Maps Anda.' : 'Menunggu pengiriman karya video Anda.'}
                                       </p>
                                     )}
                                     
-                                    {userSub && userSub.score === null && (
-                                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: evt.budgetMode === 'views' ? '#38bdf8' : '#fbbf24', background: evt.budgetMode === 'views' ? 'rgba(56, 189, 248, 0.05)' : 'rgba(245, 158, 11, 0.05)', padding: '6px 12px', borderRadius: '20px', marginTop: '6px' }}>
+                                    {userSub && userSub.status === 'submitted' && (
+                                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#fbbf24', background: 'rgba(245, 158, 11, 0.05)', padding: '6px 12px', borderRadius: '20px', marginTop: '6px' }}>
                                         <Clock size={12} />
-                                        <span>{evt.budgetMode === 'views' ? 'Menunggu Sinkronisasi Views & Pembayaran' : 'Sedang Dinilai oleh Juri'}</span>
+                                        <span>Menunggu Verifikasi & Persetujuan Panitia</span>
                                       </div>
                                     )}
                                     
-                                    {userSub && userSub.score !== null && (
+                                    {userSub && userSub.status === 'rejected' && (
+                                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#ef4444', background: 'rgba(239, 68, 68, 0.05)', padding: '6px 12px', borderRadius: '20px', marginTop: '6px' }}>
+                                        <XCircle size={12} />
+                                        <span>Ulasan Ditolak / Perlu Perbaikan (Kembali ke Tahap 2)</span>
+                                      </div>
+                                    )}
+                                    
+                                    {userSub && userSub.status === 'approved' && (
+                                      <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)', padding: '10px 12px', borderRadius: '8px', marginTop: '8px', fontSize: '0.8rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                          <span style={{ fontSize: '0.75rem', color: '#4ade80', fontWeight: '600' }}>Status Pekerjaan</span>
+                                          <span style={{ fontSize: '0.9rem', color: '#22c55e', fontWeight: 'bold' }}>✓ Selesai & Disetujui</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Reward Ditransfer</span>
+                                          <strong style={{ color: 'white', fontSize: '0.9rem' }}>Rp {(userSub.paidBenefit || evt.benefitAmount || 0).toLocaleString('id-ID')}</strong>
+                                        </div>
+                                        {userSub.feedback && (
+                                          <p style={{ margin: '8px 0 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '6px' }}>
+                                            Catatan: "{userSub.feedback}"
+                                          </p>
+                                        )}
+                                      </div>
+                                    )}
+
+                                    {userSub && evt.budgetMode !== 'submit' && userSub.status === 'reviewed' && (
                                       <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)', padding: '10px 12px', borderRadius: '8px', marginTop: '8px', fontSize: '0.8rem' }}>
                                         {evt.budgetMode === 'views' ? (
                                           <>
