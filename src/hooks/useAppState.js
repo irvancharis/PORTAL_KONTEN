@@ -52,6 +52,8 @@ import moviesData from '../data/movies.json';
 import { slugify, formatIndonesianDate, fetchJSONP } from '../utils/helpers';
 import INDONESIAN_REGIONS from '../data/regions.json';
 
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbww9byb9H5SIW_HknSEVJJe-oY9S--NaeKSPjcQ6IBACzoQc38oZ36bQqm__60gncIxxA/exec';
+
 export default function useAppState() {
     const [movies, setMovies] = useState(() => {
     if (isFirebaseConfigured()) return [];
