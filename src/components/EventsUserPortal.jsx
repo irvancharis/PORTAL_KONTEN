@@ -1102,6 +1102,17 @@ export default function EventsUserPortal({
     if (!evt) return 0;
     const initialBudget = evt.campaignBudget || 0;
     const eventSubs = eventSubmissions.filter(s => s.eventId === evt.id);
+    
+    if (evt.budgetMode === 'submit') {
+      const totalPayout = eventSubs.reduce((sum, sub) => {
+        if (sub.status === 'reviewed') {
+          return sum + (sub.paidBenefit || evt.benefitAmount || 0);
+        }
+        return sum;
+      }, 0);
+      return Math.max(0, initialBudget - totalPayout);
+    }
+
     const totalPayout = eventSubs.reduce((sum, sub) => {
       const views = sub.views || 0;
       const step = evt.benefitViewsStep || 1000;
@@ -1425,6 +1436,20 @@ export default function EventsUserPortal({
                               </a>
                             )}
                           </div>
+                        </div>
+                      )}
+
+                      {/* Google Maps Business Link (For Submit Mode) */}
+                      {evt.budgetMode === 'submit' && evt.juknisBrandLink && (
+                        <div style={{ marginBottom: '20px' }}>
+                          <span style={{ fontSize: '0.68rem', color: '#60a5fa', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: '8px' }}>Google Maps Bisnis</span>
+                          <a href={ensureAbsoluteUrl(evt.juknisBrandLink)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(96, 165, 250, 0.05)', border: '1px solid rgba(96, 165, 250, 0.2)', borderRadius: '12px', textDecoration: 'none', color: '#60a5fa', transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(96, 165, 250, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(96, 165, 250, 0.05)'}>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontWeight: 'bold', fontSize: '0.85rem', color: '#60a5fa' }}>Tulis Ulasan di Google Maps</span>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px', whiteSpace: 'nowrap' }}>{evt.juknisBrandLink}</span>
+                            </div>
+                            <ExternalLink size={16} style={{ color: '#60a5fa' }} />
+                          </a>
                         </div>
                       )}
 

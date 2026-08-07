@@ -949,6 +949,7 @@ export default function AdminPanel({
     setTimeout(() => {
       try {
         const isRanking = eventBudgetMode === 'ranking';
+        const isSubmitMode = eventBudgetMode === 'submit';
         const isComp = eventType === 'competition';
         const computedBudget = !isComp ? 0 : (isRanking 
           ? (parseInt(eventPrize1) || 0) + (parseInt(eventPrize2) || 0) + (parseInt(eventPrize3) || 0)
@@ -989,8 +990,8 @@ export default function AdminPanel({
                 remainingBudget: computedBudget,
                 ticketPrice: parseInt(eventTicketPrice) || 0,
                 benefitAmount: (!isComp || isRanking) ? 0 : (parseInt(eventBenefitAmount) || 0),
-                benefitViewsStep: (!isComp || isRanking) ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
-                minEarningViews: (!isComp || isRanking) ? 0 : (parseInt(eventMinEarningViews) || 0),
+                benefitViewsStep: (!isComp || isRanking || isSubmitMode) ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
+                minEarningViews: (!isComp || isRanking || isSubmitMode) ? 0 : (parseInt(eventMinEarningViews) || 0),
                 prize1: (isComp && isRanking) ? (parseInt(eventPrize1) || 0) : 0,
                 prize2: (isComp && isRanking) ? (parseInt(eventPrize2) || 0) : 0,
                 prize3: (isComp && isRanking) ? (parseInt(eventPrize3) || 0) : 0,
@@ -1037,8 +1038,8 @@ export default function AdminPanel({
             ticketPrice: parseInt(eventTicketPrice) || 0,
             // views mode
             benefitAmount: isRanking ? 0 : (parseInt(eventBenefitAmount) || 0),
-            benefitViewsStep: isRanking ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
-            minEarningViews: isRanking ? 0 : (parseInt(eventMinEarningViews) || 0),
+            benefitViewsStep: (isRanking || isSubmitMode) ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
+            minEarningViews: (isRanking || isSubmitMode) ? 0 : (parseInt(eventMinEarningViews) || 0),
             // ranking mode
             prize1: isRanking ? (parseInt(eventPrize1) || 0) : 0,
             prize2: isRanking ? (parseInt(eventPrize2) || 0) : 0,
@@ -1569,14 +1570,53 @@ export default function AdminPanel({
       alert('Skor harus berupa angka antara 1 sampai 100!');
       return;
     }
+
+    // Find the event
+    const evt = events.find(event => event.id === judgingSubmission.eventId);
+    let finalPaidBenefit = 0;
+
+    if (evt && evt.budgetMode === 'submit') {
+      const payoutAmount = evt.benefitAmount || 0;
+      const alreadyPaid = judgingSubmission.paidBenefit || 0;
+      const currentRemaining = evt.remainingBudget !== undefined ? evt.remainingBudget : evt.campaignBudget;
+
+      if (alreadyPaid === 0) {
+        if (payoutAmount > currentRemaining) {
+          alert('Gagal menyetujui: Budget Rekber Escrow event ini tidak mencukupi untuk membayar ulasan ini!');
+          return;
+        }
+
+        // Transfer wallet to creator/participant
+        handleTransferWallet(judgingSubmission.username, payoutAmount);
+        finalPaidBenefit = payoutAmount;
+
+        // Deduct remaining budget
+        setEvents(prev => prev.map(event => {
+          if (event.id === evt.id) {
+            return {
+              ...event,
+              remainingBudget: currentRemaining - payoutAmount
+            };
+          }
+          return event;
+        }));
+      }
+    }
+
     setEventSubmissions(prev => prev.map(s => {
       if (s.id === judgingSubmission.id) {
-        return { ...s, score: scoreVal, feedback: judgingFeedback.trim(), status: 'reviewed' };
+        return { 
+          ...s, 
+          score: scoreVal, 
+          feedback: judgingFeedback.trim(), 
+          status: 'reviewed',
+          paidBenefit: s.paidBenefit || finalPaidBenefit
+        };
       }
       return s;
     }));
     setJudgingSubmission(null);
-    alert('Penilaian karya berhasil disimpan!');
+    alert('Penilaian ulasan & pencairan reward berhasil disimpan!');
   };
 
   const getActivePeriodLabel = (user) => {
@@ -3060,14 +3100,21 @@ export default function AdminPanel({
                       <label style={{ display: 'block', marginBottom: '8px', color: 'white', fontSize: '0.92rem', fontWeight: 'bold' }}>Skema & Mode Pembagian Budget</label>
                       <select 
                         value={eventBudgetMode} 
-                        onChange={(e) => setEventBudgetMode(e.target.value)} 
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setEventBudgetMode(val);
+                          if (val === 'submit') {
+                            setEventJuknisPlatforms({ TikTok: false, Instagram: false, YouTube: false, Facebook: false, GoogleReview: true });
+                          }
+                        }} 
                         style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none', marginBottom: '16px' }}
                       >
-                        <option value="views" style={{ background: '#020202' }}>Pay-per-View</option>
-                        <option value="ranking" style={{ background: '#020202' }}>Juara 1, 2, 3</option>
+                        <option value="views" style={{ background: '#020202' }}>Pay-per-View (Video Views)</option>
+                        <option value="ranking" style={{ background: '#020202' }}>Juara 1, 2, 3 (Kompetisi Tradisional)</option>
+                        <option value="submit" style={{ background: '#020202' }}>Pay-per-Submit (Google Review)</option>
                       </select>
 
-                      {eventBudgetMode === 'views' ? (
+                      {eventBudgetMode === 'views' && (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                           <div className="form-group" style={{ marginBottom: 0 }}>
                             <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', marginBottom: '8px' }}>
@@ -3075,7 +3122,7 @@ export default function AdminPanel({
                               <InfoTooltip text="Total budget yang disiapkan untuk dibagikan ke kreator berdasarkan performa views video mereka." />
                             </label>
                             <input type="text" required value={formatInputCurrency(eventBudget)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/\D/g, '');
+                              const parsed = e.target.value.replace(/D/g, '');
                               setEventBudget(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
@@ -3085,7 +3132,7 @@ export default function AdminPanel({
                               <InfoTooltip text="Nominal uang yang akan diterima kreator setiap kali mencapai target jumlah views tertentu." />
                             </label>
                             <input type="text" required value={formatInputCurrency(eventBenefitAmount)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/\D/g, '');
+                              const parsed = e.target.value.replace(/D/g, '');
                               setEventBenefitAmount(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
@@ -3095,7 +3142,7 @@ export default function AdminPanel({
                               <InfoTooltip text="Satuan kelipatan jumlah views untuk mencairkan benefit (misal: setiap kelipatan 1.000 views)." />
                             </label>
                             <input type="text" required value={formatInputCurrency(eventBenefitViewsStep)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/\D/g, '');
+                              const parsed = e.target.value.replace(/D/g, '');
                               setEventBenefitViewsStep(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
@@ -3105,37 +3152,63 @@ export default function AdminPanel({
                               <InfoTooltip text="Batas minimum views yang harus dicapai video sebelum kreator berhak mendapatkan pembayaran." />
                             </label>
                             <input type="text" required value={formatInputCurrency(eventMinEarningViews)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/\D/g, '');
+                              const parsed = e.target.value.replace(/D/g, '');
                               setEventMinEarningViews(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                         </div>
-                      ) : (
+                      )}
+
+                      {eventBudgetMode === 'ranking' && (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                           <div className="form-group" style={{ marginBottom: 0 }}>
                             <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>Juara 1 (IDR)</label>
                             <input type="text" required value={formatInputCurrency(eventPrize1)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/\D/g, '');
+                              const parsed = e.target.value.replace(/D/g, '');
                               setEventPrize1(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
                             <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>Juara 2 (IDR)</label>
                             <input type="text" required value={formatInputCurrency(eventPrize2)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/\D/g, '');
+                              const parsed = e.target.value.replace(/D/g, '');
                               setEventPrize2(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
                             <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>Juara 3 (IDR)</label>
                             <input type="text" required value={formatInputCurrency(eventPrize3)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/\D/g, '');
+                              const parsed = e.target.value.replace(/D/g, '');
                               setEventPrize3(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                         </div>
                       )}
 
+                      {eventBudgetMode === 'submit' && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', marginBottom: '8px' }}>
+                              <span>Budget Campaign (IDR)</span>
+                              <InfoTooltip text="Total budget ulasan yang disiapkan oleh brand." />
+                            </label>
+                            <input type="text" required value={formatInputCurrency(eventBudget)} onChange={(e) => {
+                              const parsed = e.target.value.replace(/D/g, '');
+                              setEventBudget(parsed ? parseInt(parsed) : 0);
+                            }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', marginBottom: '8px' }}>
+                              <span>Benefit Payout per Review (IDR)</span>
+                              <InfoTooltip text="Pembayaran flat yang diterima kreator untuk setiap ulasan Google Maps yang disetujui." />
+                            </label>
+                            <input type="text" required value={formatInputCurrency(eventBenefitAmount)} onChange={(e) => {
+                              const parsed = e.target.value.replace(/D/g, '');
+                              setEventBenefitAmount(parsed ? parseInt(parsed) : 0);
+                            }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                        </div>
+                      )}
                       {/* Platform Fee & Escrow Info */}
                       {eventAdminFee > 0 && (
                         <div style={{ marginTop: '16px', padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
@@ -3166,10 +3239,12 @@ export default function AdminPanel({
                     <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Deskripsi Event & Ketentuan Singkat</label>
                     <textarea rows="3" required value={eventDescription} onChange={(e) => setEventDescription(e.target.value)} placeholder="Tuliskan ketentuan pendaftaran, kriteria penilaian, dan hadiah..." style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontFamily: 'inherit', fontSize: '0.9rem', outline: 'none' }}></textarea>
                   </div>
-                  <div className="form-group">
-                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Petunjuk Teknis (Juknis) / Guideline Dinamis</label>
-                    <textarea rows="5" required={!eventJuknisSourceName1 && !eventJuknisBrandName && !eventJuknisDos} value={eventJuknis} onChange={(e) => setEventJuknis(e.target.value)} placeholder="Tulis panduan teknis lengkap (misal: ketentuan hashtag sosmed, jumlah views target, tata cara penulisan tautan, kriteria penjurian)..." style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontFamily: 'inherit', fontSize: '0.9rem', outline: 'none' }}></textarea>
-                  </div>
+                  {eventBudgetMode !== 'submit' && (
+                    <div className="form-group">
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Petunjuk Teknis (Juknis) / Guideline Dinamis</label>
+                      <textarea rows="5" required={eventBudgetMode !== 'submit' && !eventJuknisSourceName1 && !eventJuknisBrandName && !eventJuknisDos} value={eventJuknis} onChange={(e) => setEventJuknis(e.target.value)} placeholder="Tulis panduan teknis lengkap (misal: ketentuan hashtag sosmed, jumlah views target, tata cara penulisan tautan, kriteria penjurian)..." style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontFamily: 'inherit', fontSize: '0.9rem', outline: 'none' }}></textarea>
+                    </div>
+                  )}
 
                   {/* Structured Technical Guidelines Card */}
                   <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', marginBottom: '16px' }}>
@@ -3177,74 +3252,93 @@ export default function AdminPanel({
                       Panduan Juknis Terstruktur (Opsional)
                     </h4>
                     
-                    {/* Platforms & Duration */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '16px' }}>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>Platform Upload</label>
-                        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                            <input type="checkbox" checked={eventJuknisPlatforms.TikTok} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, TikTok: e.target.checked })} style={{ width: '16px', height: '16px' }} />
-                            <span>TikTok</span>
-                          </label>
-                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                            <input type="checkbox" checked={eventJuknisPlatforms.Instagram} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, Instagram: e.target.checked })} style={{ width: '16px', height: '16px' }} />
-                            <span>Instagram</span>
-                          </label>
-                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                            <input type="checkbox" checked={eventJuknisPlatforms.YouTube} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, YouTube: e.target.checked })} style={{ width: '16px', height: '16px' }} />
-                            <span>YouTube Shorts</span>
-                          </label>
-                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                            <input type="checkbox" checked={eventJuknisPlatforms.Facebook} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, Facebook: e.target.checked })} style={{ width: '16px', height: '16px' }} />
-                            <span>Facebook</span>
-                          </label>
-                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                            <input type="checkbox" checked={eventJuknisPlatforms.GoogleReview} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, GoogleReview: e.target.checked })} style={{ width: '16px', height: '16px' }} />
-                            <span style={{ color: '#60a5fa', fontWeight: 'bold' }}>Google Review</span>
-                          </label>
+                    {eventBudgetMode === 'submit' ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>Platform Upload</label>
+                            <div style={{ padding: '10px 14px', background: 'rgba(74, 222, 128, 0.08)', border: '1px solid rgba(74, 222, 128, 0.2)', borderRadius: '8px', color: '#4ade80', fontSize: '0.85rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                              <span>✓ Google Review (Terkunci & Otomatis)</span>
+                            </div>
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>Tautan Google Maps Bisnis (URL)</label>
+                            <input type="url" required={eventBudgetMode === 'submit'} value={eventJuknisBrandLink} onChange={(e) => setEventJuknisBrandLink(e.target.value)} placeholder="https://maps.google.com/..." style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
                         </div>
                       </div>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>Target Durasi Video</label>
-                        <input type="text" value={eventJuknisDuration} onChange={(e) => setEventJuknisDuration(e.target.value)} placeholder="Misal: 60-90 detik" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
-                      </div>
-                    </div>
+                    ) : (
+                      <>
+                        {/* Platforms & Duration */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>Platform Upload</label>
+                            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
+                                <input type="checkbox" checked={eventJuknisPlatforms.TikTok} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, TikTok: e.target.checked })} style={{ width: '16px', height: '16px' }} />
+                                <span>TikTok</span>
+                              </label>
+                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
+                                <input type="checkbox" checked={eventJuknisPlatforms.Instagram} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, Instagram: e.target.checked })} style={{ width: '16px', height: '16px' }} />
+                                <span>Instagram</span>
+                              </label>
+                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
+                                <input type="checkbox" checked={eventJuknisPlatforms.YouTube} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, YouTube: e.target.checked })} style={{ width: '16px', height: '16px' }} />
+                                <span>YouTube Shorts</span>
+                              </label>
+                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
+                                <input type="checkbox" checked={eventJuknisPlatforms.Facebook} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, Facebook: e.target.checked })} style={{ width: '16px', height: '16px' }} />
+                                <span>Facebook</span>
+                              </label>
+                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
+                                <input type="checkbox" checked={eventJuknisPlatforms.GoogleReview} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, GoogleReview: e.target.checked })} style={{ width: '16px', height: '16px' }} />
+                                <span style={{ color: '#60a5fa', fontWeight: 'bold' }}>Google Review</span>
+                              </label>
+                            </div>
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>Target Durasi Video</label>
+                            <input type="text" value={eventJuknisDuration} onChange={(e) => setEventJuknisDuration(e.target.value)} placeholder="Misal: 60-90 detik" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                        </div>
 
-                    {/* Source Material 1 */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Bahan Sumber 1 (Nama)</label>
-                        <input type="text" value={eventJuknisSourceName1} onChange={(e) => setEventJuknisSourceName1(e.target.value)} placeholder="Misal: Video Mentahan Lirik" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
-                      </div>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Bahan Sumber 1 (Link URL)</label>
-                        <input type="text" value={eventJuknisSourceLink1} onChange={(e) => setEventJuknisSourceLink1(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
-                      </div>
-                    </div>
+                        {/* Source Material 1 */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Bahan Sumber 1 (Nama)</label>
+                            <input type="text" value={eventJuknisSourceName1} onChange={(e) => setEventJuknisSourceName1(e.target.value)} placeholder="Misal: Video Mentahan Lirik" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Bahan Sumber 1 (Link URL)</label>
+                            <input type="text" value={eventJuknisSourceLink1} onChange={(e) => setEventJuknisSourceLink1(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                        </div>
 
-                    {/* Source Material 2 */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Bahan Sumber 2 (Nama)</label>
-                        <input type="text" value={eventJuknisSourceName2} onChange={(e) => setEventJuknisSourceName2(e.target.value)} placeholder="Misal: Rekaman Voice Over" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
-                      </div>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Bahan Sumber 2 (Link URL)</label>
-                        <input type="text" value={eventJuknisSourceLink2} onChange={(e) => setEventJuknisSourceLink2(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
-                      </div>
-                    </div>
+                        {/* Source Material 2 */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Bahan Sumber 2 (Nama)</label>
+                            <input type="text" value={eventJuknisSourceName2} onChange={(e) => setEventJuknisSourceName2(e.target.value)} placeholder="Misal: Rekaman Voice Over" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Bahan Sumber 2 (Link URL)</label>
+                            <input type="text" value={eventJuknisSourceLink2} onChange={(e) => setEventJuknisSourceLink2(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                        </div>
 
-                    {/* Brand Assets */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Logo & Brand Kit (Nama)</label>
-                        <input type="text" value={eventJuknisBrandName} onChange={(e) => setEventJuknisBrandName(e.target.value)} placeholder="Misal: Logo PNG & Panduan Warna" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
-                      </div>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Logo & Brand Kit (Link URL)</label>
-                        <input type="text" value={eventJuknisBrandLink} onChange={(e) => setEventJuknisBrandLink(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
-                      </div>
-                    </div>
+                        {/* Brand Assets */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Logo & Brand Kit (Nama)</label>
+                            <input type="text" value={eventJuknisBrandName} onChange={(e) => setEventJuknisBrandName(e.target.value)} placeholder="Misal: Logo PNG & Panduan Warna" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Logo & Brand Kit (Link URL)</label>
+                            <input type="text" value={eventJuknisBrandLink} onChange={(e) => setEventJuknisBrandLink(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                          </div>
+                        </div>
+                      </>
+                    )}
 
                     {/* Content DOs & DONTs */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
