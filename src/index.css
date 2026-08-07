@@ -2852,6 +2852,74 @@ select option {
   box-shadow: 0 6px 16px rgba(255, 255, 255, 0.15);
 }
 
+/* Light theme specificity overrides for PWA banner and modal to prevent them from becoming dark-on-dark */
+.light-theme .pwa-prompt-banner h4 {
+  color: #ffffff !important;
+}
+
+.light-theme .pwa-prompt-banner p {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.light-theme .pwa-prompt-banner .btn-primary {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.08) !important;
+}
+
+.light-theme .pwa-prompt-banner .btn-primary:hover {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  transform: translateY(-2px) !important;
+}
+
+.light-theme .btn-close-pwa {
+  color: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.light-theme .btn-close-pwa:hover {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.light-theme .pwa-instructions-card h3 {
+  color: #ffffff !important;
+}
+
+.light-theme .pwa-instructions-card p {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.light-theme .pwa-instructions-card ol li {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.light-theme .pwa-instructions-card ol li strong {
+  color: #ffffff !important;
+}
+
+.light-theme .pwa-instructions-card .btn-primary {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
+  color: #0f172a !important;
+}
+
+.light-theme .pwa-instructions-card .btn-primary:hover {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  transform: translateY(-2px) !important;
+}
+
+.light-theme .pwa-modal-close-btn {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.light-theme .pwa-modal-close-btn:hover {
+  color: #ffffff !important;
+}
+
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
   .pwa-prompt-banner {
