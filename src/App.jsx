@@ -242,6 +242,8 @@ export default function App() {
     allYears,
     allCountries,
     isLoadingDB,
+    adminSubTab,
+    setAdminSubTab,
     handleCheckProfileSocialMedia,
     handleOpenEditProfile,
     handleOpenLoginModal,

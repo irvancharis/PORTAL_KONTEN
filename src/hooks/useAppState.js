@@ -2804,6 +2804,8 @@ export default function useAppState() {
     allYears,
     allCountries,
     isLoadingDB,
+    adminSubTab,
+    setAdminSubTab,
     handleCheckProfileSocialMedia,
     handleOpenEditProfile,
     handleOpenLoginModal,
