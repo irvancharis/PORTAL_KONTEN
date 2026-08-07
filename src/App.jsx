@@ -3443,86 +3443,139 @@ export default function App() {
                           <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
                             {currentUser && currentUser.username === comm.username ? (
                               <>
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-primary)', margin: '0 0 16px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>Status Keaktifan</h3>
-                                
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem' }}>
-                                  <span style={{ color: 'var(--text-secondary)' }}>Target Anggota:</span>
-                                  <strong style={{ color: 'var(--text-primary)' }}>{target} Orang</strong>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '0.9rem' }}>
-                                  <span style={{ color: 'var(--text-secondary)' }}>Anggota Tergabung:</span>
-                                  <strong style={{ color: 'var(--text-primary)' }}>{current} Orang</strong>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+                                  <Award size={18} style={{ color: 'var(--text-primary)' }} />
+                                  <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-primary)', margin: 0 }}>Status Keaktifan</h3>
                                 </div>
 
-                                <div style={{ width: '100%', height: '8px', background: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden', marginBottom: '12px' }}>
-                                  <div style={{ 
-                                    width: `${Math.min(100, percentage)}%`, 
-                                    height: '100%', 
-                                    background: 'var(--primary)',
-                                    transition: 'width 0.3s ease'
-                                  }} />
+                                <div className="owner-stats-grid">
+                                  <div className="owner-stat-box">
+                                    <span className="owner-stat-label">Target Anggota</span>
+                                    <span className="owner-stat-value">{target} Orang</span>
+                                  </div>
+                                  <div className="owner-stat-box">
+                                    <span className="owner-stat-label">Tergabung</span>
+                                    <span className="owner-stat-value">{current} Orang</span>
+                                  </div>
                                 </div>
-                                
+
+                                <div className="owner-progress-container">
+                                  <div className="owner-progress-header">
+                                    <span>Progress Target</span>
+                                    <strong>{Math.min(100, Math.round(percentage))}%</strong>
+                                  </div>
+                                  <div className="owner-progress-track">
+                                    <div 
+                                      className="owner-progress-bar" 
+                                      style={{ width: `${Math.min(100, percentage)}%` }} 
+                                    />
+                                  </div>
+                                </div>
+
                                 {!isActive ? (
-                                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', lineHeight: '1.4' }}>
-                                    *Kurang {target - current} anggota untuk mencapai status aktif
-                                  </span>
+                                  <div className="owner-status-banner inactive">
+                                    <Clock size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                                    <span>Kurang <strong>{target - current}</strong> anggota aktif untuk memverifikasi keaktifan komunitas.</span>
+                                  </div>
                                 ) : (
-                                  <span style={{ fontSize: '0.78rem', color: 'var(--text-primary)', display: 'block', lineHeight: '1.4', fontWeight: 'bold' }}>
-                                    ✓ Komunitas telah mencapai target anggota aktif.
-                                  </span>
+                                  <div className="owner-status-banner active">
+                                    <CheckCircle2 size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                                    <span>✓ Komunitas terverifikasi aktif. Target crew telah tercapai.</span>
+                                  </div>
                                 )}
                               </>
                             ) : (
-                              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-primary)', margin: '0 0 16px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>Keanggotaan</h3>
+                              <>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+                                  <Users size={18} style={{ color: 'var(--text-primary)' }} />
+                                  <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-primary)', margin: 0 }}>Keanggotaan</h3>
+                                </div>
+
+                                {isRegularUser && (() => {
+                                  const pending = comm.pendingMembers || [];
+                                  const isPending = pending.includes(currentUser?.username);
+
+                                  if (isJoined) {
+                                    return (
+                                      <div className="membership-card-container">
+                                        <div className="membership-status-card">
+                                          <div className="membership-status-header">
+                                            <div className="membership-status-icon-wrapper joined">
+                                              <CheckCircle2 size={22} />
+                                            </div>
+                                            <div className="membership-status-info">
+                                              <span className="membership-status-title">Crew Terdaftar</span>
+                                              <span className="membership-status-badge joined">Aktif</span>
+                                            </div>
+                                          </div>
+                                          <p className="membership-status-desc">
+                                            Anda telah bergabung sebagai crew resmi di komunitas ini. Nikmati akses kolaborasi eksklusif.
+                                          </p>
+                                          <button 
+                                            onClick={() => handleToggleJoinCommunity(comm.username)}
+                                            className="btn-membership-action leave"
+                                          >
+                                            Keluar Komunitas
+                                          </button>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+
+                                  if (isPending) {
+                                    return (
+                                      <div className="membership-card-container">
+                                        <div className="membership-status-card">
+                                          <div className="membership-status-header">
+                                            <div className="membership-status-icon-wrapper pending">
+                                              <Clock size={22} />
+                                            </div>
+                                            <div className="membership-status-info">
+                                              <span className="membership-status-title">Menunggu Persetujuan</span>
+                                              <span className="membership-status-badge pending">Pending</span>
+                                            </div>
+                                          </div>
+                                          <p className="membership-status-desc">
+                                            Permintaan gabung Anda telah terkirim dan sedang ditinjau oleh pengelola komunitas.
+                                          </p>
+                                          <button 
+                                            onClick={() => handleToggleJoinCommunity(comm.username)}
+                                            className="btn-membership-action cancel"
+                                          >
+                                            Batalkan Permintaan
+                                          </button>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+
+                                  return (
+                                    <div className="membership-card-container">
+                                      <div className="membership-status-card">
+                                        <div className="membership-status-header">
+                                          <div className="membership-status-icon-wrapper guest">
+                                            <UserPlus size={22} />
+                                          </div>
+                                          <div className="membership-status-info">
+                                            <span className="membership-status-title">Kreator Tamu</span>
+                                            <span className="membership-status-badge" style={{ background: 'var(--primary-glow)', color: 'var(--text-secondary)' }}>Belum Gabung</span>
+                                          </div>
+                                        </div>
+                                        <p className="membership-status-desc">
+                                          Bergabunglah dengan komunitas ini untuk berkolaborasi dalam kampanye, project, dan terhubung dengan kreator lainnya.
+                                        </p>
+                                        <button 
+                                          onClick={() => handleToggleJoinCommunity(comm.username)}
+                                          className="btn-membership-action join"
+                                        >
+                                          Gabung Komunitas
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+                              </>
                             )}
-
-                            {isRegularUser && (() => {
-                               const pending = comm.pendingMembers || [];
-                               const isPending = pending.includes(currentUser?.username);
-                               
-                               if (isJoined) {
-                                 return (
-                                   <div style={{ 
-                                     marginTop: '16px', 
-                                     display: 'flex', 
-                                     alignItems: 'center', 
-                                     justifyContent: 'center', 
-                                     gap: '8px', 
-                                     padding: '12px', 
-                                     background: 'var(--primary-glow)', 
-                                     borderRadius: '30px', 
-                                     border: '1px solid var(--border-color)' 
-                                   }}>
-                                     <Check size={16} style={{ color: 'var(--text-primary)' }} />
-                                     <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>Tergabung sebagai Anggota</span>
-                                   </div>
-                                 );
-                               }
-
-                               return (
-                                 <div style={{ marginTop: '16px' }}>
-                                   <button
-                                     onClick={() => handleToggleJoinCommunity(comm.username)}
-                                     style={{
-                                       width: '100%',
-                                       padding: '12px',
-                                       fontSize: '0.9rem',
-                                       fontWeight: 'bold',
-                                       borderRadius: '30px',
-                                       border: '1px solid var(--border-color)',
-                                       background: isPending ? 'var(--primary-glow)' : 'var(--text-primary)',
-                                       color: isPending ? 'var(--text-primary)' : 'var(--bg-main)',
-                                       cursor: 'pointer',
-                                       transition: 'all 0.2s ease'
-                                     }}
-                                   >
-                                     {isPending ? 'Menunggu Persetujuan (Batalkan)' : 'Join Komunitas'}
-                                   </button>
-                                 </div>
-                               );
-                             })()}
-
                           </div>
 
                           <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>

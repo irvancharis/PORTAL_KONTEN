@@ -4440,3 +4440,260 @@ select option {
   }
 }
 
+/* Membership Card Redesign */
+.membership-card-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.membership-status-card {
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: all 0.3s ease;
+}
+
+.light-theme .membership-status-card {
+  background: #f9fafb !important;
+  border-color: #e5e7eb !important;
+}
+
+.membership-status-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.membership-status-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.membership-status-icon-wrapper.joined {
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: #10b981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+}
+
+.membership-status-icon-wrapper.pending {
+  background: rgba(245, 158, 11, 0.1) !important;
+  color: #f59e0b !important;
+  border: 1px solid rgba(245, 158, 11, 0.2) !important;
+}
+
+.membership-status-icon-wrapper.guest {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.light-theme .membership-status-icon-wrapper.guest {
+  background: rgba(0, 0, 0, 0.03) !important;
+}
+
+.membership-status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.membership-status-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary) !important;
+  margin: 0;
+}
+
+.membership-status-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  width: fit-content;
+}
+
+.membership-status-badge.joined {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+}
+
+.membership-status-badge.pending {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #f59e0b !important;
+}
+
+.membership-status-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary) !important;
+  line-height: 1.45;
+  margin: 0 0 16px 0 !important;
+}
+
+.btn-membership-action {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-membership-action.join {
+  background: var(--text-primary) !important;
+  color: var(--bg-main) !important;
+  border: 1px solid var(--text-primary) !important;
+}
+
+.btn-membership-action.join:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.light-theme .btn-membership-action.join {
+  background: #111827 !important;
+  color: #ffffff !important;
+  border-color: #111827 !important;
+}
+
+.light-theme .btn-membership-action.join:hover {
+  background: #1f2937 !important;
+  border-color: #1f2937 !important;
+}
+
+.btn-membership-action.leave {
+  background: transparent !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.2) !important;
+}
+
+.btn-membership-action.leave:hover {
+  background: rgba(239, 68, 68, 0.05) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+.btn-membership-action.cancel {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.btn-membership-action.cancel:hover {
+  background: var(--primary-glow) !important;
+}
+
+/* Stat Card Grid for Owners */
+.owner-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.owner-stat-box {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid var(--border-color) !important;
+  text-align: center;
+}
+
+.light-theme .owner-stat-box {
+  background: #f9fafb !important;
+  border-color: #e5e7eb !important;
+}
+
+.owner-stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary) !important;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.owner-stat-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary) !important;
+}
+
+.owner-progress-container {
+  margin-bottom: 16px;
+}
+
+.owner-progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-secondary) !important;
+  margin-bottom: 6px;
+}
+
+.owner-progress-header strong {
+  color: var(--text-primary) !important;
+}
+
+.owner-progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--border-color) !important;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.owner-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--text-secondary) 0%, var(--text-primary) 100%) !important;
+  transition: width 0.3s ease;
+}
+
+.light-theme .owner-progress-bar {
+  background: #111827 !important;
+}
+
+.owner-status-banner {
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.owner-status-banner.active {
+  background: rgba(16, 185, 129, 0.08) !important;
+  border: 1px solid rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+}
+
+.light-theme .owner-status-banner.active {
+  background: rgba(16, 185, 129, 0.05) !important;
+  color: #065f46 !important;
+  border-color: rgba(16, 185, 129, 0.12) !important;
+}
+
+.owner-status-banner.inactive {
+  background: rgba(245, 158, 11, 0.08) !important;
+  border: 1px solid rgba(245, 158, 11, 0.15) !important;
+  color: #f59e0b !important;
+}
+
+.light-theme .owner-status-banner.inactive {
+  background: rgba(245, 158, 11, 0.05) !important;
+  color: #92400e !important;
+  border-color: rgba(245, 158, 11, 0.12) !important;
+}
+
