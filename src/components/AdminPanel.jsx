@@ -984,7 +984,7 @@ export default function AdminPanel({
                 hasGift: eventHasGift,
                 giftType: eventGiftType,
                 giftName: eventGiftName.trim(),
-                giftValue: eventHasGift && eventGiftType === 'cash' ? (parseInt(eventGiftValue) || 0) : 0,
+                giftValue: eventHasGift && (eventGiftType === 'cash' || eventGiftType === 'voucher') ? (parseInt(eventGiftValue) || 0) : 0,
                 giftDescription: eventGiftDescription.trim(),
                 budgetMode: isComp ? eventBudgetMode : 'views',
                 targetAudience: eventTargetAudience,
@@ -1031,7 +1031,7 @@ export default function AdminPanel({
             hasGift: eventHasGift,
             giftType: eventGiftType,
             giftName: eventGiftName.trim(),
-            giftValue: eventHasGift && eventGiftType === 'cash' ? (parseInt(eventGiftValue) || 0) : 0,
+            giftValue: eventHasGift && (eventGiftType === 'cash' || eventGiftType === 'voucher') ? (parseInt(eventGiftValue) || 0) : 0,
             giftDescription: eventGiftDescription.trim(),
             budgetMode: isComp ? eventBudgetMode : 'views',
             targetAudience: eventTargetAudience,
@@ -3065,8 +3065,14 @@ export default function AdminPanel({
                               </span>
                             </td>
                             <td>
-                              <strong>{g.giftName}</strong>
-                              {g.giftValue > 0 && <div>Rp {g.giftValue.toLocaleString('id-ID')}</div>}
+                              <strong>
+                                {/^\d+$/.test(String(g.giftName).trim()) ? `Rp ${parseInt(g.giftName).toLocaleString('id-ID')}` : g.giftName.replace(/\b\d{4,}\b/g, m => parseInt(m).toLocaleString('id-ID'))}
+                              </strong>
+                              {g.giftValue > 0 && (
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                  Rp {g.giftValue.toLocaleString('id-ID')}
+                                </div>
+                              )}
                             </td>
                             <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
                               {g.giftCode || '-'}
@@ -3665,10 +3671,12 @@ export default function AdminPanel({
                           </div>
                         </div>
 
-                        {eventGiftType === 'cash' && (
+                        {(eventGiftType === 'cash' || eventGiftType === 'voucher') && (
                           <div className="form-group animate-fade-in" style={{ marginBottom: 0 }}>
-                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Nominal Saldo Hadiah (Rupiah)</label>
-                            <input type="number" required={eventHasGift && eventGiftType === 'cash'} value={eventGiftValue} onChange={(e) => setEventGiftValue(e.target.value)} placeholder="Contoh: 10000" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                              {eventGiftType === 'cash' ? 'Nominal Saldo Hadiah (Rupiah)' : 'Nilai Nominal Voucher (Rupiah)'}
+                            </label>
+                            <input type="number" required={eventHasGift && (eventGiftType === 'cash' || eventGiftType === 'voucher')} value={eventGiftValue} onChange={(e) => setEventGiftValue(e.target.value)} placeholder="Contoh: 25000" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                         )}
 

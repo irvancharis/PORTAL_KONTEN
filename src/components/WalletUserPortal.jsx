@@ -539,9 +539,13 @@ export default function WalletUserPortal({
                         </span>
                       </td>
                       <td>
-                        <strong style={{ color: 'var(--text-primary)', fontSize: '0.88rem' }}>{g.giftName}</strong>
-                        {g.giftType === 'cash' && g.giftValue > 0 && (
-                          <div style={{ fontSize: '0.75rem', color: '#4ade80' }}>+ Rp {g.giftValue.toLocaleString('id-ID')}</div>
+                        <strong style={{ color: 'var(--text-primary)', fontSize: '0.88rem' }}>
+                          {/^\d+$/.test(String(g.giftName).trim()) ? `Rp ${parseInt(g.giftName).toLocaleString('id-ID')}` : g.giftName.replace(/\b\d{4,}\b/g, m => parseInt(m).toLocaleString('id-ID'))}
+                        </strong>
+                        {g.giftValue > 0 && (
+                          <div style={{ fontSize: '0.75rem', color: g.giftType === 'cash' ? '#4ade80' : '#38bdf8' }}>
+                            {g.giftType === 'cash' ? '+' : ''} Rp {g.giftValue.toLocaleString('id-ID')}
+                          </div>
                         )}
                       </td>
                       <td style={{ color: 'var(--text-primary)', fontSize: '0.85rem', fontFamily: 'monospace' }}>
