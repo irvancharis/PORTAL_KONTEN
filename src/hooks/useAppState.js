@@ -49,7 +49,7 @@ import {
   seedFirestoreRegions
 } from '../firebase';
 import moviesData from '../data/movies.json';
-import { slugify, formatIndonesianDate, fetchJSONP } from '../utils/helpers';
+import { slugify, formatIndonesianDate, fetchJSONP, INDONESIAN_REGIONS } from '../utils/helpers';
 
 export default function useAppState() {
     const [movies, setMovies] = useState(() => {
