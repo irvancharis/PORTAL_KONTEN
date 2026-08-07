@@ -1919,8 +1919,8 @@ select option {
 .form-group select:focus {
   outline: none !important;
   background: rgba(255, 255, 255, 0.05) !important;
-  border-color: #ffffff !important;
-  box-shadow: none !important;
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25) !important;
 }
 .form-group input:disabled {
   opacity: 0.5;
@@ -3999,6 +3999,16 @@ select option {
   background-color: #ffffff !important;
   color: #111827 !important;
   border: 1px solid #d1d5db !important;
+  transition: all 0.2s ease;
+}
+
+.light-theme input:focus,
+.light-theme textarea:focus,
+.light-theme select:focus {
+  background-color: #ffffff !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+  outline: none !important;
 }
 
 .light-theme .search-input-container input {
