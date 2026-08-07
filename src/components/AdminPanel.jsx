@@ -1467,6 +1467,19 @@ export default function AdminPanel({
     const trimmed = code.trim();
     if (!trimmed) return;
 
+    if (trimmed.toUpperCase().startsWith('VCH-')) {
+      if (window.confirm(`Menemukan kode voucher: "${trimmed}". Apakah Anda yakin ingin menukarkannya?`)) {
+        (async () => {
+          const res = await handleRedeemGiftCode(trimmed);
+          alert(res.message);
+          if (res.success) {
+            setShowQRScanner(false);
+          }
+        })();
+      }
+      return;
+    }
+
     const part = eventParticipants.find(p => 
       p.eventId === selectedManageEvent.id && 
       p.ticketCode && 
@@ -2534,8 +2547,8 @@ export default function AdminPanel({
                     />
                   </div>
 
-                  {selectedManageEvent.ticketPrice > 0 && (
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    {selectedManageEvent.ticketPrice > 0 && (
                       <form onSubmit={handleQuickCheckIn} style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '100%', maxWidth: '300px' }}>
                         <input
                           type="text"
@@ -2552,7 +2565,9 @@ export default function AdminPanel({
                           Check-In
                         </button>
                       </form>
+                    )}
 
+                    {(selectedManageEvent.ticketPrice > 0 || selectedManageEvent.hasGift) && (
                       <button 
                         type="button" 
                         onClick={() => setShowQRScanner(true)}
@@ -2560,10 +2575,10 @@ export default function AdminPanel({
                         style={{ padding: '8px 16px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                       >
                         <QrCode size={14} />
-                        <span>Scan QR</span>
+                        <span>{selectedManageEvent.ticketPrice > 0 ? 'Scan QR Tiket' : 'Scan QR Voucher'}</span>
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 <div className="admin-table-container">

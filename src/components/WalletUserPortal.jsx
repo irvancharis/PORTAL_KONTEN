@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Wallet, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle2, AlertCircle, XCircle, Search } from 'lucide-react';
+import { Wallet, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle2, AlertCircle, XCircle, Search, X } from 'lucide-react';
 
 const formatInputCurrency = (num) => {
   if (num === 0 || !num) return '';
@@ -30,6 +30,7 @@ export default function WalletUserPortal({
   const [wdPassword, setWdPassword] = useState('');
   const [txFilter, setTxFilter] = useState('all'); // 'all', 'credit', 'debit'
   const [activeWalletTab, setActiveWalletTab] = useState('transactions'); // 'transactions', 'gifts'
+  const [selectedVoucherGift, setSelectedVoucherGift] = useState(null);
 
   const isPremium = currentUser && currentUser.isPremium === true;
   const activeFeePercent = isPremium ? withdrawalFeePercentPremium : withdrawalFeePercent;
@@ -517,7 +518,13 @@ export default function WalletUserPortal({
                 </thead>
                 <tbody>
                   {myGifts.map((g) => (
-                    <tr key={g.id} className="table-row-hover">
+                    <tr 
+                      key={g.id} 
+                      className="table-row-hover"
+                      onClick={() => g.giftType === 'voucher' && setSelectedVoucherGift(g)}
+                      style={{ cursor: g.giftType === 'voucher' ? 'pointer' : 'default' }}
+                      title={g.giftType === 'voucher' ? 'Klik untuk melihat detail e-voucher' : ''}
+                    >
                       <td style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
                         {new Date(g.createdAt || Date.now()).toLocaleDateString('id-ID', {
                           day: 'numeric',
@@ -580,6 +587,170 @@ export default function WalletUserPortal({
             )}
           </div>
         </div>
+      )}
+
+      {/* Voucher Ticket Modal (Phone Size Card) */}
+      {selectedVoucherGift && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(2, 2, 2, 0.9)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 10500,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '20px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '2px solid var(--text-primary)',
+            borderRadius: '24px',
+            width: '100%',
+            maxWidth: '360px',
+            boxShadow: 'var(--shadow-premium)',
+            position: 'relative',
+            overflow: 'hidden',
+            color: 'var(--text-primary)'
+          }}>
+            {/* Ticket Notches */}
+            <div style={{ position: 'absolute', left: '-12px', top: '220px', width: '24px', height: '24px', borderRadius: '50%', background: '#020202', borderRight: '2px solid var(--text-primary)' }}></div>
+            <div style={{ position: 'absolute', right: '-12px', top: '220px', width: '24px', height: '24px', borderRadius: '50%', background: '#020202', borderLeft: '2px solid var(--text-primary)' }}></div>
+
+            {/* Header */}
+            <div style={{ padding: '24px 24px 16px 24px', borderBottom: '2px dashed var(--border-color)', textAlign: 'center', position: 'relative' }}>
+              <button 
+                onClick={() => setSelectedVoucherGift(null)}
+                style={{
+                  position: 'absolute',
+                  right: '16px',
+                  top: '16px',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  padding: '4px'
+                }}
+              >
+                <X size={18} />
+              </button>
+              
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '800', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                E-VOUCHER HADIAH RESMI
+              </span>
+              <h3 style={{ fontSize: '1.4rem', fontWeight: '800', margin: '12px 0 4px 0', color: 'var(--text-primary)' }}>
+                {/^\d+$/.test(String(selectedVoucherGift.giftName).trim()) ? `Rp ${parseInt(selectedVoucherGift.giftName).toLocaleString('id-ID')}` : selectedVoucherGift.giftName.replace(/\b\d{4,}\b/g, m => parseInt(m).toLocaleString('id-ID'))}
+              </h3>
+              <span style={{
+                fontSize: '0.7rem',
+                padding: '3px 10px',
+                borderRadius: '12px',
+                fontWeight: 'bold',
+                background: selectedVoucherGift.status === 'used' ? 'rgba(255,255,255,0.05)' : 'rgba(74,222,128,0.1)',
+                color: selectedVoucherGift.status === 'used' ? 'var(--text-muted)' : '#4ade80',
+                border: `1px solid ${selectedVoucherGift.status === 'used' ? 'var(--border-color)' : 'rgba(74,222,128,0.2)'}`,
+                display: 'inline-block',
+                marginTop: '6px'
+              }}>
+                {selectedVoucherGift.status === 'used' ? 'SUDAH DITUKARKAN' : 'AKTIF / BELUM DITUKAR'}
+              </span>
+            </div>
+
+            {/* Ticket Body / QR Section */}
+            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+              <div style={{
+                background: 'white',
+                borderRadius: '12px',
+                padding: '12px',
+                boxShadow: 'var(--shadow-premium)',
+                width: '180px',
+                height: '180px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxSizing: 'border-box'
+              }}>
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(selectedVoucherGift.giftCode)}`}
+                  alt="Voucher QR Code"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+              </div>
+
+              <div style={{ textAlign: 'center', width: '100%' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>KODE VOUCHER</span>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: '8px', 
+                  marginTop: '4px' 
+                }}>
+                  <span style={{ 
+                    fontFamily: 'monospace', 
+                    fontSize: '1.25rem', 
+                    fontWeight: '800', 
+                    color: 'var(--text-primary)',
+                    letterSpacing: '1px' 
+                  }}>
+                    {selectedVoucherGift.giftCode}
+                  </span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedVoucherGift.giftCode);
+                      alert('Kode voucher berhasil disalin!');
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#38bdf8',
+                      cursor: 'pointer',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    Salin
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Ticket Footer (Info) */}
+            <div style={{ padding: '0 24px 24px 24px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+              <div style={{ borderTop: '1px dashed var(--border-color)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' }}>
+                <div>
+                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.68rem', fontWeight: 'bold' }}>EVENT PENYELENGGARA</span>
+                  <strong style={{ color: 'var(--text-primary)' }}>{selectedVoucherGift.eventTitle}</strong>
+                </div>
+                <div>
+                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.68rem', fontWeight: 'bold' }}>PENERIMA</span>
+                  <span style={{ color: 'var(--text-primary)' }}>{selectedVoucherGift.recipientName} (@{selectedVoucherGift.recipientUsername})</span>
+                </div>
+                <div>
+                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.68rem', fontWeight: 'bold' }}>PETUNJUK KLAIM</span>
+                  <p style={{ margin: 0, color: 'var(--text-primary)', fontSize: '0.72rem', whiteSpace: 'pre-wrap', lineHeight: '1.4' }}>
+                    {selectedVoucherGift.giftDescription || 'Tunjukkan QR Code ini kepada petugas/panitia saat melakukan transaksi.'}
+                  </p>
+                </div>
+              </div>
+              
+              <div style={{ 
+                marginTop: '20px', 
+                fontSize: '0.62rem', 
+                color: 'var(--text-muted)',
+                lineHeight: '1.4'
+              }}>
+                * Voucher ini hanya berlaku satu kali penukaran. Status akan berubah otomatis setelah diproses oleh panitia.
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
 
       {/* Withdrawal Form Modal */}
