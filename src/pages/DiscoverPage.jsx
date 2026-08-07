@@ -16,7 +16,8 @@ import {
   Clock, 
   Award, 
   HelpCircle, 
-  Briefcase 
+  Briefcase,
+  Users
 } from 'lucide-react';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
