@@ -2923,6 +2923,7 @@ export default function AdminPanel({
                         <option value="Vlog">Vlog</option>
                         <option value="Creative UGC">Creative UGC</option>
                         <option value="Review Product">Review Product</option>
+                        <option value="Google Review">Google Review</option>
                         <option value="Lainnya">Lainnya</option>
                       </select>
                     </div>
@@ -3105,6 +3106,7 @@ export default function AdminPanel({
                           setEventBudgetMode(val);
                           if (val === 'submit') {
                             setEventJuknisPlatforms({ TikTok: false, Instagram: false, YouTube: false, Facebook: false, GoogleReview: true });
+                            setEventCategory('Google Review');
                           }
                         }} 
                         style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none', marginBottom: '16px' }}
@@ -3122,7 +3124,7 @@ export default function AdminPanel({
                               <InfoTooltip text="Total budget yang disiapkan untuk dibagikan ke kreator berdasarkan performa views video mereka." />
                             </label>
                             <input type="text" required value={formatInputCurrency(eventBudget)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/D/g, '');
+                              const parsed = e.target.value.replace(/\D/g, '');
                               setEventBudget(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
@@ -3132,7 +3134,7 @@ export default function AdminPanel({
                               <InfoTooltip text="Nominal uang yang akan diterima kreator setiap kali mencapai target jumlah views tertentu." />
                             </label>
                             <input type="text" required value={formatInputCurrency(eventBenefitAmount)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/D/g, '');
+                              const parsed = e.target.value.replace(/\D/g, '');
                               setEventBenefitAmount(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
@@ -3142,7 +3144,7 @@ export default function AdminPanel({
                               <InfoTooltip text="Satuan kelipatan jumlah views untuk mencairkan benefit (misal: setiap kelipatan 1.000 views)." />
                             </label>
                             <input type="text" required value={formatInputCurrency(eventBenefitViewsStep)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/D/g, '');
+                              const parsed = e.target.value.replace(/\D/g, '');
                               setEventBenefitViewsStep(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
@@ -3152,7 +3154,7 @@ export default function AdminPanel({
                               <InfoTooltip text="Batas minimum views yang harus dicapai video sebelum kreator berhak mendapatkan pembayaran." />
                             </label>
                             <input type="text" required value={formatInputCurrency(eventMinEarningViews)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/D/g, '');
+                              const parsed = e.target.value.replace(/\D/g, '');
                               setEventMinEarningViews(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
@@ -3164,21 +3166,21 @@ export default function AdminPanel({
                           <div className="form-group" style={{ marginBottom: 0 }}>
                             <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>Juara 1 (IDR)</label>
                             <input type="text" required value={formatInputCurrency(eventPrize1)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/D/g, '');
+                              const parsed = e.target.value.replace(/\D/g, '');
                               setEventPrize1(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
                             <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>Juara 2 (IDR)</label>
                             <input type="text" required value={formatInputCurrency(eventPrize2)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/D/g, '');
+                              const parsed = e.target.value.replace(/\D/g, '');
                               setEventPrize2(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
                             <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>Juara 3 (IDR)</label>
                             <input type="text" required value={formatInputCurrency(eventPrize3)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/D/g, '');
+                              const parsed = e.target.value.replace(/\D/g, '');
                               setEventPrize3(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
@@ -3193,7 +3195,7 @@ export default function AdminPanel({
                               <InfoTooltip text="Total budget ulasan yang disiapkan oleh brand." />
                             </label>
                             <input type="text" required value={formatInputCurrency(eventBudget)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/D/g, '');
+                              const parsed = e.target.value.replace(/\D/g, '');
                               setEventBudget(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
@@ -3203,7 +3205,7 @@ export default function AdminPanel({
                               <InfoTooltip text="Pembayaran flat yang diterima kreator untuk setiap ulasan Google Maps yang disetujui." />
                             </label>
                             <input type="text" required value={formatInputCurrency(eventBenefitAmount)} onChange={(e) => {
-                              const parsed = e.target.value.replace(/D/g, '');
+                              const parsed = e.target.value.replace(/\D/g, '');
                               setEventBenefitAmount(parsed ? parseInt(parsed) : 0);
                             }} style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
