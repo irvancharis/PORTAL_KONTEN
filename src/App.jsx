@@ -272,6 +272,7 @@ export default function App() {
     communities,
     setCommunities,
     handleSetCommunities,
+    usernameInputRef,
     sidebarEvents,
     sidebarParticipants,
     sidebarSubmissions,

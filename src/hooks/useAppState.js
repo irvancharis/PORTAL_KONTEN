@@ -2836,6 +2836,7 @@ export default function useAppState() {
     communities,
     setCommunities,
     handleSetCommunities,
+    usernameInputRef,
     sidebarEvents,
     sidebarParticipants,
     sidebarSubmissions,
