@@ -15,6 +15,7 @@ import ProfilePage from './pages/ProfilePage';
 import SearchableSelect from './components/SearchableSelect';
 import useAppState from './hooks/useAppState';
 import { slugify, formatIndonesianDate, fetchJSONP } from './utils/helpers';
+import { isFirebaseConfigured, auth, saveFirestoreUser } from './firebase';
 import { 
   Bookmark, 
   BookmarkCheck, 
@@ -270,6 +271,7 @@ export default function App() {
     handleClosePlayer,
     communities,
     setCommunities,
+    handleSetCommunities,
     sidebarEvents,
     sidebarParticipants,
     sidebarSubmissions,

@@ -2835,6 +2835,7 @@ export default function useAppState() {
     handleClosePlayer,
     communities,
     setCommunities,
+    handleSetCommunities,
     sidebarEvents,
     sidebarParticipants,
     sidebarSubmissions,
