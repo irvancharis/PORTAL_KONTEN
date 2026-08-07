@@ -3212,28 +3212,34 @@ export default function AdminPanel({
                         </div>
                       )}
                       {/* Platform Fee & Escrow Info */}
-                      {eventAdminFee > 0 && (
-                        <div style={{ marginTop: '16px', padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                            <span style={{ color: 'var(--text-secondary)' }}>Total Budget Kampanye:</span>
-                            <strong style={{ color: 'white' }}>
-                              Rp {(eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))).toLocaleString('id-ID')}
-                            </strong>
+                      {eventAdminFee > 0 && (() => {
+                        const isFlatOrViews = eventBudgetMode === 'views' || eventBudgetMode === 'submit';
+                        const currentTargetBudget = isFlatOrViews ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0));
+                        const currentAdminFeeVal = Math.round((currentTargetBudget * eventAdminFee) / 100);
+                        const totalDepositEscrowVal = currentTargetBudget + currentAdminFeeVal;
+                        return (
+                          <div style={{ marginTop: '16px', padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>Total Budget Kampanye:</span>
+                              <strong style={{ color: 'white' }}>
+                                Rp {currentTargetBudget.toLocaleString('id-ID')}
+                              </strong>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform ({eventAdminFee}%):</span>
+                              <strong style={{ color: 'white' }}>
+                                + Rp {currentAdminFeeVal.toLocaleString('id-ID')}
+                              </strong>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
+                              <span style={{ color: 'white' }}>Total Deposit Escrow:</span>
+                              <strong style={{ color: 'white', fontSize: '0.92rem', borderBottom: '1px solid white', paddingBottom: '2px' }}>
+                                Rp {totalDepositEscrowVal.toLocaleString('id-ID')}
+                              </strong>
+                            </div>
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                            <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform ({eventAdminFee}%):</span>
-                            <strong style={{ color: 'white' }}>
-                              + Rp {Math.round(((eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))) * eventAdminFee) / 100).toLocaleString('id-ID')}
-                          </strong>
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
-                            <span style={{ color: 'white' }}>Total Deposit Escrow:</span>
-                            <strong style={{ color: 'white', fontSize: '0.92rem', borderBottom: '1px solid white', paddingBottom: '2px' }}>
-                              Rp {((eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))) + Math.round(((eventBudgetMode === 'views' ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0))) * eventAdminFee) / 100)).toLocaleString('id-ID')}
-                            </strong>
-                          </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                     </div>
                   )}
 
