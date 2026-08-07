@@ -268,7 +268,9 @@ export default function App() {
     handleClosePlayer,
     communities,
     setCommunities,
-    sidebarEvents
+    sidebarEvents,
+    sidebarParticipants,
+    sidebarSubmissions
   } = state;
 
     return (

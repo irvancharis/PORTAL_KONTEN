@@ -2829,7 +2829,9 @@ export default function useAppState() {
     handleMovieSelect,
     handleClosePlayer,
     communities,
-    setCommunities: handleSetCommunities,
-    sidebarEvents
+    setCommunities,
+    sidebarEvents,
+    sidebarParticipants,
+    sidebarSubmissions
   };
 }
