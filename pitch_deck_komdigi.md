@@ -81,27 +81,3 @@
 | **Bagi Hasil Film** | N/A | Flat Buyout / Margin Kecil | **70% Direct Revenue Share (Watch-Time)** |
 | **Biaya Penyelenggara Event** | Jutaan Rupiah | N/A | **Komisi Efisien (5% – 7%)** |
 | **Otomasi Review UMKM** | Manual & Rentan Fake | Tidak Ada | **Otomatis & Validasi Screenshot/Link** |
-
----
-
-## 🇮🇩 7. Dampak Sosial & Keselarasan Visi Komdigi
-
-* **Inklusi Ekonomi Kreator**: Membuka kesempatan ekonomi bagi kreator muda di daerah tanpa diskriminasi jumlah pengikut.
-* **Akselerasi Digital UMKM**: Membantu UMKM lokal mendapatkan promosi massal organik yang terukur dan efisien.
-* **Kedaulatan Konten Lokal**: Memberikan ekosistem distribusi mandiri bagi sineas film Indonesia untuk berkarya dan berdaya secara finansial.
-
----
-
-## 🛡️ 8. Panduan Tanya Jawab Juri (Curated Q&A)
-
-### **Q1: "Bagaimana ngonten.id mencegah kecurangan views (bot/fake views) pada skema Ad Pool?"**
-> **Jawaban**:
-> *"Kami menerapkan sistem **Two-Stage Verification**. Pertama, kreator wajib mengunci akun media sosial mereka melalui validasi bio profil. Kedua, metrik tayangan diaudit menggunakan ambang batas minimum views (misal: min. 1.000 views) dan validasi tautan karya dari akun yang terkunci. Pemilik event juga memiliki dasbor kurasi untuk memvalidasi kualitas karya sebelum pembayaran dicairkan dari sistem escrow kami."*
-
-### **Q2: "Mengapa sineas indie mau menaruh film mereka di ngonten.id dibanding platform lain?"**
-> **Jawaban**:
-> *"Di YouTube, monetisasi membutuhkan ribuan jam tayang dan CPM di Indonesia sangat rendah. Di ngonten.id, penonton membayar langganan premium Rp 20.000/bulan, dan **70% dari seluruh uang langganan tersebut langsung dibagikan ke pemilik film** berdasarkan persentase menit menonton. Ini memberikan pendapatan pasif yang pasti, transparan, dan berkelanjutan bagi sineas lokal."*
-
-### **Q3: "Apa pembeda utama ngonten.id dibanding platform kompetisi atau agensi yang sudah ada?"**
-> **Jawaban**:
-> *"Agensi konvensional hanya fokus pada top 1% influencer mahal. Platform lomba biasa hanya membayar 1-3 orang juara. **ngonten.id mengubah model ini**: dengan Creator Ad Pool, SEMUA peserta yang membuat konten promosi berkualitas dan menghasilkan views berhak mendapatkan bagi hasil dari budget kampanye. Kami memberdayakan 99% kreator mikro di Indonesia."*
