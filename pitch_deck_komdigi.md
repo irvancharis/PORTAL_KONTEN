@@ -1,11 +1,10 @@
-# 🚀 PROFIL PROJEK & EXECUTIVE SUMMARY: NGONTEN.ID
-### **Gerakan Nasional 1000 Startup Digital — Kementerian Komunikasi dan Digital (Komdigi) RI**
+# 🚀 PROFIL & PENJELASAN PLATFORM: NGONTEN.ID
 
 ---
 
 ## 📌 1. Ringkasan Eksekutif (Executive Summary)
 
-* **Nama Platform**: **ngonten.id** (PT / Studio Jamkosong Ekosistem Kreatif)
+* **Nama Platform**: **ngonten.id**
 * **Website**: [https://ngonten.id](https://ngonten.id) | [https://jamkosong.web.app](https://jamkosong.web.app)
 * **Sektor**: *Creator Economy, Digital Media & Entertainment, AdTech, EventTech*
 * **Tagline**: *Platform Terpadu Ekosistem Kreator, Marketplace Event, dan Distribusi Film Mandiri Berbasis Performa.*
