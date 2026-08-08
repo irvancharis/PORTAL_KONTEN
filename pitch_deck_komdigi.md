@@ -31,10 +31,9 @@
 * **Distribusi Film Indie Berkeadilan (70/30 Watch-Time Share)**: Sineas mengunggah film secara mandiri ke katalog premium, dan mendapatkan 70% bagi hasil pendapatan langganan berdasarkan akumulasi menit menonton (*watch-time*).
 
 ### 💰 Model Bisnis (Monetization)
-1. **Biaya Administrasi Event**: Flat Rp 250.000 / event terbuka.
-2. **Komisi Platform Ad Pool**: 10% – 15% dari total alokasi budget kampanye brand.
-3. **Langganan Premium Nonton Film**: Rp 10.000 / bulan (70% dibagikan ke sineas, 30% margin platform).
-4. **Biaya Pencairan Saldo (Withdrawal Fee)**: 2.5% – 5% dari setiap penarikan dompet kreator.
+1. **Biaya Pembuatan Event**: 5% – 7% dari total budget event / kampanye.
+2. **Langganan Premium Nonton Film**: Rp 20.000 / bulan (70% dibagikan ke sineas, 30% margin platform).
+3. **Fee Penarikan Dompet**: 2.5% – 5% dari setiap pencairan saldo kreator.
 
 ---
 
@@ -108,10 +107,9 @@
 
 ### **SLIDE 5: BUSINESS MODEL & UNIT ECONOMICS**
 * **Tabel Aliran Pendapatan (Revenue Streams)**:
-  1. **Event Creation Fee**: Rp 250.000 per event yang dibuat oleh EO/Komunitas.
-  2. **Ad Pool Campaign Margin**: 10% – 15% dari total budget kampanye brand.
-  3. **Premium Film Subscription**: Rp 10.000/bulan (30% platform margin, 70% sineas share).
-  4. **Pencairan Saldo & Transaksi**: Fee penarikan dompet digital (2.5% - 5%).
+  1. **Biaya Pembuatan Event**: 5% – 7% dari total budget kampanye/event yang diselenggarakan.
+  2. **Langganan Premium Film**: Rp 20.000 / bulan (30% platform margin, 70% sineas revenue share).
+  3. **Fee Penarikan Dompet**: 2.5% – 5% dari setiap pencairan saldo kreator ke rekening bank/e-wallet.
 
 > 🎙️ **Naskah Presentasi (Speaker Script - 45 Detik)**:
 > *"Model bisnis ngonten.id memiliki diversifikasi pendapatan yang sehat dan berkelanjutan. Kami tidak hanya mengandalkan satu sumber, melainkan dari biaya admin pembuatan event, komisi pengelolaan budget kampanye brand, langganan film premium, dan biaya transaksi penarikan saldo dompet kreator."*
@@ -146,7 +144,7 @@
 | **Batas Followers Kreator** | Wajib Followers Besar | Khusus Rumah Produksi Besar | **Semua Orang Bebas Ikut (0 Followers)** |
 | **Sistem Pembayaran Iklan** | Bayar di Muka (Tanpa Jaminan) | N/A | **Bayar Hanya Tayangan Nyata (CPM Performance)** |
 | **Bagi Hasil Film** | N/A | Flat Buyout / Margin Kecil | **70% Direct Revenue Share (Watch-Time)** |
-| **Biaya Event Maker** | Jutaan Rupiah | N/A | **Flat & Terjangkau (Rp 250.000)** |
+| **Biaya Event Maker** | Jutaan Rupiah | N/A | **Komisi Efisien (5% – 7%)** |
 | **Otomasi Review UMKM** | Manual | Tidak Ada | **Otomatis & Validasi Screenshot/Link** |
 
 ---
@@ -187,7 +185,7 @@
 
 ### **Q2: "Mengapa sineas indie mau menaruh film mereka di ngonten.id daripada di YouTube?"**
 > **Jawaban**:
-> *"Di YouTube, monetisasi membutuhkan ribuan jam tayang dan tarif Adsense untuk video indie di Indonesia sangat kecil (Rp 5.000-10.000 per 1.000 views). Di ngonten.id, penonton membayar langganan premium Rp 10.000/bulan, dan **70% dari seluruh uang langganan tersebut langsung dibagikan ke pemilik film** berdasarkan persentase menit menonton. Ini memberikan pendapatan pasif yang jauh lebih pasti dan bermartabat bagi sineas."*
+> *"Di YouTube, monetisasi membutuhkan ribuan jam tayang dan tarif Adsense untuk video indie di Indonesia sangat kecil (Rp 5.000-10.000 per 1.000 views). Di ngonten.id, penonton membayar langganan premium Rp 20.000/bulan, dan **70% dari seluruh uang langganan tersebut langsung dibagikan ke pemilik film** berdasarkan persentase menit menonton. Ini memberikan pendapatan pasif yang jauh lebih pasti dan bermartabat bagi sineas."*
 
 ### **Q3: "Apa bedanya ngonten.id dengan platform kompetisi atau agensi influencer yang sudah ada?"**
 > **Jawaban**:
