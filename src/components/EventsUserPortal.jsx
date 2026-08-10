@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Trophy, Calendar, Users, User, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown, X, Maximize2, ExternalLink, MapPin, ClipboardList, Play } from 'lucide-react';
+import { sendEmailNotification } from '../services/emailNotificationService';
 
 const slugify = (text) => {
   if (!text) return '';
@@ -3910,6 +3911,26 @@ onMouseLeave={(e) => {
 
                                   setEventParticipants([...eventParticipants, newPart]);
                                   setVerificationStep('success');
+
+                                  sendEmailNotification({
+                                    toEmail: currentUser?.email,
+                                    toUsername: currentUser?.username,
+                                    toName: currentUser?.name || currentUser?.username,
+                                    subject: `[ngonten.id] Tiket & Pendaftaran Berhasil: ${registeringEvent.title}`,
+                                    title: 'Pendaftaran Event Berhasil! 🎫',
+                                    message: `Selamat, pendaftaran Anda di event <strong>"${registeringEvent.title}"</strong> telah berhasil dikonfirmasi. Simpan kode tiket Anda dan selesaikan tugas sebelum batas waktu event berakhir.`,
+                                    type: 'review',
+                                    eventTitle: registeringEvent.title,
+                                    actionUrl: `https://ngonten.id/event/${registeringEvent.slug || registeringEvent.id}`,
+                                    actionLabel: 'Buka Tugas Event di ngonten.id',
+                                    metadata: {
+                                      'Nama Event': registeringEvent.title,
+                                      'Kode Tiket': tktCode,
+                                      'Reward Ulasan': registeringEvent.benefitAmount ? `Rp ${registeringEvent.benefitAmount.toLocaleString('id-ID')}` : 'Gratis',
+                                      'Status': 'TERDAFTAR & AKTIF'
+                                    },
+                                    usersList: users
+                                  });
                                 }}
                                 className="btn btn-primary" 
                                 style={{ padding: '10px 20px', fontWeight: 'bold', opacity: isDisabled ? 0.5 : 1, cursor: isDisabled ? 'not-allowed' : 'pointer' }}

@@ -6,6 +6,7 @@ import React, {
 } from 'react';
 import { isFirebaseConfigured, db } from '../firebase';
 import { createPortal } from 'react-dom';
+import { sendEmailNotification } from '../services/emailNotificationService';
 import { 
   Plus, 
   Edit, 
@@ -1491,21 +1492,62 @@ export default function AdminPanel({
   };
 
   const handleApproveParticipant = (id) => {
+    const part = eventParticipants.find(p => p.id === id);
     setEventParticipants(prev => prev.map(p => {
       if (p.id === id) {
         return { ...p, status: 'approved' };
       }
       return p;
     }));
+
+    if (part) {
+      const evt = events.find(e => e.id === part.eventId);
+      sendEmailNotification({
+        toUsername: part.username,
+        subject: `[ngonten.id] Pendaftaran Disetujui: ${evt ? evt.title : (part.eventTitle || 'Event')}`,
+        title: 'Pendaftaran Event Anda Disetujui! 🎉',
+        message: `Selamat! Pendaftaran Anda di event <strong>"${evt ? evt.title : (part.eventTitle || 'Event')}"</strong> telah disetujui oleh Panitia. Anda kini dapat mulai mengirimkan karya atau menjalankan tugas kampanye.`,
+        type: 'approval',
+        eventTitle: evt ? evt.title : part.eventTitle,
+        actionUrl: `https://ngonten.id/event/${evt ? (evt.slug || evt.id) : part.eventId}`,
+        actionLabel: 'Kirim Karya / Lihat Tugas Sekarang',
+        metadata: {
+          'Nama Peserta': part.name || part.username,
+          'Kode Tiket': part.ticketCode || '-',
+          'Status': 'DISETUJUI'
+        },
+        usersList: users
+      });
+    }
   };
 
   const handleRejectParticipant = (id) => {
+    const part = eventParticipants.find(p => p.id === id);
     setEventParticipants(prev => prev.map(p => {
       if (p.id === id) {
         return { ...p, status: 'rejected' };
       }
       return p;
     }));
+
+    if (part) {
+      const evt = events.find(e => e.id === part.eventId);
+      sendEmailNotification({
+        toUsername: part.username,
+        subject: `[ngonten.id] Status Pendaftaran: ${evt ? evt.title : (part.eventTitle || 'Event')}`,
+        title: 'Pemberitahuan Pendaftaran Event',
+        message: `Mohon maaf, pendaftaran Anda pada event <strong>"${evt ? evt.title : (part.eventTitle || 'Event')}"</strong> belum dapat disetujui oleh panitia penyelenggara. Silakan periksa kembali syarat dan ketentuan event.`,
+        type: 'rejection',
+        eventTitle: evt ? evt.title : part.eventTitle,
+        actionUrl: 'https://ngonten.id',
+        actionLabel: 'Cari Event Lainnya di ngonten.id',
+        metadata: {
+          'Nama Peserta': part.name || part.username,
+          'Status': 'DITOLAK'
+        },
+        usersList: users
+      });
+    }
   };
 
   const handleCheckInParticipant = (id) => {
@@ -1667,6 +1709,24 @@ export default function AdminPanel({
       onConfirm: () => {
         setWithdrawals(prev => prev.map(w => w.id === wdId ? { ...w, status: 'approved' } : w));
         alert('Penarikan dana disetujui secara instan!');
+        
+        sendEmailNotification({
+          toUsername: wd.username,
+          subject: `[ngonten.id] Penarikan Saldo Berhasil: Rp ${(wd.netAmount || wd.amount).toLocaleString('id-ID')}`,
+          title: 'Dana Penarikan Saldo Berhasil Ditransfer! 💸',
+          message: `Permintaan penarikan saldo dompet Anda sebesar <strong>Rp ${wd.amount.toLocaleString('id-ID')}</strong> telah berhasil disetujui dan ditransfer ke rekening / e-wallet tujuan Anda.`,
+          type: 'payment',
+          actionUrl: 'https://ngonten.id/wallet',
+          actionLabel: 'Buka Dompet Saya di ngonten.id',
+          metadata: {
+            'Jumlah Penarikan': `Rp ${wd.amount.toLocaleString('id-ID')}`,
+            'Biaya Admin': `Rp ${(wd.fee || 0).toLocaleString('id-ID')}`,
+            'Dana Diterima': `Rp ${(wd.netAmount || wd.amount).toLocaleString('id-ID')}`,
+            'Metode Pembayaran': `${wd.method} - ${wd.account} (a.n ${wd.name})`,
+            'Status': 'BERHASIL DITRANSFER'
+          },
+          usersList: users
+        });
       }
     });
   };
@@ -1681,6 +1741,22 @@ export default function AdminPanel({
         // 2. Set withdrawal status to 'rejected'
         setWithdrawals(prev => prev.map(w => w.id === wd.id ? { ...w, status: 'rejected' } : w));
         alert('Penarikan dana ditolak dan nominal saldo telah dikembalikan ke dompet peserta.');
+
+        sendEmailNotification({
+          toUsername: wd.username,
+          subject: `[ngonten.id] Penarikan Saldo Ditolak: Rp ${wd.amount.toLocaleString('id-ID')}`,
+          title: 'Pemberitahuan Penarikan Saldo',
+          message: `Permintaan penarikan saldo dompet Anda sebesar <strong>Rp ${wd.amount.toLocaleString('id-ID')}</strong> ditolak oleh admin. Dana telah dikembalikan secara utuh ke saldo dompet akun ngonten.id Anda.`,
+          type: 'rejection',
+          actionUrl: 'https://ngonten.id/wallet',
+          actionLabel: 'Cek Saldo Dompet Anda',
+          metadata: {
+            'Jumlah Nominal': `Rp ${wd.amount.toLocaleString('id-ID')}`,
+            'Status': 'DITOLAK (DANA DIKEMBALIKAN)',
+            'Metode': `${wd.method} (${wd.account})`
+          },
+          usersList: users
+        });
       }
     });
   };
@@ -1752,6 +1828,23 @@ export default function AdminPanel({
       // Update the preview submission so modal updates in real-time
       setPreviewSubmission(prev => prev ? { ...prev, status: 'approved', feedback: feedbackText.trim(), score: 100, paidBenefit: payoutAmount } : null);
       alert('Ulasan disetujui! Saldo benefit telah berhasil ditransfer ke wallet peserta.');
+
+      sendEmailNotification({
+        toUsername: sub.username,
+        subject: `[ngonten.id] Ulasan Disetujui: Rp ${(evt.benefitAmount || 0).toLocaleString('id-ID')} Telah Masuk ke Dompet!`,
+        title: 'Ulasan Google Review Anda Disetujui! 🌟',
+        message: `Selamat! Ulasan Google Review yang Anda kirimkan untuk event <strong>"${evt.title}"</strong> telah diverifikasi dan disetujui oleh pemilik usaha. Saldo reward sebesar <strong>Rp ${(evt.benefitAmount || 0).toLocaleString('id-ID')}</strong> telah langsung ditambahkan ke dompet akun Anda.`,
+        type: 'review',
+        eventTitle: evt.title,
+        actionUrl: 'https://ngonten.id/wallet',
+        actionLabel: 'Lihat Saldo Dompet di ngonten.id',
+        metadata: {
+          'Nama Event': evt.title,
+          'Reward Diterima': `Rp ${(evt.benefitAmount || 0).toLocaleString('id-ID')}`,
+          'Status': 'DISETUJUI & DIBAYAR'
+        },
+        usersList: users
+      });
     } else {
       // action === 'rejected'
       setEventSubmissions(prev => prev.map(s => {
@@ -1768,6 +1861,23 @@ export default function AdminPanel({
 
       setPreviewSubmission(prev => prev ? { ...prev, status: 'rejected', feedback: feedbackText.trim(), score: 0 } : null);
       alert('Ulasan ditolak! Catatan/alasan perbaikan telah disimpan dan dikirim ke peserta.');
+
+      sendEmailNotification({
+        toUsername: sub.username,
+        subject: `[ngonten.id] Perbaikan Ulasan: ${evt.title}`,
+        title: 'Perbaikan Ulasan Google Review Diperlukan',
+        message: `Ulasan yang Anda kirimkan untuk event <strong>"${evt.title}"</strong> belum memenuhi syarat. Catatan dari pemilik event: <em>"${feedbackText.trim()}"</em>. Silakan perbaiki dan kirimkan ulang bukti ulasan Anda.`,
+        type: 'rejection',
+        eventTitle: evt.title,
+        actionUrl: `https://ngonten.id/event/${evt.slug || evt.id}`,
+        actionLabel: 'Kirim Ulang Ulasan di ngonten.id',
+        metadata: {
+          'Nama Event': evt.title,
+          'Catatan Pemilik': feedbackText.trim() || 'Perlu perbaikan',
+          'Status': 'PERLU PERBAIKAN'
+        },
+        usersList: users
+      });
     }
   };
 
@@ -1827,6 +1937,7 @@ export default function AdminPanel({
       }
     }
 
+    const judgedSub = judgingSubmission;
     setEventSubmissions(prev => prev.map(s => {
       if (s.id === judgingSubmission.id) {
         return { 
@@ -1841,6 +1952,26 @@ export default function AdminPanel({
     }));
     setJudgingSubmission(null);
     alert('Penilaian ulasan & pencairan reward berhasil disimpan!');
+
+    if (judgedSub) {
+      const evt = events.find(e => e.id === judgedSub.eventId);
+      sendEmailNotification({
+        toUsername: judgedSub.username,
+        subject: `[ngonten.id] Karya Anda Telah Dinilai: Skor ${scoreVal}/100`,
+        title: 'Penilaian Karya Selesai 🎬',
+        message: `Karya Anda <strong>"${judgedSub.title || 'Karya Konten'}"</strong> pada event <strong>"${evt ? evt.title : (judgedSub.eventTitle || 'Event')}"</strong> telah selesai dievaluasi oleh Tim Juri dengan perolehan skor <strong>${scoreVal}/100</strong>.${judgingFeedback.trim() ? `<br><br>Catatan Juri: <em>"${judgingFeedback.trim()}"</em>` : ''}`,
+        type: 'info',
+        eventTitle: evt ? evt.title : judgedSub.eventTitle,
+        actionUrl: `https://ngonten.id/event/${evt ? (evt.slug || evt.id) : judgedSub.eventId}`,
+        actionLabel: 'Lihat Evaluasi & Peringkat di ngonten.id',
+        metadata: {
+          'Judul Karya': judgedSub.title || 'Karya Konten',
+          'Skor Juri': `${scoreVal} / 100`,
+          'Nama Event': evt ? evt.title : (judgedSub.eventTitle || 'Event')
+        },
+        usersList: users
+      });
+    }
   };
 
   const getActivePeriodLabel = (user) => {
@@ -5631,6 +5762,23 @@ export default function AdminPanel({
                             setOfferBudget('');
                             setOfferMessage('');
                             alert(`Berhasil mengirimkan undangan kepada @${selectedMarketplaceCreator}!`);
+
+                            sendEmailNotification({
+                              toUsername: selectedMarketplaceCreator,
+                              subject: `[ngonten.id] Tawaran Kolaborasi Baru dari @${currentUser.username}`,
+                              title: 'Anda Mendapatkan Tawaran Kolaborasi Event! 🤝',
+                              message: `Penyelenggara <strong>@${currentUser.username}</strong> mengundang Anda untuk berkolaborasi dalam event <strong>"${selectedEvt?.title || 'Event Pilihan'}"</strong>.<br><br>Pesan Penyelenggara: <em>"${offerMessage || 'Mari berkolaborasi dan berkarya bersama di event kami!'}"</em>`,
+                              type: 'offer',
+                              eventTitle: selectedEvt?.title,
+                              actionUrl: `https://ngonten.id/event/${selectedEvt?.slug || selectedEvt?.id || ''}`,
+                              actionLabel: 'Lihat Detail Event & Terima Tawaran',
+                              metadata: {
+                                'Penyelenggara': currentUser.name || currentUser.username,
+                                'Nama Event': selectedEvt?.title || 'Event Pilihan',
+                                'Status': 'MENUNGGU RESPON'
+                              },
+                              usersList: users
+                            });
                           }}
                         >
                           Kirim Undangan
@@ -5840,6 +5988,24 @@ export default function AdminPanel({
                               setBulkOfferEventId('');
                               setBulkOfferMessage('');
                               alert(`Berhasil mengirimkan undangan masal kepada ${eligibleCreators.length} creator!`);
+
+                              eligibleCreators.forEach(uname => {
+                                sendEmailNotification({
+                                  toUsername: uname,
+                                  subject: `[ngonten.id] Undangan Kolaborasi Event: ${selectedEvt?.title || 'Event Pilihan'}`,
+                                  title: 'Undangan Kolaborasi Kreator Masuk! 🚀',
+                                  message: `Penyelenggara <strong>@${currentUser.username}</strong> mengundang Anda untuk bergabung dalam event <strong>"${selectedEvt?.title || 'Event Pilihan'}"</strong>.<br><br>Pesan: <em>"${bulkOfferMessage || 'Mari berpartisipasi dan raih hadiahnya!'}"</em>`,
+                                  type: 'offer',
+                                  eventTitle: selectedEvt?.title,
+                                  actionUrl: `https://ngonten.id/event/${selectedEvt?.slug || selectedEvt?.id || ''}`,
+                                  actionLabel: 'Buka Event di ngonten.id',
+                                  metadata: {
+                                    'Penyelenggara': currentUser.name || currentUser.username,
+                                    'Nama Event': selectedEvt?.title || 'Event Pilihan'
+                                  },
+                                  usersList: users
+                                });
+                              });
                             }}
                           >
                             Kirim Undangan Masal
