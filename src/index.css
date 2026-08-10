@@ -4308,6 +4308,70 @@ select option {
   color: #b91c1c !important;
 }
 
+/* ==========================================================================
+   SKILL SELECTION PILLS (Dark & Light Mode)
+   ========================================================================== */
+.skill-select-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.skill-select-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.skill-select-pill.selected {
+  background: #ffffff !important;
+  color: #09090b !important;
+  border: 1px solid #ffffff !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2) !important;
+  font-weight: 700;
+}
+
+.skill-select-pill.selected svg {
+  color: #09090b !important;
+}
+
+/* Light Theme overrides for Skill Selection Pills */
+.light-theme .skill-select-pill {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+}
+
+.light-theme .skill-select-pill:hover {
+  background: #e2e8f0 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+.light-theme .skill-select-pill.selected {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 1px solid #0f172a !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.3) !important;
+  font-weight: 700;
+}
+
+.light-theme .skill-select-pill.selected span,
+.light-theme .skill-select-pill.selected svg {
+  color: #ffffff !important;
+}
+
 /* Lightbox Image Zoom Modals */
 @keyframes lightboxFadeIn {
   from { opacity: 0; }

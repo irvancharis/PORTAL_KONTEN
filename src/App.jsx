@@ -861,6 +861,7 @@ export default function App() {
                                 <button
                                   type="button"
                                   key={skill}
+                                  className={`skill-select-pill ${isSelected ? 'selected' : ''}`}
                                   onClick={() => {
                                     let newSkills;
                                     if (isSelected) {
@@ -870,19 +871,9 @@ export default function App() {
                                     }
                                     setEditProfileCategory(newSkills.join(', '));
                                   }}
-                                  style={{
-                                    padding: '8px 14px',
-                                    borderRadius: '20px',
-                                    fontSize: '0.82rem',
-                                    fontWeight: '600',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                    background: isSelected ? 'white' : 'rgba(255, 255, 255, 0.05)',
-                                    border: isSelected ? '1px solid white' : '1px solid rgba(255, 255, 255, 0.1)',
-                                    color: isSelected ? 'black' : 'var(--text-secondary)'
-                                  }}
                                 >
-                                  {skill}
+                                  {isSelected && <Check size={13} strokeWidth={2.8} />}
+                                  <span>{skill}</span>
                                 </button>
                               );
                             })}
