@@ -3992,7 +3992,7 @@ select option {
   color: #111827 !important;
 }
 
-/* DOKU Modal Theme Adaptive Styling */
+/* DOKU Modal Theme Complete Styling */
 .doku-modal-wrapper {
   position: fixed;
   inset: 0;
@@ -4006,19 +4006,58 @@ select option {
   overflow-y: auto;
 }
 
+/* Dark Modal Defaults */
 .doku-modal-card {
-  background-color: #0f172a;
-  color: #ffffff;
+  background-color: #09090b !important;
+  color: #ffffff !important;
   width: 100%;
   max-width: 520px;
   border-radius: 16px;
-  border: 1px solid #334155;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  border: 1px solid #27272a !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
   padding: 28px 24px;
   position: relative;
   text-align: left;
 }
 
+.doku-modal-card * {
+  color: inherit;
+}
+
+.doku-plan-card {
+  background-color: #18181b !important;
+  border: 1px solid #3f3f46 !important;
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.doku-plan-card h3, .doku-plan-card .price {
+  color: #ffffff !important;
+}
+
+.doku-plan-card .feature-item {
+  color: #e4e4e7 !important;
+}
+
+.doku-btn-main {
+  width: 100%;
+  padding: 13px;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: none !important;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Light Theme Overrides */
 .light-theme .doku-modal-card {
   background-color: #ffffff !important;
   color: #0f172a !important;
@@ -4026,11 +4065,6 @@ select option {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
 }
 
-.doku-modal-card h1, .doku-modal-card h2, .doku-modal-card h3, .doku-modal-card h4, .doku-modal-card strong {
-  color: #ffffff;
-}
-
-.light-theme .doku-modal-card h1,
 .light-theme .doku-modal-card h2,
 .light-theme .doku-modal-card h3,
 .light-theme .doku-modal-card h4,
@@ -4038,36 +4072,28 @@ select option {
   color: #0f172a !important;
 }
 
-.doku-modal-card p, .doku-modal-card span {
-  color: #94a3b8;
-}
-
 .light-theme .doku-modal-card p,
 .light-theme .doku-modal-card span {
   color: #475569 !important;
 }
 
-.doku-item-card {
-  background-color: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 12px;
-  padding: 16px;
-  transition: all 0.2s ease;
-}
-
-.light-theme .doku-item-card {
+.light-theme .doku-plan-card {
   background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
-.doku-item-card.selected {
-  background-color: #334155;
-  border: 2px solid #ffffff;
+.light-theme .doku-plan-card h3,
+.light-theme .doku-plan-card .price {
+  color: #0f172a !important;
 }
 
-.light-theme .doku-item-card.selected {
-  background-color: #f1f5f9 !important;
-  border: 2px solid #0f172a !important;
+.light-theme .doku-plan-card .feature-item {
+  color: #334155 !important;
+}
+
+.light-theme .doku-btn-main {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
 }
 
 /* Input Fields */
