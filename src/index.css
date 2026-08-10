@@ -4073,7 +4073,7 @@ select option {
 }
 
 .light-theme .doku-modal-card p,
-.light-theme .doku-modal-card span {
+.light-theme .doku-modal-card .desc-text {
   color: #475569 !important;
 }
 
@@ -4082,42 +4082,60 @@ select option {
   border: 1px solid #e2e8f0 !important;
 }
 
+.light-theme .doku-plan-card.active {
+  background-color: #f1f5f9 !important;
+  border: 2px solid #0f172a !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+}
+
+.doku-plan-card.active {
+  background-color: #27272a !important;
+  border: 2px solid #ffffff !important;
+}
+
 .light-theme .doku-plan-card h3,
 .light-theme .doku-plan-card .price {
   color: #0f172a !important;
 }
 
+.light-theme .doku-plan-card .feature-item {
+  color: #1e293b !important;
+}
+
+/* Action Button */
 .doku-btn-main, 
 .light-theme .doku-btn-main {
   width: 100%;
-  padding: 13px;
+  padding: 14px !important;
   background-color: #0f172a !important;
   color: #ffffff !important;
   border: none !important;
-  border-radius: 8px;
-  font-size: 0.92rem;
-  font-weight: 800;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  border-radius: 10px !important;
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
 }
 
 .doku-btn-main *, 
 .light-theme .doku-btn-main * {
   color: #ffffff !important;
+  fill: #ffffff !important;
 }
 
+/* Badge Pill */
 .doku-badge-pill,
 .light-theme .doku-badge-pill {
   background-color: #0f172a !important;
   color: #ffffff !important;
-  font-size: 0.65rem;
-  font-weight: 800;
-  padding: 3px 10px;
-  border-radius: 12px;
-  letter-spacing: 0.5px;
+  font-size: 0.65rem !important;
+  font-weight: 800 !important;
+  padding: 3px 10px !important;
+  border-radius: 12px !important;
+  letter-spacing: 0.5px !important;
 }
 
 .doku-badge-pill *,

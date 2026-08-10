@@ -57,7 +57,7 @@ export default function PremiumModal({
   const currentPlan = planDetails[billingCycle];
 
   const premiumFeatures = [
-    'Akses Penuh Seluruh Karya, Film & Konten Eksklusif Tanpa Iklan',
+    'Akses Penuh Seluruh Karya, Film & Konten Eksklusif Bebas Iklan',
     'Unlock Portofolio Lengkap & Kontak Langsung Kreator / Brand',
     'Akses Prioritas Tiket & Undangan Event Eksklusif ngonten.id',
     'Biaya Penarikan Dompet Hemat 60% (Hanya 2%)',
@@ -161,7 +161,7 @@ export default function PremiumModal({
             {step === 'pay_screen' && 'Selesaikan Pembayaran'}
             {step === 'success' && 'Pembayaran Berhasil!'}
           </h2>
-          <p style={{ fontSize: '0.84rem', margin: 0 }}>
+          <p className="desc-text" style={{ fontSize: '0.84rem', margin: 0 }}>
             {step === 'select_plan' && 'Tingkatkan akun ke User Premium untuk akses penuh ekosistem ngonten.id.'}
             {step === 'select_method' && 'Pilih metode pembayaran instan dan terenkripsi.'}
             {step === 'pay_screen' && 'Scan QRIS atau transfer ke nomor VA di bawah untuk aktivasi instan.'}
@@ -182,34 +182,49 @@ export default function PremiumModal({
               {/* Opsi 1 Bulan */}
               <div
                 onClick={() => setBillingCycle('monthly')}
-                className="doku-plan-card"
+                className={`doku-plan-card ${billingCycle === 'monthly' ? 'active' : ''}`}
                 style={{
                   padding: '16px',
                   marginBottom: 0,
                   cursor: 'pointer',
-                  borderWidth: billingCycle === 'monthly' ? '2px' : '1px',
                   position: 'relative',
                   textAlign: 'center'
                 }}
               >
-                <span style={{ fontSize: '0.75rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
+                {billingCycle === 'monthly' && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: '#0f172a',
+                    color: '#ffffff',
+                    fontSize: '0.62rem',
+                    fontWeight: '800',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    ✓ DIPILIH
+                  </span>
+                )}
+                <span className="desc-text" style={{ fontSize: '0.75rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                   Masa Aktif 1 Bulan
                 </span>
-                <strong style={{ fontSize: '1.25rem', fontWeight: '900', display: 'block' }}>
+                <strong className="price" style={{ fontSize: '1.25rem', fontWeight: '900', display: 'block' }}>
                   Rp 20.000
                 </strong>
-                <span style={{ fontSize: '0.7rem' }}>/ bulan</span>
+                <span className="desc-text" style={{ fontSize: '0.7rem' }}>/ bulan</span>
               </div>
 
               {/* Opsi 1 Tahun */}
               <div
                 onClick={() => setBillingCycle('yearly')}
-                className="doku-plan-card"
+                className={`doku-plan-card ${billingCycle === 'yearly' ? 'active' : ''}`}
                 style={{
                   padding: '16px',
                   marginBottom: 0,
                   cursor: 'pointer',
-                  borderWidth: billingCycle === 'yearly' ? '2px' : '1px',
                   position: 'relative',
                   textAlign: 'center'
                 }}
@@ -221,37 +236,36 @@ export default function PremiumModal({
                     top: '-10px',
                     right: '8px',
                     backgroundColor: '#0f172a',
-                    color: '#ffffff',
-                    display: 'inline-block'
+                    color: '#ffffff'
                   }}
                 >
-                  <span style={{ color: '#ffffff', fontWeight: '800' }}>HEMAT 2 BULAN</span>
+                  HEMAT 2 BULAN
                 </span>
                 
-                <span style={{ fontSize: '0.75rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
+                <span className="desc-text" style={{ fontSize: '0.75rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                   Masa Aktif 1 Tahun
                 </span>
-                <strong style={{ fontSize: '1.25rem', fontWeight: '900', display: 'block' }}>
+                <strong className="price" style={{ fontSize: '1.25rem', fontWeight: '900', display: 'block' }}>
                   Rp 200.000
                 </strong>
-                <span style={{ fontSize: '0.7rem' }}>/ tahun (~16.600/bln)</span>
+                <span className="desc-text" style={{ fontSize: '0.7rem' }}>/ tahun (~16.600/bln)</span>
               </div>
             </div>
 
             {/* Kotak Rincian Keuntungan User Premium */}
             <div className="doku-plan-card" style={{ padding: '18px', marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: '700' }}>
+                <strong style={{ fontSize: '0.86rem', fontWeight: '800' }}>
                   Keuntungan User Premium ({currentPlan.duration}):
-                </span>
-                <strong style={{ fontSize: '0.95rem' }}>{currentPlan.price}</strong>
+                </strong>
+                <strong style={{ fontSize: '1rem', fontWeight: '900' }}>{currentPlan.price}</strong>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
                 {premiumFeatures.map((feat, idx) => (
-                  <div key={idx} className="feature-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem' }}>
-                    <Check size={14} style={{ flexShrink: 0 }} />
-                    <span style={{ fontWeight: '500' }}>{feat}</span>
+                  <div key={idx} className="feature-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem' }}>
+                    <Check size={16} strokeWidth={2.5} style={{ flexShrink: 0 }} />
+                    <span style={{ fontWeight: '600' }}>{feat}</span>
                   </div>
                 ))}
               </div>
@@ -261,14 +275,8 @@ export default function PremiumModal({
             <button
               onClick={handleProceedToMethod}
               className="doku-btn-main"
-              style={{
-                backgroundColor: '#0f172a',
-                color: '#ffffff'
-              }}
             >
-              <span style={{ color: '#ffffff', fontWeight: '800' }}>
-                {currentUser ? `Lanjut Pembayaran (${currentPlan.duration})` : 'Daftar & Berlangganan'}
-              </span>
+              <span>{currentUser ? `Lanjut Pembayaran (${currentPlan.duration})` : 'Daftar & Berlangganan'}</span>
               <ArrowRight size={16} color="#ffffff" />
             </button>
           </div>
@@ -280,16 +288,16 @@ export default function PremiumModal({
             {/* Ringkasan Tagihan */}
             <div className="doku-plan-card" style={{ marginBottom: '18px', padding: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
-                <span>Paket Langganan:</span>
+                <span className="desc-text">Paket Langganan:</span>
                 <strong style={{ fontWeight: '700' }}>User Premium ({currentPlan.duration})</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
-                <span>Merchant:</span>
+                <span className="desc-text">Merchant:</span>
                 <strong style={{ fontWeight: '700' }}>ngonten.id Official</strong>
               </div>
               <div style={{ height: '1px', backgroundColor: 'rgba(128,128,128,0.2)', margin: '8px 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>Total Tagihan:</span>
+                <strong style={{ fontWeight: '800', fontSize: '0.9rem' }}>Total Tagihan:</strong>
                 <strong style={{ fontSize: '1.25rem', fontWeight: '900' }}>
                   {currentPlan.price}
                 </strong>
@@ -300,7 +308,7 @@ export default function PremiumModal({
               <h4 style={{ fontSize: '0.88rem', fontWeight: '700', margin: 0 }}>
                 Pilih Metode Pembayaran
               </h4>
-              <span style={{ fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span className="desc-text" style={{ fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <ShieldCheck size={14} /> Terenkripsi & Aman
               </span>
             </div>
@@ -311,22 +319,21 @@ export default function PremiumModal({
               {/* Opsi 1: QRIS */}
               <div 
                 onClick={() => setSelectedMethod('qris')}
-                className="doku-plan-card"
+                className={`doku-plan-card ${selectedMethod === 'qris' ? 'active' : ''}`}
                 style={{
                   padding: '14px 16px',
                   marginBottom: 0,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderWidth: selectedMethod === 'qris' ? '2px' : '1px'
+                  justifyContent: 'space-between'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <QrCode size={24} />
                   <div>
                     <strong style={{ fontSize: '0.88rem', display: 'block' }}>QRIS (Scan Real-Time)</strong>
-                    <span style={{ fontSize: '0.75rem' }}>BCA, GoPay, OVO, DANA, ShopeePay & Semua Bank</span>
+                    <span className="desc-text" style={{ fontSize: '0.75rem' }}>BCA, GoPay, OVO, DANA, ShopeePay & Semua Bank</span>
                   </div>
                 </div>
                 <div style={{
@@ -346,22 +353,21 @@ export default function PremiumModal({
               {/* Opsi 2: VA BCA */}
               <div 
                 onClick={() => setSelectedMethod('va_bca')}
-                className="doku-plan-card"
+                className={`doku-plan-card ${selectedMethod === 'va_bca' ? 'active' : ''}`}
                 style={{
                   padding: '14px 16px',
                   marginBottom: 0,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderWidth: selectedMethod === 'va_bca' ? '2px' : '1px'
+                  justifyContent: 'space-between'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <Landmark size={24} />
                   <div>
                     <strong style={{ fontSize: '0.88rem', display: 'block' }}>BCA Virtual Account</strong>
-                    <span style={{ fontSize: '0.75rem' }}>Transfer via BCA Mobile / KlikBCA / ATM BCA</span>
+                    <span className="desc-text" style={{ fontSize: '0.75rem' }}>Transfer via BCA Mobile / KlikBCA / ATM BCA</span>
                   </div>
                 </div>
                 <div style={{
@@ -381,22 +387,21 @@ export default function PremiumModal({
               {/* Opsi 3: VA Mandiri */}
               <div 
                 onClick={() => setSelectedMethod('va_mandiri')}
-                className="doku-plan-card"
+                className={`doku-plan-card ${selectedMethod === 'va_mandiri' ? 'active' : ''}`}
                 style={{
                   padding: '14px 16px',
                   marginBottom: 0,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderWidth: selectedMethod === 'va_mandiri' ? '2px' : '1px'
+                  justifyContent: 'space-between'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <Landmark size={24} />
                   <div>
                     <strong style={{ fontSize: '0.88rem', display: 'block' }}>Mandiri Virtual Account (Livin')</strong>
-                    <span style={{ fontSize: '0.75rem' }}>Transfer via Livin' by Mandiri / ATM</span>
+                    <span className="desc-text" style={{ fontSize: '0.75rem' }}>Transfer via Livin' by Mandiri / ATM</span>
                   </div>
                 </div>
                 <div style={{
@@ -440,13 +445,9 @@ export default function PremiumModal({
               <button
                 onClick={() => setStep('pay_screen')}
                 className="doku-btn-main"
-                style={{
-                  flex: 2,
-                  backgroundColor: '#0f172a',
-                  color: '#ffffff'
-                }}
+                style={{ flex: 2 }}
               >
-                <span style={{ color: '#ffffff', fontWeight: '800' }}>Lanjut ke Pembayaran</span>
+                <span>Lanjut ke Pembayaran</span>
                 <ArrowRight size={16} color="#ffffff" />
               </button>
             </div>
@@ -468,11 +469,11 @@ export default function PremiumModal({
               }}
             >
               <div>
-                <span style={{ fontSize: '0.75rem', display: 'block' }}>Batas Waktu:</span>
+                <span className="desc-text" style={{ fontSize: '0.75rem', display: 'block' }}>Batas Waktu:</span>
                 <strong style={{ fontSize: '1.05rem', fontFamily: 'monospace' }}>{formatTimer(timeLeft)}</strong>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '0.75rem', display: 'block' }}>Total Pembayaran:</span>
+                <span className="desc-text" style={{ fontSize: '0.75rem', display: 'block' }}>Total Pembayaran:</span>
                 <strong style={{ fontSize: '1.2rem' }}>{currentPlan.price}</strong>
               </div>
             </div>
@@ -542,7 +543,7 @@ export default function PremiumModal({
             ) : (
               /* Pembayaran via Virtual Account */
               <div className="doku-plan-card" style={{ padding: '20px', marginBottom: '18px' }}>
-                <span style={{ fontSize: '0.78rem', display: 'block', marginBottom: '6px' }}>
+                <span className="desc-text" style={{ fontSize: '0.78rem', display: 'block', marginBottom: '6px' }}>
                   Nomor Virtual Account ({selectedMethod.replace('va_', '').toUpperCase()}):
                 </span>
                 
@@ -580,8 +581,8 @@ export default function PremiumModal({
                   </button>
                 </div>
 
-                <div style={{ fontSize: '0.78rem', lineHeight: '1.5' }}>
-                  <strong>Cara Pembayaran:</strong>
+                <div className="desc-text" style={{ fontSize: '0.78rem', lineHeight: '1.5' }}>
+                  <strong style={{ color: 'inherit' }}>Cara Pembayaran:</strong>
                   <ol style={{ margin: '6px 0 0 0', paddingLeft: '18px' }}>
                     <li>Buka aplikasi m-Banking atau ATM bank Anda.</li>
                     <li>Pilih menu <strong>Transfer / Pembayaran &gt; Virtual Account</strong>.</li>
@@ -597,21 +598,16 @@ export default function PremiumModal({
                 onClick={handleVerifyPayment}
                 disabled={isVerifying}
                 className="doku-btn-main"
-                style={{
-                  padding: '14px',
-                  backgroundColor: '#0f172a',
-                  color: '#ffffff'
-                }}
               >
                 {isVerifying ? (
                   <>
                     <RefreshCw size={18} className="animate-spin" color="#ffffff" />
-                    <span style={{ color: '#ffffff', fontWeight: '800' }}>Memverifikasi Pembayaran...</span>
+                    <span>Memverifikasi Pembayaran...</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle2 size={18} color="#ffffff" />
-                    <span style={{ color: '#ffffff', fontWeight: '800' }}>Saya Sudah Bayar (Cek Status Sekarang)</span>
+                    <span>Saya Sudah Bayar (Cek Status Sekarang)</span>
                   </>
                 )}
               </button>
@@ -656,20 +652,15 @@ export default function PremiumModal({
               Selamat! User Premium Aktif ({currentPlan.duration}) 🎉
             </h3>
             
-            <p style={{ fontSize: '0.85rem', lineHeight: '1.6', marginBottom: '22px', maxWidth: '380px', margin: '0 auto 22px auto' }}>
+            <p className="desc-text" style={{ fontSize: '0.85rem', lineHeight: '1.6', marginBottom: '22px', maxWidth: '380px', margin: '0 auto 22px auto' }}>
               Pembayaran Anda telah berhasil diverifikasi. Akun Anda kini resmi memiliki status <strong>USER PREMIUM</strong> dengan potongan biaya penarikan dompet 2% dan akses penuh ekosistem ngonten.id.
             </p>
 
             <button
               onClick={onClose}
               className="doku-btn-main"
-              style={{
-                padding: '14px',
-                backgroundColor: '#0f172a',
-                color: '#ffffff'
-              }}
             >
-              <span style={{ color: '#ffffff', fontWeight: '800' }}>Mulai Eksplorasi Fitur Premium</span>
+              <span>Mulai Eksplorasi Fitur Premium</span>
             </button>
           </div>
         )}
