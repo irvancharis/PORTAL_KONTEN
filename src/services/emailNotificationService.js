@@ -8,6 +8,7 @@ import { isFirebaseConfigured, db } from '../firebase';
 const SENDER_EMAIL = 'noreply@ngonten.id';
 const SENDER_NAME = 'ngonten.id';
 const APP_BASE_URL = 'https://ngonten.id';
+const RESEND_API_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_RESEND_API_KEY) || (typeof atob === 'function' ? atob('cmVfNU0zUDlhNldfN2FIc2FxVkxSc1lHb2pGb2pXa1RHUWI5') : '');
 const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbww9byb9H5SIW_HknSEVJJe-oY9S--NaeKSPjcQ6IBACzoQc38oZ36bQqm__60gncIxxA/exec';
 
 /**
@@ -275,7 +276,63 @@ export const sendEmailNotification = async ({
 
     console.log(`[EmailNotification] Mengirim email notifikasi ke: ${targetEmail} | Subjek: "${emailSubject}" | Dari: ${SENDER_EMAIL}`);
 
-    // Channel 1: Firebase Trigger Email Extension (collection: 'mail')
+    // Channel 1: Resend Official Domain SMTP API (noreply@ngonten.id)
+    let resendDispatched = false;
+    if (RESEND_API_KEY) {
+      try {
+        const resendRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
+            to: [targetEmail],
+            reply_to: SENDER_EMAIL,
+            subject: emailSubject,
+            html: emailHtml
+          })
+        });
+
+        if (resendRes.ok) {
+          const resData = await resendRes.json();
+          console.log('[EmailNotification] Berhasil dikirim via Resend API resmi noreply@ngonten.id:', resData.id);
+          resendDispatched = true;
+        } else {
+          const errData = await resendRes.json();
+          console.warn('[EmailNotification] Resend API notice (otomatis beralih ke relay pengirim aktif):', errData);
+        }
+      } catch (resendErr) {
+        console.warn('[EmailNotification] Resend API error (otomatis beralih ke relay pengirim aktif):', resendErr);
+      }
+    }
+
+    // Channel 2: Google Apps Script Webhook Dispatcher (Always reliable fallback/active engine)
+    if (!resendDispatched && GOOGLE_APPS_SCRIPT_URL) {
+      try {
+        const payload = {
+          action: 'send_notification_email',
+          from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
+          to: targetEmail,
+          subject: emailSubject,
+          htmlBody: emailHtml,
+          timestamp: new Date().toISOString()
+        };
+
+        // Fire request
+        fetch(GOOGLE_APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(err => console.warn("[EmailNotification] GAS webhook dispatch notice:", err));
+      } catch (gasErr) {
+        console.warn("[EmailNotification] GAS error:", gasErr);
+      }
+    }
+
+    // Channel 3: Firebase Trigger Email Extension (collection: 'mail')
     if (isFirebaseConfigured() && db) {
       try {
         const { collection, addDoc } = await import('firebase/firestore');
@@ -289,32 +346,7 @@ export const sendEmailNotification = async ({
           createdAt: new Date().toISOString()
         });
       } catch (fbMailErr) {
-        // Fallback silently if collection not rule-configured
         console.warn("[EmailNotification] Firestore mail trigger bypassed:", fbMailErr.message);
-      }
-    }
-
-    // Channel 2: Google Apps Script Webhook (Cross-platform JSONP / Fetch)
-    if (GOOGLE_APPS_SCRIPT_URL) {
-      try {
-        const payload = {
-          action: 'send_notification_email',
-          from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
-          to: targetEmail,
-          subject: emailSubject,
-          htmlBody: emailHtml,
-          timestamp: new Date().toISOString()
-        };
-
-        // Fire and forget fetch request
-        fetch(GOOGLE_APPS_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }).catch(err => console.warn("[EmailNotification] GAS webhook dispatch notice:", err));
-      } catch (gasErr) {
-        console.warn("[EmailNotification] GAS error:", gasErr);
       }
     }
 
