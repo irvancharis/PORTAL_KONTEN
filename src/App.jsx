@@ -298,7 +298,29 @@ export default function App() {
     handleRedeemGiftCode
   } = state;
 
+  // Standalone dedicated Ticket Page (New Tab / Direct Link from Email)
+  if (activeTicketParam) {
     return (
+      <TicketPassPage 
+        ticketParam={activeTicketParam}
+        eventParticipants={eventParticipants}
+        events={events}
+        currentUser={currentUser}
+        onNavigateHome={() => {
+          setActiveTicketParam(null);
+          window.history.pushState(null, '', '/');
+          handleTabChange('discover');
+        }}
+        onNavigateEvent={(evt) => {
+          setActiveTicketParam(null);
+          window.history.pushState(null, '', `/event/${evt.slug || evt.id}`);
+          handleTabChange('events');
+        }}
+      />
+    );
+  }
+
+  return (
     <div className={`app-container youtube-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       {isPageLoading && <div className="top-loading-bar" />}
       {/* Header */}
@@ -367,24 +389,7 @@ export default function App() {
         {/* Main Content Area */}
         <main className="main-content">
 
-          {activeTicketParam ? (
-            <TicketPassPage 
-              ticketParam={activeTicketParam}
-              eventParticipants={eventParticipants}
-              events={events}
-              currentUser={currentUser}
-              onNavigateHome={() => {
-                setActiveTicketParam(null);
-                window.history.pushState(null, '', '/');
-                handleTabChange('discover');
-              }}
-              onNavigateEvent={(evt) => {
-                setActiveTicketParam(null);
-                window.history.pushState(null, '', `/event/${evt.slug || evt.id}`);
-                handleTabChange('events');
-              }}
-            />
-          ) : activeTab === 'admin' && currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role) ? (
+          {activeTab === 'admin' && currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role) ? (
             <AdminPanel 
               regions={regions}
               movies={movies} 
