@@ -48,9 +48,9 @@ export default function PremiumModal({
     yearly: {
       duration: '1 Tahun',
       price: 'Rp 200.000',
-      numericPrice: 20000,
+      numericPrice: 200000,
       periodLabel: '/ tahun',
-      badge: 'HEMAT 2 BULAN (HEMAT RP 40.000)'
+      badge: 'HEMAT 2 BULAN'
     }
   };
 
@@ -149,10 +149,11 @@ export default function PremiumModal({
             width: '46px',
             height: '46px',
             borderRadius: '50%',
-            backgroundColor: 'currentColor',
+            backgroundColor: '#0f172a',
+            color: '#ffffff',
             marginBottom: '12px'
           }}>
-            <Crown size={24} style={{ filter: 'invert(1)' }} />
+            <Crown size={24} color="#ffffff" />
           </div>
           <h2 style={{ fontSize: '1.4rem', fontWeight: '800', margin: '0 0 6px 0' }}>
             {step === 'select_plan' && 'Paket User Premium'}
@@ -213,18 +214,20 @@ export default function PremiumModal({
                   textAlign: 'center'
                 }}
               >
-                <span style={{
-                  position: 'absolute',
-                  top: '-9px',
-                  right: '10px',
-                  backgroundColor: 'currentColor',
-                  fontSize: '0.62rem',
-                  fontWeight: '800',
-                  padding: '2px 8px',
-                  borderRadius: '12px'
-                }}>
-                  <span style={{ filter: 'invert(1)', fontWeight: '800' }}>HEMAT 2 BULAN</span>
+                <span 
+                  className="doku-badge-pill"
+                  style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    right: '8px',
+                    backgroundColor: '#0f172a',
+                    color: '#ffffff',
+                    display: 'inline-block'
+                  }}
+                >
+                  <span style={{ color: '#ffffff', fontWeight: '800' }}>HEMAT 2 BULAN</span>
                 </span>
+                
                 <span style={{ fontSize: '0.75rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                   Masa Aktif 1 Tahun
                 </span>
@@ -258,9 +261,15 @@ export default function PremiumModal({
             <button
               onClick={handleProceedToMethod}
               className="doku-btn-main"
+              style={{
+                backgroundColor: '#0f172a',
+                color: '#ffffff'
+              }}
             >
-              <span>{currentUser ? `Lanjut Pembayaran (${currentPlan.duration})` : 'Daftar & Berlangganan'}</span>
-              <ArrowRight size={16} />
+              <span style={{ color: '#ffffff', fontWeight: '800' }}>
+                {currentUser ? `Lanjut Pembayaran (${currentPlan.duration})` : 'Daftar & Berlangganan'}
+              </span>
+              <ArrowRight size={16} color="#ffffff" />
             </button>
           </div>
         )}
@@ -431,10 +440,14 @@ export default function PremiumModal({
               <button
                 onClick={() => setStep('pay_screen')}
                 className="doku-btn-main"
-                style={{ flex: 2 }}
+                style={{
+                  flex: 2,
+                  backgroundColor: '#0f172a',
+                  color: '#ffffff'
+                }}
               >
-                <span>Lanjut ke Pembayaran</span>
-                <ArrowRight size={16} />
+                <span style={{ color: '#ffffff', fontWeight: '800' }}>Lanjut ke Pembayaran</span>
+                <ArrowRight size={16} color="#ffffff" />
               </button>
             </div>
           </div>
@@ -584,17 +597,21 @@ export default function PremiumModal({
                 onClick={handleVerifyPayment}
                 disabled={isVerifying}
                 className="doku-btn-main"
-                style={{ padding: '14px' }}
+                style={{
+                  padding: '14px',
+                  backgroundColor: '#0f172a',
+                  color: '#ffffff'
+                }}
               >
                 {isVerifying ? (
                   <>
-                    <RefreshCw size={18} className="animate-spin" />
-                    <span>Memverifikasi Pembayaran...</span>
+                    <RefreshCw size={18} className="animate-spin" color="#ffffff" />
+                    <span style={{ color: '#ffffff', fontWeight: '800' }}>Memverifikasi Pembayaran...</span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 size={18} />
-                    <span>Saya Sudah Bayar (Cek Status Sekarang)</span>
+                    <CheckCircle2 size={18} color="#ffffff" />
+                    <span style={{ color: '#ffffff', fontWeight: '800' }}>Saya Sudah Bayar (Cek Status Sekarang)</span>
                   </>
                 )}
               </button>
@@ -625,13 +642,14 @@ export default function PremiumModal({
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              backgroundColor: 'currentColor',
+              backgroundColor: '#0f172a',
+              color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px auto'
             }}>
-              <Crown size={32} style={{ filter: 'invert(1)' }} />
+              <Crown size={32} color="#ffffff" />
             </div>
 
             <h3 style={{ fontSize: '1.3rem', fontWeight: '800', margin: '0 0 8px 0' }}>
@@ -645,9 +663,13 @@ export default function PremiumModal({
             <button
               onClick={onClose}
               className="doku-btn-main"
-              style={{ padding: '14px' }}
+              style={{
+                padding: '14px',
+                backgroundColor: '#0f172a',
+                color: '#ffffff'
+              }}
             >
-              Mulai Eksplorasi Fitur Premium
+              <span style={{ color: '#ffffff', fontWeight: '800' }}>Mulai Eksplorasi Fitur Premium</span>
             </button>
           </div>
         )}
