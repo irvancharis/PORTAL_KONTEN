@@ -3993,17 +3993,41 @@ select option {
 }
 
 /* DOKU Modal Theme Adaptive Styling */
+.doku-modal-wrapper {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+}
+
 .doku-modal-card {
-  background-color: #09090b !important;
-  color: #ffffff !important;
-  border: 1px solid #27272a !important;
+  background-color: #0f172a;
+  color: #ffffff;
+  width: 100%;
+  max-width: 520px;
+  border-radius: 16px;
+  border: 1px solid #334155;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  padding: 28px 24px;
+  position: relative;
+  text-align: left;
 }
 
 .light-theme .doku-modal-card {
   background-color: #ffffff !important;
-  color: #111827 !important;
-  border: 1px solid #e5e7eb !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
+}
+
+.doku-modal-card h1, .doku-modal-card h2, .doku-modal-card h3, .doku-modal-card h4, .doku-modal-card strong {
+  color: #ffffff;
 }
 
 .light-theme .doku-modal-card h1,
@@ -4011,23 +4035,39 @@ select option {
 .light-theme .doku-modal-card h3,
 .light-theme .doku-modal-card h4,
 .light-theme .doku-modal-card strong {
-  color: #111827 !important;
+  color: #0f172a !important;
 }
 
-.light-theme .doku-modal-card .doku-card-box {
-  background-color: #f9fafb !important;
-  border-color: #e5e7eb !important;
+.doku-modal-card p, .doku-modal-card span {
+  color: #94a3b8;
 }
 
-.light-theme .doku-modal-card .doku-btn-primary {
-  background-color: #111827 !important;
-  color: #ffffff !important;
+.light-theme .doku-modal-card p,
+.light-theme .doku-modal-card span {
+  color: #475569 !important;
 }
 
-.light-theme .doku-modal-card .doku-btn-secondary {
-  background-color: #f3f4f6 !important;
-  color: #111827 !important;
-  border-color: #e5e7eb !important;
+.doku-item-card {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.light-theme .doku-item-card {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+.doku-item-card.selected {
+  background-color: #334155;
+  border: 2px solid #ffffff;
+}
+
+.light-theme .doku-item-card.selected {
+  background-color: #f1f5f9 !important;
+  border: 2px solid #0f172a !important;
 }
 
 /* Input Fields */
