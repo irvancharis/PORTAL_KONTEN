@@ -3690,7 +3690,9 @@ onMouseLeave={(e) => {
 
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <label style={{ display: 'block', color: 'white', fontSize: '0.9rem', fontWeight: '600' }}>Pilih Akun Sosial Media Terverifikasi Anda:</label>
+                        <label style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '700' }}>
+                          Pilih Akun Sosial Media Terverifikasi Anda:
+                        </label>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                           {verifiedAccounts.map(acc => {
                             const isSelected = selectedPlatform === acc.id;
@@ -3706,24 +3708,79 @@ onMouseLeave={(e) => {
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'space-between',
-                                  padding: '14px 16px',
-                                  borderRadius: '8px',
-                                  background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255,255,255,0.02)',
-                                  border: isSelected ? '1px solid #ffffff' : '1px solid var(--border-color)',
-                                  color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+                                  padding: '14px 18px',
+                                  borderRadius: '12px',
+                                  background: isSelected ? 'var(--primary-glow)' : 'var(--bg-card)',
+                                  border: isSelected ? '2px solid var(--text-primary)' : '1px solid var(--border-color)',
+                                  boxShadow: isSelected ? '0 4px 14px rgba(0, 0, 0, 0.08)' : 'none',
                                   cursor: 'pointer',
                                   fontWeight: '600',
                                   fontSize: '0.9rem',
-                                  transition: 'all 0.2s',
+                                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                                   outline: 'none',
-                                  textAlign: 'left'
+                                  textAlign: 'left',
+                                  position: 'relative'
                                 }}
                               >
-                                <div>
-                                  <span style={{ textTransform: 'capitalize', color: 'white', marginRight: '6px' }}>{acc.label}</span>
-                                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>@{acc.handle}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                  {/* Custom Radio Button Indicator */}
+                                  <div style={{
+                                    width: '20px',
+                                    height: '20px',
+                                    borderRadius: '50%',
+                                    border: isSelected ? '2px solid var(--text-primary)' : '2px solid var(--border-color)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s ease',
+                                    flexShrink: 0,
+                                    background: isSelected ? 'var(--text-primary)' : 'transparent'
+                                  }}>
+                                    {isSelected && (
+                                      <div style={{
+                                        width: '8px',
+                                        height: '8px',
+                                        borderRadius: '50%',
+                                        background: 'var(--bg-card)'
+                                      }} />
+                                    )}
+                                  </div>
+
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <span style={{ textTransform: 'capitalize', color: 'var(--text-primary)', fontWeight: '700', fontSize: '0.95rem' }}>
+                                      {acc.label}
+                                    </span>
+                                    <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: '500' }}>
+                                      @{acc.handle}
+                                    </span>
+                                  </div>
                                 </div>
-                                {isSelected && <span style={{ color: '#4ade80', fontSize: '0.8rem', fontWeight: 'bold' }}>✓ Terpilih</span>}
+
+                                {isSelected ? (
+                                  <span style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    padding: '4px 12px',
+                                    borderRadius: '20px',
+                                    background: 'var(--text-primary)',
+                                    color: 'var(--bg-card)',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '700',
+                                    letterSpacing: '0.3px'
+                                  }}>
+                                    <CheckCircle2 size={13} />
+                                    <span>Terpilih</span>
+                                  </span>
+                                ) : (
+                                  <span style={{
+                                    fontSize: '0.78rem',
+                                    color: 'var(--text-muted)',
+                                    fontWeight: '500'
+                                  }}>
+                                    Klik untuk pilih
+                                  </span>
+                                )}
                               </button>
                             );
                           })}
@@ -3735,10 +3792,10 @@ onMouseLeave={(e) => {
                           const isInsufficient = activeBal < registeringEvent.ticketPrice;
                           return (
                             <div style={{
-                              background: 'rgba(255, 255, 255, 0.02)',
-                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                              background: 'var(--bg-card)',
+                              border: '1px solid var(--border-color)',
                               padding: '16px',
-                              borderRadius: '8px',
+                              borderRadius: '12px',
                               marginTop: '8px'
                             }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -3747,11 +3804,11 @@ onMouseLeave={(e) => {
                               </div>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                                 <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Saldo Dompet Anda:</span>
-                                <strong style={{ color: 'white', fontSize: '1.05rem' }}>Rp {activeBal.toLocaleString('id-ID')}</strong>
+                                <strong style={{ color: 'var(--text-primary)', fontSize: '1.05rem' }}>Rp {activeBal.toLocaleString('id-ID')}</strong>
                               </div>
                               
                               {isInsufficient ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '12px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', borderTop: '1px dashed var(--border-color)', paddingTop: '12px' }}>
                                   <p style={{ margin: 0, fontSize: '0.78rem', color: '#f87171', lineHeight: '1.4' }}>
                                     * Saldo Anda kurang sebesar <strong>Rp {(registeringEvent.ticketPrice - activeBal).toLocaleString('id-ID')}</strong>.
                                   </p>
@@ -3789,7 +3846,7 @@ onMouseLeave={(e) => {
                                   </button>
                                 </div>
                               ) : (
-                                <div style={{ fontSize: '0.78rem', color: '#4ade80', marginTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '8px' }}>
+                                <div style={{ fontSize: '0.78rem', color: '#4ade80', marginTop: '8px', borderTop: '1px dashed var(--border-color)', paddingTop: '8px' }}>
                                   ✓ Saldo Anda mencukupi. Biaya pendaftaran akan langsung dipotong setelah konfirmasi pendaftaran.
                                 </div>
                               )}
