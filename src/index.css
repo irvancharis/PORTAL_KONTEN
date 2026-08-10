@@ -5242,3 +5242,38 @@ select option {
   border-color: rgba(245, 158, 11, 0.12) !important;
 }
 
+/* ==========================================================================
+   TICKET HEADER PILL (Guarantee Pure White Text)
+   ========================================================================== */
+.ticket-header-pill,
+.light-theme .ticket-header-pill,
+.dark-theme .ticket-header-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  background-color: #111827 !important;
+  background: #111827 !important;
+  border: 2px solid #111827 !important;
+  padding: 6px 18px !important;
+  border-radius: 30px !important;
+  margin-bottom: 14px !important;
+}
+
+.ticket-header-pill-text,
+.ticket-header-pill span,
+.light-theme .ticket-header-pill-text,
+.light-theme .ticket-header-pill span,
+.dark-theme .ticket-header-pill-text,
+.dark-theme .ticket-header-pill span {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 0.68rem !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1.5px !important;
+  line-height: 1.2 !important;
+  display: inline-block !important;
+}
+
+

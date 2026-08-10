@@ -93,7 +93,7 @@ export default function TicketPassPage({
         </button>
 
         {/* Top Header Badge (Pure White Text on Black Pill) */}
-        <div style={{
+        <div className="ticket-header-pill" style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: '6px',
@@ -103,8 +103,9 @@ export default function TicketPassPage({
           borderRadius: '20px',
           marginBottom: '14px'
         }}>
-          <span style={{
+          <span className="ticket-header-pill-text" style={{
             color: '#ffffff',
+            WebkitTextFillColor: '#ffffff',
             fontSize: '0.68rem',
             fontWeight: '900',
             textTransform: 'uppercase',
