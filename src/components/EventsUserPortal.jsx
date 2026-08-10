@@ -856,6 +856,25 @@ export default function EventsUserPortal({
 
         setEventParticipants([...eventParticipants, newPart]);
         setVerificationStep('success');
+
+        sendEmailNotification({
+          toEmail: currentUser.email || `${currentUser.username}@ngonten.id`,
+          toUsername: currentUser.username,
+          subject: `[ngonten.id] E-Tiket & Konfirmasi Pendaftaran: ${registeringEvent.title}`,
+          title: `E-Tiket Resmi: ${registeringEvent.title}`,
+          message: `Selamat! Pendaftaran Anda di event <strong>"${registeringEvent.title}"</strong> telah berhasil dan status Anda resmi terdaftar. Simpan tiket ini untuk keperluan verifikasi dan kehadiran di acara.`,
+          type: 'ticket',
+          eventTitle: registeringEvent.title,
+          metadata: {
+            'Nama Peserta': currentUser.name || currentUser.username,
+            'Kode Tiket': tktCode,
+            'Biaya / Tiket': ticketPrice > 0 ? `Rp ${ticketPrice.toLocaleString('id-ID')}` : 'Gratis',
+            'Platform Akun': selectedPlatform.toUpperCase(),
+            'Status Pendaftaran': 'Disetujui / Terdaftar',
+            'Waktu Penerbitan': new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+          },
+          usersList: users
+        });
       }
     } catch (err) {
       console.warn('GAS/Primary check failed, running client-side fallback check:', err);
@@ -983,6 +1002,25 @@ export default function EventsUserPortal({
 
           setEventParticipants([...eventParticipants, newPart]);
           setVerificationStep('success');
+
+          sendEmailNotification({
+            toEmail: currentUser.email || `${currentUser.username}@ngonten.id`,
+            toUsername: currentUser.username,
+            subject: `[ngonten.id] E-Tiket & Konfirmasi Pendaftaran: ${registeringEvent.title}`,
+            title: `E-Tiket Resmi: ${registeringEvent.title}`,
+            message: `Selamat! Pendaftaran Anda di event <strong>"${registeringEvent.title}"</strong> telah berhasil dan status Anda resmi terdaftar. Simpan tiket ini untuk keperluan verifikasi dan kehadiran di acara.`,
+            type: 'ticket',
+            eventTitle: registeringEvent.title,
+            metadata: {
+              'Nama Peserta': currentUser.name || currentUser.username,
+              'Kode Tiket': tktCode,
+              'Biaya / Tiket': ticketPrice > 0 ? `Rp ${ticketPrice.toLocaleString('id-ID')}` : 'Gratis',
+              'Platform Akun': selectedPlatform.toUpperCase(),
+              'Status Pendaftaran': 'Disetujui / Terdaftar',
+              'Waktu Penerbitan': new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+            },
+            usersList: users
+          });
         }
       } catch (fallbackErr) {
         console.error('Fallback check failed too:', fallbackErr);
