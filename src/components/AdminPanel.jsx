@@ -1,7 +1,8 @@
 import React, {
   useState,
   useEffect,
-  useRef
+  useRef,
+  useMemo
 } from 'react';
 import { isFirebaseConfigured, db } from '../firebase';
 import { createPortal } from 'react-dom';
@@ -452,7 +453,7 @@ export default function AdminPanel({
   const [isLoadingMoreUsers, setIsLoadingMoreUsers] = useState(false);
   const [lastUserDoc, setLastUserDoc] = useState(null);
 
-  const [loadedCreators, setLoadedCreators] = useState([]);
+  const [loadedCreators, setLoadedCreators] = useState(() => (users || []).filter(u => u.role === 'user'));
   const [hasMoreCreators, setHasMoreCreators] = useState(true);
   const [isLoadingMoreCreators, setIsLoadingMoreCreators] = useState(false);
   const [lastCreatorDoc, setLastCreatorDoc] = useState(null);
@@ -461,7 +462,7 @@ export default function AdminPanel({
     if (isLoadingMoreCreators) return;
     setIsLoadingMoreCreators(true);
 
-    const batchSize = 10;
+    const batchSize = 20;
     const currentList = isFirstLoad ? [] : loadedCreators;
     const lastDoc = isFirstLoad ? null : lastCreatorDoc;
 
@@ -490,8 +491,15 @@ export default function AdminPanel({
         const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
         setLastCreatorDoc(lastVisible);
         
-        const mergedList = isFirstLoad ? newCreators : [...currentList, ...newCreators];
-        setLoadedCreators(mergedList);
+        if (isFirstLoad && newCreators.length > 0) {
+          setLoadedCreators(newCreators);
+        } else if (!isFirstLoad) {
+          setLoadedCreators(prev => {
+            const existingIds = new Set(prev.map(p => p.id || p.username));
+            const filteredNew = newCreators.filter(n => !existingIds.has(n.id || n.username));
+            return [...prev, ...filteredNew];
+          });
+        }
         setHasMoreCreators(newCreators.length === batchSize);
       } catch (err) {
         console.error("Error lazy loading creators:", err);
@@ -513,15 +521,16 @@ export default function AdminPanel({
 
   useEffect(() => {
     if (adminSubTab === 'creator-marketplace') {
-      loadMoreCreators(true);
+      if (!loadedCreators || loadedCreators.length === 0) {
+        const localList = (users || []).filter(u => u.role === 'user');
+        if (localList.length > 0) {
+          setLoadedCreators(localList);
+        } else {
+          loadMoreCreators(true);
+        }
+      }
     }
-  }, [adminSubTab]);
-
-  useEffect(() => {
-    if (adminSubTab === 'creator-marketplace' && !isFirebaseConfigured()) {
-      loadMoreCreators(true);
-    }
-  }, [users]);
+  }, [adminSubTab, users]);
 
   const loadMoreUsers = async (isFirstLoad = false) => {
     if (isLoadingMoreUsers) return;
@@ -1238,6 +1247,102 @@ export default function AdminPanel({
       stars
     };
   };
+
+  const processedCreatorsList = useMemo(() => {
+    const sourceList = (loadedCreators && loadedCreators.length > 0)
+      ? loadedCreators
+      : (users || []).filter(u => u.role === 'user');
+
+    if (!sourceList || sourceList.length === 0) return [];
+
+    // Pre-build index maps for O(1) lookups
+    const subsByUser = new Map();
+    (eventSubmissions || []).forEach(s => {
+      const key = (s.username || '').toLowerCase();
+      if (!subsByUser.has(key)) subsByUser.set(key, []);
+      subsByUser.get(key).push(s);
+    });
+
+    const partsByUser = new Map();
+    (eventParticipants || []).forEach(p => {
+      if (p.status === 'approved') {
+        const key = (p.username || '').toLowerCase();
+        if (!partsByUser.has(key)) partsByUser.set(key, []);
+        partsByUser.get(key).push(p);
+      }
+    });
+
+    const winsByUser = new Map();
+    const now = Date.now();
+    (events || []).forEach(evt => {
+      if (evt.budgetMode === 'ranking' && evt.paymentStatus === 'paid') {
+        const isDeadlinePassed = evt.deadline ? (
+          evt.deadline.includes('T')
+            ? now > new Date(evt.deadline).getTime()
+            : now > new Date(evt.deadline + 'T23:59:59').getTime()
+        ) : false;
+
+        if (isDeadlinePassed) {
+          const eventSubs = (eventSubmissions || []).filter(s => s.eventId === evt.id);
+          const sortedSubs = [...eventSubs].sort((a, b) => (b.views || 0) - (a.views || 0));
+          const top3Users = sortedSubs.slice(0, 3).map(s => (s.username || '').toLowerCase());
+          top3Users.forEach(u => {
+            winsByUser.set(u, (winsByUser.get(u) || 0) + 1);
+          });
+        }
+      }
+    });
+
+    const searchLower = (marketplaceSearch || '').toLowerCase().trim();
+    const regionalLower = (marketplaceRegionalFilter || '').toLowerCase().trim();
+
+    return sourceList
+      .filter(u => u.role === 'user')
+      .map(u => {
+        const userLower = (u.username || '').toLowerCase();
+        const userSubs = subsByUser.get(userLower) || [];
+        const userParts = partsByUser.get(userLower) || [];
+        const totalViews = userSubs.reduce((sum, s) => sum + (s.views || 0), 0);
+        const totalLikes = userSubs.reduce((sum, s) => sum + (s.likes || 0), 0);
+        const winsCount = winsByUser.get(userLower) || 0;
+
+        const points = (userParts.length * 50) + Math.floor(totalViews / 100) + (winsCount * 100);
+
+        let stars = 1;
+        if (points >= 5000) stars = 5;
+        else if (points >= 2500) stars = 4;
+        else if (points >= 1000) stars = 3;
+        else if (points >= 300) stars = 2;
+
+        return {
+          ...u,
+          metrics: {
+            joinedEventsCount: userParts.length,
+            submissionsCount: userSubs.length,
+            totalViews,
+            totalLikes,
+            winsCount,
+            points,
+            stars
+          }
+        };
+      })
+      .filter(c => {
+        const matchSearch = !searchLower || 
+                            (c.username || '').toLowerCase().includes(searchLower) || 
+                            (c.organizerName || '').toLowerCase().includes(searchLower);
+        const matchLevel = marketplaceLevelFilter === 'All' || String(c.metrics.stars) === marketplaceLevelFilter;
+        const matchRegional = !regionalLower || 
+                              (c.userRegional || '').toLowerCase().includes(regionalLower);
+        return matchSearch && matchLevel && matchRegional;
+      })
+      .sort((a, b) => {
+        if (b.metrics.stars !== a.metrics.stars) {
+          return b.metrics.stars - a.metrics.stars;
+        }
+        return b.metrics.points - a.metrics.points;
+      });
+  }, [loadedCreators, users, eventSubmissions, eventParticipants, events, marketplaceSearch, marketplaceLevelFilter, marketplaceRegionalFilter]);
 
   const getEventStatus = (evt) => {
     if (evt.paymentStatus === 'pending_verification') {
@@ -4705,27 +4810,7 @@ export default function AdminPanel({
           {/* Creators Directory Rows Table */}
           <div className="admin-table-container glass-panel" style={{ marginBottom: '40px' }}>
             {(() => {
-              // 1. Calculate metrics and pre-filter by search & level & regional
-              const creatorsList = loadedCreators
-                .filter(u => u.role === 'user')
-                .map(u => ({
-                  ...u,
-                  metrics: calculateCreatorMetrics(u.username)
-                }))
-                .filter(c => {
-                  const matchSearch = c.username.toLowerCase().includes(marketplaceSearch.toLowerCase()) || 
-                                      (c.organizerName || '').toLowerCase().includes(marketplaceSearch.toLowerCase());
-                  const matchLevel = marketplaceLevelFilter === 'All' || String(c.metrics.stars) === marketplaceLevelFilter;
-                  const matchRegional = !marketplaceRegionalFilter.trim() || 
-                                        (c.userRegional || '').toLowerCase().includes(marketplaceRegionalFilter.toLowerCase());
-                  return matchSearch && matchLevel && matchRegional;
-                })
-                .sort((a, b) => {
-                  if (b.metrics.stars !== a.metrics.stars) {
-                    return b.metrics.stars - a.metrics.stars;
-                  }
-                  return b.metrics.points - a.metrics.points;
-                });
+              const creatorsList = processedCreatorsList;
 
               if (creatorsList.length === 0) {
                 return (
