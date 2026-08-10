@@ -843,7 +843,7 @@ export default function WalletUserPortal({
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>Biaya Penarikan ({(activeFeePercent || 0)}%):</span>
                     <span style={{ color: 'white', fontWeight: 'bold' }}>
-                      {(activeFeePercent || 0) > 0 ? `- Rp ${Math.round(wdAmount * activeFeePercent / 100).toLocaleString('id-ID')}` : 'Gratis'}
+                      {(activeFeePercent || 0) > 0 ? `Rp ${Math.round(wdAmount * activeFeePercent / 100).toLocaleString('id-ID')}` : 'Gratis'}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
