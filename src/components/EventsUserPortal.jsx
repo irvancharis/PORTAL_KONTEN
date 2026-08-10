@@ -865,8 +865,10 @@ export default function EventsUserPortal({
           message: `Selamat! Pendaftaran Anda di event <strong>"${registeringEvent.title}"</strong> telah berhasil dan status Anda resmi terdaftar. Klik tombol di bawah untuk melihat pass tiket QR resmi Anda saat hadir di acara.`,
           type: 'ticket',
           eventTitle: registeringEvent.title,
-          actionUrl: `https://ngonten.id/event/${registeringEvent.slug || registeringEvent.id}`,
+          actionUrl: `https://ngonten.id/ticket/${tktCode}`,
           actionLabel: 'Lihat E-Tiket Saya',
+          secondaryActionUrl: `https://ngonten.id/event/${registeringEvent.slug || registeringEvent.id}`,
+          secondaryActionLabel: 'Buka Detail Event',
           metadata: {
             'Nama Peserta': currentUser.name || currentUser.username,
             'Biaya / Tiket': ticketPrice > 0 ? `Rp ${ticketPrice.toLocaleString('id-ID')}` : 'Gratis',
@@ -1012,8 +1014,10 @@ export default function EventsUserPortal({
             message: `Selamat! Pendaftaran Anda di event <strong>"${registeringEvent.title}"</strong> telah berhasil dan status Anda resmi terdaftar. Klik tombol di bawah untuk melihat pass tiket QR resmi Anda saat hadir di acara.`,
             type: 'ticket',
             eventTitle: registeringEvent.title,
-            actionUrl: `https://ngonten.id/event/${registeringEvent.slug || registeringEvent.id}`,
+            actionUrl: `https://ngonten.id/ticket/${tktCode}`,
             actionLabel: 'Lihat E-Tiket Saya',
+            secondaryActionUrl: `https://ngonten.id/event/${registeringEvent.slug || registeringEvent.id}`,
+            secondaryActionLabel: 'Buka Detail Event',
             metadata: {
               'Nama Peserta': currentUser.name || currentUser.username,
               'Biaya / Tiket': ticketPrice > 0 ? `Rp ${ticketPrice.toLocaleString('id-ID')}` : 'Gratis',

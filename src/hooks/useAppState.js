@@ -761,6 +761,15 @@ export default function useAppState() {
   const [globalLoadingText, setGlobalLoadingText] = useState(null);
   const [zoomImage, setZoomImage] = useState(null);
   const [toast, setToast] = useState(null);
+  const [activeTicketParam, setActiveTicketParam] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path.startsWith('/ticket/') || path.startsWith('/tiket/')) {
+        return path.replace(/^\/(ticket|tiket)\//, '').split(/[?#]/)[0];
+      }
+    }
+    return null;
+  });
 
   useEffect(() => {
     window.setGlobalLoading = setGlobalLoadingText;
@@ -2307,7 +2316,18 @@ export default function useAppState() {
       const path = window.location.pathname;
 
       if (path && path !== '/') {
-        if (path.startsWith('/play/')) {
+        if (path.startsWith('/ticket/') || path.startsWith('/tiket/')) {
+          const tktParam = path.replace(/^\/(ticket|tiket)\//, '').split(/[?#]/)[0];
+          setActiveTicketParam(tktParam);
+          setIsPlaying(false);
+          setSelectedMovie(null);
+        } else if (path === '/tickets' || path === '/tiket') {
+          setActiveTab('events');
+          setActiveTicketParam(null);
+          setIsPlaying(false);
+          setSelectedMovie(null);
+        } else if (path.startsWith('/play/')) {
+          setActiveTicketParam(null);
           const movieParam = path.replace('/play/', '').split('&')[0];
           const foundMovie = movies.find(m => m.id === movieParam || movieParam.endsWith(m.id));
           if (foundMovie) {
@@ -2316,10 +2336,12 @@ export default function useAppState() {
             setActiveTab('discover');
           }
         } else if (path.startsWith('/events') || path.startsWith('/event/')) {
+          setActiveTicketParam(null);
           setActiveTab('events');
           setIsPlaying(false);
           setSelectedMovie(null);
         } else if (path.startsWith('/community/')) {
+          setActiveTicketParam(null);
           setActiveTab('communities');
           setIsPlaying(false);
           setSelectedMovie(null);
@@ -2907,6 +2929,8 @@ export default function useAppState() {
     setZoomImage,
     toast,
     setToast,
+    activeTicketParam,
+    setActiveTicketParam,
     editProfileName,
     setEditProfileName,
     editProfileEmail,

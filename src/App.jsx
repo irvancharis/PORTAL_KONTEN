@@ -12,6 +12,7 @@ import WalletUserPortal from './components/WalletUserPortal';
 import DiscoverPage from './pages/DiscoverPage';
 import CommunitiesPage from './pages/CommunitiesPage';
 import ProfilePage from './pages/ProfilePage';
+import TicketPassPage from './components/TicketPassPage';
 import SearchableSelect from './components/SearchableSelect';
 import useAppState from './hooks/useAppState';
 import { slugify, formatIndonesianDate, fetchJSONP } from './utils/helpers';
@@ -179,6 +180,8 @@ export default function App() {
     setZoomImage,
     toast,
     setToast,
+    activeTicketParam,
+    setActiveTicketParam,
     editProfileName,
     setEditProfileName,
     editProfileEmail,
@@ -364,7 +367,24 @@ export default function App() {
         {/* Main Content Area */}
         <main className="main-content">
 
-          {activeTab === 'admin' && currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role) ? (
+          {activeTicketParam ? (
+            <TicketPassPage 
+              ticketParam={activeTicketParam}
+              eventParticipants={eventParticipants}
+              events={events}
+              currentUser={currentUser}
+              onNavigateHome={() => {
+                setActiveTicketParam(null);
+                window.history.pushState(null, '', '/');
+                handleTabChange('discover');
+              }}
+              onNavigateEvent={(evt) => {
+                setActiveTicketParam(null);
+                window.history.pushState(null, '', `/event/${evt.slug || evt.id}`);
+                handleTabChange('events');
+              }}
+            />
+          ) : activeTab === 'admin' && currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role) ? (
             <AdminPanel 
               regions={regions}
               movies={movies} 

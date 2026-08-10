@@ -1505,7 +1505,7 @@ export default function AdminPanel({
       const evTitle = evt ? evt.title : (part.eventTitle || 'Event');
       const evSlug = evt ? (evt.slug || evt.id) : part.eventId;
       const evUrl = `https://ngonten.id/event/${evSlug}`;
-      const ticketUrl = `https://ngonten.id/tickets`;
+      const directTicketUrl = `https://ngonten.id/ticket/${part.ticketCode || part.id}`;
 
       const category = (evt?.category || '').toLowerCase();
       const hasTasks = !!(evt?.tasks?.length || evt?.submissionRequired || evt?.hasSubmission || evt?.benefitAmount > 0 || ['kompetisi', 'lomba', 'challenge', 'review', 'ulasan'].some(k => category.includes(k)));
@@ -1517,11 +1517,13 @@ export default function AdminPanel({
           toUsername: part.username,
           subject: `[ngonten.id] E-Tiket & Pendaftaran Disetujui: ${evTitle}`,
           title: 'E-Tiket & Pendaftaran Event Disetujui! 🎟️',
-          message: `Selamat! Pendaftaran dan pemesanan tiket Anda untuk event <strong>"${evTitle}"</strong> telah resmi disetujui oleh panitia. Pass E-Tiket Anda telah aktif di platform. Silakan klik tombol di bawah untuk melihat tiket QR resmi Anda saat registrasi di lokasi acara.`,
+          message: `Selamat! Pendaftaran dan pemesanan tiket Anda untuk event <strong>"${evTitle}"</strong> telah resmi disetujui oleh panitia. Pass E-Tiket Anda telah aktif. Silakan klik tombol di bawah untuk membuka tiket resmi dan QR Code Anda.`,
           type: 'ticket',
           eventTitle: evTitle,
-          actionUrl: evUrl,
+          actionUrl: directTicketUrl,
           actionLabel: 'Lihat E-Tiket Saya',
+          secondaryActionUrl: evUrl,
+          secondaryActionLabel: 'Buka Detail Event',
           metadata: {
             'Nama Peserta': part.name || part.username,
             'Status': 'DISETUJUI & TIKET AKTIF'
@@ -1534,12 +1536,12 @@ export default function AdminPanel({
           toUsername: part.username,
           subject: `[ngonten.id] Pendaftaran Disetujui: ${evTitle}`,
           title: 'Pendaftaran Event Anda Disetujui! 🎉',
-          message: `Selamat! Pendaftaran Anda di event <strong>"${evTitle}"</strong> telah disetujui oleh Panitia. Anda kini dapat mulai mengirimkan karya atau menjalankan tugas kampanye sesuai petunjuk teknis.${hasTicket ? ' Pass E-Tiket resmi Anda juga telah aktif di platform untuk akses masuk acara.' : ''}`,
+          message: `Selamat! Pendaftaran Anda di event <strong>"${evTitle}"</strong> telah disetujui oleh Panitia. Anda kini dapat mulai mengirimkan karya atau menjalankan tugas kampanye sesuai petunjuk teknis.${hasTicket ? ' Pass E-Tiket resmi Anda juga telah aktif untuk akses masuk acara.' : ''}`,
           type: 'approval',
           eventTitle: evTitle,
           actionUrl: evUrl,
           actionLabel: 'Kirim Karya / Lihat Tugas',
-          secondaryActionUrl: hasTicket ? evUrl : null,
+          secondaryActionUrl: hasTicket ? directTicketUrl : null,
           secondaryActionLabel: hasTicket ? 'Lihat E-Tiket' : null,
           metadata: {
             'Nama Peserta': part.name || part.username,
