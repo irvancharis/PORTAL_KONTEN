@@ -56,7 +56,9 @@ import {
   CheckCircle2,
   XCircle,
   Lock,
-  Unlock
+  Unlock,
+  Camera,
+  Upload
 } from 'lucide-react';
 
 export default function App() {
@@ -1001,20 +1003,34 @@ export default function App() {
                   </div>
                 )}
 
-                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Avatar / Logo (Opsional)</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: '600' }}>
+                    Avatar / Logo Akun (Opsional)
+                  </label>
+                  
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    background: 'var(--bg-card-hover, rgba(255, 255, 255, 0.03))',
+                    border: '1px solid var(--border-color)',
+                    flexWrap: 'wrap'
+                  }}>
+                    {/* Avatar Preview or Default Camera Circle */}
                     {editProfileAvatar ? (
                       <div style={{ position: 'relative', display: 'inline-block' }}>
                         <img 
                           src={editProfileAvatar} 
-                          alt="Preview" 
+                          alt="Preview Avatar" 
                           style={{
-                            width: '45px',
-                            height: '45px',
+                            width: '54px',
+                            height: '54px',
                             borderRadius: '50%',
                             objectFit: 'cover',
-                            border: '2px solid rgba(255, 255, 255, 0.2)'
+                            border: '2px solid var(--primary, #3b82f6)',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                           }}
                         />
                         <button
@@ -1022,73 +1038,110 @@ export default function App() {
                           onClick={() => setEditProfileAvatar('')}
                           style={{
                             position: 'absolute',
-                            top: '-4px',
-                            right: '-4px',
+                            top: '-3px',
+                            right: '-3px',
                             background: '#ef4444',
-                            color: 'white',
-                            border: 'none',
+                            color: '#ffffff',
+                            border: '2px solid #ffffff',
                             borderRadius: '50%',
-                            width: '18px',
-                            height: '18px',
-                            fontSize: '10px',
+                            width: '20px',
+                            height: '20px',
+                            fontSize: '11px',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
                           }}
+                          title="Hapus foto"
                         >
-                          ✕
+                          <X size={12} strokeWidth={3} />
                         </button>
                       </div>
                     ) : (
                       <div style={{
-                        width: '45px',
-                        height: '45px',
+                        width: '54px',
+                        height: '54px',
                         borderRadius: '50%',
-                        background: 'rgba(255, 255, 255, 0.05)',
+                        background: 'rgba(255, 255, 255, 0.06)',
                         display: 'flex',
+                        flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '0.7rem',
-                        color: 'var(--text-muted)',
-                        border: '1px dashed var(--border-color)'
+                        border: '2px dashed var(--border-hover, #cbd5e1)',
+                        color: 'var(--text-muted)'
                       }}>
-                        No Img
+                        <Camera size={22} />
                       </div>
                     )}
-                    <label style={{
-                      flex: 1,
-                      padding: '8px 12px',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px dashed rgba(255, 255, 255, 0.2)',
-                      borderRadius: '8px',
-                      color: '#ffffff',
-                      cursor: 'pointer',
-                      textAlign: 'center',
-                      fontSize: '0.8rem',
-                      fontWeight: '600'
-                    }}>
-                      Pilih Foto
-                      <input 
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            if (file.size > 500 * 1024) {
-                              alert("Ukuran file maksimal adalah 500 KB!");
-                              return;
-                            }
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              setEditProfileAvatar(reader.result);
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                        style={{ display: 'none' }}
-                      />
-                    </label>
+
+                    {/* Action Upload & Guidelines */}
+                    <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <label style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '7px 16px',
+                          background: 'var(--text-primary)',
+                          color: 'var(--bg-main)',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.82rem',
+                          fontWeight: '700',
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                        }}>
+                          <Upload size={14} />
+                          <span>{editProfileAvatar ? 'Ganti Foto' : 'Pilih Foto Avatar'}</span>
+                          <input 
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (file) {
+                                if (file.size > 500 * 1024) {
+                                  alert("Ukuran file maksimal adalah 500 KB!");
+                                  return;
+                                }
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setEditProfileAvatar(reader.result);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+
+                        {editProfileAvatar && (
+                          <button
+                            type="button"
+                            onClick={() => setEditProfileAvatar('')}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '7px 12px',
+                              background: 'transparent',
+                              border: '1px solid rgba(239, 68, 68, 0.4)',
+                              color: '#ef4444',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              fontSize: '0.8rem',
+                              fontWeight: '600'
+                            }}
+                          >
+                            <Trash2 size={13} />
+                            <span>Hapus</span>
+                          </button>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                        Format JPG, PNG, atau WebP (Maksimal 500 KB).
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -1733,89 +1786,125 @@ export default function App() {
 
                       <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Upload Logo Komunitas (Opsional)</label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          {organizerAvatar ? (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '14px',
+                          padding: '12px 16px',
+                          borderRadius: '12px',
+                          background: 'var(--bg-card-hover, rgba(255, 255, 255, 0.03))',
+                          border: '1px solid var(--border-color)',
+                          flexWrap: 'wrap'
+                        }}>
+                          {registerAvatar ? (
                             <div style={{ position: 'relative', display: 'inline-block' }}>
                               <img 
-                                src={organizerAvatar} 
-                                alt="Preview" 
+                                src={registerAvatar} 
+                                alt="Logo Preview" 
                                 style={{
-                                  width: '45px',
-                                  height: '45px',
+                                  width: '54px',
+                                  height: '54px',
                                   borderRadius: '50%',
                                   objectFit: 'cover',
-                                  border: '2px solid rgba(255, 255, 255, 0.2)'
+                                  border: '2px solid var(--primary, #3b82f6)',
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                                 }}
                               />
                               <button
                                 type="button"
-                                onClick={() => setOrganizerAvatar('')}
+                                onClick={() => setRegisterAvatar('')}
                                 style={{
                                   position: 'absolute',
-                                  top: '-4px',
-                                  right: '-4px',
+                                  top: '-3px',
+                                  right: '-3px',
                                   background: '#ef4444',
-                                  color: 'white',
-                                  border: 'none',
+                                  color: '#ffffff',
+                                  border: '2px solid #ffffff',
                                   borderRadius: '50%',
-                                  width: '18px',
-                                  height: '18px',
-                                  fontSize: '10px',
+                                  width: '20px',
+                                  height: '20px',
+                                  fontSize: '11px',
                                   cursor: 'pointer',
                                   display: 'flex',
                                   alignItems: 'center',
-                                  justifyContent: 'center'
+                                  justifyContent: 'center',
+                                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
                                 }}
+                                title="Hapus logo"
                               >
-                                ✕
+                                <X size={12} strokeWidth={3} />
                               </button>
                             </div>
                           ) : (
                             <div style={{
-                              width: '45px',
-                              height: '45px',
+                              width: '54px',
+                              height: '54px',
                               borderRadius: '50%',
-                              background: 'rgba(255, 255, 255, 0.05)',
+                              background: 'rgba(255, 255, 255, 0.06)',
                               display: 'flex',
+                              flexDirection: 'column',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              fontSize: '0.7rem',
-                              color: 'var(--text-muted)',
-                              border: '1px dashed var(--border-color)'
+                              border: '2px dashed var(--border-hover, #cbd5e1)',
+                              color: 'var(--text-muted)'
                             }}>
-                              No Img
+                              <Camera size={22} />
                             </div>
                           )}
-                          <label style={{
-                            flex: 1,
-                            padding: '8px 12px',
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            border: '1px dashed rgba(255, 255, 255, 0.2)',
-                            borderRadius: '8px',
-                            color: '#ffffff',
-                            cursor: 'pointer',
-                            textAlign: 'center',
-                            fontSize: '0.8rem',
-                            fontWeight: '600',
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                          }}
-                          >
-                            Pilih Logo
-                            <input 
-                              type="file"
-                              accept="image/*"
-                              onChange={handleAvatarFileChange}
-                              style={{ display: 'none' }}
-                            />
-                          </label>
+
+                          <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                              <label style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '7px 16px',
+                                background: 'var(--text-primary)',
+                                color: 'var(--bg-main)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '0.82rem',
+                                fontWeight: '700',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                              }}>
+                                <Upload size={14} />
+                                <span>{registerAvatar ? 'Ganti Logo' : 'Pilih Logo Komunitas'}</span>
+                                <input 
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleAvatarFileChange}
+                                  style={{ display: 'none' }}
+                                />
+                              </label>
+
+                              {registerAvatar && (
+                                <button
+                                  type="button"
+                                  onClick={() => setRegisterAvatar('')}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    padding: '7px 12px',
+                                    background: 'transparent',
+                                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                                    color: '#ef4444',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.8rem',
+                                    fontWeight: '600'
+                                  }}
+                                >
+                                  <Trash2 size={13} />
+                                  <span>Hapus</span>
+                                </button>
+                              )}
+                            </div>
+                            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                              Format JPG, PNG, atau WebP (Maksimal 500 KB).
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
