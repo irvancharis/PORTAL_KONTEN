@@ -865,6 +865,10 @@ export default function EventsUserPortal({
           message: `Selamat! Pendaftaran Anda di event <strong>"${registeringEvent.title}"</strong> telah berhasil dan status Anda resmi terdaftar. Simpan tiket ini untuk keperluan verifikasi dan kehadiran di acara.`,
           type: 'ticket',
           eventTitle: registeringEvent.title,
+          actionUrl: `https://ngonten.id/tickets`,
+          actionLabel: 'Lihat E-Tiket Saya',
+          secondaryActionUrl: `https://ngonten.id/event/${registeringEvent.slug || registeringEvent.id}`,
+          secondaryActionLabel: 'Buka Halaman Event',
           metadata: {
             'Nama Peserta': currentUser.name || currentUser.username,
             'Kode Tiket': tktCode,
@@ -1011,6 +1015,10 @@ export default function EventsUserPortal({
             message: `Selamat! Pendaftaran Anda di event <strong>"${registeringEvent.title}"</strong> telah berhasil dan status Anda resmi terdaftar. Simpan tiket ini untuk keperluan verifikasi dan kehadiran di acara.`,
             type: 'ticket',
             eventTitle: registeringEvent.title,
+            actionUrl: `https://ngonten.id/tickets`,
+            actionLabel: 'Lihat E-Tiket Saya',
+            secondaryActionUrl: `https://ngonten.id/event/${registeringEvent.slug || registeringEvent.id}`,
+            secondaryActionLabel: 'Buka Halaman Event',
             metadata: {
               'Nama Peserta': currentUser.name || currentUser.username,
               'Kode Tiket': tktCode,
@@ -4004,7 +4012,9 @@ onMouseLeave={(e) => {
                                     type: 'review',
                                     eventTitle: registeringEvent.title,
                                     actionUrl: `https://ngonten.id/event/${registeringEvent.slug || registeringEvent.id}`,
-                                    actionLabel: 'Buka Tugas Event di ngonten.id',
+                                    actionLabel: 'Kirim Karya / Lihat Tugas',
+                                    secondaryActionUrl: `https://ngonten.id/tickets`,
+                                    secondaryActionLabel: 'Lihat E-Tiket Saya',
                                     metadata: {
                                       'Nama Event': registeringEvent.title,
                                       'Kode Tiket': tktCode,

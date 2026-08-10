@@ -21,7 +21,9 @@ export const generateEmailHtml = ({
   type = 'info',
   eventTitle = '',
   actionUrl = APP_BASE_URL,
-  actionLabel = 'Buka Aplikasi ngonten.id',
+  actionLabel = 'Buka di ngonten.id',
+  secondaryActionUrl = null,
+  secondaryActionLabel = null,
   metadata = {}
 }) => {
   // Theme color based on notification type
@@ -156,7 +158,7 @@ export const generateEmailHtml = ({
               </div>
 
               <!-- E-Ticket Pass Box (if ticket) -->
-              ${ticketCode ? `
+              ${ticketCode && ticketCode !== '-' ? `
                 <div style="margin: 0 0 26px 0; padding: 20px; background-color: #09090b; border-radius: 12px; text-align: center; border: 2px dashed #38bdf8; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
                   <div style="font-size: 11px; font-weight: 800; color: #38bdf8; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px;">
                     🎟️ PASS E-TIKET RESMI
@@ -177,18 +179,32 @@ export const generateEmailHtml = ({
                 </table>
               ` : ''}
 
-              <!-- CTA Button -->
-              <div style="text-align: center; margin: 32px 0 12px 0;">
-                <a href="${actionUrl}" target="_blank" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 14px 28px; border-radius: 10px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15); transition: background-color 0.2s;">
-                  ${actionLabel} &rarr;
-                </a>
+              <!-- CTA Buttons Section (Single or Dual Buttons) -->
+              <div style="text-align: center; margin: 32px 0 16px 0;">
+                <table align="center" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                  <tr>
+                    <td align="center" style="padding: 6px;">
+                      <a href="${actionUrl}" target="_blank" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 13px 24px; border-radius: 10px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);">
+                        ${actionLabel} &rarr;
+                      </a>
+                    </td>
+                    ${secondaryActionUrl && secondaryActionLabel ? `
+                      <td align="center" style="padding: 6px;">
+                        <a href="${secondaryActionUrl}" target="_blank" style="display: inline-block; background-color: #ffffff; color: #0f172a; font-size: 14px; font-weight: 700; text-decoration: none; padding: 12px 22px; border-radius: 10px; border: 1.5px solid #0f172a;">
+                          ${secondaryActionLabel}
+                        </a>
+                      </td>
+                    ` : ''}
+                  </tr>
+                </table>
               </div>
 
               <!-- URL Fallback -->
-              <p style="margin: 20px 0 0 0; font-size: 11px; color: #94a3b8; text-align: center; line-height: 1.5;">
-                Jika tombol di atas tidak dapat diklik, salin dan buka tautan berikut di browser Anda:<br>
+              <div style="margin: 20px 0 0 0; font-size: 11px; color: #94a3b8; text-align: center; line-height: 1.6;">
+                Jika tombol tidak dapat diklik, buka tautan berikut di browser Anda:<br>
                 <a href="${actionUrl}" style="color: #2563eb; word-break: break-all;">${actionUrl}</a>
-              </p>
+                ${secondaryActionUrl ? `<br><a href="${secondaryActionUrl}" style="color: #2563eb; word-break: break-all;">${secondaryActionUrl}</a>` : ''}
+              </div>
             </td>
           </tr>
 
@@ -237,6 +253,8 @@ export const sendEmailNotification = async ({
   eventTitle = '',
   actionUrl = APP_BASE_URL,
   actionLabel = 'Buka di ngonten.id',
+  secondaryActionUrl = null,
+  secondaryActionLabel = null,
   metadata = {},
   usersList = []
 }) => {
@@ -271,6 +289,8 @@ export const sendEmailNotification = async ({
       eventTitle,
       actionUrl,
       actionLabel,
+      secondaryActionUrl,
+      secondaryActionLabel,
       metadata
     });
 

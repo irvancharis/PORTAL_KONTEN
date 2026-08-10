@@ -1502,22 +1502,56 @@ export default function AdminPanel({
 
     if (part) {
       const evt = events.find(e => e.id === part.eventId);
-      sendEmailNotification({
-        toUsername: part.username,
-        subject: `[ngonten.id] Pendaftaran Disetujui: ${evt ? evt.title : (part.eventTitle || 'Event')}`,
-        title: 'Pendaftaran Event Anda Disetujui! 🎉',
-        message: `Selamat! Pendaftaran Anda di event <strong>"${evt ? evt.title : (part.eventTitle || 'Event')}"</strong> telah disetujui oleh Panitia. Anda kini dapat mulai mengirimkan karya atau menjalankan tugas kampanye.`,
-        type: 'approval',
-        eventTitle: evt ? evt.title : part.eventTitle,
-        actionUrl: `https://ngonten.id/event/${evt ? (evt.slug || evt.id) : part.eventId}`,
-        actionLabel: 'Kirim Karya / Lihat Tugas Sekarang',
-        metadata: {
-          'Nama Peserta': part.name || part.username,
-          'Kode Tiket': part.ticketCode || '-',
-          'Status': 'DISETUJUI'
-        },
-        usersList: users
-      });
+      const evTitle = evt ? evt.title : (part.eventTitle || 'Event');
+      const evSlug = evt ? (evt.slug || evt.id) : part.eventId;
+      const evUrl = `https://ngonten.id/event/${evSlug}`;
+      const ticketUrl = `https://ngonten.id/tickets`;
+
+      const category = (evt?.category || '').toLowerCase();
+      const hasTasks = !!(evt?.tasks?.length || evt?.submissionRequired || evt?.hasSubmission || evt?.benefitAmount > 0 || ['kompetisi', 'lomba', 'challenge', 'review', 'ulasan'].some(k => category.includes(k)));
+      const hasTicket = !!(part.ticketCode && part.ticketCode !== '-');
+
+      if (!hasTasks) {
+        // Event non-tugas / penjualan tiket / konser / festival / seminar
+        sendEmailNotification({
+          toUsername: part.username,
+          subject: `[ngonten.id] E-Tiket & Pendaftaran Disetujui: ${evTitle}`,
+          title: 'E-Tiket & Pendaftaran Event Anda Disetujui! 🎟️',
+          message: `Selamat! Pendaftaran Anda di event <strong>"${evTitle}"</strong> telah resmi disetujui oleh panitia. Pass E-Tiket Anda telah aktif. Silakan simpan dan tunjukkan kode tiket di bawah ini kepada panitia saat registrasi di lokasi acara.`,
+          type: 'ticket',
+          eventTitle: evTitle,
+          actionUrl: ticketUrl,
+          actionLabel: 'Lihat E-Tiket Saya',
+          secondaryActionUrl: evUrl,
+          secondaryActionLabel: 'Buka Halaman Event',
+          metadata: {
+            'Nama Peserta': part.name || part.username,
+            'Kode Tiket': part.ticketCode || '-',
+            'Status': 'DISETUJUI & TIKET AKTIF'
+          },
+          usersList: users
+        });
+      } else {
+        // Event dengan Tugas / Karya / Kompetisi / Kampanye
+        sendEmailNotification({
+          toUsername: part.username,
+          subject: `[ngonten.id] Pendaftaran Disetujui: ${evTitle}`,
+          title: 'Pendaftaran Event Anda Disetujui! 🎉',
+          message: `Selamat! Pendaftaran Anda di event <strong>"${evTitle}"</strong> telah disetujui oleh Panitia. Anda kini dapat mulai mengirimkan karya atau menjalankan tugas kampanye sesuai petunjuk teknis.${hasTicket ? ' Pass E-Tiket resmi Anda juga telah aktif di bawah ini untuk akses masuk acara.' : ''}`,
+          type: 'approval',
+          eventTitle: evTitle,
+          actionUrl: evUrl,
+          actionLabel: 'Kirim Karya / Lihat Tugas',
+          secondaryActionUrl: hasTicket ? ticketUrl : null,
+          secondaryActionLabel: hasTicket ? 'Lihat E-Tiket' : null,
+          metadata: {
+            'Nama Peserta': part.name || part.username,
+            'Kode Tiket': part.ticketCode || '-',
+            'Status': 'DISETUJUI'
+          },
+          usersList: users
+        });
+      }
     }
   };
 
