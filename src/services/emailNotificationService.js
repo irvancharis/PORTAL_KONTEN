@@ -111,16 +111,27 @@ export const generateEmailHtml = ({
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td>
-                    <div style="display: inline-block;">
-                      <span style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #ffffff; font-family: 'Outfit', -apple-system, sans-serif;">
-                        ngonten<span style="color: #60a5fa;">.id</span>
-                      </span>
-                      <div style="font-size: 11px; color: #a1a1aa; font-weight: 500; letter-spacing: 0.5px; margin-top: 2px;">
-                        Platform Ekosistem Kreator & Event Terpadu
-                      </div>
-                    </div>
+                    <table border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="vertical-align: middle; padding-right: 12px;">
+                          <a href="https://ngonten.id" target="_blank" style="text-decoration: none; display: block;">
+                            <img src="https://ngonten.id/favicon.png" alt="ngonten.id" width="34" height="34" style="display: block; border-radius: 8px; border: 0;" />
+                          </a>
+                        </td>
+                        <td style="vertical-align: middle;">
+                          <a href="https://ngonten.id" target="_blank" style="text-decoration: none;">
+                            <span style="font-size: 22px; font-weight: 900; letter-spacing: -0.5px; color: #ffffff; font-family: 'Outfit', -apple-system, sans-serif; display: block; line-height: 1.1;">
+                              ngonten<span style="color: #60a5fa;">.id</span>
+                            </span>
+                          </a>
+                          <div style="font-size: 11px; color: #a1a1aa; font-weight: 500; letter-spacing: 0.3px; margin-top: 3px;">
+                            Platform Ekosistem Kreator & Event Terpadu
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
-                  <td align="right">
+                  <td align="right" style="vertical-align: middle;">
                     <span style="display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; background-color: ${currentType.bg}; color: ${currentType.color}; border: 1px solid ${currentType.border};">
                       ${currentType.badge}
                     </span>
