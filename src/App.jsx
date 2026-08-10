@@ -181,6 +181,8 @@ export default function App() {
     setToast,
     editProfileName,
     setEditProfileName,
+    editProfileEmail,
+    setEditProfileEmail,
     editProfilePhone,
     setEditProfilePhone,
     editProfileDescription,
@@ -708,6 +710,7 @@ export default function App() {
                     const updatedUser = {
                       ...currentUser,
                       organizerName: editProfileName.trim(),
+                      email: editProfileEmail.trim().toLowerCase() || currentUser.email,
                       organizerPhone: editProfilePhone.trim(),
                       organizerDescription: editProfileDescription.trim(),
                       organizerAvatar: editProfileAvatar.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(editProfileName.trim())}&backgroundColor=262626&textColor=ffffff`,
@@ -782,6 +785,27 @@ export default function App() {
                     type="text"
                     value={editProfileName}
                     onChange={(e) => setEditProfileName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 'var(--radius-sm)',
+                      color: 'var(--text-primary)',
+                      outline: 'none',
+                      fontSize: '0.9rem'
+                    }}
+                    required
+                  />
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Alamat Email</label>
+                  <input 
+                    type="email"
+                    value={editProfileEmail}
+                    onChange={(e) => setEditProfileEmail(e.target.value)}
+                    placeholder="nama@email.com"
                     style={{
                       width: '100%',
                       padding: '10px 12px',

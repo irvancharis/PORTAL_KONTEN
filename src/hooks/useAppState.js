@@ -790,6 +790,7 @@ export default function useAppState() {
   }, []);
 
   const [editProfileName, setEditProfileName] = useState('');
+  const [editProfileEmail, setEditProfileEmail] = useState('');
   const [editProfilePhone, setEditProfilePhone] = useState('');
   const [editProfileDescription, setEditProfileDescription] = useState('');
   const [editProfileAvatar, setEditProfileAvatar] = useState('');
@@ -929,6 +930,7 @@ export default function useAppState() {
   const handleOpenEditProfile = () => {
     if (!currentUser) return;
     setEditProfileName(currentUser.organizerName || '');
+    setEditProfileEmail(currentUser.email || '');
     setEditProfilePhone(currentUser.organizerPhone || '');
     setEditProfileDescription(currentUser.organizerDescription || '');
     setEditProfileAvatar(currentUser.organizerAvatar || '');
@@ -2907,6 +2909,8 @@ export default function useAppState() {
     setToast,
     editProfileName,
     setEditProfileName,
+    editProfileEmail,
+    setEditProfileEmail,
     editProfilePhone,
     setEditProfilePhone,
     editProfileDescription,
