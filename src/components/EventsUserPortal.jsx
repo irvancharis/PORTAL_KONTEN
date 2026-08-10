@@ -2632,151 +2632,220 @@ export default function EventsUserPortal({
           )}
 
           {userPortalTab === 'offers' ? (
-            <div className="collab-offers-view animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
+            <div className="collab-offers-view animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left', width: '100%' }}>
+              {(() => {
+                const myOffers = (offers || []).filter(o => o.recipient.toLowerCase() === currentUser?.username.toLowerCase());
+                if (myOffers.length === 0) {
+                  return (
+                    <div className="glass-panel" style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-muted)', borderRadius: '16px' }}>
+                      Belum ada undangan kolaborasi untuk akun Anda saat ini.
+                    </div>
+                  );
+                }
 
+                return myOffers.map(off => {
+                  const evt = events.find(e => e.id === off.eventId);
+                  const offerDate = off.sentAt ? new Date(off.sentAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A';
+                  const isRegistered = eventParticipants.some(p => p.eventId === off.eventId && p.username.toLowerCase() === currentUser.username.toLowerCase());
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
-                {(() => {
-                  const myOffers = (offers || []).filter(o => o.recipient.toLowerCase() === currentUser?.username.toLowerCase());
-                  if (myOffers.length === 0) {
-                    return (
-                      <div style={{ gridColumn: '1 / -1', padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                        Belum ada undangan kolaborasi untuk akun Anda saat ini.
-                      </div>
-                    );
-                  }
-
-                  return myOffers.map(off => {
-                    const evt = events.find(e => e.id === off.eventId);
-                    const offerDate = off.sentAt ? new Date(off.sentAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A';
-                    
-                    return (
-                      <div 
-                        key={off.id}
-                        className="glass-panel"
-                        style={{
-                          padding: '24px',
-                          borderRadius: '16px',
-                          border: '1px solid rgba(255, 255, 255, 0.06)',
-                          background: 'rgba(255, 255, 255, 0.01)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          gap: '16px'
-                        }}
-                      >
-                        <div>
-                          {/* Card Header: Sender Info */}
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                            <div>
-                              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block' }}>Pengirim</span>
-                              <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>@{off.sender}</strong>
-                            </div>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{offerDate}</span>
-                          </div>
-
-                          {/* Event proposed */}
-                          <div style={{ marginBottom: '14px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px' }}>
-                            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block' }}>Event Kompetisi</span>
-                            <span 
-                              onClick={() => {
-                                if (evt) {
-                                  const eventSlug = slugify(evt.title) + '-' + evt.id;
-                                  window.history.pushState(null, '', '/event/' + eventSlug);
-                                  window.dispatchEvent(new PopStateEvent('popstate'));
-                                } else {
-                                  alert('Detail event tidak ditemukan atau sudah dihapus.');
-                                }
-                              }}
-                              style={{ 
-                                color: 'white', 
-                                fontWeight: '700', 
-                                fontSize: '1rem', 
-                                cursor: 'pointer', 
-                                textDecoration: 'underline',
-                                display: 'inline-block',
-                                marginTop: '2px'
-                              }}
-                            >
-                              {off.eventTitle}
-                            </span>
-                          </div>
-
-                          {/* Budget offered */}
-                          {(off.budget || 0) > 0 && (
-                            <div style={{
-                              background: 'rgba(255, 255, 255, 0.04)',
-                              border: '1px solid rgba(255, 255, 255, 0.1)',
-                              padding: '10px 14px',
-                              borderRadius: '10px',
-                              marginBottom: '14px'
-                            }}>
-                              <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', display: 'block', fontWeight: 'bold' }}>TAWARAN BUDGET EKSKLUSIF</span>
-                              <strong style={{ fontSize: '1.25rem', color: '#ffffff' }}>Rp {off.budget?.toLocaleString('id-ID')}</strong>
-                            </div>
-                          )}
-
-                          {/* Message content */}
-                          <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '10px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.04)', fontStyle: 'italic', whiteSpace: 'pre-wrap' }}>
-                            "{off.message || 'Tidak ada pesan khusus.'}"
-                          </div>
+                  return (
+                    <div 
+                      key={off.id}
+                      className="glass-panel"
+                      style={{
+                        padding: '18px 22px',
+                        borderRadius: '14px',
+                        border: '1px solid var(--border-color)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '20px',
+                        flexWrap: 'wrap',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {/* Left Block: Sender & Event Info */}
+                      <div style={{ flex: '1 1 320px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                          <span style={{ 
+                            fontSize: '0.72rem', 
+                            padding: '2px 8px', 
+                            borderRadius: '6px', 
+                            fontWeight: '700', 
+                            background: 'rgba(255, 255, 255, 0.06)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--border-color)'
+                          }}>
+                            Pengirim: @{off.sender}
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            {offerDate}
+                          </span>
                         </div>
 
-                        {/* Card Footer: Actions or status */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px' }}>
-                          {off.status === 'pending' ? (
-                            (() => {
-                              const isRegistered = eventParticipants.some(p => p.eventId === off.eventId && p.username.toLowerCase() === currentUser.username.toLowerCase());
-                              return (
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                  <button
-                                    onClick={() => handleDeclineOffer(off)}
-                                    className="btn"
-                                    style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'var(--text-secondary)', fontWeight: '700', cursor: 'pointer' }}
-                                  >
-                                    Tolak
-                                  </button>
-                                  {isRegistered ? (
-                                    <button
-                                      disabled
-                                      className="btn"
-                                      style={{ flex: 2, padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)', fontWeight: '700', cursor: 'not-allowed' }}
-                                      title="Anda sudah terdaftar di event ini"
-                                    >
-                                      Sudah Terdaftar
-                                    </button>
-                                  ) : (
-                                    <button
-                                      onClick={() => handleAcceptOffer(off)}
-                                      className="btn btn-primary"
-                                      style={{ flex: 2, padding: '10px', borderRadius: '10px', background: '#ffffff', border: '#ffffff', color: '#020202', fontWeight: '700', cursor: 'pointer' }}
-                                    >
-                                      Terima Undangan
-                                    </button>
-                                  )}
-                                </div>
-                              );
-                            })()
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span 
+                            onClick={() => {
+                              if (evt) {
+                                const eventSlug = slugify(evt.title) + '-' + evt.id;
+                                window.history.pushState(null, '', '/event/' + eventSlug);
+                                window.dispatchEvent(new PopStateEvent('popstate'));
+                              } else {
+                                alert('Detail event tidak ditemukan atau sudah dihapus.');
+                              }
+                            }}
+                            style={{ 
+                              color: 'var(--text-primary)', 
+                              fontWeight: '800', 
+                              fontSize: '1.05rem', 
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            <span>{off.eventTitle}</span>
+                            <ExternalLink size={14} style={{ color: 'var(--text-muted)' }} />
+                          </span>
+                        </div>
+
+                        {off.message && (
+                          <div style={{ 
+                            fontSize: '0.82rem', 
+                            color: 'var(--text-secondary)', 
+                            fontStyle: 'italic', 
+                            background: 'rgba(255, 255, 255, 0.02)', 
+                            padding: '6px 12px', 
+                            borderRadius: '8px', 
+                            borderLeft: '3px solid var(--text-muted)',
+                            marginTop: '2px'
+                          }}>
+                            "{off.message}"
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Middle Block: Budget if available */}
+                      {(off.budget || 0) > 0 && (
+                        <div style={{
+                          padding: '10px 18px',
+                          borderRadius: '10px',
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          border: '1px solid var(--border-color)',
+                          textAlign: 'center',
+                          flex: '0 0 auto'
+                        }}>
+                          <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', display: 'block', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                            TAWARAN BUDGET
+                          </span>
+                          <strong style={{ fontSize: '1.15rem', color: 'var(--text-primary)' }}>
+                            Rp {off.budget?.toLocaleString('id-ID')}
+                          </strong>
+                        </div>
+                      )}
+
+                      {/* Right Block: Clear Action Buttons / Status Badges */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '0 0 auto' }}>
+                        {off.status === 'pending' ? (
+                          isRegistered ? (
+                            <div style={{ 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '6px', 
+                              padding: '8px 16px', 
+                              borderRadius: '10px', 
+                              fontSize: '0.84rem', 
+                              fontWeight: '700', 
+                              background: '#ecfdf5', 
+                              color: '#15803d', 
+                              border: '1px solid #a7f3d0' 
+                            }}>
+                              <CheckCircle2 size={15} />
+                              <span>Sudah Terdaftar</span>
+                            </div>
                           ) : (
-                            <div style={{
-                              textAlign: 'center',
-                              padding: '8px',
-                              borderRadius: '10px',
-                              fontSize: '0.85rem',
-                              fontWeight: 'bold',
-                              color: off.status === 'accepted' ? '#ffffff' : 'var(--text-muted)',
-                              background: off.status === 'accepted' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                              border: off.status === 'accepted' ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(255, 255, 255, 0.04)'
-                            }}>
-                              {off.status === 'accepted' ? 'Undangan Diterima' : 'Undangan Ditolak'}
-                            </div>
-                          )}
-                        </div>
+                            <>
+                              <button
+                                onClick={() => handleDeclineOffer(off)}
+                                style={{
+                                  padding: '8px 16px',
+                                  borderRadius: '8px',
+                                  fontSize: '0.84rem',
+                                  fontWeight: '700',
+                                  background: '#fef2f2',
+                                  border: '1px solid #fecaca',
+                                  color: '#b91c1c',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  transition: 'all 0.2s ease'
+                                }}
+                              >
+                                <XCircle size={15} />
+                                <span>Tolak</span>
+                              </button>
+                              <button
+                                onClick={() => handleAcceptOffer(off)}
+                                className="btn btn-primary"
+                                style={{
+                                  padding: '8px 20px',
+                                  borderRadius: '8px',
+                                  fontSize: '0.84rem',
+                                  fontWeight: '800',
+                                  background: 'var(--text-primary)',
+                                  color: 'var(--bg-main)',
+                                  border: '1px solid var(--text-primary)',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+                                }}
+                              >
+                                <CheckCircle2 size={15} />
+                                <span>Terima Undangan</span>
+                              </button>
+                            </>
+                          )
+                        ) : off.status === 'accepted' ? (
+                          <div style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '6px', 
+                            padding: '8px 16px', 
+                            borderRadius: '10px', 
+                            fontSize: '0.84rem', 
+                            fontWeight: '700', 
+                            background: '#ecfdf5', 
+                            color: '#15803d', 
+                            border: '1px solid #a7f3d0' 
+                          }}>
+                            <CheckCircle2 size={15} />
+                            <span>Undangan Diterima</span>
+                          </div>
+                        ) : (
+                          <div style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '6px', 
+                            padding: '8px 16px', 
+                            borderRadius: '10px', 
+                            fontSize: '0.84rem', 
+                            fontWeight: '700', 
+                            background: '#fef2f2', 
+                            color: '#b91c1c', 
+                            border: '1px solid #fecaca' 
+                          }}>
+                            <XCircle size={15} />
+                            <span>Undangan Ditolak</span>
+                          </div>
+                        )}
                       </div>
-                    );
-                  });
-                })()}
-              </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           ) : userPortalTab === 'manage' ? (
             <div className="event-management-view animate-fade-in" style={{ textAlign: 'left', width: '100%' }}>
