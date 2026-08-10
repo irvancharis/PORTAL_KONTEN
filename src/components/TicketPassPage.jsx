@@ -1,16 +1,12 @@
-import React, { useState } from 'react';
-import { X, Copy, Download, ExternalLink, ShieldCheck } from 'lucide-react';
+import React from 'react';
+import { X, ExternalLink } from 'lucide-react';
 
 export default function TicketPassPage({
   ticketParam,
   eventParticipants = [],
   events = [],
-  currentUser,
-  onNavigateHome,
-  onNavigateEvent
+  currentUser
 }) {
-  const [copied, setCopied] = useState(false);
-
   // 1. Find participant by ticket code or participant ID
   const cleanParam = (ticketParam || '').trim().toLowerCase();
   const participant = eventParticipants.find(p => 
@@ -30,10 +26,22 @@ export default function TicketPassPage({
   const eventTitle = event?.title || participant?.eventTitle || 'Event ngonten.id';
   const isCheckedIn = !!participant?.isCheckedIn;
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(ticketCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const eventSlugOrId = event?.slug || event?.id || participant?.eventId || '';
+
+  const handleOpenEvent = () => {
+    if (eventSlugOrId) {
+      window.location.href = `/event/${eventSlugOrId}`;
+    } else {
+      window.location.href = `/events`;
+    }
+  };
+
+  const handleClose = () => {
+    if (eventSlugOrId) {
+      window.location.href = `/event/${eventSlugOrId}`;
+    } else {
+      window.location.href = '/';
+    }
   };
 
   return (
@@ -49,7 +57,7 @@ export default function TicketPassPage({
       padding: '30px 16px 50px 16px',
       boxSizing: 'border-box'
     }}>
-      {/* Standalone Ticket Modal Card (Exact Match to Popup Design) */}
+      {/* Standalone Ticket Card */}
       <div style={{
         background: '#ffffff',
         color: '#111827',
@@ -63,9 +71,9 @@ export default function TicketPassPage({
         border: '2px solid #111827',
         boxSizing: 'border-box'
       }}>
-        {/* Close / Return Button */}
+        {/* Close Button */}
         <button
-          onClick={onNavigateHome}
+          onClick={handleClose}
           style={{
             position: 'absolute',
             top: '16px',
@@ -84,23 +92,27 @@ export default function TicketPassPage({
           <X size={20} />
         </button>
 
-        {/* Top Header Badge */}
+        {/* Top Header Badge (Pure White Text on Black Pill) */}
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: '6px',
-          background: '#111827',
+          backgroundColor: '#111827',
           border: '2px solid #111827',
           padding: '6px 16px',
           borderRadius: '20px',
-          color: '#ffffff',
-          fontSize: '0.68rem',
-          fontWeight: '800',
-          textTransform: 'uppercase',
-          letterSpacing: '1.5px',
           marginBottom: '14px'
         }}>
-          Scan Tiket Masuk
+          <span style={{
+            color: '#ffffff',
+            fontSize: '0.68rem',
+            fontWeight: '900',
+            textTransform: 'uppercase',
+            letterSpacing: '1.5px',
+            display: 'block'
+          }}>
+            SCAN TIKET MASUK
+          </span>
         </div>
 
         {/* Event Title */}
@@ -170,39 +182,17 @@ export default function TicketPassPage({
           }} />
         </div>
 
-        {/* Monospace Ticket Code */}
+        {/* Monospace Ticket Code (Centered, without copy button) */}
         <div style={{
-          fontSize: '1.25rem',
+          fontSize: '1.3rem',
           color: '#111827',
           fontWeight: '900',
           fontFamily: 'monospace',
           letterSpacing: '2px',
           marginBottom: '14px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px'
+          textAlign: 'center'
         }}>
-          <span>{ticketCode}</span>
-          <button
-            onClick={handleCopyCode}
-            style={{
-              background: '#f1f5f9',
-              border: '1px solid #cbd5e1',
-              borderRadius: '6px',
-              padding: '3px 8px',
-              fontSize: '0.68rem',
-              fontWeight: '700',
-              color: '#0f172a',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-          >
-            <Copy size={11} />
-            <span>{copied ? 'Tersalin' : 'Salin'}</span>
-          </button>
+          {ticketCode}
         </div>
 
         {/* Attendee Details Box */}
@@ -247,28 +237,26 @@ export default function TicketPassPage({
           <span>{isCheckedIn ? 'SUDAH CHECK-IN' : 'BELUM CHECK-IN'}</span>
         </div>
 
-        {/* Action Link to Full Event */}
-        {event && (
-          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '14px' }}>
-            <button
-              onClick={() => onNavigateEvent(event)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#2563eb',
-                fontSize: '0.8rem',
-                fontWeight: '700',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <span>Buka Informasi & Rundown Acara</span>
-              <ExternalLink size={14} />
-            </button>
-          </div>
-        )}
+        {/* Direct Link to Full Event Page */}
+        <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '14px' }}>
+          <button
+            onClick={handleOpenEvent}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#2563eb',
+              fontSize: '0.82rem',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <span>Buka Informasi & Rundown Acara</span>
+            <ExternalLink size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Footer Branding */}

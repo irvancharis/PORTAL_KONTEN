@@ -4305,7 +4305,7 @@ onMouseLeave={(e) => {
               <X size={16} />
             </button>
 
-            <div className="badge" style={{ 
+            <div style={{ 
               display: 'inline-flex', 
               alignItems: 'center', 
               gap: '6px', 
@@ -4313,14 +4313,18 @@ onMouseLeave={(e) => {
               border: '2px solid #111827', 
               padding: '6px 16px', 
               borderRadius: '20px', 
-              color: '#ffffff', 
-              fontSize: '0.68rem', 
-              fontWeight: '800', 
-              textTransform: 'uppercase', 
-              letterSpacing: '1.5px', 
               marginBottom: '14px' 
             }}>
-              Scan Tiket Masuk
+              <span style={{
+                color: '#ffffff',
+                fontSize: '0.68rem',
+                fontWeight: '900',
+                textTransform: 'uppercase',
+                letterSpacing: '1.5px',
+                display: 'block'
+              }}>
+                SCAN TIKET MASUK
+              </span>
             </div>
 
             <h3 className="badge" style={{ 
