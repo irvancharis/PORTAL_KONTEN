@@ -4466,18 +4466,21 @@ select option {
 .btn-avatar-primary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
-  padding: 8px 18px;
+  height: 38px;
+  padding: 0 16px;
   border-radius: 8px;
   font-size: 0.84rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   background: #ffffff !important;
   color: #09090b !important;
   border: 1px solid #ffffff !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
   transition: all 0.2s ease;
   user-select: none;
+  box-sizing: border-box;
 }
 
 .btn-avatar-primary *,
@@ -4496,16 +4499,19 @@ select option {
 .btn-avatar-secondary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 8px 14px;
+  height: 38px;
+  padding: 0 14px;
   border-radius: 8px;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
   background: transparent !important;
   color: var(--text-secondary) !important;
   border: 1px solid var(--border-color) !important;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .btn-avatar-secondary *,
@@ -4540,25 +4546,12 @@ select option {
   color: #64748b !important;
 }
 
-.light-theme .avatar-delete-badge,
-.light-theme .modal-content .avatar-delete-badge {
-  background: #09090b !important;
-  color: #ffffff !important;
-  border-color: #ffffff !important;
-}
-
-.light-theme .avatar-delete-badge svg,
-.light-theme .modal-content .avatar-delete-badge svg {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
-}
-
 .light-theme .btn-avatar-primary,
 .light-theme .modal-content .btn-avatar-primary {
   background: #09090b !important;
   color: #ffffff !important;
   border: 1px solid #09090b !important;
-  box-shadow: 0 2px 10px rgba(9, 9, 11, 0.25) !important;
+  box-shadow: 0 1px 4px rgba(9, 9, 11, 0.15) !important;
 }
 
 .light-theme .btn-avatar-primary *,
@@ -4573,14 +4566,14 @@ select option {
 
 .light-theme .btn-avatar-primary:hover,
 .light-theme .modal-content .btn-avatar-primary:hover {
-  background: #18181b !important;
+  background: #27272a !important;
 }
 
 .light-theme .btn-avatar-secondary,
 .light-theme .modal-content .btn-avatar-secondary {
   background: #ffffff !important;
   color: #09090b !important;
-  border: 1px solid #cbd5e1 !important;
+  border: 1px solid #d4d4d8 !important;
 }
 
 .light-theme .btn-avatar-secondary *,
@@ -4595,8 +4588,8 @@ select option {
 
 .light-theme .btn-avatar-secondary:hover,
 .light-theme .modal-content .btn-avatar-secondary:hover {
-  background: #f1f5f9 !important;
-  border-color: #94a3b8 !important;
+  background: #f4f4f5 !important;
+  border-color: #a1a1aa !important;
 }
 
 /* Lightbox Image Zoom Modals */

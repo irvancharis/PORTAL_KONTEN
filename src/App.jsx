@@ -1017,14 +1017,6 @@ export default function App() {
                           alt="Preview Avatar" 
                           className="avatar-preview-img"
                         />
-                        <button
-                          type="button"
-                          onClick={() => setEditProfileAvatar('')}
-                          className="avatar-delete-badge"
-                          title="Hapus foto"
-                        >
-                          <X size={11} strokeWidth={3} />
-                        </button>
                       </div>
                     ) : (
                       <div className="avatar-preview-empty">
@@ -1726,14 +1718,6 @@ export default function App() {
                                 alt="Logo Preview" 
                                 className="avatar-preview-img"
                               />
-                              <button
-                                type="button"
-                                onClick={() => setRegisterAvatar('')}
-                                className="avatar-delete-badge"
-                                title="Hapus logo"
-                              >
-                                <X size={11} strokeWidth={3} />
-                              </button>
                             </div>
                           ) : (
                             <div className="avatar-preview-empty">
