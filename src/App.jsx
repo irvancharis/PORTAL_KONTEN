@@ -447,6 +447,8 @@ export default function App() {
               setGifts={handleSetGifts}
               handleAwardEventGift={handleAwardEventGift}
               handleRedeemGiftCode={handleRedeemGiftCode}
+              setShowPremiumModal={setShowPremiumModal}
+              handleOpenLoginModal={handleOpenLoginModal}
             />
           ) : activeTab === 'wallet' ? (
             <WalletUserPortal 

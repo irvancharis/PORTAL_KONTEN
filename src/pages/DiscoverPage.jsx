@@ -339,20 +339,33 @@ export default function DiscoverPage({
                     className="creator-card glass-panel"
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      const fullUser = (users || []).find(u => u.username === creator.username || u.id === creator.id);
+                      const isUserPremium = currentUser && (currentUser.isPremium || ['superadmin', 'staf', 'panitia'].includes(currentUser.role));
+                      if (!currentUser) {
+                        if (handleOpenLoginModal) handleOpenLoginModal('login');
+                        return;
+                      }
+                      if (!isUserPremium) {
+                        alert('⭐ Fitur Eksklusif: Buka detail profil & portofolio creator hanya tersedia untuk Akun Premium.');
+                        if (setShowPremiumModal) setShowPremiumModal(true);
+                        return;
+                      }
+                      const fullUser = (users || []).find(u => u.username === creator.username || u.id === creator.id || (u.name && u.name.toLowerCase() === (creator.name || '').toLowerCase()));
                       setSelectedCreatorProfile(fullUser || creator);
                     }}
                   >
                     <div className="creator-avatar" style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--primary)', color: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 auto 12px auto', overflow: 'hidden' }}>
                       {creator.organizerAvatar ? (
-                        <img src={creator.organizerAvatar} alt={creator.organizerName || creator.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={creator.organizerAvatar} alt={creator.name || creator.organizerName || creator.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
-                        (creator.organizerName || creator.username).charAt(0)
+                        (creator.name || creator.organizerName || creator.username).charAt(0)
                       )}
                     </div>
-                    <div style={{ textalign: 'center' }}>
-                      <strong style={{ display: 'block', color: 'white', fontSize: '0.95rem' }}>{creator.organizerName || creator.username}</strong>
-                      <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginTop: '4px' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <strong style={{ display: 'block', color: 'white', fontSize: '0.95rem' }}>{creator.name || creator.organizerName || creator.username}</strong>
+                      <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', display: 'block', marginTop: '2px' }}>
+                        @{creator.username}
+                      </span>
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
                         {creator.userCategory || 'Kreator Digital'}
                       </span>
                     </div>
@@ -799,7 +812,7 @@ export default function DiscoverPage({
                     users.filter(u => u.role !== 'superadmin' && u.role !== 'staf' && !u.isCommunity).slice(0, 5).map(u => ({
                       id: u.id,
                       username: u.username,
-                      name: u.organizerName || u.username,
+                      name: u.name || u.organizerName || u.username,
                       userCategory: u.userCategory || 'Kreator Digital',
                       avatar: u.organizerAvatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${u.username}`
                     })) : [
@@ -814,7 +827,18 @@ export default function DiscoverPage({
                       key={creator.id} 
                       className="creator-card glass-panel"
                       style={{ cursor: 'pointer' }}
+                      title="Klik untuk Lihat Detail Portofolio (Akun Premium)"
                       onClick={() => {
+                        const isUserPremium = currentUser && (currentUser.isPremium || ['superadmin', 'staf', 'panitia'].includes(currentUser.role));
+                        if (!currentUser) {
+                          if (handleOpenLoginModal) handleOpenLoginModal('login');
+                          return;
+                        }
+                        if (!isUserPremium) {
+                          alert('⭐ Fitur Eksklusif: Buka detail profil & portofolio creator hanya tersedia untuk Akun Premium.');
+                          if (setShowPremiumModal) setShowPremiumModal(true);
+                          return;
+                        }
                         const fullUser = (users || []).find(u => u.username === creator.username || u.id === creator.id || (u.name && u.name.toLowerCase() === (creator.name || '').toLowerCase()));
                         setSelectedCreatorProfile(fullUser || creator);
                       }}

@@ -338,7 +338,9 @@ export default function AdminPanel({
   gifts = [],
   setGifts,
   handleAwardEventGift,
-  handleRedeemGiftCode
+  handleRedeemGiftCode,
+  setShowPremiumModal,
+  handleOpenLoginModal
 }) {
   const isPanitia = currentUser && (currentUser.role === 'panitia' || currentUser.role === 'user');
   const myEvents = isPanitia 
@@ -5092,9 +5094,21 @@ export default function AdminPanel({
                           <tr 
                             key={creator.username} 
                             className="table-row-hover"
-                            onClick={() => setViewingCreatorProfile(creator)}
+                            onClick={() => {
+                              const isUserPremium = currentUser && (currentUser.isPremium || ['superadmin', 'staf', 'panitia'].includes(currentUser.role));
+                              if (!currentUser) {
+                                if (handleOpenLoginModal) handleOpenLoginModal('login');
+                                return;
+                              }
+                              if (!isUserPremium) {
+                                alert('⭐ Fitur Eksklusif: Buka detail profil & portofolio creator hanya tersedia untuk Akun Premium.');
+                                if (setShowPremiumModal) setShowPremiumModal(true);
+                                return;
+                              }
+                              setViewingCreatorProfile(creator);
+                            }}
                             style={{ cursor: 'pointer' }}
-                            title="Klik untuk Lihat Detail Profil & Portofolio"
+                            title="Klik untuk Lihat Detail Profil & Portofolio (Akun Premium)"
                           >
                             <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
                               <input 
@@ -5117,8 +5131,8 @@ export default function AdminPanel({
                                   src={creatorAvatar} 
                                   alt={creator.username} 
                                   style={{
-                                    width: '38px',
-                                    height: '38px',
+                                    width: '40px',
+                                    height: '40px',
                                     borderRadius: '50%',
                                     objectFit: 'cover',
                                     border: '2px solid rgba(255,255,255,0.08)',
@@ -5126,15 +5140,20 @@ export default function AdminPanel({
                                   }}
                                 />
                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                   <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 'bold' }}>
-                                     @{creator.username}
+                                   <span style={{ color: 'var(--text-primary)', fontSize: '0.94rem', fontWeight: 'bold' }}>
+                                     {creator.organizerName || creator.name || creator.username}
                                    </span>
-                                   {creator.userRegional && (
-                                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                       <MapPin size={11} style={{ opacity: 0.7 }} />
-                                       {creator.userRegional}
+                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.74rem' }}>
+                                       @{creator.username}
                                      </span>
-                                   )}
+                                     {creator.userRegional && (
+                                       <span style={{ color: 'var(--text-muted)', fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                         <MapPin size={11} style={{ opacity: 0.7 }} />
+                                         {creator.userRegional}
+                                       </span>
+                                     )}
+                                   </div>
                                  </div>
                               </div>
                             </td>
