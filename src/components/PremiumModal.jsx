@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw } from 'lucide-react';
 import { DOKU_CONFIG } from '../services/dokuPaymentService';
 
 export default function PremiumModal({
@@ -8,11 +8,10 @@ export default function PremiumModal({
   currentUser,
   confirmations,
   setConfirmations,
-  premiumPrice = 'Rp 20.000 / Bulan',
   onLoginClick
 }) {
   const [step, setStep] = useState('select_plan'); // 'select_plan' | 'select_method' | 'pay_screen' | 'success'
-  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
   const [selectedMethod, setSelectedMethod] = useState('qris'); // 'qris' | 'va_bca' | 'va_mandiri' | 'va_bri'
   const [copied, setCopied] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -21,7 +20,7 @@ export default function PremiumModal({
   useEffect(() => {
     if (isOpen) {
       setStep('select_plan');
-      setSelectedPlan(null);
+      setBillingCycle('monthly');
       setSelectedMethod('qris');
       setIsVerifying(false);
       setCopied(false);
@@ -39,35 +38,31 @@ export default function PremiumModal({
 
   if (!isOpen) return null;
 
-  const plans = [
-    {
-      id: 'creator_pro',
-      name: 'CREATOR PRO',
-      price: premiumPrice || 'Rp 20.000 / Bulan',
+  const planDetails = {
+    monthly: {
+      duration: '1 Bulan',
+      price: 'Rp 20.000',
       numericPrice: 20000,
-      badge: 'PALING POPULER',
-      features: [
-        'Biaya Penarikan Saldo Dompet Hemat 60% (Hanya 2%)',
-        'Unlock Detail Portofolio & Kontak CV untuk Brand',
-        'Akses Prioritas Event & Kompetisi Kreator',
-        'Badge Verifikasi "CREATOR PRO" di Profil',
-        'Akses Penuh Seluruh Karya & Film Tanpa Iklan'
-      ]
+      periodLabel: '/ bulan',
+      badge: 'FLEKSIBEL'
     },
-    {
-      id: 'creator_annual',
-      name: 'CREATOR PRO TAHUNAN',
-      price: 'Rp 200.000 / Tahun',
+    yearly: {
+      duration: '1 Tahun',
+      price: 'Rp 200.000',
       numericPrice: 200000,
-      badge: 'HEMAT 2 BULAN',
-      features: [
-        'Semua Keunggulan Paket CREATOR PRO',
-        'Akses Tiket VIP Seluruh Event ngonten.id',
-        'Kolaborasi Multi-Kreator Prioritas',
-        'Prioritas Peringkat di Halaman Utama Discover',
-        'Sertifikat Resmi Kreator Mitra ngonten.id'
-      ]
+      periodLabel: '/ tahun',
+      badge: 'HEMAT 2 BULAN (HEMAT RP 40.000)'
     }
+  };
+
+  const currentPlan = planDetails[billingCycle];
+
+  const premiumFeatures = [
+    'Akses Penuh Seluruh Karya, Film & Konten Eksklusif Tanpa Iklan',
+    'Unlock Portofolio Lengkap & Kontak Langsung Kreator / Brand',
+    'Akses Prioritas Tiket & Undangan Event Eksklusif ngonten.id',
+    'Biaya Penarikan Dompet Hemat 60% (Hanya 2%)',
+    'Badge Verifikasi Mahkota "PREMIUM MEMBER" di Profil'
   ];
 
   const formatTimer = (seconds) => {
@@ -76,13 +71,12 @@ export default function PremiumModal({
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const handleSelectPlan = (plan) => {
+  const handleProceedToMethod = () => {
     if (!currentUser) {
       if (onLoginClick) onLoginClick('register');
       onClose();
       return;
     }
-    setSelectedPlan(plan);
     setStep('select_method');
   };
 
@@ -105,7 +99,7 @@ export default function PremiumModal({
           username: currentUser?.username,
           bankName: `DOKU - ${selectedMethod.toUpperCase()}`,
           senderName: currentUser?.name || currentUser?.username,
-          amount: `Rp ${selectedPlan?.numericPrice.toLocaleString('id-ID')}`,
+          amount: `Rp ${currentPlan.numericPrice.toLocaleString('id-ID')}`,
           status: 'approved',
           gateway: 'DOKU',
           timestamp: new Date().toISOString()
@@ -133,7 +127,7 @@ export default function PremiumModal({
             position: 'absolute',
             top: '16px',
             right: '16px',
-            backgroundColor: 'rgba(128,128,128,0.15)',
+            backgroundColor: 'rgba(128,128,128,0.12)',
             border: '1px solid rgba(128,128,128,0.2)',
             borderRadius: '50%',
             width: '32px',
@@ -148,103 +142,149 @@ export default function PremiumModal({
           <X size={16} />
         </button>
 
-        {/* Modal Header */}
-        <div style={{ textAlign: 'center', marginBottom: '22px' }}>
+        {/* Header Modal */}
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '44px',
-            height: '44px',
+            width: '46px',
+            height: '46px',
             borderRadius: '50%',
             backgroundColor: 'currentColor',
             marginBottom: '12px'
           }}>
-            <Sparkles size={22} style={{ filter: 'invert(1)' }} />
+            <Crown size={24} style={{ filter: 'invert(1)' }} />
           </div>
-          <h2 style={{ fontSize: '1.35rem', fontWeight: '800', margin: '0 0 6px 0' }}>
-            {step === 'select_plan' && 'Pilih Paket Langganan'}
-            {step === 'select_method' && 'Pilih Metode Pembayaran'}
+          <h2 style={{ fontSize: '1.4rem', fontWeight: '800', margin: '0 0 6px 0' }}>
+            {step === 'select_plan' && 'Paket User Premium'}
+            {step === 'select_method' && 'Metode Pembayaran'}
             {step === 'pay_screen' && 'Selesaikan Pembayaran DOKU'}
             {step === 'success' && 'Pembayaran Berhasil!'}
           </h2>
           <p style={{ fontSize: '0.84rem', margin: 0 }}>
-            {step === 'select_plan' && 'Dapatkan akses penuh ke fitur kreator, event, & penarikan saldo 2%.'}
+            {step === 'select_plan' && 'Tingkatkan akun ke User Premium untuk akses penuh ekosistem ngonten.id.'}
             {step === 'select_method' && 'Pilih metode pembayaran resmi yang didukung DOKU Payment Gateway.'}
-            {step === 'pay_screen' && 'Scan QRIS atau transfer ke nomor VA di bawah untuk menyelesaikan pembayaran.'}
-            {step === 'success' && 'Status keanggotaan Premium Creator Anda telah aktif.'}
+            {step === 'pay_screen' && 'Scan QRIS atau transfer ke nomor VA di bawah untuk aktivasi instan.'}
+            {step === 'success' && 'Akun Anda resmi aktif sebagai User Premium.'}
           </p>
         </div>
 
-        {/* ================= STEP 1: PILIH PAKET ================= */}
+        {/* ================= STEP 1: PILIH MASA AKTIF USER PREMIUM ================= */}
         {step === 'select_plan' && (
           <div>
-            {plans.map(plan => (
-              <div key={plan.id} className="doku-plan-card">
-                {plan.badge && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-10px',
-                    right: '16px',
-                    backgroundColor: 'currentColor',
-                    fontSize: '0.68rem',
-                    fontWeight: '800',
-                    padding: '3px 10px',
-                    borderRadius: '20px',
-                    letterSpacing: '0.5px'
-                  }}>
-                    <span style={{ filter: 'invert(1)', fontWeight: '800' }}>{plan.badge}</span>
-                  </span>
-                )}
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '14px' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800' }}>
-                    {plan.name}
-                  </h3>
-                  <span className="price" style={{ fontSize: '1.15rem', fontWeight: '800' }}>
-                    {plan.price}
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '18px' }}>
-                  {plan.features.map((feat, idx) => (
-                    <div key={idx} className="feature-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem' }}>
-                      <Check size={14} style={{ flexShrink: 0 }} />
-                      <span style={{ fontWeight: '500' }}>{feat}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => handleSelectPlan(plan)}
-                  className="doku-btn-main"
-                >
-                  <span>{currentUser ? 'Pilih Paket Ini' : 'Daftar & Berlangganan'}</span>
-                  <ArrowRight size={16} />
-                </button>
+            {/* Pilihan Durasi (1 Bulan / 1 Tahun) */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '12px',
+              marginBottom: '18px'
+            }}>
+              {/* Opsi 1 Bulan */}
+              <div
+                onClick={() => setBillingCycle('monthly')}
+                className="doku-plan-card"
+                style={{
+                  padding: '16px',
+                  marginBottom: 0,
+                  cursor: 'pointer',
+                  borderWidth: billingCycle === 'monthly' ? '2px' : '1px',
+                  position: 'relative',
+                  textAlign: 'center'
+                }}
+              >
+                <span style={{ fontSize: '0.75rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
+                  Masa Aktif 1 Bulan
+                </span>
+                <strong style={{ fontSize: '1.25rem', fontWeight: '900', display: 'block' }}>
+                  Rp 20.000
+                </strong>
+                <span style={{ fontSize: '0.7rem' }}>/ bulan</span>
               </div>
-            ))}
+
+              {/* Opsi 1 Tahun */}
+              <div
+                onClick={() => setBillingCycle('yearly')}
+                className="doku-plan-card"
+                style={{
+                  padding: '16px',
+                  marginBottom: 0,
+                  cursor: 'pointer',
+                  borderWidth: billingCycle === 'yearly' ? '2px' : '1px',
+                  position: 'relative',
+                  textAlign: 'center'
+                }}
+              >
+                <span style={{
+                  position: 'absolute',
+                  top: '-9px',
+                  right: '10px',
+                  backgroundColor: 'currentColor',
+                  fontSize: '0.62rem',
+                  fontWeight: '800',
+                  padding: '2px 8px',
+                  borderRadius: '12px'
+                }}>
+                  <span style={{ filter: 'invert(1)', fontWeight: '800' }}>HEMAT 2 BULAN</span>
+                </span>
+                <span style={{ fontSize: '0.75rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
+                  Masa Aktif 1 Tahun
+                </span>
+                <strong style={{ fontSize: '1.25rem', fontWeight: '900', display: 'block' }}>
+                  Rp 200.000
+                </strong>
+                <span style={{ fontSize: '0.7rem' }}>/ tahun (~16.600/bln)</span>
+              </div>
+            </div>
+
+            {/* Kotak Rincian Keuntungan User Premium */}
+            <div className="doku-plan-card" style={{ padding: '18px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: '700' }}>
+                  Keuntungan User Premium ({currentPlan.duration}):
+                </span>
+                <strong style={{ fontSize: '0.95rem' }}>{currentPlan.price}</strong>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {premiumFeatures.map((feat, idx) => (
+                  <div key={idx} className="feature-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem' }}>
+                    <Check size={14} style={{ flexShrink: 0 }} />
+                    <span style={{ fontWeight: '500' }}>{feat}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Tombol Lanjut */}
+            <button
+              onClick={handleProceedToMethod}
+              className="doku-btn-main"
+            >
+              <span>{currentUser ? `Lanjut Pembayaran (${currentPlan.duration})` : 'Daftar & Berlangganan'}</span>
+              <ArrowRight size={16} />
+            </button>
           </div>
         )}
 
         {/* ================= STEP 2: PILIH METODE PEMBAYARAN ================= */}
-        {step === 'select_method' && selectedPlan && (
+        {step === 'select_method' && (
           <div>
             {/* Ringkasan Tagihan */}
             <div className="doku-plan-card" style={{ marginBottom: '18px', padding: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
-                <span>Paket Dipilih:</span>
-                <strong style={{ fontWeight: '700' }}>{selectedPlan.name}</strong>
+                <span>Paket Langganan:</span>
+                <strong style={{ fontWeight: '700' }}>User Premium ({currentPlan.duration})</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
-                <span>Merchant Resmi:</span>
-                <strong style={{ fontWeight: '700' }}>ngonten.id (DOKU)</strong>
+                <span>Gateway Resmi:</span>
+                <strong style={{ fontWeight: '700' }}>DOKU Payment Gateway</strong>
               </div>
               <div style={{ height: '1px', backgroundColor: 'rgba(128,128,128,0.2)', margin: '8px 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>Total Tagihan:</span>
                 <strong style={{ fontSize: '1.25rem', fontWeight: '900' }}>
-                  Rp {selectedPlan.numericPrice.toLocaleString('id-ID')}
+                  {currentPlan.price}
                 </strong>
               </div>
             </div>
@@ -278,8 +318,8 @@ export default function PremiumModal({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <QrCode size={24} />
                   <div>
-                    <strong style={{ fontSize: '0.88rem', display: 'block' }}>QRIS (Real-Time Scan)</strong>
-                    <span style={{ fontSize: '0.75rem' }}>GoPay, OVO, DANA, BCA, ShopeePay & Semua m-Banking</span>
+                    <strong style={{ fontSize: '0.88rem', display: 'block' }}>QRIS (Scan Real-Time)</strong>
+                    <span style={{ fontSize: '0.75rem' }}>BCA, GoPay, OVO, DANA, ShopeePay & Semua Bank</span>
                   </div>
                 </div>
                 <div style={{
@@ -314,7 +354,7 @@ export default function PremiumModal({
                   <Landmark size={24} />
                   <div>
                     <strong style={{ fontSize: '0.88rem', display: 'block' }}>BCA Virtual Account</strong>
-                    <span style={{ fontSize: '0.75rem' }}>Transfer otomatis via BCA Mobile / KlikBCA / ATM</span>
+                    <span style={{ fontSize: '0.75rem' }}>Transfer via BCA Mobile / KlikBCA / ATM BCA</span>
                   </div>
                 </div>
                 <div style={{
@@ -349,7 +389,7 @@ export default function PremiumModal({
                   <Landmark size={24} />
                   <div>
                     <strong style={{ fontSize: '0.88rem', display: 'block' }}>Mandiri Virtual Account (Livin')</strong>
-                    <span style={{ fontSize: '0.75rem' }}>Transfer otomatis via Livin' by Mandiri / ATM</span>
+                    <span style={{ fontSize: '0.75rem' }}>Transfer via Livin' by Mandiri / ATM</span>
                   </div>
                 </div>
                 <div style={{
@@ -367,7 +407,7 @@ export default function PremiumModal({
               </div>
             </div>
 
-            {/* Tombol Lanjut */}
+            {/* Tombol Aksi */}
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 onClick={() => setStep('select_plan')}
@@ -402,8 +442,8 @@ export default function PremiumModal({
           </div>
         )}
 
-        {/* ================= STEP 3: TAMPILAN PEMBAYARAN REAL (QRIS / VA) ================= */}
-        {step === 'pay_screen' && selectedPlan && (
+        {/* ================= STEP 3: TAMPILAN PEMBAYARAN REAL ================= */}
+        {step === 'pay_screen' && (
           <div>
             {/* Header Timer & Total */}
             <div 
@@ -422,7 +462,7 @@ export default function PremiumModal({
               </div>
               <div style={{ textAlign: 'right' }}>
                 <span style={{ fontSize: '0.75rem', display: 'block' }}>Total Pembayaran:</span>
-                <strong style={{ fontSize: '1.2rem' }}>Rp {selectedPlan.numericPrice.toLocaleString('id-ID')}</strong>
+                <strong style={{ fontSize: '1.2rem' }}>{currentPlan.price}</strong>
               </div>
             </div>
 
@@ -446,7 +486,7 @@ export default function PremiumModal({
                   <div style={{ textAlign: 'center', marginBottom: '8px' }}>
                     <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#111827', fontWeight: '800' }}>NGONTEN.ID OFFICIAL</h4>
                     <span style={{ fontSize: '0.78rem', color: '#4b5563', fontWeight: '700' }}>
-                      Nominal: Rp {selectedPlan.numericPrice.toLocaleString('id-ID')}
+                      Nominal: {currentPlan.price}
                     </span>
                   </div>
 
@@ -534,7 +574,7 @@ export default function PremiumModal({
                   <ol style={{ margin: '6px 0 0 0', paddingLeft: '18px' }}>
                     <li>Buka aplikasi m-Banking atau ATM bank Anda.</li>
                     <li>Pilih menu <strong>Transfer / Pembayaran &gt; Virtual Account</strong>.</li>
-                    <li>Masukkan nomor VA di atas dan konfirmasi merchant <strong>ngonten.id</strong>.</li>
+                    <li>Masukkan nomor VA di atas dan konfirmasi nama merchant <strong>ngonten.id</strong>.</li>
                   </ol>
                 </div>
               </div>
@@ -593,15 +633,15 @@ export default function PremiumModal({
               justifyContent: 'center',
               margin: '0 auto 16px auto'
             }}>
-              <Check size={32} style={{ filter: 'invert(1)' }} />
+              <Crown size={32} style={{ filter: 'invert(1)' }} />
             </div>
 
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', margin: '0 0 8px 0' }}>
-              Selamat! Paket {selectedPlan?.name} Aktif 🎉
+            <h3 style={{ fontSize: '1.3rem', fontWeight: '800', margin: '0 0 8px 0' }}>
+              Selamat! User Premium Aktif ({currentPlan.duration}) 🎉
             </h3>
             
             <p style={{ fontSize: '0.85rem', lineHeight: '1.6', marginBottom: '22px', maxWidth: '380px', margin: '0 auto 22px auto' }}>
-              Pembayaran via DOKU Payment Gateway berhasil diverifikasi. Akun Anda kini resmi memiliki status <strong>CREATOR PRO</strong> dengan potongan biaya penarikan dompet hanya 2% dan akses penuh ekosistem ngonten.id.
+              Pembayaran via DOKU Payment Gateway berhasil diverifikasi. Akun Anda kini resmi memiliki status <strong>USER PREMIUM</strong> dengan potongan biaya penarikan dompet 2% dan akses penuh ekosistem ngonten.id.
             </p>
 
             <button
@@ -609,7 +649,7 @@ export default function PremiumModal({
               className="doku-btn-main"
               style={{ padding: '14px' }}
             >
-              Mulai Eksplorasi Fitur Pro
+              Mulai Eksplorasi Fitur Premium
             </button>
           </div>
         )}
