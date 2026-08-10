@@ -432,7 +432,7 @@ export default function WalletUserPortal({
                       })}
                     </td>
                     <td>
-                      <strong style={{ color: 'white', fontSize: '0.88rem' }}>{tx.description}</strong>
+                      <strong style={{ color: 'var(--text-primary)', fontSize: '0.88rem' }}>{tx.description}</strong>
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       <span style={{
