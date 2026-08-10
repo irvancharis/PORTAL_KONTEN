@@ -3982,14 +3982,38 @@ select option {
 }
 
 /* Text and Headings */
-.light-theme h1, 
-.light-theme h2, 
-.light-theme h3, 
-.light-theme h4, 
-.light-theme h5, 
-.light-theme h6,
-.light-theme strong {
+.light-theme h1:not(.doku-modal-card *), 
+.light-theme h2:not(.doku-modal-card *), 
+.light-theme h3:not(.doku-modal-card *), 
+.light-theme h4:not(.doku-modal-card *), 
+.light-theme h5:not(.doku-modal-card *), 
+.light-theme h6:not(.doku-modal-card *),
+.light-theme strong:not(.doku-modal-card *) {
   color: #111827 !important;
+}
+
+/* DOKU Modal Strict Contrast Protection */
+.doku-modal-card,
+.light-theme .doku-modal-card {
+  background-color: #09090b !important;
+  color: #ffffff !important;
+  border: 1px solid #27272a !important;
+}
+
+.doku-modal-card h1, .light-theme .doku-modal-card h1,
+.doku-modal-card h2, .light-theme .doku-modal-card h2,
+.doku-modal-card h3, .light-theme .doku-modal-card h3,
+.doku-modal-card h4, .light-theme .doku-modal-card h4,
+.doku-modal-card strong, .light-theme .doku-modal-card strong {
+  color: #ffffff !important;
+}
+
+.doku-modal-card .text-white, .light-theme .doku-modal-card .text-white {
+  color: #ffffff !important;
+}
+
+.doku-modal-card .text-muted, .light-theme .doku-modal-card .text-muted {
+  color: #a1a1aa !important;
 }
 
 /* Input Fields */
