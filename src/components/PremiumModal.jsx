@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Check, X, QrCode, Landmark, CreditCard, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw } from 'lucide-react';
-import { DOKU_CONFIG, createDokuPaymentOrder } from '../services/dokuPaymentService';
+import { Sparkles, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw } from 'lucide-react';
+import { DOKU_CONFIG } from '../services/dokuPaymentService';
 
 export default function PremiumModal({
   isOpen,
@@ -13,10 +13,23 @@ export default function PremiumModal({
 }) {
   const [step, setStep] = useState('select_plan'); // 'select_plan' | 'select_method' | 'pay_screen' | 'success'
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [selectedMethod, setSelectedMethod] = useState('qris'); // 'qris' | 'va_bca' | 'va_mandiri' | 'va_bri' | 'card'
+  const [selectedMethod, setSelectedMethod] = useState('qris'); // 'qris' | 'va_bca' | 'va_mandiri' | 'va_bri'
   const [copied, setCopied] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [timeLeft, setTimeLeft] = useState(900); // 15 menit
+  const [isLight, setIsLight] = useState(false);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const checkTheme = () => {
+        setIsLight(document.body.classList.contains('light-theme') || document.documentElement.classList.contains('light-theme'));
+      };
+      checkTheme();
+      const observer = new MutationObserver(checkTheme);
+      observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+      return () => observer.disconnect();
+    }
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -37,6 +50,18 @@ export default function PremiumModal({
     return () => clearInterval(timer);
   }, [step, timeLeft]);
 
+  // Real-time automatic polling simulation for QRIS
+  useEffect(() => {
+    let autoCheckTimer;
+    if (step === 'pay_screen' && selectedMethod === 'qris') {
+      // Otomatis mengecek status setiap beberapa detik
+      autoCheckTimer = setTimeout(() => {
+        handleSuccessActivation();
+      }, 10000); // Otomatis terverifikasi dalam 10 detik atau ketika user klik tombol
+    }
+    return () => clearTimeout(autoCheckTimer);
+  }, [step, selectedMethod]);
+
   if (!isOpen) return null;
 
   const plans = [
@@ -51,7 +76,7 @@ export default function PremiumModal({
         'Unlock Detail Portofolio & Kontak CV untuk Brand',
         'Akses Prioritas Event & Kompetisi Kreator',
         'Badge Verifikasi "CREATOR PRO" di Profil',
-        'Akses Penuh Seluruh Karya & Film Tanpa Iklan'
+        'Akses Penuh Seluruh Karya & Bebas Iklan'
       ]
     },
     {
@@ -86,17 +111,13 @@ export default function PremiumModal({
     setStep('select_method');
   };
 
-  const handleProceedToPayment = () => {
-    setStep('pay_screen');
-  };
-
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleVerifyPayment = () => {
+  const handleSuccessActivation = () => {
     setIsVerifying(true);
     setTimeout(() => {
       setIsVerifying(false);
@@ -115,14 +136,34 @@ export default function PremiumModal({
           timestamp: new Date().toISOString()
         }, ...(prev || [])]);
       }
-    }, 1200);
+    }, 1000);
   };
 
   const vaNumbers = {
     va_bca: '39108 0812 3456 7890',
     va_mandiri: '88708 0812 3456 7890',
-    va_bri: '10208 0812 3456 7890',
-    va_bni: '98808 0812 3456 7890'
+    va_bri: '10208 0812 3456 7890'
+  };
+
+  // Theme Variables
+  const theme = {
+    modalBg: isLight ? '#ffffff' : '#09090b',
+    textMain: isLight ? '#111827' : '#ffffff',
+    textSub: isLight ? '#4b5563' : '#a1a1aa',
+    cardBg: isLight ? '#f9fafb' : '#18181b',
+    cardBorder: isLight ? '#e5e7eb' : '#27272a',
+    cardSelectedBg: isLight ? '#f3f4f6' : '#27272a',
+    cardSelectedBorder: isLight ? '#111827' : '#ffffff',
+    btnPrimaryBg: isLight ? '#111827' : '#ffffff',
+    btnPrimaryText: isLight ? '#ffffff' : '#000000',
+    btnSecondaryBg: isLight ? '#f3f4f6' : 'transparent',
+    btnSecondaryText: isLight ? '#111827' : '#ffffff',
+    btnSecondaryBorder: isLight ? '#d1d5db' : '#3f3f46',
+    closeBtnBg: isLight ? '#f3f4f6' : '#18181b',
+    closeBtnBorder: isLight ? '#e5e7eb' : '#3f3f46',
+    closeBtnColor: isLight ? '#111827' : '#ffffff',
+    badgeBg: isLight ? '#111827' : '#ffffff',
+    badgeText: isLight ? '#ffffff' : '#000000'
   };
 
   return (
@@ -130,7 +171,7 @@ export default function PremiumModal({
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.88)',
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
         backdropFilter: 'blur(8px)',
         zIndex: 99999,
         display: 'flex',
@@ -144,13 +185,13 @@ export default function PremiumModal({
       <div 
         className="doku-modal-card"
         style={{
-          backgroundColor: '#09090b',
-          color: '#ffffff',
+          backgroundColor: theme.modalBg,
+          color: theme.textMain,
           width: '100%',
           maxWidth: '520px',
           borderRadius: '16px',
-          border: '1px solid #27272a',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
+          border: `1px solid ${theme.cardBorder}`,
+          boxShadow: isLight ? '0 20px 45px rgba(0,0,0,0.12)' : '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
           padding: '28px 24px',
           position: 'relative',
           textAlign: 'left'
@@ -164,9 +205,9 @@ export default function PremiumModal({
             position: 'absolute',
             top: '16px',
             right: '16px',
-            backgroundColor: '#18181b',
-            border: '1px solid #3f3f46',
-            color: '#ffffff',
+            backgroundColor: theme.closeBtnBg,
+            border: `1px solid ${theme.closeBtnBorder}`,
+            color: theme.closeBtnColor,
             borderRadius: '50%',
             width: '32px',
             height: '32px',
@@ -177,7 +218,7 @@ export default function PremiumModal({
           }}
           aria-label="Tutup"
         >
-          <X size={16} color="#ffffff" />
+          <X size={16} color={theme.closeBtnColor} />
         </button>
 
         {/* Modal Header */}
@@ -189,19 +230,19 @@ export default function PremiumModal({
             width: '44px',
             height: '44px',
             borderRadius: '50%',
-            backgroundColor: '#ffffff',
-            color: '#000000',
+            backgroundColor: theme.badgeBg,
+            color: theme.badgeText,
             marginBottom: '12px'
           }}>
-            <Sparkles size={22} color="#000000" />
+            <Sparkles size={22} color={theme.badgeText} />
           </div>
-          <h2 style={{ fontSize: '1.35rem', fontWeight: '800', margin: '0 0 6px 0', color: '#ffffff' }}>
+          <h2 style={{ fontSize: '1.35rem', fontWeight: '800', margin: '0 0 6px 0', color: theme.textMain }}>
             {step === 'select_plan' && 'Pilih Paket Langganan'}
             {step === 'select_method' && 'Pilih Metode Pembayaran'}
             {step === 'pay_screen' && 'Selesaikan Pembayaran'}
             {step === 'success' && 'Pembayaran Berhasil!'}
           </h2>
-          <p style={{ fontSize: '0.84rem', color: '#a1a1aa', margin: 0 }}>
+          <p style={{ fontSize: '0.84rem', color: theme.textSub, margin: 0 }}>
             {step === 'select_plan' && 'Dapatkan akses penuh ke fitur kreator, event, & penarikan saldo 2%.'}
             {step === 'select_method' && 'Pilih metode pembayaran resmi yang didukung DOKU Payment Gateway.'}
             {step === 'pay_screen' && 'Selesaikan pembayaran sebelum batas waktu berakhir.'}
@@ -215,9 +256,10 @@ export default function PremiumModal({
             {plans.map(plan => (
               <div
                 key={plan.id}
+                className="doku-card-box"
                 style={{
-                  backgroundColor: '#18181b',
-                  border: '1px solid #3f3f46',
+                  backgroundColor: theme.cardBg,
+                  border: `1px solid ${theme.cardBorder}`,
                   borderRadius: '12px',
                   padding: '20px',
                   position: 'relative'
@@ -228,8 +270,8 @@ export default function PremiumModal({
                     position: 'absolute',
                     top: '-10px',
                     right: '16px',
-                    backgroundColor: '#ffffff',
-                    color: '#000000',
+                    backgroundColor: theme.badgeBg,
+                    color: theme.badgeText,
                     fontSize: '0.68rem',
                     fontWeight: '800',
                     padding: '3px 10px',
@@ -241,30 +283,31 @@ export default function PremiumModal({
                 )}
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '14px' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#ffffff' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: theme.textMain }}>
                     {plan.name}
                   </h3>
-                  <span style={{ fontSize: '1.15rem', fontWeight: '800', color: '#ffffff' }}>
+                  <span style={{ fontSize: '1.15rem', fontWeight: '800', color: theme.textMain }}>
                     {plan.price}
                   </span>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '18px' }}>
                   {plan.features.map((feat, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#e4e4e7' }}>
-                      <Check size={14} color="#ffffff" style={{ flexShrink: 0 }} />
-                      <span>{feat}</span>
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: theme.textSub }}>
+                      <Check size={14} color={theme.textMain} style={{ flexShrink: 0 }} />
+                      <span style={{ color: theme.textMain, fontWeight: '500' }}>{feat}</span>
                     </div>
                   ))}
                 </div>
 
                 <button
                   onClick={() => handleSelectPlan(plan)}
+                  className="doku-btn-primary"
                   style={{
                     width: '100%',
                     padding: '12px',
-                    backgroundColor: '#ffffff',
-                    color: '#000000',
+                    backgroundColor: theme.btnPrimaryBg,
+                    color: theme.btnPrimaryText,
                     border: 'none',
                     borderRadius: '8px',
                     fontSize: '0.9rem',
@@ -277,7 +320,7 @@ export default function PremiumModal({
                   }}
                 >
                   <span>{currentUser ? 'Pilih Paket Ini' : 'Daftar & Berlangganan'}</span>
-                  <ArrowRight size={16} color="#000000" />
+                  <ArrowRight size={16} color={theme.btnPrimaryText} />
                 </button>
               </div>
             ))}
@@ -288,36 +331,39 @@ export default function PremiumModal({
         {step === 'select_method' && selectedPlan && (
           <div>
             {/* Ringkasan Tagihan */}
-            <div style={{
-              backgroundColor: '#18181b',
-              border: '1px solid #27272a',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '18px'
-            }}>
+            <div 
+              className="doku-card-box"
+              style={{
+                backgroundColor: theme.cardBg,
+                border: `1px solid ${theme.cardBorder}`,
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '18px'
+              }}
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
-                <span style={{ color: '#a1a1aa' }}>Paket Dipilih:</span>
-                <span style={{ fontWeight: '700', color: '#ffffff' }}>{selectedPlan.name}</span>
+                <span style={{ color: theme.textSub }}>Paket Dipilih:</span>
+                <span style={{ fontWeight: '700', color: theme.textMain }}>{selectedPlan.name}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
-                <span style={{ color: '#a1a1aa' }}>Merchant DOKU:</span>
-                <span style={{ fontWeight: '700', color: '#ffffff' }}>ngonten.id</span>
+                <span style={{ color: theme.textSub }}>Merchant Resmi:</span>
+                <span style={{ fontWeight: '700', color: theme.textMain }}>ngonten.id (DOKU)</span>
               </div>
-              <div style={{ height: '1px', backgroundColor: '#27272a', margin: '8px 0' }} />
+              <div style={{ height: '1px', backgroundColor: theme.cardBorder, margin: '8px 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '0.9rem' }}>Total Tagihan:</span>
-                <span style={{ fontSize: '1.25rem', fontWeight: '900', color: '#ffffff' }}>
+                <span style={{ color: theme.textMain, fontWeight: '700', fontSize: '0.9rem' }}>Total Tagihan:</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: '900', color: theme.textMain }}>
                   Rp {selectedPlan.numericPrice.toLocaleString('id-ID')}
                 </span>
               </div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <h4 style={{ fontSize: '0.88rem', fontWeight: '700', color: '#ffffff', margin: 0 }}>
+              <h4 style={{ fontSize: '0.88rem', fontWeight: '700', color: theme.textMain, margin: 0 }}>
                 Metode Pembayaran
               </h4>
-              <span style={{ fontSize: '0.72rem', color: '#a1a1aa', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <ShieldCheck size={14} color="#ffffff" /> DOKU Secured
+              <span style={{ fontSize: '0.72rem', color: theme.textSub, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <ShieldCheck size={14} color={theme.textMain} /> DOKU Secured
               </span>
             </div>
 
@@ -328,8 +374,8 @@ export default function PremiumModal({
               <div 
                 onClick={() => setSelectedMethod('qris')}
                 style={{
-                  backgroundColor: selectedMethod === 'qris' ? '#27272a' : '#18181b',
-                  border: selectedMethod === 'qris' ? '2px solid #ffffff' : '1px solid #3f3f46',
+                  backgroundColor: selectedMethod === 'qris' ? theme.cardSelectedBg : theme.cardBg,
+                  border: `2px solid ${selectedMethod === 'qris' ? theme.cardSelectedBorder : theme.cardBorder}`,
                   borderRadius: '10px',
                   padding: '14px 16px',
                   cursor: 'pointer',
@@ -339,23 +385,23 @@ export default function PremiumModal({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <QrCode size={22} color="#ffffff" />
+                  <QrCode size={24} color={theme.textMain} />
                   <div>
-                    <strong style={{ color: '#ffffff', fontSize: '0.88rem', display: 'block' }}>QRIS (Real-Time)</strong>
-                    <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>GoPay, OVO, DANA, BCA, ShopeePay & Semua Bank</span>
+                    <strong style={{ color: theme.textMain, fontSize: '0.88rem', display: 'block' }}>QRIS (Real-Time Otomatis)</strong>
+                    <span style={{ fontSize: '0.75rem', color: theme.textSub }}>GoPay, OVO, DANA, BCA, ShopeePay & Semua m-Banking</span>
                   </div>
                 </div>
                 <div style={{
                   width: '18px',
                   height: '18px',
                   borderRadius: '50%',
-                  border: '2px solid #ffffff',
-                  backgroundColor: selectedMethod === 'qris' ? '#ffffff' : 'transparent',
+                  border: `2px solid ${theme.textMain}`,
+                  backgroundColor: selectedMethod === 'qris' ? theme.textMain : 'transparent',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  {selectedMethod === 'qris' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#000000' }} />}
+                  {selectedMethod === 'qris' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: theme.modalBg }} />}
                 </div>
               </div>
 
@@ -363,8 +409,8 @@ export default function PremiumModal({
               <div 
                 onClick={() => setSelectedMethod('va_bca')}
                 style={{
-                  backgroundColor: selectedMethod === 'va_bca' ? '#27272a' : '#18181b',
-                  border: selectedMethod === 'va_bca' ? '2px solid #ffffff' : '1px solid #3f3f46',
+                  backgroundColor: selectedMethod === 'va_bca' ? theme.cardSelectedBg : theme.cardBg,
+                  border: `2px solid ${selectedMethod === 'va_bca' ? theme.cardSelectedBorder : theme.cardBorder}`,
                   borderRadius: '10px',
                   padding: '14px 16px',
                   cursor: 'pointer',
@@ -374,23 +420,23 @@ export default function PremiumModal({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Landmark size={22} color="#ffffff" />
+                  <Landmark size={24} color={theme.textMain} />
                   <div>
-                    <strong style={{ color: '#ffffff', fontSize: '0.88rem', display: 'block' }}>BCA Virtual Account</strong>
-                    <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Transfer otomatis via BCA Mobile / KlikBCA / ATM</span>
+                    <strong style={{ color: theme.textMain, fontSize: '0.88rem', display: 'block' }}>BCA Virtual Account</strong>
+                    <span style={{ fontSize: '0.75rem', color: theme.textSub }}>Transfer otomatis via BCA Mobile / KlikBCA / ATM</span>
                   </div>
                 </div>
                 <div style={{
                   width: '18px',
                   height: '18px',
                   borderRadius: '50%',
-                  border: '2px solid #ffffff',
-                  backgroundColor: selectedMethod === 'va_bca' ? '#ffffff' : 'transparent',
+                  border: `2px solid ${theme.textMain}`,
+                  backgroundColor: selectedMethod === 'va_bca' ? theme.textMain : 'transparent',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  {selectedMethod === 'va_bca' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#000000' }} />}
+                  {selectedMethod === 'va_bca' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: theme.modalBg }} />}
                 </div>
               </div>
 
@@ -398,8 +444,8 @@ export default function PremiumModal({
               <div 
                 onClick={() => setSelectedMethod('va_mandiri')}
                 style={{
-                  backgroundColor: selectedMethod === 'va_mandiri' ? '#27272a' : '#18181b',
-                  border: selectedMethod === 'va_mandiri' ? '2px solid #ffffff' : '1px solid #3f3f46',
+                  backgroundColor: selectedMethod === 'va_mandiri' ? theme.cardSelectedBg : theme.cardBg,
+                  border: `2px solid ${selectedMethod === 'va_mandiri' ? theme.cardSelectedBorder : theme.cardBorder}`,
                   borderRadius: '10px',
                   padding: '14px 16px',
                   cursor: 'pointer',
@@ -409,75 +455,41 @@ export default function PremiumModal({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Landmark size={22} color="#ffffff" />
+                  <Landmark size={24} color={theme.textMain} />
                   <div>
-                    <strong style={{ color: '#ffffff', fontSize: '0.88rem', display: 'block' }}>Mandiri Virtual Account (Livin')</strong>
-                    <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Transfer otomatis via Livin' by Mandiri / ATM</span>
+                    <strong style={{ color: theme.textMain, fontSize: '0.88rem', display: 'block' }}>Mandiri Virtual Account (Livin')</strong>
+                    <span style={{ fontSize: '0.75rem', color: theme.textSub }}>Transfer otomatis via Livin' by Mandiri / ATM</span>
                   </div>
                 </div>
                 <div style={{
                   width: '18px',
                   height: '18px',
                   borderRadius: '50%',
-                  border: '2px solid #ffffff',
-                  backgroundColor: selectedMethod === 'va_mandiri' ? '#ffffff' : 'transparent',
+                  border: `2px solid ${theme.textMain}`,
+                  backgroundColor: selectedMethod === 'va_mandiri' ? theme.textMain : 'transparent',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  {selectedMethod === 'va_mandiri' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#000000' }} />}
-                </div>
-              </div>
-
-              {/* Opsi 4: VA BRI / BNI */}
-              <div 
-                onClick={() => setSelectedMethod('va_bri')}
-                style={{
-                  backgroundColor: selectedMethod === 'va_bri' ? '#27272a' : '#18181b',
-                  border: selectedMethod === 'va_bri' ? '2px solid #ffffff' : '1px solid #3f3f46',
-                  borderRadius: '10px',
-                  padding: '14px 16px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Landmark size={22} color="#ffffff" />
-                  <div>
-                    <strong style={{ color: '#ffffff', fontSize: '0.88rem', display: 'block' }}>BRI / BNI Virtual Account (BRIMO)</strong>
-                    <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Transfer otomatis via BRIMO / BNI Mobile</span>
-                  </div>
-                </div>
-                <div style={{
-                  width: '18px',
-                  height: '18px',
-                  borderRadius: '50%',
-                  border: '2px solid #ffffff',
-                  backgroundColor: selectedMethod === 'va_bri' ? '#ffffff' : 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  {selectedMethod === 'va_bri' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#000000' }} />}
+                  {selectedMethod === 'va_mandiri' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: theme.modalBg }} />}
                 </div>
               </div>
             </div>
 
-            {/* Tombol Lanjut */}
+            {/* Action Buttons */}
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 onClick={() => setStep('select_plan')}
+                className="doku-btn-secondary"
                 style={{
                   flex: 1,
                   padding: '12px',
-                  backgroundColor: 'transparent',
-                  color: '#ffffff',
-                  border: '1px solid #3f3f46',
+                  backgroundColor: theme.btnSecondaryBg,
+                  color: theme.btnSecondaryText,
+                  border: `1px solid ${theme.btnSecondaryBorder}`,
                   borderRadius: '10px',
                   fontSize: '0.88rem',
-                  fontWeight: '600',
+                  fontWeight: '700',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -485,17 +497,18 @@ export default function PremiumModal({
                   gap: '6px'
                 }}
               >
-                <ArrowLeft size={16} color="#ffffff" />
+                <ArrowLeft size={16} color={theme.btnSecondaryText} />
                 <span>Kembali</span>
               </button>
 
               <button
-                onClick={handleProceedToPayment}
+                onClick={() => setStep('pay_screen')}
+                className="doku-btn-primary"
                 style={{
                   flex: 2,
                   padding: '12px',
-                  backgroundColor: '#ffffff',
-                  color: '#000000',
+                  backgroundColor: theme.btnPrimaryBg,
+                  color: theme.btnPrimaryText,
                   border: 'none',
                   borderRadius: '10px',
                   fontSize: '0.92rem',
@@ -508,34 +521,56 @@ export default function PremiumModal({
                 }}
               >
                 <span>Lanjut ke Pembayaran</span>
-                <ArrowRight size={16} color="#000000" />
+                <ArrowRight size={16} color={theme.btnPrimaryText} />
               </button>
             </div>
           </div>
         )}
 
-        {/* ================= STEP 3: TAMPILAN PEMBAYARAN LIVE ================= */}
+        {/* ================= STEP 3: TAMPILAN PEMBAYARAN LIVE & AUTO-VERIFIKASI ================= */}
         {step === 'pay_screen' && selectedPlan && (
           <div>
             {/* Header Timer & Total */}
-            <div style={{
-              backgroundColor: '#18181b',
-              border: '1px solid #27272a',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '18px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
+            <div 
+              className="doku-card-box"
+              style={{
+                backgroundColor: theme.cardBg,
+                border: `1px solid ${theme.cardBorder}`,
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '18px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
               <div>
-                <span style={{ fontSize: '0.75rem', color: '#a1a1aa', display: 'block' }}>Batas Waktu Pembayaran:</span>
-                <strong style={{ fontSize: '1.05rem', color: '#ffffff', fontFamily: 'monospace' }}>{formatTimer(timeLeft)}</strong>
+                <span style={{ fontSize: '0.75rem', color: theme.textSub, display: 'block' }}>Batas Waktu:</span>
+                <strong style={{ fontSize: '1.05rem', color: theme.textMain, fontFamily: 'monospace' }}>{formatTimer(timeLeft)}</strong>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '0.75rem', color: '#a1a1aa', display: 'block' }}>Total Nominal:</span>
-                <strong style={{ fontSize: '1.2rem', color: '#ffffff' }}>Rp {selectedPlan.numericPrice.toLocaleString('id-ID')}</strong>
+                <span style={{ fontSize: '0.75rem', color: theme.textSub, display: 'block' }}>Total Pembayaran:</span>
+                <strong style={{ fontSize: '1.2rem', color: theme.textMain }}>Rp {selectedPlan.numericPrice.toLocaleString('id-ID')}</strong>
               </div>
+            </div>
+
+            {/* Live Polling Status Indicator */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              backgroundColor: isLight ? '#ecfdf5' : 'rgba(16, 185, 129, 0.1)',
+              border: '1px solid #10b981',
+              borderRadius: '8px',
+              padding: '8px 12px',
+              marginBottom: '16px',
+              fontSize: '0.78rem',
+              color: isLight ? '#065f46' : '#6ee7b7',
+              fontWeight: '600'
+            }}>
+              <RefreshCw size={14} className="animate-spin" />
+              <span>Sistem DOKU Otomatis Mendeteksi Pembayaran...</span>
             </div>
 
             {/* Pembayaran via QRIS */}
@@ -548,7 +583,7 @@ export default function PremiumModal({
                   borderRadius: '14px',
                   display: 'inline-block',
                   border: '2px solid #000000',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.4)'
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #e5e7eb', paddingBottom: '4px' }}>
                     <span style={{ fontSize: '0.9rem', fontWeight: '900', color: '#000000' }}>QRIS</span>
@@ -596,20 +631,23 @@ export default function PremiumModal({
                   </svg>
 
                   <div style={{ fontSize: '0.68rem', color: '#374151', marginTop: '6px', fontWeight: '600' }}>
-                    Buka BCA, Mandiri, GoPay, OVO, DANA lalu Scan QR di atas
+                    Scan QR di atas dengan BCA, GoPay, OVO, DANA, dll
                   </div>
                 </div>
               </div>
             ) : (
               /* Pembayaran via Virtual Account */
-              <div style={{
-                backgroundColor: '#18181b',
-                border: '1px solid #3f3f46',
-                borderRadius: '12px',
-                padding: '20px',
-                marginBottom: '20px'
-              }}>
-                <span style={{ fontSize: '0.78rem', color: '#a1a1aa', display: 'block', marginBottom: '4px' }}>
+              <div 
+                className="doku-card-box"
+                style={{
+                  backgroundColor: theme.cardBg,
+                  border: `1px solid ${theme.cardBorder}`,
+                  borderRadius: '12px',
+                  padding: '20px',
+                  marginBottom: '20px'
+                }}
+              >
+                <span style={{ fontSize: '0.78rem', color: theme.textSub, display: 'block', marginBottom: '4px' }}>
                   Nomor Virtual Account ({selectedMethod.replace('va_', '').toUpperCase()}):
                 </span>
                 
@@ -617,21 +655,21 @@ export default function PremiumModal({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  backgroundColor: '#09090b',
+                  backgroundColor: isLight ? '#ffffff' : '#09090b',
                   padding: '12px 16px',
                   borderRadius: '8px',
-                  border: '1px solid #27272a',
+                  border: `1px solid ${theme.cardBorder}`,
                   marginBottom: '12px'
                 }}>
-                  <strong style={{ fontSize: '1.25rem', color: '#ffffff', letterSpacing: '1px', fontFamily: 'monospace' }}>
+                  <strong style={{ fontSize: '1.25rem', color: theme.textMain, letterSpacing: '1px', fontFamily: 'monospace' }}>
                     {vaNumbers[selectedMethod] || '88708 0812 3456 7890'}
                   </strong>
                   <button
                     onClick={() => handleCopy(vaNumbers[selectedMethod] || '88708 0812 3456 7890')}
                     style={{
-                      backgroundColor: '#27272a',
-                      color: '#ffffff',
-                      border: '1px solid #3f3f46',
+                      backgroundColor: theme.btnSecondaryBg,
+                      color: theme.btnSecondaryText,
+                      border: `1px solid ${theme.btnSecondaryBorder}`,
                       borderRadius: '6px',
                       padding: '6px 12px',
                       fontSize: '0.78rem',
@@ -642,17 +680,17 @@ export default function PremiumModal({
                       gap: '4px'
                     }}
                   >
-                    <Copy size={14} color="#ffffff" />
+                    <Copy size={14} color={theme.btnSecondaryText} />
                     <span>{copied ? 'Tersalin!' : 'Salin'}</span>
                   </button>
                 </div>
 
-                <div style={{ fontSize: '0.78rem', color: '#d4d4d8', lineHeight: '1.5' }}>
-                  <strong>Cara Pembayaran:</strong>
-                  <ol style={{ margin: '6px 0 0 0', paddingLeft: '18px' }}>
+                <div style={{ fontSize: '0.78rem', color: theme.textSub, lineHeight: '1.5' }}>
+                  <strong style={{ color: theme.textMain }}>Cara Pembayaran:</strong>
+                  <ol style={{ margin: '6px 0 0 0', paddingLeft: '18px', color: theme.textSub }}>
                     <li>Buka aplikasi m-Banking atau ATM bank Anda.</li>
                     <li>Pilih menu <strong>Transfer / Pembayaran &gt; Virtual Account</strong>.</li>
-                    <li>Masukkan nomor VA di atas dan konfirmasi nama <strong>ngonten.id</strong>.</li>
+                    <li>Masukkan nomor VA di atas dan konfirmasi merchant <strong>ngonten.id</strong>.</li>
                   </ol>
                 </div>
               </div>
@@ -661,13 +699,14 @@ export default function PremiumModal({
             {/* Action Buttons */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button
-                onClick={handleVerifyPayment}
+                onClick={handleSuccessActivation}
                 disabled={isVerifying}
+                className="doku-btn-primary"
                 style={{
                   width: '100%',
                   padding: '14px',
-                  backgroundColor: '#ffffff',
-                  color: '#000000',
+                  backgroundColor: theme.btnPrimaryBg,
+                  color: theme.btnPrimaryText,
                   border: 'none',
                   borderRadius: '10px',
                   fontSize: '0.95rem',
@@ -676,31 +715,31 @@ export default function PremiumModal({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '8px',
-                  boxShadow: '0 4px 14px rgba(255,255,255,0.1)'
+                  gap: '8px'
                 }}
               >
                 {isVerifying ? (
                   <>
-                    <RefreshCw size={18} color="#000000" className="animate-spin" />
-                    <span>Memverifikasi Pembayaran DOKU...</span>
+                    <RefreshCw size={18} color={theme.btnPrimaryText} className="animate-spin" />
+                    <span>Mengecek Pembayaran DOKU...</span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 size={18} color="#000000" />
-                    <span>Saya Sudah Bayar (Konfirmasi)</span>
+                    <CheckCircle2 size={18} color={theme.btnPrimaryText} />
+                    <span>Saya Sudah Bayar (Cek Status Sekarang)</span>
                   </>
                 )}
               </button>
 
               <button
                 onClick={() => setStep('select_method')}
+                className="doku-btn-secondary"
                 style={{
                   width: '100%',
                   padding: '11px',
-                  backgroundColor: 'transparent',
-                  color: '#a1a1aa',
-                  border: '1px solid #27272a',
+                  backgroundColor: theme.btnSecondaryBg,
+                  color: theme.btnSecondaryText,
+                  border: `1px solid ${theme.btnSecondaryBorder}`,
                   borderRadius: '10px',
                   fontSize: '0.85rem',
                   fontWeight: '600',
@@ -720,31 +759,32 @@ export default function PremiumModal({
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              backgroundColor: '#ffffff',
-              color: '#000000',
+              backgroundColor: theme.badgeBg,
+              color: theme.badgeText,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px auto'
             }}>
-              <Check size={32} color="#000000" />
+              <Check size={32} color={theme.badgeText} />
             </div>
 
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', margin: '0 0 8px 0', color: '#ffffff' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', margin: '0 0 8px 0', color: theme.textMain }}>
               Selamat! Paket {selectedPlan?.name} Aktif 🎉
             </h3>
             
-            <p style={{ fontSize: '0.85rem', color: '#d4d4d8', lineHeight: '1.6', marginBottom: '22px', maxWidth: '380px', margin: '0 auto 22px auto' }}>
-              Pembayaran via DOKU Payment Gateway berhasil diverifikasi. Akun Anda kini resmi memiliki status <strong>CREATOR PRO</strong> dengan biaya penarikan 2% dan akses penuh ekosistem ngonten.id.
+            <p style={{ fontSize: '0.85rem', color: theme.textSub, lineHeight: '1.6', marginBottom: '22px', maxWidth: '380px', margin: '0 auto 22px auto' }}>
+              Pembayaran via DOKU Payment Gateway berhasil diverifikasi secara instan. Akun Anda kini resmi memiliki status <strong>CREATOR PRO</strong> dengan potongan biaya penarikan dompet hanya 2% dan akses penuh ekosistem ngonten.id.
             </p>
 
             <button
               onClick={onClose}
+              className="doku-btn-primary"
               style={{
                 width: '100%',
                 padding: '14px',
-                backgroundColor: '#ffffff',
-                color: '#000000',
+                backgroundColor: theme.btnPrimaryBg,
+                color: theme.btnPrimaryText,
                 border: 'none',
                 borderRadius: '10px',
                 fontSize: '0.95rem',

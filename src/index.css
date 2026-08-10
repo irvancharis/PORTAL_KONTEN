@@ -3992,28 +3992,42 @@ select option {
   color: #111827 !important;
 }
 
-/* DOKU Modal Strict Contrast Protection */
-.doku-modal-card,
-.light-theme .doku-modal-card {
+/* DOKU Modal Theme Adaptive Styling */
+.doku-modal-card {
   background-color: #09090b !important;
   color: #ffffff !important;
   border: 1px solid #27272a !important;
 }
 
-.doku-modal-card h1, .light-theme .doku-modal-card h1,
-.doku-modal-card h2, .light-theme .doku-modal-card h2,
-.doku-modal-card h3, .light-theme .doku-modal-card h3,
-.doku-modal-card h4, .light-theme .doku-modal-card h4,
-.doku-modal-card strong, .light-theme .doku-modal-card strong {
+.light-theme .doku-modal-card {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
+}
+
+.light-theme .doku-modal-card h1,
+.light-theme .doku-modal-card h2,
+.light-theme .doku-modal-card h3,
+.light-theme .doku-modal-card h4,
+.light-theme .doku-modal-card strong {
+  color: #111827 !important;
+}
+
+.light-theme .doku-modal-card .doku-card-box {
+  background-color: #f9fafb !important;
+  border-color: #e5e7eb !important;
+}
+
+.light-theme .doku-modal-card .doku-btn-primary {
+  background-color: #111827 !important;
   color: #ffffff !important;
 }
 
-.doku-modal-card .text-white, .light-theme .doku-modal-card .text-white {
-  color: #ffffff !important;
-}
-
-.doku-modal-card .text-muted, .light-theme .doku-modal-card .text-muted {
-  color: #a1a1aa !important;
+.light-theme .doku-modal-card .doku-btn-secondary {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
+  border-color: #e5e7eb !important;
 }
 
 /* Input Fields */
