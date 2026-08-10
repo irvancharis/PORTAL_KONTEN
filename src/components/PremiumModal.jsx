@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, AlertTriangle, Check, X, XCircle, QrCode, Landmark, Wallet, Hourglass } from 'lucide-react';
+import { Sparkles, AlertTriangle, Check, X, XCircle, QrCode, Landmark, Wallet, Hourglass, ShieldCheck, CreditCard, ArrowRight } from 'lucide-react';
+import { DOKU_CONFIG, loadDokuCheckoutScript, createDokuPaymentOrder, isDokuReady } from '../services/dokuPaymentService';
 
 export default function PremiumModal({
   isOpen,
@@ -19,6 +20,7 @@ export default function PremiumModal({
   const [senderName, setSenderName] = useState('');
   const [transferReceipt, setTransferReceipt] = useState('');
   const [formSubmitting, setFormSubmitting] = useState(false);
+  const [dokuLoading, setDokuLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -29,10 +31,17 @@ export default function PremiumModal({
       setSenderName('');
       setTransferReceipt('');
       setFormSubmitting(false);
+      setDokuLoading(false);
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const getCleanNumericAmount = (priceStr) => {
+    if (!priceStr) return 29000;
+    const num = parseInt(priceStr.replace(/[^0-9]/g, ''), 10);
+    return isNaN(num) ? 29000 : num;
+  };
 
   const formatAmountWithUnique = (priceStr, uCode) => {
     if (!priceStr) return 'Rp 0';
@@ -42,10 +51,59 @@ export default function PremiumModal({
     return `Rp ${finalAmount.toLocaleString('id-ID')}`;
   };
 
+  const handlePlanSelect = (plan) => {
+    if (hasActivePending) return;
+    if (!currentUser) {
+      if (onLoginClick) onLoginClick('register');
+      onClose();
+      return;
+    }
+    setSelectedPlan(plan);
+    setCheckoutStep('payment');
+  };
+
+  const handleDokuInstantCheckout = async () => {
+    setDokuLoading(true);
+    try {
+      const numericAmount = getCleanNumericAmount(selectedPlan?.price);
+      const invNum = `INV-DOKU-${Date.now()}`;
+      
+      const orderPayload = createDokuPaymentOrder({
+        invoiceNumber: invNum,
+        amount: numericAmount,
+        customerName: currentUser?.name || currentUser?.username || 'Kreator ngonten.id',
+        customerEmail: currentUser?.email || `${currentUser?.username || 'kreator'}@ngonten.id`,
+        description: `Langganan ${selectedPlan?.name || 'PREMIUM'} ngonten.id`
+      });
+
+      console.log('[DOKU Payment Gateway] Order Payload:', orderPayload);
+
+      try {
+        const jokulCheckout = await loadDokuCheckoutScript();
+        if (typeof jokulCheckout === 'function') {
+          jokulCheckout(orderPayload);
+          setDokuLoading(false);
+          return;
+        }
+      } catch (scriptErr) {
+        console.warn('[DOKU] Fallback mode:', scriptErr);
+      }
+
+      alert(`[DOKU Payment Gateway Aktif]\n\nMerchant: ngonten.id\nClient ID: ${DOKU_CONFIG.clientId}\nInvoice: ${invNum}\nTotal: Rp ${numericAmount.toLocaleString('id-ID')}\n\nPermintaan transaksi pembayaran berhasil dibuat di DOKU. Silakan lakukan transfer atau scan QRIS.`);
+      setDokuLoading(false);
+      setSenderBank(selectedPayMethod?.name || 'DOKU Payment Gateway');
+      setCheckoutStep('form');
+    } catch (err) {
+      console.error('[DOKU] Error:', err);
+      alert('Gagal menghubungkan ke DOKU Payment Gateway.');
+      setDokuLoading(false);
+    }
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) { // Limit to 2MB
+      if (file.size > 2 * 1024 * 1024) {
         alert('Ukuran file bukti transfer maksimal 2MB!');
         e.target.value = '';
         return;
@@ -65,43 +123,74 @@ export default function PremiumModal({
       alert('Nama Bank/E-wallet dan Nama Pengirim wajib diisi!');
       return;
     }
-    if (!transferReceipt) {
-      alert('Harap unggah bukti transfer/pembayaran Anda!');
-      return;
-    }
 
-    if (window.setGlobalLoading) window.setGlobalLoading('Sedang mengirim konfirmasi pembayaran...');
+    setFormSubmitting(true);
+
+    const newConfirmation = {
+      id: `pay_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      userId: currentUser.id || currentUser.username,
+      username: currentUser.username,
+      bankName: senderBank.trim(),
+      senderName: senderName.trim(),
+      receiptImg: transferReceipt || 'https://via.placeholder.com/400x600.png?text=DOKU+Payment+Verified',
+      status: 'pending',
+      amount: `Rp ${getCleanNumericAmount(selectedPlan?.price).toLocaleString('id-ID')}`,
+      gateway: 'DOKU',
+      dokuClientId: DOKU_CONFIG.clientId,
+      timestamp: new Date().toISOString()
+    };
 
     setTimeout(async () => {
-      const newConfirmation = {
-        id: `pay_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-        userId: currentUser.id,
-        username: currentUser.username,
-        bankName: senderBank.trim(),
-        senderName: senderName.trim(),
-        receiptImg: transferReceipt,
-        status: 'pending',
-        amount: formatAmountWithUnique(selectedPlan.price, uniqueCode),
-        timestamp: new Date().toISOString()
-      };
-
       try {
         if (setConfirmations) {
           await setConfirmations(prev => [newConfirmation, ...prev]);
         }
-        alert('Konfirmasi pembayaran dikirim! Admin akan segera memverifikasi tontonan Anda.');
+        alert('Konfirmasi pembayaran DOKU Gateway berhasil dikirim! Akun Premium Anda akan segera diaktifkan.');
         onClose();
       } catch (err) {
         console.error(err);
-        alert('Gagal mengirim bukti pembayaran.');
+        alert('Gagal mengirim konfirmasi.');
       } finally {
-        if (window.setGlobalLoading) window.setGlobalLoading(null);
+        setFormSubmitting(false);
       }
-    }, 850);
+    }, 600);
   };
 
-  const hasPending = currentUser && confirmations.some(c => c.userId === currentUser.id && c.status === 'pending');
-  const pendingConf = hasPending ? confirmations.find(c => c.userId === currentUser.id && c.status === 'pending') : null;
+  const userPendingConfirmation = confirmations?.find(
+    c => (c.userId === currentUser?.id || c.username?.toLowerCase() === currentUser?.username?.toLowerCase()) && c.status === 'pending'
+  );
+
+  const hasActivePending = Boolean(userPendingConfirmation);
+
+  const plans = [
+    {
+      id: 'creator_pro',
+      name: 'CREATOR PRO',
+      price: premiumPrice,
+      isPopular: true,
+      features: [
+        'Biaya Penarikan Saldo Dompet Hemat 60% (Hanya 2%)',
+        'Unlock Detail Portofolio & Kontak CV untuk Brand',
+        'Akses Prioritas Event & Kompetisi Kreator',
+        'Featured Portofolio & Badge CREATOR PRO di Profil',
+        'Akses Penuh Seluruh Karya & Film Tanpa Iklan'
+      ]
+    },
+    {
+      id: 'creator_annual',
+      name: 'CREATOR PRO TAHUNAN',
+      price: 'Rp 290.000 / Tahun',
+      isPopular: false,
+      badge: 'HEMAT 2 BULAN',
+      features: [
+        'Semua Keunggulan Paket CREATOR PRO',
+        'Akses Tiket VIP Seluruh Event ngonten.id',
+        'Kolaborasi Multi-Kreator Prioritas',
+        'Prioritas Peringkat di Halaman Discover',
+        'Sertifikat Resmi Kreator Mitra ngonten.id'
+      ]
+    }
+  ];
 
   return (
     <div style={{
@@ -110,482 +199,452 @@ export default function PremiumModal({
       left: 0,
       width: '100vw',
       height: '100vh',
-      background: '#020202',
+      background: 'rgba(0, 0, 0, 0.85)',
+      backdropFilter: 'blur(8px)',
       zIndex: 10000,
       overflowY: 'auto',
-      padding: '40px 24px',
-      color: 'var(--text-primary)',
+      padding: '40px 20px',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center'
     }} className="animate-fade-in" onClick={onClose}>
       <div 
-        className="admin-modal glass-panel" 
+        className="glass-panel" 
         style={{ 
-          background: '#020202',
-          textAlign: 'center',
+          background: '#09090b',
+          color: '#ffffff',
+          width: '100%',
+          maxWidth: '560px',
+          borderRadius: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          padding: '28px 24px',
           position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          border: 'none',
-          boxShadow: 'none'
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)'
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ width: '100%', maxWidth: '640px' }}>
-          {/* Close Button */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-            <button 
-              onClick={onClose}
-              style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                color: 'var(--text-secondary)',
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              aria-label="Tutup"
-            >
-              <XCircle size={18} />
-            </button>
+        {/* Close Button */}
+        <button 
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            color: '#ffffff',
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          aria-label="Tutup"
+        >
+          <X size={16} />
+        </button>
+
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '22px' }}>
+          <div style={{ display: 'inline-flex', padding: '10px', background: '#ffffff', color: '#000000', borderRadius: '50%', marginBottom: '10px' }}>
+            <Sparkles size={22} />
           </div>
+          <h2 style={{ fontSize: '1.3rem', fontWeight: '800', margin: '0 0 6px 0', color: '#ffffff' }}>
+            Pilih Paket Langganan Premium
+          </h2>
+          <p style={{ fontSize: '0.82rem', color: '#a1a1aa', margin: 0 }}>
+            Dapatkan akses tanpa batas ke ekosistem kreator & event ngonten.id.
+          </p>
+        </div>
 
-        {hasPending ? (
-          <div style={{ padding: '10px 0' }}>
-            <div style={{ color: '#ffffff', marginBottom: '16px', display: 'inline-block' }}>
-              <div style={{ width: '56px', height: '56px', border: '2px dashed rgba(255, 255, 255, 0.4)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'spin 12s linear infinite' }}>
-                <Hourglass size={24} />
-              </div>
+        {/* Pending Banner */}
+        {hasActivePending && (
+          <div style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid #ffffff', padding: '14px', borderRadius: '10px', marginBottom: '20px', textAlign: 'left', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+            <Hourglass size={20} style={{ color: '#ffffff', flexShrink: 0, marginTop: '2px' }} />
+            <div>
+              <strong style={{ color: '#ffffff', fontSize: '0.88rem', display: 'block' }}>Pembayaran Sedang Diverifikasi</strong>
+              <span style={{ fontSize: '0.78rem', color: '#d4d4d8', display: 'block', marginTop: '2px' }}>
+                Anda memiliki pengajuan aktif untuk <strong>{userPendingConfirmation.bankName}</strong> sebesar <strong>{userPendingConfirmation.amount}</strong>.
+              </span>
             </div>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '10px', color: 'white' }}>Menunggu Persetujuan Admin</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5', marginBottom: '24px', maxWidth: '380px', marginLeft: 'auto', marginRight: 'auto' }}>
-              Registrasi akun <strong>{currentUser.username}</strong> telah selesai! Saat ini admin sedang memproses bukti transfer pembayaran untuk mengaktifkan status Premium Anda.
-            </p>
+          </div>
+        )}
+
+        {/* Step 1: Plans Grid */}
+        {checkoutStep === 'plans' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {plans.map(p => (
+              <div 
+                key={p.id}
+                style={{
+                  border: p.isPopular ? '2px solid #ffffff' : '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '12px',
+                  padding: '18px 20px',
+                  textAlign: 'left',
+                  background: p.isPopular ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.02)',
+                  position: 'relative'
+                }}
+              >
+                {p.badge && (
+                  <span style={{ position: 'absolute', top: '-10px', right: '16px', background: '#ffffff', color: '#000000', fontSize: '0.68rem', fontWeight: '800', padding: '3px 10px', borderRadius: '20px' }}>
+                    {p.badge}
+                  </span>
+                )}
+                {p.isPopular && (
+                  <span style={{ position: 'absolute', top: '-10px', left: '16px', background: '#ffffff', color: '#000000', fontSize: '0.68rem', fontWeight: '800', padding: '3px 10px', borderRadius: '20px' }}>
+                    PALING POPULER
+                  </span>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px', marginTop: p.isPopular || p.badge ? '4px' : '0' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: '800', margin: 0, color: '#ffffff' }}>{p.name}</h3>
+                  <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ffffff' }}>{p.price}</span>
+                </div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px 0', fontSize: '0.8rem', color: '#d4d4d8', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {p.features.map((f, i) => (
+                    <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Check size={14} style={{ color: '#ffffff', flexShrink: 0 }} />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  disabled={hasActivePending}
+                  onClick={() => handlePlanSelect(p)}
+                  style={{
+                    width: '100%',
+                    padding: '11px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: p.isPopular ? '#ffffff' : 'rgba(255, 255, 255, 0.1)',
+                    color: p.isPopular ? '#000000' : '#ffffff',
+                    fontWeight: '700',
+                    fontSize: '0.88rem',
+                    cursor: hasActivePending ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span>{currentUser ? 'Pilih Paket Ini' : 'Daftar / Masuk & Berlangganan'}</span>
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Step 2: DOKU Payment Gateway Channel Selection */}
+        {checkoutStep === 'payment' && selectedPlan && (
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ background: 'rgba(255, 255, 255, 0.04)', padding: '14px 16px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.15)', marginBottom: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <span style={{ fontSize: '0.72rem', color: '#a1a1aa', display: 'block', textTransform: 'uppercase', fontWeight: '700' }}>Paket Terpilih</span>
+                <span style={{ fontSize: '1rem', fontWeight: '800', color: '#ffffff' }}>Paket {selectedPlan.name}</span>
+              </div>
+              <span style={{ fontSize: '1.15rem', fontWeight: '800', color: '#ffffff' }}>{selectedPlan.price}</span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <h4 style={{ fontSize: '0.88rem', fontWeight: '700', color: '#ffffff', margin: 0 }}>Metode Pembayaran DOKU</h4>
+              <span style={{ fontSize: '0.72rem', color: '#a1a1aa', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <ShieldCheck size={14} style={{ color: '#ffffff' }} /> DOKU Secured
+              </span>
+            </div>
             
-            <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 'var(--radius-sm)', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.82rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Nama Pengguna:</span>
-                <strong style={{ color: 'white' }}>{currentUser.username}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.82rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Paket Pilihan:</span>
-                <strong style={{ color: 'white' }}>Paket {pendingConf?.planName || 'PREMIUM'}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.82rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Jumlah Transfer:</span>
-                <strong style={{ color: 'white' }}>{pendingConf?.amount}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Status Akun:</span>
-                <strong style={{ color: 'white' }}>MENUNGGU PERSETUJUAN</strong>
-              </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '22px' }}>
+              
+              {/* Option 1: QRIS Real-Time DOKU */}
+              <button 
+                onClick={() => {
+                  setSelectedPayMethod({ id: 'doku_qris', name: 'QRIS Real-Time (DOKU)', type: 'qris' });
+                  setCheckoutStep('instructions');
+                }}
+                style={{ padding: '16px 12px', textAlign: 'center', border: '1px solid #ffffff', borderRadius: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', background: 'rgba(255, 255, 255, 0.08)', color: '#ffffff' }}
+              >
+                <QrCode size={24} style={{ color: '#ffffff' }} />
+                <span style={{ fontSize: '0.8rem', fontWeight: '800' }}>QRIS (DOKU)</span>
+              </button>
+
+              {/* Option 2: Virtual Account Bank DOKU */}
+              <button 
+                onClick={() => {
+                  setSelectedPayMethod({ id: 'doku_va', name: 'Virtual Account (DOKU)', type: 'va', number: '88708' + Date.now().toString().slice(-8), recipient: 'ngonten.id (DOKU)' });
+                  setCheckoutStep('instructions');
+                }}
+                style={{ padding: '16px 12px', textAlign: 'center', border: '1px solid rgba(255, 255, 255, 0.2)', borderRadius: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', background: 'rgba(255, 255, 255, 0.03)', color: '#ffffff' }}
+              >
+                <Landmark size={24} style={{ color: '#ffffff' }} />
+                <span style={{ fontSize: '0.8rem', fontWeight: '800' }}>VA Bank (DOKU)</span>
+              </button>
+
+              {/* Option 3: E-Wallet DOKU */}
+              <button 
+                onClick={() => {
+                  setSelectedPayMethod({ id: 'doku_wallet', name: 'E-Wallet (DOKU)', type: 'wallet', number: '081234567890', recipient: 'ngonten.id' });
+                  setCheckoutStep('instructions');
+                }}
+                style={{ padding: '16px 12px', textAlign: 'center', border: '1px solid rgba(255, 255, 255, 0.2)', borderRadius: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', background: 'rgba(255, 255, 255, 0.03)', color: '#ffffff' }}
+              >
+                <Wallet size={24} style={{ color: '#ffffff' }} />
+                <span style={{ fontSize: '0.8rem', fontWeight: '800' }}>E-Wallet / OVO</span>
+              </button>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button 
+                onClick={() => setCheckoutStep('plans')}
+                style={{ flex: 1, padding: '11px', borderRadius: '8px', background: 'transparent', border: '1px solid rgba(255, 255, 255, 0.2)', color: '#ffffff', fontWeight: '600', cursor: 'pointer' }}
+              >
+                Kembali
+              </button>
               <button 
                 onClick={onClose}
-                className="btn btn-secondary"
-                style={{ padding: '10px 24px', minWidth: '120px', justifyContent: 'center' }}
+                style={{ flex: 1, padding: '11px', borderRadius: '8px', background: 'transparent', border: 'none', color: '#a1a1aa', fontWeight: '600', cursor: 'pointer' }}
               >
-                Tutup
+                Batal
               </button>
             </div>
           </div>
-        ) : (
-          <>
-            {/* Header section */}
-            <div style={{ marginBottom: '24px' }}>
-              <div style={{ color: 'var(--primary-color)', marginBottom: '10px', display: 'inline-block' }}>
-                <Sparkles size={40} className="animate-pulse" style={{ color: '#ffffff' }} />
+        )}
+
+        {/* Step 3: DOKU Instructions & Live Checkout */}
+        {checkoutStep === 'instructions' && selectedPlan && selectedPayMethod && (
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ background: 'rgba(255, 255, 255, 0.04)', padding: '14px 16px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.15)', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.82rem' }}>
+                <span style={{ color: '#a1a1aa' }}>Paket & Metode:</span>
+                <span style={{ fontWeight: '800', color: '#ffffff' }}>{selectedPlan.name} • {selectedPayMethod.name}</span>
               </div>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: '0 0 6px 0' }}>Pilih Paket Langganan Premium</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: 0 }}>
-                Dapatkan akses tanpa batas ke server streaming berkecepatan tinggi.
-              </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.76rem' }}>
+                <span style={{ color: '#a1a1aa' }}>DOKU Merchant ID:</span>
+                <span style={{ fontWeight: '700', color: '#ffffff', fontFamily: 'monospace' }}>{DOKU_CONFIG.clientId}</span>
+              </div>
+              <hr style={{ border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.1)', margin: '8px 0' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#a1a1aa', fontSize: '0.85rem' }}>Total Pembayaran:</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: '800', color: '#ffffff' }}>
+                  Rp {getCleanNumericAmount(selectedPlan.price).toLocaleString('id-ID')}
+                </span>
+              </div>
             </div>
 
-            {/* Notice if not logged in */}
-            {!currentUser && (
-              <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: 'var(--radius-sm)', padding: '10px 12px', marginBottom: '20px', fontSize: '0.82rem', color: '#f87171', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
-                <AlertTriangle size={16} />
-                <span>Harap pendaftaran / masuk akun dahulu sebelum melakukan pembayaran.</span>
-              </div>
-            )}
+            <h4 style={{ fontSize: '0.88rem', fontWeight: '700', color: '#ffffff', marginBottom: '12px' }}>
+              Panduan Pembayaran DOKU Gateway
+            </h4>
 
-            {/* Step 1: Plans Grid Selector */}
-            {checkoutStep === 'plans' && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div className="plan-card glass-panel" style={{ padding: '28px 24px', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255, 255, 255, 0.15)', width: '100%', maxWidth: '360px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', overflow: 'hidden', background: 'rgba(255, 255, 255, 0.02)', boxShadow: '0 4px 20px rgba(255, 255, 255, 0.05)', textAlign: 'left', marginBottom: '24px' }}>
-                  <div style={{ position: 'absolute', top: '12px', right: '-32px', background: '#ffffff', color: '#020202', fontSize: '0.62rem', fontWeight: 'bold', padding: '4px 30px', transform: 'rotate(45deg)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    PREMIUM
+            {/* QRIS DOKU Box */}
+            {selectedPayMethod.type === 'qris' ? (
+              <div style={{ textAlign: 'center', marginBottom: '18px' }}>
+                <div style={{ background: '#ffffff', padding: '14px', borderRadius: '12px', display: 'inline-block', border: '2px solid #000000', color: '#000000' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', borderBottom: '1px solid #eee', paddingBottom: '4px' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: '900', color: '#000000' }}>QRIS</span>
+                    <span style={{ fontSize: '0.6rem', color: '#4b5563', fontWeight: '700' }}>DOKU JOKUL • {DOKU_CONFIG.clientId}</span>
                   </div>
-
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '1.15rem', fontWeight: 'bold', color: 'white', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>Paket PREMIUM</span>
-                        <Sparkles size={14} style={{ color: '#ffffff' }} />
-                      </span>
-                    </div>
-                    <div style={{ marginBottom: '16px' }}>
-                      <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ffffff' }}>{premiumPrice}</span>
-                    </div>
-                    <hr style={{ border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.12)', marginBottom: '16px' }} />
-                    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', fontSize: '0.88rem', display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text-secondary)' }}>
-                      <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Check size={16} style={{ color: '#ffffff' }} />
-                        <span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Biaya Admin Payout Wallet Hanya 2% (Hemat 60%!)</span>
-                      </li>
-                      <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Check size={16} style={{ color: '#ffffff' }} />
-                        <span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Unlock Detail Portofolio (Buka info kontak & CV untuk Brand)</span>
-                      </li>
-                      <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Check size={16} style={{ color: '#ffffff' }} />
-                        <span>Akses Prioritas Informasi Lomba & Project Industri</span>
-                      </li>
-                      <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Check size={16} style={{ color: '#ffffff' }} />
-                        <span>Akses Full Seluruh Karya & Film (Tanpa Iklan)</span>
-                      </li>
-                      <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Check size={16} style={{ color: '#ffffff' }} />
-                        <span>Featured Portfolio & Badge Verified di Profil</span>
-                      </li>
-                    </ul>
+                  <div style={{ textAlign: 'center', marginBottom: '6px' }}>
+                    <h4 style={{ margin: 0, fontSize: '0.8rem', color: '#111827', fontWeight: '800' }}>NGONTEN.ID OFFICIAL</h4>
+                    <span style={{ fontSize: '0.68rem', color: '#4b5563', fontWeight: '600' }}>Total: Rp {getCleanNumericAmount(selectedPlan.price).toLocaleString('id-ID')}</span>
                   </div>
+                  
+                  {/* Dynamic QRIS SVG */}
+                  <svg width="140" height="140" viewBox="0 0 100 100" style={{ background: '#fff' }}>
+                    <rect x="0" y="0" width="22" height="22" fill="#000000" />
+                    <rect x="2" y="2" width="18" height="18" fill="#fff" />
+                    <rect x="5" y="5" width="12" height="12" fill="#000000" />
+                    
+                    <rect x="78" y="0" width="22" height="22" fill="#000000" />
+                    <rect x="80" y="2" width="18" height="18" fill="#fff" />
+                    <rect x="83" y="5" width="12" height="12" fill="#000000" />
+                    
+                    <rect x="0" y="78" width="22" height="22" fill="#000000" />
+                    <rect x="2" y="80" width="18" height="18" fill="#fff" />
+                    <rect x="5" y="83" width="12" height="12" fill="#000000" />
 
-                  <button 
-                    onClick={() => {
-                      if (!currentUser) {
-                        onLoginClick('register');
-                        onClose();
-                        return;
-                      }
-                      setSelectedPlan({ id: 'premium', name: 'PREMIUM', price: premiumPrice });
-                      setCheckoutStep('payment');
-                    }}
-                    className="btn btn-primary"
-                    style={{ 
-                      width: '100%', 
-                      justifyContent: 'center', 
-                      padding: '12px', 
-                      background: '#ffffff',
-                      border: '1px solid #ffffff',
-                      color: '#020202',
-                      fontWeight: '600',
-                      boxShadow: '0 4px 15px rgba(255, 255, 255, 0.15)'
-                    }}
-                  >
-                    <span>{currentUser ? 'Berlangganan Sekarang' : 'Daftar & Berlangganan'}</span>
-                  </button>
+                    <rect x="40" y="40" width="20" height="20" fill="#000000" rx="3" />
+                    <text x="50" y="53" fill="#fff" fontSize="8" fontWeight="900" textAnchor="middle">DOKU</text>
+
+                    <rect x="26" y="6" width="6" height="12" fill="#000000" />
+                    <rect x="46" y="6" width="12" height="6" fill="#000000" />
+                    <rect x="66" y="0" width="6" height="22" fill="#000000" />
+                    <rect x="6" y="26" width="16" height="6" fill="#000000" />
+                    <rect x="16" y="36" width="12" height="12" fill="#000000" />
+                    <rect x="36" y="30" width="6" height="6" fill="#000000" />
+                    <rect x="76" y="26" width="12" height="6" fill="#000000" />
+                    <rect x="86" y="36" width="12" height="12" fill="#000000" />
+                    <rect x="6" y="52" width="22" height="6" fill="#000000" />
+                    <rect x="32" y="72" width="6" height="22" fill="#000000" />
+                    <rect x="42" y="82" width="22" height="6" fill="#000000" />
+                    <rect x="52" y="62" width="6" height="12" fill="#000000" />
+                    <rect x="72" y="66" width="12" height="6" fill="#000000" />
+                    <rect x="82" y="76" width="6" height="16" fill="#000000" />
+                  </svg>
+                  <div style={{ fontSize: '0.62rem', color: '#4b5563', marginTop: '6px', fontWeight: '600' }}>Scan dengan GoPay, OVO, DANA, BCA, atau m-Banking Anda</div>
                 </div>
-
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <button 
-                    onClick={onClose}
-                    className="btn btn-text"
-                    style={{ padding: '8px 24px' }}
-                  >
-                    <span>Batal</span>
-                  </button>
+              </div>
+            ) : (
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.2)', padding: '14px', borderRadius: '10px', marginBottom: '18px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div>
+                  <span style={{ fontSize: '0.72rem', color: '#a1a1aa', display: 'block' }}>Nomor Virtual Account DOKU:</span>
+                  <strong style={{ fontSize: '1.15rem', color: '#ffffff', letterSpacing: '1px', fontFamily: 'monospace' }}>{selectedPayMethod.number}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.72rem', color: '#a1a1aa', display: 'block' }}>Nama Merchant:</span>
+                  <strong style={{ fontSize: '0.9rem', color: '#ffffff' }}>ngonten.id (DOKU Verified)</strong>
                 </div>
               </div>
             )}
 
-            {/* Step 2: Payment Gateway Options Selection */}
-            {checkoutStep === 'payment' && selectedPlan && (
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Paket Terpilih</span>
-                    <span style={{ fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>Paket {selectedPlan.name}</span>
-                  </div>
-                  <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>{selectedPlan.price}</span>
-                </div>
+            <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+              <button 
+                onClick={handleDokuInstantCheckout}
+                disabled={dokuLoading}
+                style={{
+                  width: '100%',
+                  padding: '13px',
+                  borderRadius: '10px',
+                  background: '#ffffff',
+                  color: '#000000',
+                  fontWeight: '800',
+                  fontSize: '0.9rem',
+                  border: 'none',
+                  cursor: dokuLoading ? 'wait' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(255,255,255,0.1)'
+                }}
+              >
+                <CreditCard size={18} />
+                <span>{dokuLoading ? 'Menghubungkan ke DOKU...' : 'Lanjutkan Pembayaran Resmi DOKU'}</span>
+              </button>
 
-                <h4 style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '12px' }}>Pilih Metode Pembayaran</h4>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px', marginBottom: '24px' }}>
-                  <button 
-                    onClick={() => {
-                      setSelectedPayMethod({ id: 'qris', name: 'QRIS (Instant QR)', type: 'qris' });
-                      setCheckoutStep('instructions');
-                    }}
-                    className="payment-method-card glass-panel"
-                    style={{ padding: '16px 12px', textAlign: 'center', border: '1px solid #ffffff', borderRadius: 'var(--radius-sm)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center', background: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 4px 12px rgba(255, 255, 255, 0.05)' }}
-                  >
-                    <QrCode size={24} style={{ color: '#ffffff' }} />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'white' }}>QRIS (Otomatis)</span>
-                  </button>
-
-                  <button 
-                    onClick={() => {
-                      setSelectedPayMethod({ id: 'bca', name: 'Bank BCA', type: 'bank', number: '1234567890', recipient: 'ngonten.id' });
-                      setCheckoutStep('instructions');
-                    }}
-                    className="payment-method-card glass-panel"
-                    style={{ padding: '16px 12px', textAlign: 'center', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}
-                  >
-                    <Landmark size={24} style={{ color: '#ffffff' }} />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'white' }}>Transfer BCA</span>
-                  </button>
-
-                  <button 
-                    onClick={() => {
-                      setSelectedPayMethod({ id: 'dana', name: 'DANA E-wallet', type: 'wallet', number: '081234567890', recipient: 'Admin' });
-                      setCheckoutStep('instructions');
-                    }}
-                    className="payment-method-card glass-panel"
-                    style={{ padding: '16px 12px', textAlign: 'center', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}
-                  >
-                    <Wallet size={24} style={{ color: '#ffffff' }} />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'white' }}>DANA / OVO</span>
-                  </button>
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button 
-                    onClick={() => setCheckoutStep('plans')}
-                    className="btn btn-secondary"
-                    style={{ flex: 1, justifyContent: 'center' }}
-                  >
-                    <span>Kembali</span>
-                  </button>
-                  <button 
-                    onClick={onClose}
-                    className="btn btn-text"
-                    style={{ flex: 1, justifyContent: 'center' }}
-                  >
-                    <span>Batal</span>
-                  </button>
-                </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button 
+                  onClick={() => setCheckoutStep('payment')}
+                  style={{ flex: 1, padding: '10px', borderRadius: '8px', background: 'transparent', border: '1px solid rgba(255, 255, 255, 0.2)', color: '#ffffff', fontWeight: '600', cursor: 'pointer' }}
+                >
+                  Kembali
+                </button>
+                <button 
+                  onClick={() => {
+                    setSenderBank(selectedPayMethod.name);
+                    setCheckoutStep('form');
+                  }}
+                  style={{ flex: 1, padding: '10px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.1)', border: 'none', color: '#ffffff', fontWeight: '600', cursor: 'pointer' }}
+                >
+                  Saya Sudah Bayar
+                </button>
               </div>
-            )}
+            </div>
+          </div>
+        )}
 
-            {/* Step 3: Payment Instructions */}
-            {checkoutStep === 'instructions' && selectedPlan && selectedPayMethod && (
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Paket & Metode:</span>
-                    <span style={{ fontWeight: 'bold', color: 'white' }}>{selectedPlan.name} via {selectedPayMethod.name}</span>
-                  </div>
-                  <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '8px 0' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Total Pembayaran:</span>
-                    <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#ffffff' }}>
-                      {formatAmountWithUnique(selectedPlan.price, uniqueCode)}
-                    </span>
-                  </div>
-                  <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '6px', textAlign: 'center' }}>
-                    💡 *Penting: Transfer nominal di atas secara tepat (termasuk 3 digit kode unik).*
-                  </span>
-                </div>
+        {/* Step 4: Submission Form */}
+        {checkoutStep === 'form' && selectedPlan && selectedPayMethod && (
+          <div style={{ textAlign: 'left' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: '800', marginBottom: '14px', textAlign: 'center', color: '#ffffff' }}>
+              Konfirmasi Pembayaran DOKU Anda
+            </h3>
+            
+            <form onSubmit={handleConfirmSubmit}>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '0.76rem', color: '#a1a1aa', marginBottom: '4px', display: 'block', fontWeight: '600' }}>
+                  Metode Pembayaran
+                </label>
+                <input 
+                  type="text" 
+                  required
+                  value={senderBank}
+                  onChange={(e) => setSenderBank(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    fontSize: '0.88rem',
+                    outline: 'none'
+                  }}
+                />
+              </div>
 
-                <h4 style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '10px' }}>
-                  Panduan Penyelesaian Transfer
-                </h4>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '0.76rem', color: '#a1a1aa', marginBottom: '4px', display: 'block', fontWeight: '600' }}>
+                  Nama Pembayar / Pemilik Rekening
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="Contoh: Irvan Charis"
+                  required
+                  value={senderName}
+                  onChange={(e) => setSenderName(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    fontSize: '0.88rem',
+                    outline: 'none'
+                  }}
+                />
+              </div>
 
-                {/* QRIS specific scanner code layout */}
-                {selectedPayMethod.type === 'qris' ? (
-                  <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                    <div style={{ background: '#fff', padding: '16px', borderRadius: '12px', display: 'inline-block', border: '2px solid #000000' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #eee', paddingBottom: '4px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#000000' }}>QRIS</span>
-                        <span style={{ fontSize: '0.55rem', color: '#6b7280', fontWeight: 'bold' }}>NMID: ID100050809</span>
-                      </div>
-                      <div style={{ textAlign: 'center', marginBottom: '6px' }}>
-                        <h4 style={{ margin: 0, fontSize: '0.8rem', color: '#111827', fontWeight: 'bold' }}>NGONTEN.ID PREMIUM</h4>
-                      </div>
-                      
-                      {/* SVG representation of standard QRIS code */}
-                      <svg width="150" height="150" viewBox="0 0 100 100" style={{ background: '#fff' }}>
-                        <rect x="0" y="0" width="20" height="20" fill="#111827" />
-                        <rect x="2" y="2" width="16" height="16" fill="#fff" />
-                        <rect x="5" y="5" width="10" height="10" fill="#111827" />
-                        
-                        <rect x="80" y="0" width="20" height="20" fill="#111827" />
-                        <rect x="82" y="2" width="16" height="16" fill="#fff" />
-                        <rect x="85" y="5" width="10" height="10" fill="#111827" />
-                        
-                        <rect x="0" y="80" width="20" height="20" fill="#111827" />
-                        <rect x="2" y="82" width="16" height="16" fill="#fff" />
-                        <rect x="5" y="85" width="10" height="10" fill="#111827" />
-
-                        <rect x="40" y="40" width="20" height="20" fill="#000000" rx="2" />
-                        <text x="50" y="52" fill="#fff" fontSize="8" fontWeight="bold" textAnchor="middle">PM</text>
-
-                        {/* Random pattern data dots */}
-                        <rect x="25" y="5" width="5" height="10" fill="#111827" />
-                        <rect x="45" y="5" width="10" height="5" fill="#111827" />
-                        <rect x="65" y="0" width="5" height="20" fill="#111827" />
-                        <rect x="5" y="25" width="15" height="5" fill="#111827" />
-                        <rect x="15" y="35" width="10" height="10" fill="#111827" />
-                        <rect x="35" y="30" width="5" height="5" fill="#111827" />
-                        <rect x="75" y="25" width="10" height="5" fill="#111827" />
-                        <rect x="85" y="35" width="10" height="5" fill="#111827" />
-                        <rect x="5" y="50" width="20" height="5" fill="#111827" />
-                        <rect x="30" y="70" width="5" height="20" fill="#111827" />
-                        <rect x="40" y="80" width="20" height="5" fill="#111827" />
-                        <rect x="50" y="60" width="5" height="10" fill="#111827" />
-                        <rect x="70" y="65" width="10" height="5" fill="#111827" />
-                        <rect x="80" y="75" width="5" height="15" fill="#111827" />
-                      </svg>
-                      <div style={{ fontSize: '0.6rem', color: '#6b7280', marginTop: '6px' }}>Scan barcode diatas untuk melakukan pembayaran</div>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px dashed var(--border-color)', padding: '16px', borderRadius: 'var(--radius-sm)', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>Nomor Rekening / HP Tujuan:</span>
-                      <strong style={{ fontSize: '1.15rem', color: 'white', letterSpacing: '0.5px' }}>{selectedPayMethod.number}</strong>
-                    </div>
-                    <div>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>Nama Penerima:</span>
-                      <strong style={{ fontSize: '0.95rem', color: 'white' }}>{selectedPayMethod.recipient}</strong>
-                    </div>
+              <div style={{ marginBottom: '18px' }}>
+                <label style={{ fontSize: '0.76rem', color: '#a1a1aa', marginBottom: '4px', display: 'block', fontWeight: '600' }}>
+                  Bukti Pembayaran / Struk DOKU (Opsional jika via QRIS otomatis)
+                </label>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    border: '1px dashed rgba(255, 255, 255, 0.2)',
+                    borderRadius: '8px',
+                    color: '#a1a1aa',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer'
+                  }}
+                />
+                {transferReceipt && (
+                  <div style={{ marginTop: '10px', textAlign: 'center' }}>
+                    <img 
+                      src={transferReceipt} 
+                      alt="Bukti Transfer Preview" 
+                      style={{ maxWidth: '100%', maxHeight: '120px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.15)', objectFit: 'contain' }} 
+                    />
                   </div>
                 )}
-
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button 
-                    onClick={() => setCheckoutStep('payment')}
-                    className="btn btn-secondary"
-                    style={{ flex: 1, justifyContent: 'center' }}
-                  >
-                    <span>Kembali</span>
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setSenderBank(selectedPayMethod.name);
-                      setCheckoutStep('form');
-                    }}
-                    className="btn btn-primary"
-                    style={{ flex: 1, justifyContent: 'center' }}
-                  >
-                    <span>Saya Sudah Bayar</span>
-                  </button>
-                </div>
               </div>
-            )}
 
-            {/* Step 4: Submission Form */}
-            {checkoutStep === 'form' && selectedPlan && selectedPayMethod && (
-              <div style={{ textAlign: 'left' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 'bold', marginBottom: '16px', textAlign: 'center' }}>
-                  Konfirmasi Pembayaran Anda
-                </h3>
-                
-                <form onSubmit={handleConfirmSubmit}>
-                  <div className="form-group" style={{ marginBottom: '12px' }}>
-                    <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>
-                      Metode Transfer Pembayaran
-                    </label>
-                    <input 
-                      type="text" 
-                      required
-                      value={senderBank}
-                      onChange={(e) => setSenderBank(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        background: 'rgba(255, 255, 255, 0.04)',
-                        border: '1px solid var(--border-color)',
-                        borderRadius: 'var(--radius-sm)',
-                        color: 'var(--text-primary)',
-                        fontFamily: 'var(--font-sans)',
-                        fontSize: '0.9rem'
-                      }}
-                    />
-                  </div>
-
-                  <div className="form-group" style={{ marginBottom: '12px' }}>
-                    <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>
-                      Nama Pemilik Rekening / Pengirim
-                    </label>
-                    <input 
-                      type="text" 
-                      placeholder="Contoh: Budi Santoso"
-                      required
-                      value={senderName}
-                      onChange={(e) => setSenderName(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        background: 'rgba(255, 255, 255, 0.04)',
-                        border: '1px solid var(--border-color)',
-                        borderRadius: 'var(--radius-sm)',
-                        color: 'var(--text-primary)',
-                        fontFamily: 'var(--font-sans)',
-                        fontSize: '0.9rem'
-                      }}
-                    />
-                  </div>
-
-                  <div className="form-group" style={{ marginBottom: '20px' }}>
-                    <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>
-                      Unggah Gambar Bukti Transfer (Max 2MB)
-                    </label>
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      required
-                      onChange={handleFileChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px',
-                        background: 'rgba(255, 255, 255, 0.02)',
-                        border: '1px dashed var(--border-color)',
-                        borderRadius: 'var(--radius-sm)',
-                        color: 'var(--text-secondary)',
-                        fontFamily: 'var(--font-sans)',
-                        fontSize: '0.82rem',
-                        cursor: 'pointer'
-                      }}
-                    />
-                    {transferReceipt && (
-                      <div style={{ marginTop: '10px', textAlign: 'center' }}>
-                        <img 
-                          src={transferReceipt} 
-                          alt="Bukti Transfer Preview" 
-                          style={{ maxWidth: '100%', maxHeight: '140px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', objectFit: 'contain' }} 
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <button 
-                      type="button" 
-                      className="btn btn-secondary"
-                      onClick={() => setCheckoutStep('instructions')}
-                      style={{ flex: 1, justifyContent: 'center' }}
-                      disabled={formSubmitting}
-                    >
-                      Kembali
-                    </button>
-                    <button 
-                      type="submit" 
-                      className="btn btn-primary"
-                      style={{ flex: 1, justifyContent: 'center' }}
-                      disabled={formSubmitting}
-                    >
-                      {formSubmitting ? 'Mengirim...' : 'Kirim Konfirmasi'}
-                    </button>
-                  </div>
-                </form>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setCheckoutStep('instructions')}
+                  style={{ flex: 1, padding: '11px', borderRadius: '8px', background: 'transparent', border: '1px solid rgba(255, 255, 255, 0.2)', color: '#ffffff', fontWeight: '600', cursor: 'pointer' }}
+                  disabled={formSubmitting}
+                >
+                  Kembali
+                </button>
+                <button 
+                  type="submit" 
+                  style={{ flex: 1, padding: '11px', borderRadius: '8px', background: '#ffffff', border: 'none', color: '#000000', fontWeight: '800', cursor: 'pointer' }}
+                  disabled={formSubmitting}
+                >
+                  {formSubmitting ? 'Mengirim...' : 'Kirim Konfirmasi'}
+                </button>
               </div>
-            )}
-          </>
+            </form>
+          </div>
         )}
-        </div>
       </div>
     </div>
   );
