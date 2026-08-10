@@ -4128,7 +4128,9 @@ select option {
 
 /* Badge Pill */
 .doku-badge-pill,
-.light-theme .doku-badge-pill {
+.light-theme .doku-badge-pill,
+.doku-white-badge,
+.light-theme .doku-white-badge {
   background-color: #0f172a !important;
   color: #ffffff !important;
   font-size: 0.65rem !important;
@@ -4136,10 +4138,21 @@ select option {
   padding: 3px 10px !important;
   border-radius: 12px !important;
   letter-spacing: 0.5px !important;
+  line-height: 1.4 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .doku-badge-pill *,
-.light-theme .doku-badge-pill * {
+.light-theme .doku-badge-pill *,
+.doku-white-badge *,
+.light-theme .doku-white-badge * {
+  color: #ffffff !important;
+}
+
+.doku-white-text,
+.light-theme .doku-white-text {
   color: #ffffff !important;
 }
 

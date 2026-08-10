@@ -192,22 +192,19 @@ export default function PremiumModal({
                 }}
               >
                 {billingCycle === 'monthly' && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-10px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    backgroundColor: '#0f172a',
-                    color: '#ffffff',
-                    fontSize: '0.62rem',
-                    fontWeight: '800',
-                    padding: '2px 8px',
-                    borderRadius: '12px',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    ✓ DIPILIH
-                  </span>
+                  <div 
+                    className="doku-white-badge"
+                    style={{
+                      position: 'absolute',
+                      top: '-10px',
+                      left: '12px',
+                      zIndex: 2
+                    }}
+                  >
+                    <span className="doku-white-text">✓ DIPILIH</span>
+                  </div>
                 )}
+                
                 <span className="desc-text" style={{ fontSize: '0.75rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                   Masa Aktif 1 Bulan
                 </span>
@@ -229,18 +226,31 @@ export default function PremiumModal({
                   textAlign: 'center'
                 }}
               >
-                <span 
-                  className="doku-badge-pill"
+                {billingCycle === 'yearly' && (
+                  <div 
+                    className="doku-white-badge"
+                    style={{
+                      position: 'absolute',
+                      top: '-10px',
+                      left: '12px',
+                      zIndex: 2
+                    }}
+                  >
+                    <span className="doku-white-text">✓ DIPILIH</span>
+                  </div>
+                )}
+
+                <div 
+                  className="doku-white-badge"
                   style={{
                     position: 'absolute',
                     top: '-10px',
-                    right: '8px',
-                    backgroundColor: '#0f172a',
-                    color: '#ffffff'
+                    right: '10px',
+                    zIndex: 2
                   }}
                 >
-                  HEMAT 2 BULAN
-                </span>
+                  <span className="doku-white-text">HEMAT 2 BULAN</span>
+                </div>
                 
                 <span className="desc-text" style={{ fontSize: '0.75rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                   Masa Aktif 1 Tahun
@@ -276,7 +286,7 @@ export default function PremiumModal({
               onClick={handleProceedToMethod}
               className="doku-btn-main"
             >
-              <span>{currentUser ? `Lanjut Pembayaran (${currentPlan.duration})` : 'Daftar & Berlangganan'}</span>
+              <span className="doku-white-text">{currentUser ? `Lanjut Pembayaran (${currentPlan.duration})` : 'Daftar & Berlangganan'}</span>
               <ArrowRight size={16} color="#ffffff" />
             </button>
           </div>
@@ -447,7 +457,7 @@ export default function PremiumModal({
                 className="doku-btn-main"
                 style={{ flex: 2 }}
               >
-                <span>Lanjut ke Pembayaran</span>
+                <span className="doku-white-text">Lanjut ke Pembayaran</span>
                 <ArrowRight size={16} color="#ffffff" />
               </button>
             </div>
@@ -602,12 +612,12 @@ export default function PremiumModal({
                 {isVerifying ? (
                   <>
                     <RefreshCw size={18} className="animate-spin" color="#ffffff" />
-                    <span>Memverifikasi Pembayaran...</span>
+                    <span className="doku-white-text">Memverifikasi Pembayaran...</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle2 size={18} color="#ffffff" />
-                    <span>Saya Sudah Bayar (Cek Status Sekarang)</span>
+                    <span className="doku-white-text">Saya Sudah Bayar (Cek Status Sekarang)</span>
                   </>
                 )}
               </button>
@@ -660,7 +670,7 @@ export default function PremiumModal({
               onClick={onClose}
               className="doku-btn-main"
             >
-              <span>Mulai Eksplorasi Fitur Premium</span>
+              <span className="doku-white-text">Mulai Eksplorasi Fitur Premium</span>
             </button>
           </div>
         )}
