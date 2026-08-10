@@ -871,9 +871,40 @@ export default function App() {
                                     }
                                     setEditProfileCategory(newSkills.join(', '));
                                   }}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    cursor: 'pointer'
+                                  }}
                                 >
-                                  {isSelected && <Check size={13} strokeWidth={2.8} />}
-                                  <span>{skill}</span>
+                                  {isSelected ? (
+                                    <span style={{
+                                      width: '18px',
+                                      height: '18px',
+                                      borderRadius: '50%',
+                                      background: '#16a34a',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      flexShrink: 0
+                                    }}>
+                                      <Check size={12} strokeWidth={3.5} style={{ color: '#ffffff', stroke: '#ffffff' }} />
+                                    </span>
+                                  ) : (
+                                    <span style={{
+                                      width: '18px',
+                                      height: '18px',
+                                      borderRadius: '50%',
+                                      border: '1.5px solid var(--text-muted, #94a3b8)',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      flexShrink: 0,
+                                      opacity: 0.6
+                                    }} />
+                                  )}
+                                  <span style={{ fontWeight: isSelected ? '700' : '500' }}>{skill}</span>
                                 </button>
                               );
                             })}
