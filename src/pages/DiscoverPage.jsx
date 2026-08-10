@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
+import CreatorProfileModal from '../components/CreatorProfileModal';
 
 export default function DiscoverPage({
   activeTab,
@@ -73,6 +74,7 @@ export default function DiscoverPage({
   users,
   handleToggleJoinCommunity
 }) {
+  const [selectedCreatorProfile, setSelectedCreatorProfile] = React.useState(null);
   
   const isPlayRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/play/');
 
@@ -335,8 +337,10 @@ export default function DiscoverPage({
                   <div 
                     key={creator.id} 
                     className="creator-card glass-panel"
+                    style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      alert(`Profil Portofolio Kreator ${creator.organizerName || creator.username} akan segera hadir.`);
+                      const fullUser = (users || []).find(u => u.username === creator.username || u.id === creator.id);
+                      setSelectedCreatorProfile(fullUser || creator);
                     }}
                   >
                     <div className="creator-avatar" style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--primary)', color: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 auto 12px auto', overflow: 'hidden' }}>
@@ -809,12 +813,10 @@ export default function DiscoverPage({
                     <div 
                       key={creator.id} 
                       className="creator-card glass-panel"
+                      style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        if (!currentUser) {
-                          handleOpenLoginModal('register');
-                          return;
-                        }
-                        alert(`Profil Portofolio Kreator ${creator.name} akan segera hadir.`);
+                        const fullUser = (users || []).find(u => u.username === creator.username || u.id === creator.id || (u.name && u.name.toLowerCase() === (creator.name || '').toLowerCase()));
+                        setSelectedCreatorProfile(fullUser || creator);
                       }}
                     >
                       <div className="creator-avatar">
@@ -1216,6 +1218,21 @@ export default function DiscoverPage({
             </button>
           )}
         </div>
+      )}
+
+      {/* Creator Profile Modal */}
+      {selectedCreatorProfile && (
+        <CreatorProfileModal 
+          creator={selectedCreatorProfile}
+          onClose={() => setSelectedCreatorProfile(null)}
+          movies={movies}
+          events={events}
+          eventSubmissions={eventSubmissions}
+          onSelectMovie={(movie) => {
+            setSelectedCreatorProfile(null);
+            handleMovieSelect(movie);
+          }}
+        />
       )}
     </div>
   );
