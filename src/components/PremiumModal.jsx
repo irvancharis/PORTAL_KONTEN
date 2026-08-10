@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw } from 'lucide-react';
-import { DOKU_CONFIG } from '../services/dokuPaymentService';
 
 export default function PremiumModal({
   isOpen,
@@ -49,7 +48,7 @@ export default function PremiumModal({
     yearly: {
       duration: '1 Tahun',
       price: 'Rp 200.000',
-      numericPrice: 200000,
+      numericPrice: 20000,
       periodLabel: '/ tahun',
       badge: 'HEMAT 2 BULAN (HEMAT RP 40.000)'
     }
@@ -97,11 +96,10 @@ export default function PremiumModal({
           id: `pay_${Date.now()}`,
           userId: currentUser?.id || currentUser?.username,
           username: currentUser?.username,
-          bankName: `DOKU - ${selectedMethod.toUpperCase()}`,
+          bankName: selectedMethod.toUpperCase(),
           senderName: currentUser?.name || currentUser?.username,
           amount: `Rp ${currentPlan.numericPrice.toLocaleString('id-ID')}`,
           status: 'approved',
-          gateway: 'DOKU',
           timestamp: new Date().toISOString()
         }, ...(prev || [])]);
       }
@@ -159,12 +157,12 @@ export default function PremiumModal({
           <h2 style={{ fontSize: '1.4rem', fontWeight: '800', margin: '0 0 6px 0' }}>
             {step === 'select_plan' && 'Paket User Premium'}
             {step === 'select_method' && 'Metode Pembayaran'}
-            {step === 'pay_screen' && 'Selesaikan Pembayaran DOKU'}
+            {step === 'pay_screen' && 'Selesaikan Pembayaran'}
             {step === 'success' && 'Pembayaran Berhasil!'}
           </h2>
           <p style={{ fontSize: '0.84rem', margin: 0 }}>
             {step === 'select_plan' && 'Tingkatkan akun ke User Premium untuk akses penuh ekosistem ngonten.id.'}
-            {step === 'select_method' && 'Pilih metode pembayaran resmi yang didukung DOKU Payment Gateway.'}
+            {step === 'select_method' && 'Pilih metode pembayaran instan dan terenkripsi.'}
             {step === 'pay_screen' && 'Scan QRIS atau transfer ke nomor VA di bawah untuk aktivasi instan.'}
             {step === 'success' && 'Akun Anda resmi aktif sebagai User Premium.'}
           </p>
@@ -277,8 +275,8 @@ export default function PremiumModal({
                 <strong style={{ fontWeight: '700' }}>User Premium ({currentPlan.duration})</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
-                <span>Gateway Resmi:</span>
-                <strong style={{ fontWeight: '700' }}>DOKU Payment Gateway</strong>
+                <span>Merchant:</span>
+                <strong style={{ fontWeight: '700' }}>ngonten.id Official</strong>
               </div>
               <div style={{ height: '1px', backgroundColor: 'rgba(128,128,128,0.2)', margin: '8px 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -294,7 +292,7 @@ export default function PremiumModal({
                 Pilih Metode Pembayaran
               </h4>
               <span style={{ fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <ShieldCheck size={14} /> DOKU Secured
+                <ShieldCheck size={14} /> Terenkripsi & Aman
               </span>
             </div>
 
@@ -480,7 +478,7 @@ export default function PremiumModal({
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #e5e7eb', paddingBottom: '4px' }}>
                     <span style={{ fontSize: '0.95rem', fontWeight: '900', color: '#000000' }}>QRIS</span>
-                    <span style={{ fontSize: '0.65rem', color: '#4b5563', fontWeight: '700' }}>DOKU JOKUL • {DOKU_CONFIG.clientId}</span>
+                    <span style={{ fontSize: '0.65rem', color: '#4b5563', fontWeight: '700' }}>PEMBAYARAN RESMI</span>
                   </div>
 
                   <div style={{ textAlign: 'center', marginBottom: '8px' }}>
@@ -505,7 +503,7 @@ export default function PremiumModal({
                     <rect x="6" y="82" width="12" height="12" fill="#000000" />
 
                     <rect x="38" y="38" width="24" height="24" fill="#000000" rx="3" />
-                    <text x="50" y="53" fill="#fff" fontSize="8" fontWeight="900" textAnchor="middle">DOKU</text>
+                    <text x="50" y="53" fill="#fff" fontSize="8" fontWeight="900" textAnchor="middle">QRIS</text>
 
                     <rect x="28" y="6" width="6" height="14" fill="#000000" />
                     <rect x="46" y="6" width="14" height="6" fill="#000000" />
@@ -591,7 +589,7 @@ export default function PremiumModal({
                 {isVerifying ? (
                   <>
                     <RefreshCw size={18} className="animate-spin" />
-                    <span>Memverifikasi ke Gateway DOKU...</span>
+                    <span>Memverifikasi Pembayaran...</span>
                   </>
                 ) : (
                   <>
@@ -641,7 +639,7 @@ export default function PremiumModal({
             </h3>
             
             <p style={{ fontSize: '0.85rem', lineHeight: '1.6', marginBottom: '22px', maxWidth: '380px', margin: '0 auto 22px auto' }}>
-              Pembayaran via DOKU Payment Gateway berhasil diverifikasi. Akun Anda kini resmi memiliki status <strong>USER PREMIUM</strong> dengan potongan biaya penarikan dompet 2% dan akses penuh ekosistem ngonten.id.
+              Pembayaran Anda telah berhasil diverifikasi. Akun Anda kini resmi memiliki status <strong>USER PREMIUM</strong> dengan potongan biaya penarikan dompet 2% dan akses penuh ekosistem ngonten.id.
             </p>
 
             <button
