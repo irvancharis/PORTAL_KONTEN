@@ -543,46 +543,29 @@ export default function EventsUserPortal({
   const [googleReviewScreenshot, setGoogleReviewScreenshot] = useState('');
 
   const handleAcceptOffer = (off) => {
-    // 1. Check if already registered
+    // 1. Update this offer status to 'accepted'
+    setOffers(prev => prev.map(o => o.id === off.id ? { ...o, status: 'accepted' } : o));
+
+    // 2. Automatically register creator to the event if not registered yet
     const alreadyRegistered = eventParticipants.some(p => p.eventId === off.eventId && p.username.toLowerCase() === currentUser.username.toLowerCase());
-    if (alreadyRegistered) {
-      alert(`Anda sudah terdaftar sebagai peserta di event "${off.eventTitle}". Undangan lain untuk event yang sama otomatis ditolak.`);
-      setOffers(prev => prev.map(o => 
-        (o.id === off.id || (o.eventId === off.eventId && o.recipient.toLowerCase() === currentUser.username.toLowerCase() && o.status === 'pending'))
-          ? { ...o, status: 'declined' } 
-          : o
-      ));
-      return;
+    if (!alreadyRegistered) {
+      const newPart = {
+        id: 'part_' + Date.now(),
+        eventId: off.eventId,
+        name: currentUser.username,
+        username: currentUser.username,
+        email: currentUser.email || `${currentUser.username}@ngonten.id`,
+        contact: `@${currentUser.username}`,
+        socialPlatform: 'instagram',
+        socialLink: `https://instagram.com/${currentUser.username}`,
+        status: 'approved',
+        verifiedAt: new Date().toISOString(),
+        registeredAt: new Date().toISOString()
+      };
+      setEventParticipants(prev => [...prev, newPart]);
     }
-
-    // 2. Update this offer status to 'accepted', and decline all other pending offers for the same event addressed to this creator
-    setOffers(prev => prev.map(o => {
-      if (o.id === off.id) {
-        return { ...o, status: 'accepted' };
-      }
-      if (o.eventId === off.eventId && o.recipient.toLowerCase() === currentUser.username.toLowerCase() && o.status === 'pending') {
-        return { ...o, status: 'declined' };
-      }
-      return o;
-    }));
-
-    // 3. Automatically register creator to the event
-    const newPart = {
-      id: 'part_' + Date.now(),
-      eventId: off.eventId,
-      name: currentUser.username,
-      username: currentUser.username,
-      email: currentUser.email || `${currentUser.username}@ngonten.id`,
-      contact: `@${currentUser.username}`,
-      socialPlatform: 'instagram', // Default fallback
-      socialLink: `https://instagram.com/${currentUser.username}`,
-      status: 'approved',
-      verifiedAt: new Date().toISOString(),
-      registeredAt: new Date().toISOString()
-    };
-    setEventParticipants([...eventParticipants, newPart]);
     
-    alert(`Undangan kolaborasi untuk event "${off.eventTitle}" berhasil diterima! Anda telah otomatis terdaftar.`);
+    alert(`Undangan kolaborasi untuk event "${off.eventTitle}" berhasil diterima!`);
   };
 
   const handleDeclineOffer = (off) => {
@@ -2744,82 +2727,72 @@ export default function EventsUserPortal({
                         </div>
                       )}
 
-                      {/* Right Block: Clear Action Buttons / Status Badges */}
+                      {/* Right Block: Action Buttons / Status Badges */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '0 0 auto' }}>
                         {off.status === 'pending' ? (
-                          isRegistered ? (
-                            <div style={{ 
-                              display: 'inline-flex', 
-                              alignItems: 'center', 
-                              gap: '6px', 
-                              padding: '8px 16px', 
-                              borderRadius: '10px', 
-                              fontSize: '0.84rem', 
-                              fontWeight: '700', 
-                              background: '#ecfdf5', 
-                              color: '#15803d', 
-                              border: '1px solid #a7f3d0' 
-                            }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleDeclineOffer(off)}
+                              style={{
+                                height: '38px',
+                                padding: '0 16px',
+                                borderRadius: '8px',
+                                fontSize: '0.84rem',
+                                fontWeight: '600',
+                                background: '#fef2f2',
+                                border: '1px solid #fecaca',
+                                color: '#b91c1c',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'all 0.2s ease',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              <XCircle size={15} />
+                              <span>Tolak</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleAcceptOffer(off)}
+                              style={{
+                                height: '38px',
+                                padding: '0 18px',
+                                borderRadius: '8px',
+                                fontSize: '0.84rem',
+                                fontWeight: '700',
+                                background: 'var(--text-primary)',
+                                color: 'var(--bg-main)',
+                                border: '1px solid var(--text-primary)',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                                transition: 'all 0.2s ease',
+                                boxSizing: 'border-box'
+                              }}
+                            >
                               <CheckCircle2 size={15} />
-                              <span>Sudah Terdaftar</span>
-                            </div>
-                          ) : (
-                            <>
-                              <button
-                                onClick={() => handleDeclineOffer(off)}
-                                style={{
-                                  padding: '8px 16px',
-                                  borderRadius: '8px',
-                                  fontSize: '0.84rem',
-                                  fontWeight: '700',
-                                  background: '#fef2f2',
-                                  border: '1px solid #fecaca',
-                                  color: '#b91c1c',
-                                  cursor: 'pointer',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '6px',
-                                  transition: 'all 0.2s ease'
-                                }}
-                              >
-                                <XCircle size={15} />
-                                <span>Tolak</span>
-                              </button>
-                              <button
-                                onClick={() => handleAcceptOffer(off)}
-                                className="btn btn-primary"
-                                style={{
-                                  padding: '8px 20px',
-                                  borderRadius: '8px',
-                                  fontSize: '0.84rem',
-                                  fontWeight: '800',
-                                  background: 'var(--text-primary)',
-                                  color: 'var(--bg-main)',
-                                  border: '1px solid var(--text-primary)',
-                                  cursor: 'pointer',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '6px',
-                                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
-                                }}
-                              >
-                                <CheckCircle2 size={15} />
-                                <span>Terima Undangan</span>
-                              </button>
-                            </>
-                          )
+                              <span>Terima Undangan</span>
+                            </button>
+                          </div>
                         ) : off.status === 'accepted' ? (
                           <div style={{ 
                             display: 'inline-flex', 
                             alignItems: 'center', 
                             gap: '6px', 
-                            padding: '8px 16px', 
-                            borderRadius: '10px', 
+                            height: '38px',
+                            padding: '0 16px', 
+                            borderRadius: '8px', 
                             fontSize: '0.84rem', 
                             fontWeight: '700', 
                             background: '#ecfdf5', 
                             color: '#15803d', 
-                            border: '1px solid #a7f3d0' 
+                            border: '1px solid #a7f3d0',
+                            boxSizing: 'border-box'
                           }}>
                             <CheckCircle2 size={15} />
                             <span>Undangan Diterima</span>
@@ -2829,13 +2802,15 @@ export default function EventsUserPortal({
                             display: 'inline-flex', 
                             alignItems: 'center', 
                             gap: '6px', 
-                            padding: '8px 16px', 
-                            borderRadius: '10px', 
+                            height: '38px',
+                            padding: '0 16px', 
+                            borderRadius: '8px', 
                             fontSize: '0.84rem', 
                             fontWeight: '700', 
                             background: '#fef2f2', 
                             color: '#b91c1c', 
-                            border: '1px solid #fecaca' 
+                            border: '1px solid #fecaca',
+                            boxSizing: 'border-box'
                           }}>
                             <XCircle size={15} />
                             <span>Undangan Ditolak</span>
