@@ -1516,17 +1516,14 @@ export default function AdminPanel({
         sendEmailNotification({
           toUsername: part.username,
           subject: `[ngonten.id] E-Tiket & Pendaftaran Disetujui: ${evTitle}`,
-          title: 'E-Tiket & Pendaftaran Event Anda Disetujui! 🎟️',
-          message: `Selamat! Pendaftaran Anda di event <strong>"${evTitle}"</strong> telah resmi disetujui oleh panitia. Pass E-Tiket Anda telah aktif. Silakan simpan dan tunjukkan kode tiket di bawah ini kepada panitia saat registrasi di lokasi acara.`,
+          title: 'E-Tiket & Pendaftaran Event Disetujui! 🎟️',
+          message: `Selamat! Pendaftaran dan pemesanan tiket Anda untuk event <strong>"${evTitle}"</strong> telah resmi disetujui oleh panitia. Pass E-Tiket Anda telah aktif di platform. Silakan klik tombol di bawah untuk melihat tiket QR resmi Anda saat registrasi di lokasi acara.`,
           type: 'ticket',
           eventTitle: evTitle,
-          actionUrl: ticketUrl,
+          actionUrl: evUrl,
           actionLabel: 'Lihat E-Tiket Saya',
-          secondaryActionUrl: evUrl,
-          secondaryActionLabel: 'Buka Halaman Event',
           metadata: {
             'Nama Peserta': part.name || part.username,
-            'Kode Tiket': part.ticketCode || '-',
             'Status': 'DISETUJUI & TIKET AKTIF'
           },
           usersList: users
@@ -1537,16 +1534,15 @@ export default function AdminPanel({
           toUsername: part.username,
           subject: `[ngonten.id] Pendaftaran Disetujui: ${evTitle}`,
           title: 'Pendaftaran Event Anda Disetujui! 🎉',
-          message: `Selamat! Pendaftaran Anda di event <strong>"${evTitle}"</strong> telah disetujui oleh Panitia. Anda kini dapat mulai mengirimkan karya atau menjalankan tugas kampanye sesuai petunjuk teknis.${hasTicket ? ' Pass E-Tiket resmi Anda juga telah aktif di bawah ini untuk akses masuk acara.' : ''}`,
+          message: `Selamat! Pendaftaran Anda di event <strong>"${evTitle}"</strong> telah disetujui oleh Panitia. Anda kini dapat mulai mengirimkan karya atau menjalankan tugas kampanye sesuai petunjuk teknis.${hasTicket ? ' Pass E-Tiket resmi Anda juga telah aktif di platform untuk akses masuk acara.' : ''}`,
           type: 'approval',
           eventTitle: evTitle,
           actionUrl: evUrl,
           actionLabel: 'Kirim Karya / Lihat Tugas',
-          secondaryActionUrl: hasTicket ? ticketUrl : null,
+          secondaryActionUrl: hasTicket ? evUrl : null,
           secondaryActionLabel: hasTicket ? 'Lihat E-Tiket' : null,
           metadata: {
             'Nama Peserta': part.name || part.username,
-            'Kode Tiket': part.ticketCode || '-',
             'Status': 'DISETUJUI'
           },
           usersList: users

@@ -82,15 +82,13 @@ export const generateEmailHtml = ({
 
   // Metadata table rows
   const metadataRows = Object.entries(metadata || {})
-    .filter(([key, val]) => val !== undefined && val !== null && val !== '' && key !== 'Kode Tiket')
+    .filter(([key, val]) => val !== undefined && val !== null && val !== '' && key !== 'Kode Tiket' && key !== 'Kode E-Tiket')
     .map(([key, val]) => `
       <tr>
         <td style="padding: 8px 12px; font-size: 13px; color: #64748b; font-weight: 500; border-bottom: 1px solid #f1f5f9; width: 35%;">${key}</td>
         <td style="padding: 8px 12px; font-size: 13px; color: #0f172a; font-weight: 600; border-bottom: 1px solid #f1f5f9;">${val}</td>
       </tr>
     `).join('');
-
-  const ticketCode = metadata?.['Kode Tiket'] || (type === 'ticket' ? metadata?.['Kode E-Tiket'] : null);
 
   return `
 <!DOCTYPE html>
@@ -156,21 +154,6 @@ export const generateEmailHtml = ({
               <div style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.65; color: #334155;">
                 ${message}
               </div>
-
-              <!-- E-Ticket Pass Box (if ticket) -->
-              ${ticketCode && ticketCode !== '-' ? `
-                <div style="margin: 0 0 26px 0; padding: 20px; background-color: #09090b; border-radius: 12px; text-align: center; border: 2px dashed #38bdf8; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
-                  <div style="font-size: 11px; font-weight: 800; color: #38bdf8; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px;">
-                    🎟️ PASS E-TIKET RESMI
-                  </div>
-                  <div style="font-size: 28px; font-weight: 900; color: #ffffff; letter-spacing: 4px; font-family: monospace; padding: 6px 0;">
-                    ${ticketCode}
-                  </div>
-                  <div style="font-size: 12px; color: #94a3b8; margin-top: 6px;">
-                    Tunjukkan kode tiket ini pada panitia saat registrasi di lokasi acara.
-                  </div>
-                </div>
-              ` : ''}
 
               <!-- Metadata Table (if provided) -->
               ${metadataRows ? `
