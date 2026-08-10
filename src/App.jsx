@@ -1008,69 +1008,26 @@ export default function App() {
                     Avatar / Logo Akun (Opsional)
                   </label>
                   
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '14px',
-                    padding: '12px 16px',
-                    borderRadius: '12px',
-                    background: 'var(--bg-card-hover, rgba(255, 255, 255, 0.03))',
-                    border: '1px solid var(--border-color)',
-                    flexWrap: 'wrap'
-                  }}>
+                  <div className="avatar-uploader-box">
                     {/* Avatar Preview or Default Camera Circle */}
                     {editProfileAvatar ? (
-                      <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <div className="avatar-preview-wrapper">
                         <img 
                           src={editProfileAvatar} 
                           alt="Preview Avatar" 
-                          style={{
-                            width: '54px',
-                            height: '54px',
-                            borderRadius: '50%',
-                            objectFit: 'cover',
-                            border: '2px solid var(--primary, #3b82f6)',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                          }}
+                          className="avatar-preview-img"
                         />
                         <button
                           type="button"
                           onClick={() => setEditProfileAvatar('')}
-                          style={{
-                            position: 'absolute',
-                            top: '-3px',
-                            right: '-3px',
-                            background: '#ef4444',
-                            color: '#ffffff',
-                            border: '2px solid #ffffff',
-                            borderRadius: '50%',
-                            width: '20px',
-                            height: '20px',
-                            fontSize: '11px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-                          }}
+                          className="avatar-delete-badge"
                           title="Hapus foto"
                         >
-                          <X size={12} strokeWidth={3} />
+                          <X size={11} strokeWidth={3} />
                         </button>
                       </div>
                     ) : (
-                      <div style={{
-                        width: '54px',
-                        height: '54px',
-                        borderRadius: '50%',
-                        background: 'rgba(255, 255, 255, 0.06)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: '2px dashed var(--border-hover, #cbd5e1)',
-                        color: 'var(--text-muted)'
-                      }}>
+                      <div className="avatar-preview-empty">
                         <Camera size={22} />
                       </div>
                     )}
@@ -1078,20 +1035,7 @@ export default function App() {
                     {/* Action Upload & Guidelines */}
                     <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <label style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '7px 16px',
-                          background: 'var(--text-primary)',
-                          color: 'var(--bg-main)',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          fontSize: '0.82rem',
-                          fontWeight: '700',
-                          transition: 'all 0.2s ease',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
-                        }}>
+                        <label className="btn-avatar-primary">
                           <Upload size={14} />
                           <span>{editProfileAvatar ? 'Ganti Foto' : 'Pilih Foto Avatar'}</span>
                           <input 
@@ -1119,19 +1063,7 @@ export default function App() {
                           <button
                             type="button"
                             onClick={() => setEditProfileAvatar('')}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              padding: '7px 12px',
-                              background: 'transparent',
-                              border: '1px solid rgba(239, 68, 68, 0.4)',
-                              color: '#ef4444',
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                              fontSize: '0.8rem',
-                              fontWeight: '600'
-                            }}
+                            className="btn-avatar-secondary"
                           >
                             <Trash2 size={13} />
                             <span>Hapus</span>
@@ -1786,88 +1718,32 @@ export default function App() {
 
                       <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Upload Logo Komunitas (Opsional)</label>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '14px',
-                          padding: '12px 16px',
-                          borderRadius: '12px',
-                          background: 'var(--bg-card-hover, rgba(255, 255, 255, 0.03))',
-                          border: '1px solid var(--border-color)',
-                          flexWrap: 'wrap'
-                        }}>
+                        <div className="avatar-uploader-box">
                           {registerAvatar ? (
-                            <div style={{ position: 'relative', display: 'inline-block' }}>
+                            <div className="avatar-preview-wrapper">
                               <img 
                                 src={registerAvatar} 
                                 alt="Logo Preview" 
-                                style={{
-                                  width: '54px',
-                                  height: '54px',
-                                  borderRadius: '50%',
-                                  objectFit: 'cover',
-                                  border: '2px solid var(--primary, #3b82f6)',
-                                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                                }}
+                                className="avatar-preview-img"
                               />
                               <button
                                 type="button"
                                 onClick={() => setRegisterAvatar('')}
-                                style={{
-                                  position: 'absolute',
-                                  top: '-3px',
-                                  right: '-3px',
-                                  background: '#ef4444',
-                                  color: '#ffffff',
-                                  border: '2px solid #ffffff',
-                                  borderRadius: '50%',
-                                  width: '20px',
-                                  height: '20px',
-                                  fontSize: '11px',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-                                }}
+                                className="avatar-delete-badge"
                                 title="Hapus logo"
                               >
-                                <X size={12} strokeWidth={3} />
+                                <X size={11} strokeWidth={3} />
                               </button>
                             </div>
                           ) : (
-                            <div style={{
-                              width: '54px',
-                              height: '54px',
-                              borderRadius: '50%',
-                              background: 'rgba(255, 255, 255, 0.06)',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              border: '2px dashed var(--border-hover, #cbd5e1)',
-                              color: 'var(--text-muted)'
-                            }}>
+                            <div className="avatar-preview-empty">
                               <Camera size={22} />
                             </div>
                           )}
 
                           <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                              <label style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                padding: '7px 16px',
-                                background: 'var(--text-primary)',
-                                color: 'var(--bg-main)',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '0.82rem',
-                                fontWeight: '700',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
-                              }}>
+                              <label className="btn-avatar-primary">
                                 <Upload size={14} />
                                 <span>{registerAvatar ? 'Ganti Logo' : 'Pilih Logo Komunitas'}</span>
                                 <input 
@@ -1882,19 +1758,7 @@ export default function App() {
                                 <button
                                   type="button"
                                   onClick={() => setRegisterAvatar('')}
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    padding: '7px 12px',
-                                    background: 'transparent',
-                                    border: '1px solid rgba(239, 68, 68, 0.4)',
-                                    color: '#ef4444',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.8rem',
-                                    fontWeight: '600'
-                                  }}
+                                  className="btn-avatar-secondary"
                                 >
                                   <Trash2 size={13} />
                                   <span>Hapus</span>
