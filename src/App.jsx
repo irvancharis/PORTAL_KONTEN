@@ -13,11 +13,13 @@ import DiscoverPage from './pages/DiscoverPage';
 import CommunitiesPage from './pages/CommunitiesPage';
 import ProfilePage from './pages/ProfilePage';
 import TicketPassPage from './components/TicketPassPage';
+import OpenClawModal from './components/OpenClawModal';
 import SearchableSelect from './components/SearchableSelect';
 import useAppState from './hooks/useAppState';
 import { slugify, formatIndonesianDate, fetchJSONP } from './utils/helpers';
 import { isFirebaseConfigured, auth, saveFirestoreUser } from './firebase';
 import { 
+  Bot,
   Bookmark, 
   BookmarkCheck, 
   Calendar, 
@@ -297,6 +299,8 @@ export default function App() {
     handleAwardEventGift,
     handleRedeemGiftCode
   } = state;
+
+  const [isOpenClawModalOpen, setIsOpenClawModalOpen] = React.useState(false);
 
   // Standalone dedicated Ticket Page (New Tab / Direct Link from Email)
   if (activeTicketParam) {
@@ -2177,6 +2181,70 @@ export default function App() {
             ✕
           </button>
         </div>
+      )}
+
+      {/* OpenClaw Floating Agent Trigger Button (Owner / Superadmin Only) */}
+      {currentUser && (currentUser.role === 'superadmin' || currentUser.username === 'admin') && (
+        <>
+          <button
+            onClick={() => setIsOpenClawModalOpen(true)}
+            className="openclaw-floating-btn animate-fade-in"
+            title="OpenClaw Owner AI & Data Analyst"
+            style={{
+              position: 'fixed',
+              bottom: isMobile ? '80px' : '24px',
+              right: '24px',
+              zIndex: 990,
+              background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+              color: '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '50px',
+              padding: '10px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 8px 24px rgba(79, 70, 229, 0.4)',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '13px',
+              transition: 'transform 0.2s, box-shadow 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 12px 28px rgba(79, 70, 229, 0.55)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(79, 70, 229, 0.4)';
+            }}
+          >
+            <Bot size={18} />
+            <span>OpenClaw AI</span>
+            <span style={{
+              fontSize: '9px',
+              background: '#22c55e',
+              color: '#ffffff',
+              padding: '1px 6px',
+              borderRadius: '10px',
+              fontWeight: 'bold'
+            }}>OWNER</span>
+          </button>
+
+          {/* OpenClaw Data Analyst & Action Modal */}
+          <OpenClawModal
+            isOpen={isOpenClawModalOpen}
+            onClose={() => setIsOpenClawModalOpen(false)}
+            platformData={{
+              users,
+              events,
+              eventSubmissions,
+              financialJournals,
+              movies,
+              communities,
+              currentUser
+            }}
+          />
+        </>
       )}
 
       {/* PWA Prompt */}

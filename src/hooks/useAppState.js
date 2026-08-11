@@ -54,6 +54,7 @@ import {
 import moviesData from '../data/movies.json';
 import { slugify, formatIndonesianDate, fetchJSONP } from '../utils/helpers';
 import INDONESIAN_REGIONS from '../data/regions.json';
+import { dispatchOpenClawEvent } from '../services/openClawService';
 
 const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbww9byb9H5SIW_HknSEVJJe-oY9S--NaeKSPjcQ6IBACzoQc38oZ36bQqm__60gncIxxA/exec';
 
@@ -1140,6 +1141,13 @@ export default function useAppState() {
           userRegional: registerRegional.trim()
         };
         await saveFirestoreUser(newUser);
+        dispatchOpenClawEvent('new_user', {
+          id: newUser.id,
+          name: newUser.username || newUser.organizerName,
+          email: newUser.email,
+          role: newUser.role,
+          regional: newUser.userRegional
+        });
         if (isComm) {
           const newComm = {
             id: newUser.username,
@@ -1934,6 +1942,15 @@ export default function useAppState() {
             } else {
               for (const e of updated) {
                 const existing = prev.find(old => old.id === e.id);
+                if (!existing) {
+                  dispatchOpenClawEvent('new_event', {
+                    title: e.title,
+                    category: e.category,
+                    organizer: e.organizer,
+                    prizePool: e.prizePool || e.budget,
+                    deadline: e.deadline || e.date
+                  });
+                }
                 if (!existing || JSON.stringify(existing) !== JSON.stringify(e)) {
                   await saveFirestoreEvent(e);
                 }
@@ -1954,6 +1971,15 @@ export default function useAppState() {
         } else {
           for (const e of newEvents) {
             const existing = prev.find(old => old.id === e.id);
+            if (!existing) {
+              dispatchOpenClawEvent('new_event', {
+                title: e.title,
+                category: e.category,
+                organizer: e.organizer,
+                prizePool: e.prizePool || e.budget,
+                deadline: e.deadline || e.date
+              });
+            }
             if (!existing || JSON.stringify(existing) !== JSON.stringify(e)) {
               await saveFirestoreEvent(e);
             }
@@ -2028,6 +2054,13 @@ export default function useAppState() {
             } else {
               for (const s of updated) {
                 const existing = prev.find(old => old.id === s.id);
+                if (!existing) {
+                  dispatchOpenClawEvent('new_submission', {
+                    eventTitle: s.eventTitle || 'Submission Event',
+                    creatorName: s.creatorName || s.participantName || s.username || 'Kreator',
+                    submissionUrl: s.submissionUrl || s.videoUrl || s.link || '-'
+                  });
+                }
                 if (!existing || JSON.stringify(existing) !== JSON.stringify(s)) {
                   await saveFirestoreEventSubmission(s);
                 }
@@ -2048,6 +2081,13 @@ export default function useAppState() {
         } else {
           for (const s of newSubmissions) {
             const existing = prev.find(old => old.id === s.id);
+            if (!existing) {
+              dispatchOpenClawEvent('new_submission', {
+                eventTitle: s.eventTitle || 'Submission Event',
+                creatorName: s.creatorName || s.participantName || s.username || 'Kreator',
+                submissionUrl: s.submissionUrl || s.videoUrl || s.link || '-'
+              });
+            }
             if (!existing || JSON.stringify(existing) !== JSON.stringify(s)) {
               await saveFirestoreEventSubmission(s);
             }
