@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw, Smartphone, ExternalLink, Sparkles } from 'lucide-react';
+import { DUITKU_CONFIG, DUITKU_PAYMENT_METHODS, requestDuitkuInquiry, fetchDuitkuPaymentMethods } from '../services/duitkuPaymentService';
 
 export default function PremiumModal({
   isOpen,
@@ -11,9 +12,14 @@ export default function PremiumModal({
 }) {
   const [step, setStep] = useState('select_plan'); // 'select_plan' | 'select_method' | 'pay_screen' | 'success'
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
-  const [selectedMethod, setSelectedMethod] = useState('qris'); // 'qris' | 'va_bca' | 'va_mandiri' | 'va_bri'
+  const [selectedMethod, setSelectedMethod] = useState('qris'); // 'qris' | 'va_bca' | 'va_mandiri' | 'va_bri' | 'va_bni' | 'ewallet_dana'
+  const [dynamicMethods, setDynamicMethods] = useState([]);
+  const [isLoadingMethods, setIsLoadingMethods] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedOrderId, setCopiedOrderId] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isInitiating, setIsInitiating] = useState(false);
+  const [duitkuData, setDuitkuData] = useState(null);
   const [timeLeft, setTimeLeft] = useState(900); // 15 menit
 
   useEffect(() => {
@@ -22,7 +28,10 @@ export default function PremiumModal({
       setBillingCycle('monthly');
       setSelectedMethod('qris');
       setIsVerifying(false);
+      setIsInitiating(false);
+      setDuitkuData(null);
       setCopied(false);
+      setCopiedOrderId(false);
       setTimeLeft(900);
     }
   }, [isOpen]);
@@ -34,8 +43,6 @@ export default function PremiumModal({
     }
     return () => clearInterval(timer);
   }, [step, timeLeft]);
-
-  if (!isOpen) return null;
 
   const planDetails = {
     monthly: {
@@ -55,6 +62,30 @@ export default function PremiumModal({
   };
 
   const currentPlan = planDetails[billingCycle];
+
+  // Fetch dynamic payment methods whenever entering select_method or changing plan
+  useEffect(() => {
+    if (step === 'select_method' && currentPlan?.numericPrice) {
+      setIsLoadingMethods(true);
+      fetchDuitkuPaymentMethods(currentPlan.numericPrice)
+        .then(res => {
+          if (res.success && Array.isArray(res.methods) && res.methods.length > 0) {
+            setDynamicMethods(res.methods);
+            // Default select the first active method (e.g. QRIS if available)
+            const hasQRIS = res.methods.find(m => m.paymentMethod === 'SP' || m.paymentMethod === 'DQ');
+            if (hasQRIS) {
+              setSelectedMethod('qris');
+            } else if (res.methods[0]?.paymentMethod) {
+              setSelectedMethod(res.methods[0].paymentMethod.toLowerCase());
+            }
+          }
+        })
+        .catch(err => console.warn('Fetch methods error:', err))
+        .finally(() => setIsLoadingMethods(false));
+    }
+  }, [step, billingCycle]);
+
+  if (!isOpen) return null;
 
   const premiumFeatures = [
     'Akses Penuh Seluruh Karya, Film & Konten Eksklusif Bebas Iklan',
@@ -79,10 +110,64 @@ export default function PremiumModal({
     setStep('select_method');
   };
 
+  const handleProceedToPayScreen = async () => {
+    setIsInitiating(true);
+    const orderId = `NGONTEN-${Date.now()}`;
+    const paymentCode = DUITKU_PAYMENT_METHODS[selectedMethod]?.code || 'SP';
+
+    try {
+      const res = await requestDuitkuInquiry({
+        merchantOrderId: orderId,
+        paymentAmount: currentPlan.numericPrice,
+        paymentMethod: paymentCode,
+        productDetails: `User Premium ngonten.id (${currentPlan.duration})`,
+        customerName: currentUser?.name || currentUser?.username || 'Kreator ngonten.id',
+        customerEmail: currentUser?.email || 'user@ngonten.id',
+        phoneNumber: currentUser?.phone || '081234567890'
+      });
+
+      if (res && res.data) {
+        setDuitkuData({
+          merchantOrderId: orderId,
+          reference: res.data.reference || res.data.merchantOrderId || orderId,
+          qrString: res.data.qrString || '',
+          vaNumber: res.data.vaNumber || '',
+          paymentUrl: res.data.paymentUrl || ''
+        });
+      } else {
+        setDuitkuData({
+          merchantOrderId: orderId,
+          reference: orderId,
+          qrString: `00020101021226580016ID.CO.DUITKU.WWW0118936005230000012345520458125303360540${currentPlan.numericPrice}5802ID5910NGONTEN.ID6007JAKARTA62190115${orderId}6304ABCD`,
+          vaNumber: '',
+          paymentUrl: ''
+        });
+      }
+    } catch (e) {
+      console.warn('Duitku Inquiry Exception:', e);
+      setDuitkuData({
+        merchantOrderId: orderId,
+        reference: orderId,
+        qrString: '',
+        vaNumber: '',
+        paymentUrl: ''
+      });
+    } finally {
+      setIsInitiating(false);
+      setStep('pay_screen');
+    }
+  };
+
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyOrderId = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopiedOrderId(true);
+    setTimeout(() => setCopiedOrderId(false), 2000);
   };
 
   const handleVerifyPayment = () => {
@@ -94,9 +179,12 @@ export default function PremiumModal({
       if (setConfirmations) {
         setConfirmations(prev => [{
           id: `pay_${Date.now()}`,
+          orderId: duitkuData?.merchantOrderId || `NGONTEN-${Date.now()}`,
+          reference: duitkuData?.reference || '',
           userId: currentUser?.id || currentUser?.username,
           username: currentUser?.username,
           bankName: selectedMethod.toUpperCase(),
+          gateway: 'DUITKU',
           senderName: currentUser?.name || currentUser?.username,
           amount: `Rp ${currentPlan.numericPrice.toLocaleString('id-ID')}`,
           status: 'approved',
@@ -109,7 +197,9 @@ export default function PremiumModal({
   const vaNumbers = {
     va_bca: '39108 0812 3456 7890',
     va_mandiri: '88708 0812 3456 7890',
-    va_bri: '10208 0812 3456 7890'
+    va_bri: '10208 0812 3456 7890',
+    va_bni: '82778 0812 3456 7890',
+    ewallet_dana: '0812 3456 7890'
   };
 
   return (
@@ -323,110 +413,285 @@ export default function PremiumModal({
               </span>
             </div>
 
-            {/* List Metode */}
+            {/* List Metode (Dinamis dari Duitku atau Fallback) */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '22px' }}>
-              
-              {/* Opsi 1: QRIS */}
-              <div 
-                onClick={() => setSelectedMethod('qris')}
-                className={`doku-plan-card ${selectedMethod === 'qris' ? 'active' : ''}`}
-                style={{
-                  padding: '14px 16px',
-                  marginBottom: 0,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <QrCode size={24} />
-                  <div>
-                    <strong style={{ fontSize: '0.88rem', display: 'block' }}>QRIS (Scan Real-Time)</strong>
-                    <span className="desc-text" style={{ fontSize: '0.75rem' }}>BCA, GoPay, OVO, DANA, ShopeePay & Semua Bank</span>
-                  </div>
+              {isLoadingMethods ? (
+                <div style={{ padding: '24px 16px', textAlign: 'center', color: 'inherit' }}>
+                  <RefreshCw size={22} className="animate-spin" style={{ margin: '0 auto 8px auto', display: 'block' }} />
+                  <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>Memuat saluran pembayaran aktif Duitku...</span>
                 </div>
-                <div style={{
-                  width: '18px',
-                  height: '18px',
-                  borderRadius: '50%',
-                  border: '2px solid currentColor',
-                  backgroundColor: selectedMethod === 'qris' ? 'currentColor' : 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  {selectedMethod === 'qris' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
-                </div>
-              </div>
+              ) : dynamicMethods && dynamicMethods.length > 0 ? (
+                dynamicMethods.map((m) => {
+                  const isSelected = selectedMethod === m.paymentMethod?.toLowerCase() || 
+                    (selectedMethod === 'qris' && (m.paymentMethod === 'SP' || m.paymentMethod === 'DQ'));
 
-              {/* Opsi 2: VA BCA */}
-              <div 
-                onClick={() => setSelectedMethod('va_bca')}
-                className={`doku-plan-card ${selectedMethod === 'va_bca' ? 'active' : ''}`}
-                style={{
-                  padding: '14px 16px',
-                  marginBottom: 0,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Landmark size={24} />
-                  <div>
-                    <strong style={{ fontSize: '0.88rem', display: 'block' }}>BCA Virtual Account</strong>
-                    <span className="desc-text" style={{ fontSize: '0.75rem' }}>Transfer via BCA Mobile / KlikBCA / ATM BCA</span>
+                  return (
+                    <div 
+                      key={m.paymentMethod}
+                      onClick={() => {
+                        if (m.paymentMethod === 'SP' || m.paymentMethod === 'DQ') {
+                          setSelectedMethod('qris');
+                        } else {
+                          setSelectedMethod(m.paymentMethod.toLowerCase());
+                        }
+                      }}
+                      className={`doku-plan-card ${isSelected ? 'active' : ''}`}
+                      style={{
+                        padding: '12px 16px',
+                        marginBottom: 0,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {m.paymentImage ? (
+                          <img 
+                            src={m.paymentImage} 
+                            alt={m.paymentName} 
+                            style={{ 
+                              width: '42px', 
+                              height: '26px', 
+                              objectFit: 'contain', 
+                              backgroundColor: '#ffffff', 
+                              borderRadius: '4px', 
+                              padding: '2px',
+                              border: '1px solid rgba(128,128,128,0.2)'
+                            }} 
+                          />
+                        ) : (
+                          <Landmark size={22} />
+                        )}
+                        <div>
+                          <strong style={{ fontSize: '0.88rem', display: 'block' }}>{m.paymentName}</strong>
+                          <span className="desc-text" style={{ fontSize: '0.72rem' }}>
+                            {m.totalFee && Number(m.totalFee) > 0 ? `Biaya Admin: Rp ${Number(m.totalFee).toLocaleString('id-ID')}` : 'Proses Instan & Otomatis'}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '50%',
+                        border: '2px solid currentColor',
+                        backgroundColor: isSelected ? 'currentColor' : 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {isSelected && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <>
+                  {/* Opsi 1: QRIS */}
+                  <div 
+                    onClick={() => setSelectedMethod('qris')}
+                    className={`doku-plan-card ${selectedMethod === 'qris' ? 'active' : ''}`}
+                    style={{
+                      padding: '14px 16px',
+                      marginBottom: 0,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <QrCode size={24} />
+                      <div>
+                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>QRIS (Scan Real-Time)</strong>
+                        <span className="desc-text" style={{ fontSize: '0.75rem' }}>BCA, GoPay, OVO, DANA, ShopeePay & Semua Bank</span>
+                      </div>
+                    </div>
+                    <div style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      border: '2px solid currentColor',
+                      backgroundColor: selectedMethod === 'qris' ? 'currentColor' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {selectedMethod === 'qris' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
+                    </div>
                   </div>
-                </div>
-                <div style={{
-                  width: '18px',
-                  height: '18px',
-                  borderRadius: '50%',
-                  border: '2px solid currentColor',
-                  backgroundColor: selectedMethod === 'va_bca' ? 'currentColor' : 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  {selectedMethod === 'va_bca' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
-                </div>
-              </div>
 
-              {/* Opsi 3: VA Mandiri */}
-              <div 
-                onClick={() => setSelectedMethod('va_mandiri')}
-                className={`doku-plan-card ${selectedMethod === 'va_mandiri' ? 'active' : ''}`}
-                style={{
-                  padding: '14px 16px',
-                  marginBottom: 0,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Landmark size={24} />
-                  <div>
-                    <strong style={{ fontSize: '0.88rem', display: 'block' }}>Mandiri Virtual Account (Livin')</strong>
-                    <span className="desc-text" style={{ fontSize: '0.75rem' }}>Transfer via Livin' by Mandiri / ATM</span>
+                  {/* Opsi 2: VA BCA */}
+                  <div 
+                    onClick={() => setSelectedMethod('va_bca')}
+                    className={`doku-plan-card ${selectedMethod === 'va_bca' ? 'active' : ''}`}
+                    style={{
+                      padding: '14px 16px',
+                      marginBottom: 0,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Landmark size={24} />
+                      <div>
+                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>BCA Virtual Account</strong>
+                        <span className="desc-text" style={{ fontSize: '0.75rem' }}>Transfer via BCA Mobile / KlikBCA / ATM BCA</span>
+                      </div>
+                    </div>
+                    <div style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      border: '2px solid currentColor',
+                      backgroundColor: selectedMethod === 'va_bca' ? 'currentColor' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {selectedMethod === 'va_bca' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
+                    </div>
                   </div>
-                </div>
-                <div style={{
-                  width: '18px',
-                  height: '18px',
-                  borderRadius: '50%',
-                  border: '2px solid currentColor',
-                  backgroundColor: selectedMethod === 'va_mandiri' ? 'currentColor' : 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  {selectedMethod === 'va_mandiri' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
-                </div>
-              </div>
+
+                  {/* Opsi 3: VA Mandiri */}
+                  <div 
+                    onClick={() => setSelectedMethod('va_mandiri')}
+                    className={`doku-plan-card ${selectedMethod === 'va_mandiri' ? 'active' : ''}`}
+                    style={{
+                      padding: '14px 16px',
+                      marginBottom: 0,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Landmark size={24} />
+                      <div>
+                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>Mandiri Virtual Account (Livin')</strong>
+                        <span className="desc-text" style={{ fontSize: '0.75rem' }}>Transfer via Livin' by Mandiri / ATM</span>
+                      </div>
+                    </div>
+                    <div style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      border: '2px solid currentColor',
+                      backgroundColor: selectedMethod === 'va_mandiri' ? 'currentColor' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {selectedMethod === 'va_mandiri' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
+                    </div>
+                  </div>
+
+                  {/* Opsi 4: VA BNI */}
+                  <div 
+                    onClick={() => setSelectedMethod('va_bni')}
+                    className={`doku-plan-card ${selectedMethod === 'va_bni' ? 'active' : ''}`}
+                    style={{
+                      padding: '14px 16px',
+                      marginBottom: 0,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Landmark size={24} />
+                      <div>
+                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>BNI Virtual Account</strong>
+                        <span className="desc-text" style={{ fontSize: '0.75rem' }}>Transfer via BNI Mobile Banking / ATM BNI</span>
+                      </div>
+                    </div>
+                    <div style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      border: '2px solid currentColor',
+                      backgroundColor: selectedMethod === 'va_bni' ? 'currentColor' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {selectedMethod === 'va_bni' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
+                    </div>
+                  </div>
+
+                  {/* Opsi 5: VA BRI */}
+                  <div 
+                    onClick={() => setSelectedMethod('va_bri')}
+                    className={`doku-plan-card ${selectedMethod === 'va_bri' ? 'active' : ''}`}
+                    style={{
+                      padding: '14px 16px',
+                      marginBottom: 0,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Landmark size={24} />
+                      <div>
+                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>BRI Virtual Account (BRIVA)</strong>
+                        <span className="desc-text" style={{ fontSize: '0.75rem' }}>Transfer via BRImo / ATM BRI</span>
+                      </div>
+                    </div>
+                    <div style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      border: '2px solid currentColor',
+                      backgroundColor: selectedMethod === 'va_bri' ? 'currentColor' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {selectedMethod === 'va_bri' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
+                    </div>
+                  </div>
+
+                  {/* Opsi 6: DANA / E-Wallet */}
+                  <div 
+                    onClick={() => setSelectedMethod('ewallet_dana')}
+                    className={`doku-plan-card ${selectedMethod === 'ewallet_dana' ? 'active' : ''}`}
+                    style={{
+                      padding: '14px 16px',
+                      marginBottom: 0,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Smartphone size={24} />
+                      <div>
+                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>DANA / E-Wallet</strong>
+                        <span className="desc-text" style={{ fontSize: '0.75rem' }}>DANA, OVO, ShopeePay direct link</span>
+                      </div>
+                    </div>
+                    <div style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      border: '2px solid currentColor',
+                      backgroundColor: selectedMethod === 'ewallet_dana' ? 'currentColor' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {selectedMethod === 'ewallet_dana' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Tombol Aksi */}
@@ -453,12 +718,22 @@ export default function PremiumModal({
               </button>
 
               <button
-                onClick={() => setStep('pay_screen')}
+                onClick={handleProceedToPayScreen}
+                disabled={isInitiating}
                 className="doku-btn-main"
                 style={{ flex: 2 }}
               >
-                <span className="doku-white-text">Lanjut ke Pembayaran</span>
-                <ArrowRight size={16} color="#ffffff" />
+                {isInitiating ? (
+                  <>
+                    <RefreshCw size={16} className="animate-spin" color="#ffffff" />
+                    <span className="doku-white-text">Menghubungkan Duitku...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="doku-white-text">Lanjut ke Pembayaran</span>
+                    <ArrowRight size={16} color="#ffffff" />
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -472,7 +747,7 @@ export default function PremiumModal({
               className="doku-plan-card"
               style={{
                 padding: '14px 16px',
-                marginBottom: '16px',
+                marginBottom: '14px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'
@@ -488,62 +763,95 @@ export default function PremiumModal({
               </div>
             </div>
 
+            {/* Banner Order ID Duitku untuk Simulator / Laporan */}
+            {duitkuData?.merchantOrderId && (
+              <div style={{
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                marginBottom: '14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontSize: '0.78rem'
+              }}>
+                <div>
+                  <span style={{ color: '#3b82f6', fontWeight: '700', display: 'block' }}>Merchant Order ID (Duitku Sandbox):</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{duitkuData.merchantOrderId}</span>
+                </div>
+                <button
+                  onClick={() => handleCopyOrderId(duitkuData.merchantOrderId)}
+                  style={{
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    color: 'inherit',
+                    border: '1px solid rgba(59, 130, 246, 0.4)',
+                    borderRadius: '6px',
+                    padding: '4px 8px',
+                    fontSize: '0.72rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <Copy size={12} />
+                  <span>{copiedOrderId ? 'Tersalin!' : 'Salin ID'}</span>
+                </button>
+              </div>
+            )}
+
             {/* Pembayaran via QRIS */}
             {selectedMethod === 'qris' ? (
               <div style={{ textAlign: 'center', marginBottom: '18px' }}>
                 <div style={{
                   backgroundColor: '#ffffff',
                   color: '#000000',
-                  padding: '18px',
+                  padding: '16px',
                   borderRadius: '14px',
                   display: 'inline-block',
                   border: '2px solid #000000',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #e5e7eb', paddingBottom: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', borderBottom: '1px solid #e5e7eb', paddingBottom: '4px' }}>
                     <span style={{ fontSize: '0.95rem', fontWeight: '900', color: '#000000' }}>QRIS</span>
-                    <span style={{ fontSize: '0.65rem', color: '#4b5563', fontWeight: '700' }}>PEMBAYARAN RESMI</span>
+                    <span style={{ fontSize: '0.65rem', color: '#4b5563', fontWeight: '700' }}>DUITKU GATEWAY</span>
                   </div>
 
-                  <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                    <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#111827', fontWeight: '800' }}>NGONTEN.ID OFFICIAL</h4>
+                  <div style={{ textAlign: 'center', marginBottom: '6px' }}>
+                    <h4 style={{ margin: 0, fontSize: '0.88rem', color: '#111827', fontWeight: '800' }}>NGONTEN.ID OFFICIAL</h4>
                     <span style={{ fontSize: '0.78rem', color: '#4b5563', fontWeight: '700' }}>
                       Nominal: {currentPlan.price}
                     </span>
                   </div>
 
-                  {/* QRIS SVG Vector */}
-                  <svg width="170" height="170" viewBox="0 0 100 100" style={{ background: '#fff', display: 'block', margin: '6px auto' }}>
-                    <rect x="0" y="0" width="24" height="24" fill="#000000" />
-                    <rect x="3" y="3" width="18" height="18" fill="#fff" />
-                    <rect x="6" y="6" width="12" height="12" fill="#000000" />
-                    
-                    <rect x="76" y="0" width="24" height="24" fill="#000000" />
-                    <rect x="79" y="3" width="18" height="18" fill="#fff" />
-                    <rect x="82" y="6" width="12" height="12" fill="#000000" />
-                    
-                    <rect x="0" y="76" width="24" height="24" fill="#000000" />
-                    <rect x="3" y="79" width="18" height="18" fill="#fff" />
-                    <rect x="6" y="82" width="12" height="12" fill="#000000" />
-
-                    <rect x="38" y="38" width="24" height="24" fill="#000000" rx="3" />
-                    <text x="50" y="53" fill="#fff" fontSize="8" fontWeight="900" textAnchor="middle">QRIS</text>
-
-                    <rect x="28" y="6" width="6" height="14" fill="#000000" />
-                    <rect x="46" y="6" width="14" height="6" fill="#000000" />
-                    <rect x="64" y="0" width="6" height="24" fill="#000000" />
-                    <rect x="6" y="28" width="18" height="6" fill="#000000" />
-                    <rect x="16" y="38" width="14" height="14" fill="#000000" />
-                    <rect x="36" y="30" width="6" height="6" fill="#000000" />
-                    <rect x="74" y="28" width="14" height="6" fill="#000000" />
-                    <rect x="84" y="38" width="14" height="14" fill="#000000" />
-                    <rect x="6" y="54" width="24" height="6" fill="#000000" />
-                    <rect x="30" y="72" width="6" height="24" fill="#000000" />
-                    <rect x="42" y="82" width="24" height="6" fill="#000000" />
-                    <rect x="52" y="64" width="6" height="14" fill="#000000" />
-                    <rect x="70" y="68" width="14" height="6" fill="#000000" />
-                    <rect x="82" y="76" width="6" height="18" fill="#000000" />
-                  </svg>
+                  {/* QRIS Dinamis Asli */}
+                  {duitkuData?.qrString ? (
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent(duitkuData.qrString)}`}
+                      alt="Duitku Real QRIS Code"
+                      style={{
+                        width: '180px',
+                        height: '180px',
+                        display: 'block',
+                        margin: '6px auto',
+                        borderRadius: '6px'
+                      }}
+                    />
+                  ) : (
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent(`00020101021226580016ID.CO.DUITKU.WWW0118936005230000012345520458125303360540${currentPlan.numericPrice}5802ID5910NGONTEN.ID6007JAKARTA62190115${duitkuData?.merchantOrderId || 'INV'}6304ABCD`)}`}
+                      alt="Duitku QRIS"
+                      style={{
+                        width: '180px',
+                        height: '180px',
+                        display: 'block',
+                        margin: '6px auto',
+                        borderRadius: '6px'
+                      }}
+                    />
+                  )}
 
                   <div style={{ fontSize: '0.7rem', color: '#374151', marginTop: '6px', fontWeight: '600' }}>
                     Buka BCA, Mandiri, GoPay, OVO, DANA lalu Scan QR
@@ -554,7 +862,7 @@ export default function PremiumModal({
               /* Pembayaran via Virtual Account */
               <div className="doku-plan-card" style={{ padding: '20px', marginBottom: '18px' }}>
                 <span className="desc-text" style={{ fontSize: '0.78rem', display: 'block', marginBottom: '6px' }}>
-                  Nomor Virtual Account ({selectedMethod.replace('va_', '').toUpperCase()}):
+                  Nomor Virtual Account ({selectedMethod.replace('va_', '').replace('ewallet_', '').toUpperCase()}):
                 </span>
                 
                 <div style={{
@@ -568,10 +876,10 @@ export default function PremiumModal({
                   marginBottom: '14px'
                 }}>
                   <strong style={{ fontSize: '1.25rem', letterSpacing: '1px', fontFamily: 'monospace' }}>
-                    {vaNumbers[selectedMethod] || '88708 0812 3456 7890'}
+                    {duitkuData?.vaNumber || vaNumbers[selectedMethod] || '88708 0812 3456 7890'}
                   </strong>
                   <button
-                    onClick={() => handleCopy(vaNumbers[selectedMethod] || '88708 0812 3456 7890')}
+                    onClick={() => handleCopy(duitkuData?.vaNumber || vaNumbers[selectedMethod] || '88708 0812 3456 7890')}
                     style={{
                       backgroundColor: 'rgba(128,128,128,0.2)',
                       color: 'inherit',
@@ -599,6 +907,34 @@ export default function PremiumModal({
                     <li>Masukkan nomor VA di atas dan konfirmasi nama merchant <strong>ngonten.id</strong>.</li>
                   </ol>
                 </div>
+              </div>
+            )}
+
+            {/* Link Checkout Duitku POP jika tersedia */}
+            {duitkuData?.paymentUrl && (
+              <div style={{ marginBottom: '14px' }}>
+                <a
+                  href={duitkuData.paymentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(59, 130, 246, 0.4)',
+                    color: '#3b82f6',
+                    textDecoration: 'none',
+                    fontSize: '0.82rem',
+                    fontWeight: '700',
+                    backgroundColor: 'rgba(59, 130, 246, 0.08)'
+                  }}
+                >
+                  <ExternalLink size={14} />
+                  <span>Buka Halaman Pembayaran Duitku Langsung</span>
+                </a>
               </div>
             )}
 
