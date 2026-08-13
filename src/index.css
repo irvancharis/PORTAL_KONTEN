@@ -5276,4 +5276,28 @@ select option {
   display: inline-block !important;
 }
 
+/* ==========================================================================
+   AI CHAT ASSISTANT USER BUBBLE (Pure White Text Guarantee)
+   ========================================================================== */
+.ai-chat-user-bubble,
+.ai-chat-user-bubble span,
+.ai-chat-user-bubble p,
+.ai-chat-user-bubble div,
+.ai-chat-user-bubble *,
+.light-theme .ai-chat-user-bubble,
+.light-theme .ai-chat-user-bubble span,
+.light-theme .ai-chat-user-bubble p,
+.light-theme .ai-chat-user-bubble div,
+.light-theme .ai-chat-user-bubble *,
+.dark-theme .ai-chat-user-bubble,
+.dark-theme .ai-chat-user-bubble span,
+.dark-theme .ai-chat-user-bubble p,
+.dark-theme .ai-chat-user-bubble div,
+.dark-theme .ai-chat-user-bubble * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-color: #4f46e5 !important;
+}
+
+
 

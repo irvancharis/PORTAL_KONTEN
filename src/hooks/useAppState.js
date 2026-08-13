@@ -1942,15 +1942,6 @@ export default function useAppState() {
             } else {
               for (const e of updated) {
                 const existing = prev.find(old => old.id === e.id);
-                if (!existing) {
-                  dispatchOpenClawEvent('new_event', {
-                    title: e.title,
-                    category: e.category,
-                    organizer: e.organizer,
-                    prizePool: e.prizePool || e.budget,
-                    deadline: e.deadline || e.date
-                  });
-                }
                 if (!existing || JSON.stringify(existing) !== JSON.stringify(e)) {
                   await saveFirestoreEvent(e);
                 }
@@ -1971,15 +1962,6 @@ export default function useAppState() {
         } else {
           for (const e of newEvents) {
             const existing = prev.find(old => old.id === e.id);
-            if (!existing) {
-              dispatchOpenClawEvent('new_event', {
-                title: e.title,
-                category: e.category,
-                organizer: e.organizer,
-                prizePool: e.prizePool || e.budget,
-                deadline: e.deadline || e.date
-              });
-            }
             if (!existing || JSON.stringify(existing) !== JSON.stringify(e)) {
               await saveFirestoreEvent(e);
             }
@@ -2054,13 +2036,6 @@ export default function useAppState() {
             } else {
               for (const s of updated) {
                 const existing = prev.find(old => old.id === s.id);
-                if (!existing) {
-                  dispatchOpenClawEvent('new_submission', {
-                    eventTitle: s.eventTitle || 'Submission Event',
-                    creatorName: s.creatorName || s.participantName || s.username || 'Kreator',
-                    submissionUrl: s.submissionUrl || s.videoUrl || s.link || '-'
-                  });
-                }
                 if (!existing || JSON.stringify(existing) !== JSON.stringify(s)) {
                   await saveFirestoreEventSubmission(s);
                 }
@@ -2081,13 +2056,6 @@ export default function useAppState() {
         } else {
           for (const s of newSubmissions) {
             const existing = prev.find(old => old.id === s.id);
-            if (!existing) {
-              dispatchOpenClawEvent('new_submission', {
-                eventTitle: s.eventTitle || 'Submission Event',
-                creatorName: s.creatorName || s.participantName || s.username || 'Kreator',
-                submissionUrl: s.submissionUrl || s.videoUrl || s.link || '-'
-              });
-            }
             if (!existing || JSON.stringify(existing) !== JSON.stringify(s)) {
               await saveFirestoreEventSubmission(s);
             }

@@ -1,6 +1,6 @@
 /**
- * openClawService.js
- * Layanan Integrasi OpenClaw Autonomous AI & Data Analyst Platform ngonten.id
+ * openClawService.js (ngonten.id AI Engine)
+ * Layanan Integrasi Autonomous AI & Data Analyst Platform ngonten.id
  * Menangani Webhook Notifikasi Real-Time, Pemantauan Data, Analisis & Tindakan Otomatis (Action Runner).
  */
 
@@ -9,8 +9,8 @@ const LOGS_STORAGE_KEY = 'openclaw-activity-logs';
 
 const defaultConfig = {
   enabled: true,
-  agentName: 'OpenClaw ngonten.id Analyst',
-  webhookUrl: '', // URL Webhook OpenClaw / N8N / Custom API
+  agentName: 'ngonten.id AI Analyst',
+  webhookUrl: '', // URL Webhook Custom API
   apiKey: '',
   telegramBotToken: '',
   telegramChatId: '',
@@ -25,20 +25,28 @@ const defaultConfig = {
 export const getOpenClawConfig = () => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? { ...defaultConfig, ...JSON.parse(saved) } : defaultConfig;
+    if (!saved) return defaultConfig;
+    const parsed = JSON.parse(saved);
+    return {
+      ...defaultConfig,
+      ...parsed,
+      telegramBotToken: parsed.telegramBotToken || defaultConfig.telegramBotToken,
+      telegramChatId: parsed.telegramChatId || defaultConfig.telegramChatId
+    };
   } catch (e) {
-    console.error('Failed to load OpenClaw config:', e);
+    console.error('Failed to load AI config:', e);
     return defaultConfig;
   }
 };
 
 export const saveOpenClawConfig = (newConfig) => {
   try {
-    const merged = { ...getOpenClawConfig(), ...newConfig };
+    const current = getOpenClawConfig();
+    const merged = { ...current, ...newConfig };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
     return merged;
   } catch (e) {
-    console.error('Failed to save OpenClaw config:', e);
+    console.error('Failed to save AI config:', e);
     return null;
   }
 };
@@ -56,7 +64,7 @@ export const addOpenClawLog = (logEntry) => {
   try {
     const current = getOpenClawLogs();
     const newEntry = {
-      id: 'oc_log_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      id: 'ai_log_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
       timestamp: new Date().toISOString(),
       ...logEntry
     };
@@ -64,7 +72,7 @@ export const addOpenClawLog = (logEntry) => {
     localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(updated));
     return newEntry;
   } catch (e) {
-    console.error('Failed to add OpenClaw log:', e);
+    console.error('Failed to add AI log:', e);
     return null;
   }
 };
@@ -95,7 +103,7 @@ export const sendTelegramNotification = async (token, chatId, text) => {
     }
     return { success: false, error: data.description || 'Gagal mengirim ke Telegram' };
   } catch (e) {
-    console.warn('OpenClaw Telegram notification error:', e);
+    console.warn('Telegram notification error:', e);
     return { success: false, error: e.message || 'Network error ke Telegram API' };
   }
 };
@@ -119,17 +127,30 @@ const sendDiscordNotification = async (webhookUrl, payload) => {
     });
     return res.ok;
   } catch (e) {
-    console.warn('OpenClaw Discord webhook error:', e);
+    console.warn('Discord webhook error:', e);
     return false;
   }
 };
 
+const dispatchedEventCache = new Map();
+
 /**
- * Dispatch Event ke OpenClaw (Webhook + Channels + Local Logs)
+ * Dispatch Event ke Channel & Local Logs
  */
 export const dispatchOpenClawEvent = async (eventType, payload) => {
   const config = getOpenClawConfig();
-  if (!config.enabled) return { success: false, reason: 'OpenClaw is disabled' };
+  if (!config.enabled) return { success: false, reason: 'AI service is disabled' };
+
+  // Anti-spam deduplication: prevent dispatching identical event within 60 seconds
+  const cacheKey = `${eventType}_${JSON.stringify(payload)}`;
+  const now = Date.now();
+  if (dispatchedEventCache.has(cacheKey)) {
+    const lastTime = dispatchedEventCache.get(cacheKey);
+    if (now - lastTime < 60000) {
+      return { skipped: true, reason: 'Duplicate event throttled' };
+    }
+  }
+  dispatchedEventCache.set(cacheKey, now);
 
   // Filter based on toggles
   if (eventType === 'new_event' && !config.notifyOnNewEvent) return { skipped: true };
@@ -142,13 +163,13 @@ export const dispatchOpenClawEvent = async (eventType, payload) => {
     new_user: '👤 PENGGUNA BARU TERDAFTAR',
     new_submission: '📩 KARYA / SUBMISSION BARU MASUK',
     new_transaction: '💰 TRANSAKSI / PEMBAYARAN BARU',
-    custom_action: '⚡ TINDAKAN OPENCLAW DIJALANKAN'
+    custom_action: '⚡ TINDAKAN AI DIJALANKAN'
   };
 
   const title = eventTitleMap[eventType] || `🔔 UPDATE: ${eventType.toUpperCase()}`;
   const nowStr = new Date().toLocaleString('id-ID');
 
-  let telegramText = `<b>[OpenClaw Alert - ngonten.id]</b>\n<b>${title}</b>\n<i>Waktu: ${nowStr}</i>\n\n`;
+  let telegramText = `<b>[ngonten.id Alert]</b>\n<b>${title}</b>\n<i>Waktu: ${nowStr}</i>\n\n`;
   if (eventType === 'new_event') {
     telegramText += `📌 <b>Judul:</b> ${payload.title || '-'}\n🏷 <b>Kategori:</b> ${payload.category || '-'}\n🏢 <b>Penyelenggara:</b> ${payload.organizer || '-'}\n🎁 <b>Hadiah/Budget:</b> ${payload.prizePool || payload.budget || '-'}`;
   } else if (eventType === 'new_user') {
@@ -169,7 +190,7 @@ export const dispatchOpenClawEvent = async (eventType, payload) => {
     status: 'dispatched'
   });
 
-  // 2. Dispatch to custom OpenClaw Webhook
+  // 2. Dispatch to custom Webhook jika ada
   let webhookSuccess = false;
   if (config.webhookUrl) {
     try {
@@ -189,7 +210,7 @@ export const dispatchOpenClawEvent = async (eventType, payload) => {
       });
       webhookSuccess = resp.ok;
     } catch (err) {
-      console.warn('OpenClaw Webhook dispatch failed:', err);
+      console.warn('Webhook dispatch failed:', err);
     }
   }
 
@@ -201,15 +222,17 @@ export const dispatchOpenClawEvent = async (eventType, payload) => {
   // 4. Dispatch to Discord Webhook
   if (config.discordWebhookUrl) {
     sendDiscordNotification(config.discordWebhookUrl, {
-      content: `**[OpenClaw Alert - ngonten.id]** ${title}\n` + '```json\n' + JSON.stringify(payload, null, 2).slice(0, 1500) + '\n```'
+      content: `**[ngonten.id Alert]** ${title}\n` + '```json\n' + JSON.stringify(payload, null, 2).slice(0, 1500) + '\n```'
     });
   }
 
   return { success: true, webhookSuccess };
 };
 
+const DEFAULT_GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY || "";
+
 /**
- * OpenClaw AI Data Analyst & Action Processor
+ * ngonten.id AI Data Analyst, Event Planner & Conversational AI Processor
  */
 export const queryOpenClawAnalyst = async (prompt, platformData) => {
   const { users = [], events = [], eventSubmissions = [], financialJournals = [], movies = [] } = platformData || {};
@@ -233,56 +256,120 @@ export const queryOpenClawAnalyst = async (prompt, platformData) => {
     recentUsers: users.slice(-5).map(u => ({ name: u.name, role: u.role, date: u.joinedAt || u.createdAt }))
   };
 
-  // Check if custom OpenClaw webhook supports analyst endpoint
   const config = getOpenClawConfig();
-  if (config.webhookUrl && config.webhookUrl.includes('openclaw')) {
+  const apiKeyToUse = config.apiKey || DEFAULT_GEMINI_KEY;
+
+  const systemInstructions = `Kamu adalah **ngonten.id AI**, asisten eksekutif serba bisa, Data Analyst senior, Event Planner handal, dan Strategic Partner resmi buatan platform **ngonten.id** (ekosistem kompetisi, portofolio, dan monetisasi kreator digital di Indonesia).
+
+Data Platform Real-Time Saat Ini:
+- Total Pengguna: ${totalUsers} user terdaftar
+- Total Event Lomba: ${totalEvents} event (${activeEvents} sedang aktif)
+- Total Karya Masuk: ${totalSubmissions} submissions
+- Total Portofolio: ${movies.length} konten
+- Estimasi Omset/Hadiah: Rp ${totalRevenue.toLocaleString('id-ID')}
+
+Karakter & Standar Jawabanmu:
+1. **Sangat Cerdas, Luas & Solutif**: Jika diminta ide event/lomba atau strategi pemasaran/budget, berikan rancangan yang kreatif, rinci, angka perhitungan yang realistis, target audiens, dan langkah promosinya.
+2. **Data Analyst Handal**: Jika ditanya performa atau evaluasi data, berikan analisis mendalam berbasis data nyata di atas beserta rekomendasi taktis.
+3. **Karyawan/Asisten Handal**: Mampu membuat draf copywriting, syarat & ketentuan lomba, rencana operasional, hingga strategi growth hacking.
+4. **Gaya Bahasa**: Profesional, visioner, antusias, komunikatif, dan terstruktur rapi menggunakan format Markdown (heading, bold, bullet points, numbered lists).`;
+
+  // 1. Prioritas Utama: Gemini AI Engine dengan Multi-Model Fallback
+  const geminiModels = [
+    "gemini-flash-latest",
+    "gemini-2.5-flash-lite",
+    "gemini-3.5-flash",
+    "gemini-2.5-flash"
+  ];
+
+  for (const modelName of geminiModels) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(apiKeyToUse)}`;
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: `${systemInstructions}\n\nPertanyaan/Instruksi Pengguna: ${prompt}` }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 8192
+          }
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+          const answerText = data.candidates[0].content.parts.map(p => p.text).join('').trim();
+          if (answerText) {
+            const pLower = prompt.toLowerCase();
+            let suggestedActions = [];
+            if (pLower.includes('event') || pLower.includes('lomba') || pLower.includes('kompetisi') || pLower.includes('tema')) {
+              suggestedActions = [
+                { id: 'highlight_active_events', label: '⭐ Sorot Event Aktif' },
+                { id: 'broadcast_event_reminder', label: '⏰ Kirim Pengingat Deadline' }
+              ];
+            } else if (pLower.includes('user') || pLower.includes('kreator') || pLower.includes('komunitas')) {
+              suggestedActions = [
+                { id: 'notify_new_users', label: '📢 Kirim Sambutan ke User Baru' }
+              ];
+            }
+
+            return {
+              text: answerText,
+              contextSummary,
+              suggestedActions
+            };
+          }
+        }
+      }
+    } catch {
+      // coba model berikutnya
+    }
+  }
+
+  // 2. Fallback: Custom Webhook jika ada
+  if (config.webhookUrl) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
       const res = await fetch(`${config.webhookUrl}/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(config.apiKey ? { 'Authorization': `Bearer ${config.apiKey}` } : {})
         },
-        body: JSON.stringify({ prompt, context: contextSummary })
+        body: JSON.stringify({ prompt, context: contextSummary }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const data = await res.json();
-        return data.response || data.analysis || data;
+        return typeof data === 'string' ? { text: data } : (data.response || data.analysis || data);
       }
-    } catch {
-      // Fallback to local intelligent analysis
-    }
+    } catch {}
   }
 
-  // Built-in Intelligent Analyst Engine
-  const p = prompt.toLowerCase();
-
+  // 3. Fallback Cerdas Terstruktur
+  const p = prompt.toLowerCase().trim();
   let responseText = '';
   let suggestedActions = [];
 
-  if (p.includes('user') || p.includes('pengguna')) {
-    responseText = `📊 **Analisis Pengguna (Total: ${totalUsers} Users)**\n- Pertumbuhan akun baru terpantau aktif.\n- Dominasi role saat ini adalah Kreator & Penonton.\n- **Rekomendasi:** Berikan onboarding email otomatis & panduan submit event untuk meningkatkan konversi kreator pertama kali.`;
-    suggestedActions = [
-      { id: 'notify_new_users', label: '📢 Kirim Pesan Sambutan ke User Baru' },
-      { id: 'promote_top_events', label: '🔥 Rekomendasikan Event Populer ke User' }
-    ];
-  } else if (p.includes('event') || p.includes('lomba') || p.includes('kompetisi')) {
-    responseText = `🏆 **Analisis Event & Lomba (Total: ${totalEvents} Event, ${activeEvents} Aktif)**\n- Rasio rata-rata submission per event adalah ${(totalSubmissions / (totalEvents || 1)).toFixed(1)} karya.\n- Event dengan batas waktu dekat memerlukan dorongan promosi tambahan untuk memaksimalkan jumlah karya masuk.`;
-    suggestedActions = [
-      { id: 'highlight_active_events', label: '⭐ Sorot Event Aktif di Beranda' },
-      { id: 'broadcast_event_reminder', label: '⏰ Kirim Pengingat Deadline Submission' }
-    ];
-  } else if (p.includes('uang') || p.includes('keuangan') || p.includes('revenue') || p.includes('omset') || p.includes('transaksi')) {
-    responseText = `💰 **Analisis Keuangan & Monetisasi**\n- Estimasi perputaran omset/hadiah tercatat: **Rp ${totalRevenue.toLocaleString('id-ID')}**.\n- Jalur monetisasi melalui tiket event, biaya submission berbayar, dan langganan kreator berjalan optimal.`;
-    suggestedActions = [
-      { id: 'generate_financial_report', label: '📑 Buat Laporan Ringkasan Keuangan' }
-    ];
+  const greetings = ['halo', 'hai', 'hello', 'hi', 'hei', 'pagi', 'siang', 'malam', 'tes', 'test', 'ping'];
+  if (greetings.some(g => p === g || p.startsWith(g + ' '))) {
+    responseText = `Halo! 👋 Saya **ngonten.id AI**, asisten eksekutif, data analyst, dan perancang strategi event untuk **ngonten.id**.\n\nApa yang ingin kita rencanakan hari ini?\n• 💡 **Ide & Konsep Lomba/Event Viral**\n• 📊 **Analisis Data & Pertumbuhan Kreator**\n• ✍️ **Drafting Copywriting & Syarat Ketentuan Event**\n• 🚀 **Strategi Pemasaran & Akuisisi User Baru**`;
   } else {
-    responseText = `🤖 **OpenClaw Platform Executive Summary (ngonten.id)**:\n\n• 👥 **Total User:** ${totalUsers} terdaftar\n• 🎪 **Total Event:** ${totalEvents} (${activeEvents} sedang aktif)\n• 🎬 **Total Karya Masuk:** ${totalSubmissions} submissions\n• 📈 **Total Konten Portofolio:** ${movies.length}\n\n💡 **Insight Strategis:** Aktivitas interaksi berjalan stabil. Rekomendasi tindakan otomatis siap dieksekusi di bawah ini.`;
-    suggestedActions = [
-      { id: 'highlight_active_events', label: '⭐ Sorot Event Terpopuler' },
-      { id: 'sync_openclaw_webhook', label: '🔄 Tes Ping & Sync Webhook OpenClaw' }
-    ];
+    responseText = `Halo! Menanggapi permintaan Anda mengenai *"${prompt}"*:\n\nSebagai partner data dan perencana event ngonten.id, saya menyarankan untuk mengombinasikan kompetisi berbasis karya video pendek berhadiah dengan kampanye referral komunitas. Silakan tentukan target peserta (pemula atau profesional) agar saya rancangkan panduan lengkapnya!`;
   }
 
   return {

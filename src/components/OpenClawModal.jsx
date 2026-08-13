@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Bot, 
   X, 
   Send, 
   Sparkles, 
-  Activity, 
   Settings, 
-  Bell, 
   CheckCircle, 
   AlertCircle, 
   RefreshCw, 
@@ -14,15 +12,14 @@ import {
   Users, 
   Calendar, 
   DollarSign, 
-  Radio, 
   Trash2,
-  ExternalLink
+  Copy,
+  Check,
+  ChevronLeft
 } from 'lucide-react';
 import { 
   getOpenClawConfig, 
   saveOpenClawConfig, 
-  getOpenClawLogs, 
-  clearOpenClawLogs, 
   dispatchOpenClawEvent, 
   queryOpenClawAnalyst,
   testTelegramNotification 
@@ -33,23 +30,37 @@ export default function OpenClawModal({
   onClose,
   platformData = {}
 }) {
-  const [activeTab, setActiveTab] = useState('analyst'); // 'analyst' | 'feed' | 'settings'
+  const [showSettings, setShowSettings] = useState(false);
   const [config, setConfig] = useState(getOpenClawConfig());
-  const [logs, setLogs] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [testStatus, setTestStatus] = useState(null);
+  const [copiedIdx, setCopiedIdx] = useState(null);
   const [messages, setMessages] = useState([
     {
       sender: 'claw',
-      text: 'Halo! Saya **OpenClaw AI Analyst & Action Agent** untuk ngonten.id. Saya siap menganalisis data user, event, submission, serta menjalankan action otomatis sesuai perintahmu.'
+      text: 'Halo! Saya **ngonten.id AI Analyst & Executive Assistant**. Ada data atau rencana strategi yang ingin kita diskusikan hari ini?'
     }
   ]);
+
+  const chatEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    if (!showSettings) {
+      scrollToBottom();
+    }
+  }, [messages, isAnalyzing, showSettings]);
 
   useEffect(() => {
     if (isOpen) {
       setConfig(getOpenClawConfig());
-      setLogs(getOpenClawLogs());
+      setTimeout(scrollToBottom, 150);
     }
   }, [isOpen]);
 
@@ -59,27 +70,12 @@ export default function OpenClawModal({
     e.preventDefault();
     const updated = saveOpenClawConfig(config);
     if (updated) {
-      setTestStatus({ type: 'success', message: 'Pengaturan OpenClaw berhasil disimpan!' });
-      setTimeout(() => setTestStatus(null), 3000);
+      setTestStatus({ type: 'success', message: 'Pengaturan AI ngonten.id berhasil disimpan!' });
+      setTimeout(() => {
+        setTestStatus(null);
+        setShowSettings(false);
+      }, 1500);
     }
-  };
-
-  const handleTestDispatch = async () => {
-    setTestStatus({ type: 'info', message: 'Mengirimkan test signal ke OpenClaw...' });
-    const result = await dispatchOpenClawEvent('new_event', {
-      title: 'Lomba Konten Kreator Nasional 2026 (Test)',
-      category: 'Videography & Film',
-      organizer: 'ngonten.id Official',
-      prizePool: 'Rp 15.000.000',
-      date: new Date().toLocaleDateString('id-ID')
-    });
-    setLogs(getOpenClawLogs());
-    if (result.success) {
-      setTestStatus({ type: 'success', message: 'Test event berhasil dikirim ke webhook & channel terhubung!' });
-    } else {
-      setTestStatus({ type: 'error', message: 'Gagal mengirim event. Cek konfigurasi webhook.' });
-    }
-    setTimeout(() => setTestStatus(null), 4000);
   };
 
   const handleSendMessage = async (customPrompt) => {
@@ -106,7 +102,7 @@ export default function OpenClawModal({
         ...prev,
         {
           sender: 'claw',
-          text: 'Maaf, terjadi kesalahan saat menghubungi OpenClaw analyst engine.'
+          text: 'Maaf, terjadi kendala saat memproses jawaban. Silakan coba kembali.'
         }
       ]);
     } finally {
@@ -119,7 +115,7 @@ export default function OpenClawModal({
       ...prev,
       {
         sender: 'claw',
-        text: `⚡ Menjalankan tindakan: **${action.label}**...`
+        text: `⚡ Menjalankan: **${action.label}**...`
       }
     ]);
 
@@ -129,376 +125,422 @@ export default function OpenClawModal({
       executedAt: new Date().toISOString()
     });
 
-    setLogs(getOpenClawLogs());
-
     setTimeout(() => {
       setMessages(prev => [
         ...prev,
         {
           sender: 'claw',
-          text: `✅ Tindakan **${action.label}** berhasil diproses & disinkronkan ke OpenClaw!`
+          text: `✅ Tindakan **${action.label}** berhasil diproses!`
         }
       ]);
     }, 600);
   };
 
+  const handleCopyText = (text, idx) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
+  };
+
+  const handleResetChat = () => {
+    setMessages([
+      {
+        sender: 'claw',
+        text: 'Obrolan telah dibersihkan. Silakan ajukan pertanyaan atau instruksi baru seputar ngonten.id.'
+      }
+    ]);
+  };
+
+  const renderFormattedText = (content) => {
+    if (!content) return null;
+    
+    const lines = content.split('\n');
+    return lines.map((line, i) => {
+      let trimmed = line.trim();
+      
+      // Heading 3 or 2
+      if (trimmed.startsWith('### ') || trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
+        const title = trimmed.replace(/^#+\s*/, '');
+        return <h4 key={i} style={{ margin: '12px 0 6px', fontSize: '14.5px', fontWeight: 'bold', color: '#1e293b' }}>{title}</h4>;
+      }
+      
+      // List items
+      if (trimmed.startsWith('• ') || trimmed.startsWith('- ') || trimmed.startsWith('* ') || /^\d+\.\s/.test(trimmed)) {
+        const formattedLine = parseBold(trimmed);
+        return (
+          <div key={i} style={{ display: 'flex', gap: '8px', marginLeft: '4px', margin: '4px 0' }}>
+            <span style={{ color: '#4f46e5', fontWeight: 'bold' }}>•</span>
+            <span style={{ flex: 1, color: '#334155' }}>{formattedLine}</span>
+          </div>
+        );
+      }
+
+      if (!trimmed) {
+        return <div key={i} style={{ height: '6px' }} />;
+      }
+
+      return (
+        <p key={i} style={{ margin: '4px 0', color: '#334155', lineHeight: '1.65' }}>
+          {parseBold(line)}
+        </p>
+      );
+    });
+  };
+
+  const parseBold = (text) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index} style={{ color: '#0f172a', fontWeight: '700' }}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-      <div style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '16px', width: '100%', maxWidth: '850px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)', color: '#f8fafc' }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+      <style>{`
+        .ai-chat-user-bubble {
+          background-color: #4f46e5 !important;
+          color: #ffffff !important;
+        }
+        .ai-chat-user-bubble * {
+          color: #ffffff !important;
+        }
+        .ai-chat-bubble-ai {
+          background-color: #ffffff !important;
+          color: #334155 !important;
+        }
+        .ai-chat-bubble-ai p, .ai-chat-bubble-ai span {
+          color: #334155 !important;
+        }
+        .ai-chat-bubble-ai strong, .ai-chat-bubble-ai h4, .ai-chat-bubble-ai b {
+          color: #0f172a !important;
+        }
+        .ai-input-field {
+          background-color: #ffffff !important;
+          color: #0f172a !important;
+        }
+        .ai-input-field::placeholder {
+          color: #94a3b8 !important;
+        }
+      `}</style>
+      <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '20px', width: '100%', maxWidth: '860px', height: '82vh', minHeight: '520px', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', color: '#0f172a', position: 'relative' }}>
         
-        {/* Modal Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid #1e293b', background: 'linear-gradient(90deg, #1e1b4b 0%, #0f172a 100%)' }}>
+        {/* Modern Clean Light Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid #e2e8f0', backgroundColor: '#ffffff' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-              <Bot size={24} />
+            <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', boxShadow: '0 4px 10px rgba(79, 70, 229, 0.25)' }}>
+              <Bot size={22} color="#ffffff" />
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>OpenClaw Autonomous Agent</h3>
-                <span style={{ fontSize: '10px', backgroundColor: '#22c55e20', color: '#4ade80', border: '1px solid #22c55e40', padding: '2px 8px', borderRadius: '999px', fontWeight: '600' }}>ONLINE</span>
+                <span style={{ fontSize: '16px', fontWeight: '700', letterSpacing: '-0.01em', color: '#0f172a' }}>ngonten.id AI</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10.5px', color: '#15803d', backgroundColor: '#dcfce7', border: '1px solid #bbf7d0', padding: '2px 8px', borderRadius: '20px', fontWeight: '700' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span> ONLINE
+                </span>
               </div>
-              <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8' }}>Data Analyst & Automated Action Runner ngonten.id</p>
+              <p style={{ margin: 0, fontSize: '11.5px', color: '#64748b' }}>Data Analyst & Executive AI Partner</p>
             </div>
           </div>
-          <button 
-            onClick={onClose}
-            style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '6px', borderRadius: '8px' }}
-          >
-            <X size={20} />
-          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button 
+              onClick={handleResetChat}
+              title="Bersihkan Percakapan"
+              style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#0f172a'; e.currentTarget.style.backgroundColor = '#f1f5f9'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <Trash2 size={16} />
+            </button>
+            <button 
+              onClick={() => setShowSettings(!showSettings)}
+              title="Pengaturan Telegram & Webhook"
+              style={{ background: showSettings ? '#f1f5f9' : 'none', border: 'none', color: showSettings ? '#4f46e5' : '#64748b', cursor: 'pointer', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#4f46e5'; e.currentTarget.style.backgroundColor = '#f1f5f9'; }}
+              onMouseLeave={(e) => { !showSettings && (e.currentTarget.style.color = '#64748b'); !showSettings && (e.currentTarget.style.backgroundColor = 'transparent'); }}
+            >
+              <Settings size={16} />
+            </button>
+            <div style={{ width: '1px', height: '18px', backgroundColor: '#e2e8f0', margin: '0 4px' }}></div>
+            <button 
+              onClick={onClose}
+              title="Tutup"
+              style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.backgroundColor = '#fee2e2'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div style={{ display: 'flex', borderBottom: '1px solid #1e293b', background: '#090d16', padding: '0 16px' }}>
-          <button 
-            onClick={() => setActiveTab('analyst')}
-            style={{ 
-              display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 18px', fontSize: '13px', fontWeight: '600',
-              background: 'none', border: 'none', cursor: 'pointer',
-              borderBottom: activeTab === 'analyst' ? '2px solid #818cf8' : '2px solid transparent',
-              color: activeTab === 'analyst' ? '#818cf8' : '#94a3b8'
-            }}
-          >
-            <Sparkles size={16} /> Analyst & Action AI
-          </button>
-          <button 
-            onClick={() => { setActiveTab('feed'); setLogs(getOpenClawLogs()); }}
-            style={{ 
-              display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 18px', fontSize: '13px', fontWeight: '600',
-              background: 'none', border: 'none', cursor: 'pointer',
-              borderBottom: activeTab === 'feed' ? '2px solid #818cf8' : '2px solid transparent',
-              color: activeTab === 'feed' ? '#818cf8' : '#94a3b8'
-            }}
-          >
-            <Activity size={16} /> Live Feeds ({logs.length})
-          </button>
-          <button 
-            onClick={() => setActiveTab('settings')}
-            style={{ 
-              display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 18px', fontSize: '13px', fontWeight: '600',
-              background: 'none', border: 'none', cursor: 'pointer',
-              borderBottom: activeTab === 'settings' ? '2px solid #818cf8' : '2px solid transparent',
-              color: activeTab === 'settings' ? '#818cf8' : '#94a3b8'
-            }}
-          >
-            <Settings size={16} /> Pengaturan Webhook & Bot
-          </button>
-        </div>
-
-        {/* Tab Content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px', minHeight: '380px' }}>
-          
-          {/* TAB 1: ANALYST & ACTIONS */}
-          {activeTab === 'analyst' && (
-            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
-              {/* Quick Prompts */}
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => handleSendMessage('Analisis tren user dan pertumbuhan komunitas saat ini')}
-                  style={{ background: '#1e293b', border: '1px solid #334155', color: '#cbd5e1', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <Users size={14} color="#60a5fa" /> Analisis User & Komunitas
-                </button>
-                <button
-                  onClick={() => handleSendMessage('Analisis performa event dan karya submission yang masuk')}
-                  style={{ background: '#1e293b', border: '1px solid #334155', color: '#cbd5e1', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <Calendar size={14} color="#f472b6" /> Analisis Event & Submission
-                </button>
-                <button
-                  onClick={() => handleSendMessage('Bagaimana analisis omset dan peluang monetisasi kreator?')}
-                  style={{ background: '#1e293b', border: '1px solid #334155', color: '#cbd5e1', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <DollarSign size={14} color="#4ade80" /> Analisis Keuangan & Monetisasi
-                </button>
-              </div>
-
-              {/* Chat Message List */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', maxHeight: '320px', paddingRight: '4px' }}>
-                {messages.map((m, idx) => (
-                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: m.sender === 'user' ? 'flex-end' : 'flex-start' }}>
-                    <div style={{
-                      maxWidth: '85%',
-                      padding: '12px 16px',
-                      borderRadius: '12px',
-                      fontSize: '13px',
-                      lineHeight: '1.6',
-                      background: m.sender === 'user' ? '#4f46e5' : '#1e293b',
-                      color: '#f8fafc',
-                      border: m.sender === 'user' ? 'none' : '1px solid #334155',
-                      whiteSpace: 'pre-line'
+        {/* Main Content Area (Light Slate Theme) */}
+        {!showSettings ? (
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', padding: '16px 20px 20px', backgroundColor: '#f8fafc' }}>
+            
+            {/* Messages Container */}
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px', paddingRight: '6px' }}>
+              {messages.map((m, idx) => (
+                <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: m.sender === 'user' ? 'flex-end' : 'flex-start', position: 'relative' }}>
+                  
+                  {m.sender === 'user' ? (
+                    /* User Message Bubble */
+                    <div className="ai-chat-user-bubble" style={{
+                      maxWidth: '80%',
+                      padding: '11px 16px',
+                      borderRadius: '16px 16px 4px 16px',
+                      fontSize: '13.5px',
+                      lineHeight: '1.5',
+                      backgroundColor: '#4f46e5',
+                      color: '#ffffff',
+                      fontWeight: '500',
+                      boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)'
                     }}>
-                      {m.text}
+                      <span style={{ color: '#ffffff' }}>{m.text}</span>
                     </div>
+                  ) : (
+                    /* AI Message Bubble */
+                    <div className="ai-chat-bubble-ai" style={{
+                      maxWidth: '90%',
+                      padding: '16px 20px',
+                      borderRadius: '16px 16px 16px 4px',
+                      fontSize: '13.5px',
+                      lineHeight: '1.65',
+                      backgroundColor: '#ffffff',
+                      color: '#334155',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
+                    }}>
+                      <div>{renderFormattedText(m.text)}</div>
 
-                    {/* Action buttons if available */}
-                    {m.actions && m.actions.length > 0 && (
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
-                        {m.actions.map(act => (
-                          <button
-                            key={act.id}
-                            onClick={() => handleExecuteAction(act)}
-                            style={{
-                              background: '#312e81',
-                              border: '1px solid #6366f1',
-                              color: '#e0e7ff',
-                              padding: '6px 12px',
-                              borderRadius: '8px',
-                              fontSize: '12px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              fontWeight: '600'
-                            }}
-                          >
-                            <Play size={12} fill="#e0e7ff" /> {act.label}
-                          </button>
-                        ))}
+                      {/* Copy action for AI responses */}
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
+                        <button
+                          onClick={() => handleCopyText(m.text, idx)}
+                          title="Salin jawaban"
+                          style={{
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            color: copiedIdx === idx ? '#16a34a' : '#64748b',
+                            fontSize: '11.5px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            fontWeight: '600'
+                          }}
+                        >
+                          {copiedIdx === idx ? <Check size={13} /> : <Copy size={13} />}
+                          <span>{copiedIdx === idx ? 'Tersalin' : 'Salin Jawaban'}</span>
+                        </button>
                       </div>
-                    )}
-                  </div>
-                ))}
-                {isAnalyzing && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#818cf8', fontSize: '13px' }}>
-                    <RefreshCw size={14} className="animate-spin" /> OpenClaw sedang menganalisis data live platform...
-                  </div>
-                )}
-              </div>
+                    </div>
+                  )}
 
-              {/* Chat Input */}
-              <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-                <input 
-                  type="text"
-                  placeholder="Ketik instruksi data analis atau action OpenClaw..."
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                  style={{ flex: 1, backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '10px', padding: '10px 14px', color: '#fff', fontSize: '13px', outline: 'none' }}
-                />
-                <button
-                  onClick={() => handleSendMessage()}
-                  disabled={isAnalyzing || !chatInput.trim()}
-                  style={{ backgroundColor: '#6366f1', border: 'none', borderRadius: '10px', padding: '0 18px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                  <Send size={16} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: LIVE FEEDS */}
-          {activeTab === 'feed' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', color: '#94a3b8' }}>Riwayat notifikasi & event yang dikirimkan ke OpenClaw:</span>
-                <button
-                  onClick={() => { clearOpenClawLogs(); setLogs([]); }}
-                  style={{ background: 'none', border: '1px solid #ef444450', color: '#f87171', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                >
-                  <Trash2 size={12} /> Hapus Log
-                </button>
-              </div>
-
-              {logs.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b' }}>
-                  <Radio size={36} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-                  <p style={{ margin: 0, fontSize: '14px' }}>Belum ada log aktivitas yang tercatat.</p>
-                  <p style={{ margin: '4px 0 0', fontSize: '12px' }}>Aktivitas baru (Event, User, Transaksi) akan otomatis muncul di sini secara real-time.</p>
+                  {/* Interactive Action Buttons */}
+                  {m.actions && m.actions.length > 0 && (
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+                      {m.actions.map(act => (
+                        <button
+                          key={act.id}
+                          onClick={() => handleExecuteAction(act)}
+                          style={{
+                            background: '#e0e7ff',
+                            border: '1px solid #c7d2fe',
+                            color: '#3730a3',
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            fontWeight: '600'
+                          }}
+                        >
+                          <Play size={12} fill="#3730a3" /> {act.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {logs.map((log) => (
-                    <div key={log.id} style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '10px', padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontWeight: '600', fontSize: '13px', color: '#38bdf8' }}>{log.title}</span>
-                        <span style={{ fontSize: '11px', color: '#64748b' }}>{new Date(log.timestamp).toLocaleTimeString('id-ID')}</span>
-                      </div>
-                      <pre style={{ margin: 0, backgroundColor: '#0f172a', padding: '8px', borderRadius: '6px', fontSize: '11px', color: '#cbd5e1', overflowX: 'auto' }}>
-                        {JSON.stringify(log.payload, null, 2)}
-                      </pre>
-                    </div>
-                  ))}
+              ))}
+
+              {isAnalyzing && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#4f46e5', fontSize: '13px', padding: '10px 16px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', width: 'fit-content', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                  <RefreshCw size={14} className="animate-spin" /> Sedang menganalisis data & merumuskan jawaban...
                 </div>
               )}
+              <div ref={chatEndRef} style={{ height: '1px' }} />
             </div>
-          )}
 
-          {/* TAB 3: SETTINGS (TELEGRAM & INTEGRASI) */}
-          {activeTab === 'settings' && (
-            <form onSubmit={handleSaveConfig} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {testStatus && (
-                <div style={{
-                  padding: '12px 16px',
-                  borderRadius: '10px',
-                  fontSize: '13px',
+            {/* Quick Starter Suggestions */}
+            {messages.length <= 2 && !isAnalyzing && (
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', margin: '10px 0 6px' }}>
+                <button
+                  onClick={() => handleSendMessage('Beri saya 3 ide tema kompetisi viral untuk menggaet 1000 kreator baru')}
+                  style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#475569', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+                >
+                  <Calendar size={13} color="#db2777" /> Ide Kompetisi Viral
+                </button>
+                <button
+                  onClick={() => handleSendMessage('Bagaimana analisis performa user dan omset platform saat ini?')}
+                  style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#475569', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+                >
+                  <Users size={13} color="#2563eb" /> Analisis Data Platform
+                </button>
+                <button
+                  onClick={() => handleSendMessage('Berapa estimasi budget yang pas untuk promosi campaign kreator?')}
+                  style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#475569', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+                >
+                  <DollarSign size={13} color="#16a34a" /> Estimasi Budget Campaign
+                </button>
+              </div>
+            )}
+
+            {/* Clean Input Bar */}
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
+              <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input 
+                  type="text"
+                  placeholder="Ketik pertanyaan atau instruksi untuk ngonten.id AI..."
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && !isAnalyzing && handleSendMessage()}
+                  className="ai-input-field"
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '12px',
+                    padding: '13px 18px',
+                    color: '#0f172a',
+                    fontSize: '13.5px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#4f46e5'}
+                  onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
+                />
+              </div>
+              <button
+                onClick={() => handleSendMessage()}
+                disabled={isAnalyzing || !chatInput.trim()}
+                style={{
+                  backgroundColor: chatInput.trim() && !isAnalyzing ? '#4f46e5' : '#f1f5f9',
+                  color: chatInput.trim() && !isAnalyzing ? '#ffffff' : '#94a3b8',
+                  border: '1px solid',
+                  borderColor: chatInput.trim() && !isAnalyzing ? '#4f46e5' : '#cbd5e1',
+                  borderRadius: '12px',
+                  width: '46px',
+                  height: '46px',
+                  cursor: chatInput.trim() && !isAnalyzing ? 'pointer' : 'default',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px',
-                  backgroundColor: testStatus.type === 'success' ? '#065f46' : testStatus.type === 'error' ? '#991b1b' : '#1e3a8a',
-                  border: `1px solid ${testStatus.type === 'success' ? '#10b981' : testStatus.type === 'error' ? '#ef4444' : '#3b82f6'}`,
-                  color: '#fff'
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  transition: 'all 0.2s',
+                  boxShadow: chatInput.trim() && !isAnalyzing ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none'
+                }}
+              >
+                <Send size={18} color={chatInput.trim() && !isAnalyzing ? '#ffffff' : '#94a3b8'} />
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Settings Drawer (Light Theme) */
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto', padding: '24px', backgroundColor: '#f8fafc' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <button 
+                onClick={() => setShowSettings(false)}
+                style={{ background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '600' }}
+              >
+                <ChevronLeft size={16} /> Kembali ke Obrolan
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveConfig} style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '640px' }}>
+              {testStatus && (
+                <div style={{
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  fontSize: '12.5px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: testStatus.type === 'success' ? '#dcfce7' : testStatus.type === 'error' ? '#fee2e2' : '#e0e7ff',
+                  color: testStatus.type === 'success' ? '#166534' : testStatus.type === 'error' ? '#991b1b' : '#3730a3',
+                  border: `1px solid ${testStatus.type === 'success' ? '#bbf7d0' : testStatus.type === 'error' ? '#fecaca' : '#c7d2fe'}`
                 }}>
-                  {testStatus.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                  {testStatus.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
                   <span>{testStatus.message}</span>
                 </div>
               )}
 
-              {/* TELEGRAM BOT SECTION */}
-              <div style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                    ✈️
-                  </div>
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: '#38bdf8' }}>Koneksi Telegram Bot (Khusus Owner)</h4>
-                    <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8' }}>Notifikasi real-time ngonten.id akan dikirim langsung ke akun / grup Telegram Anda.</p>
-                  </div>
-                </div>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <h4 style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: 'bold', color: '#0f172a' }}>Integrasi Telegram Bot Owner</h4>
+                <p style={{ margin: '0 0 14px', fontSize: '12px', color: '#64748b' }}>Notifikasi real-time ngonten.id dikirim langsung ke akun Telegram Owner.</p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#cbd5e1', marginBottom: '4px' }}>
-                      1. Telegram Bot Token <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#334155', marginBottom: '4px' }}>Telegram Bot Token</label>
                     <input 
                       type="text"
                       placeholder="Contoh: 1234567890:ABCdefGhIJKlmNoPQRsTUVwxyZ"
                       value={config.telegramBotToken}
                       onChange={(e) => setConfig({ ...config, telegramBotToken: e.target.value })}
-                      style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #475569', borderRadius: '8px', padding: '10px 12px', color: '#fff', fontSize: '13px', boxSizing: 'border-box' }}
+                      style={{ width: '100%', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '9px 12px', color: '#0f172a', fontSize: '13px', boxSizing: 'border-box' }}
                     />
-                    <span style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', display: 'block' }}>
-                      💡 Dapatkan token dari bot <b>@BotFather</b> di Telegram (ketik <code>/newbot</code>).
-                    </span>
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#cbd5e1', marginBottom: '4px' }}>
-                      2. Telegram Chat ID / User ID <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#334155', marginBottom: '4px' }}>Telegram Chat ID</label>
                     <input 
                       type="text"
-                      placeholder="Contoh: 123456789 (User ID) atau -100123456789 (Grup ID)"
+                      placeholder="Contoh: 396954314"
                       value={config.telegramChatId}
                       onChange={(e) => setConfig({ ...config, telegramChatId: e.target.value })}
-                      style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #475569', borderRadius: '8px', padding: '10px 12px', color: '#fff', fontSize: '13px', boxSizing: 'border-box' }}
+                      style={{ width: '100%', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '9px 12px', color: '#0f172a', fontSize: '13px', boxSizing: 'border-box' }}
                     />
-                    <span style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', display: 'block' }}>
-                      💡 Cek Chat ID kamu via bot <b>@userinfobot</b> di Telegram. (Pastikan kamu sudah klik <b>/start</b> ke bot kamu).
-                    </span>
                   </div>
 
                   <button
                     type="button"
                     onClick={async () => {
                       if (!config.telegramBotToken || !config.telegramChatId) {
-                        setTestStatus({ type: 'error', message: 'Harap isi Bot Token dan Chat ID terlebih dahulu!' });
+                        setTestStatus({ type: 'error', message: 'Harap isi Bot Token dan Chat ID!' });
                         return;
                       }
                       setTestStatus({ type: 'info', message: 'Mengirimkan pesan uji coba ke Telegram...' });
                       const res = await testTelegramNotification(config.telegramBotToken, config.telegramChatId);
                       if (res.success) {
-                        setTestStatus({ type: 'success', message: '✅ Pesan test berhasil masuk ke Telegram Anda!' });
+                        setTestStatus({ type: 'success', message: '✅ Pesan test berhasil masuk ke Telegram!' });
                       } else {
                         setTestStatus({ type: 'error', message: `❌ Gagal: ${res.error}` });
                       }
                     }}
-                    style={{
-                      alignSelf: 'flex-start',
-                      backgroundColor: '#0284c7',
-                      color: '#fff',
-                      border: 'none',
-                      padding: '8px 14px',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      marginTop: '4px'
-                    }}
+                    style={{ alignSelf: 'flex-start', backgroundColor: '#0284c7', color: '#ffffff', border: 'none', padding: '8px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', marginTop: '4px' }}
                   >
-                    <Send size={13} /> Kirim Test Notifikasi ke Telegram
+                    Kirim Test Notifikasi ke Telegram
                   </button>
                 </div>
               </div>
 
-              {/* EVENT TRIGGERS */}
-              <div style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '16px' }}>
-                <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#cbd5e1', marginBottom: '10px' }}>
-                  Pilih Data yang Memicu Notifikasi ke Telegram:
-                </span>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', color: '#f1f5f9' }}>
-                    <input 
-                      type="checkbox"
-                      checked={config.notifyOnNewEvent}
-                      onChange={(e) => setConfig({ ...config, notifyOnNewEvent: e.target.checked })}
-                    />
-                    🎪 Event / Lomba Baru Dibuat
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', color: '#f1f5f9' }}>
-                    <input 
-                      type="checkbox"
-                      checked={config.notifyOnNewUser}
-                      onChange={(e) => setConfig({ ...config, notifyOnNewUser: e.target.checked })}
-                    />
-                    👤 Pengguna Baru Mendaftar
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', color: '#f1f5f9' }}>
-                    <input 
-                      type="checkbox"
-                      checked={config.notifyOnNewSubmission}
-                      onChange={(e) => setConfig({ ...config, notifyOnNewSubmission: e.target.checked })}
-                    />
-                    📩 Karya / Submission Baru Masuk
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', color: '#f1f5f9' }}>
-                    <input 
-                      type="checkbox"
-                      checked={config.notifyOnNewTransaction}
-                      onChange={(e) => setConfig({ ...config, notifyOnNewTransaction: e.target.checked })}
-                    />
-                    💰 Pembayaran / Transaksi Baru
-                  </label>
-                </div>
-              </div>
-
-              {/* SAVE BUTTON */}
-              <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
-                <button 
-                  type="submit"
-                  style={{ backgroundColor: '#6366f1', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
-                >
-                  Simpan Pengaturan
-                </button>
-              </div>
+              <button 
+                type="submit"
+                style={{ backgroundColor: '#4f46e5', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', alignSelf: 'flex-start' }}
+              >
+                Simpan Pengaturan
+              </button>
             </form>
-          )}
+          </div>
+        )}
 
-        </div>
       </div>
     </div>
   );

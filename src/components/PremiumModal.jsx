@@ -413,12 +413,12 @@ export default function PremiumModal({
               </span>
             </div>
 
-            {/* List Metode (Dinamis dari Duitku atau Fallback) */}
+            {/* List Metode (Dinamis atau Fallback) */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '22px' }}>
               {isLoadingMethods ? (
                 <div style={{ padding: '24px 16px', textAlign: 'center', color: 'inherit' }}>
                   <RefreshCw size={22} className="animate-spin" style={{ margin: '0 auto 8px auto', display: 'block' }} />
-                  <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>Memuat saluran pembayaran aktif Duitku...</span>
+                  <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>Memuat saluran pembayaran...</span>
                 </div>
               ) : dynamicMethods && dynamicMethods.length > 0 ? (
                 dynamicMethods.map((m) => {
@@ -726,7 +726,7 @@ export default function PremiumModal({
                 {isInitiating ? (
                   <>
                     <RefreshCw size={16} className="animate-spin" color="#ffffff" />
-                    <span className="doku-white-text">Menghubungkan Duitku...</span>
+                    <span className="doku-white-text">Memproses Pembayaran...</span>
                   </>
                 ) : (
                   <>
@@ -763,7 +763,7 @@ export default function PremiumModal({
               </div>
             </div>
 
-            {/* Banner Order ID Duitku untuk Simulator / Laporan */}
+            {/* Banner Order ID untuk Referensi */}
             {duitkuData?.merchantOrderId && (
               <div style={{
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -777,7 +777,7 @@ export default function PremiumModal({
                 fontSize: '0.78rem'
               }}>
                 <div>
-                  <span style={{ color: '#3b82f6', fontWeight: '700', display: 'block' }}>Merchant Order ID (Duitku Sandbox):</span>
+                  <span style={{ color: '#3b82f6', fontWeight: '700', display: 'block' }}>ID Transaksi / Order ID:</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{duitkuData.merchantOrderId}</span>
                 </div>
                 <button
@@ -816,7 +816,7 @@ export default function PremiumModal({
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', borderBottom: '1px solid #e5e7eb', paddingBottom: '4px' }}>
                     <span style={{ fontSize: '0.95rem', fontWeight: '900', color: '#000000' }}>QRIS</span>
-                    <span style={{ fontSize: '0.65rem', color: '#4b5563', fontWeight: '700' }}>DUITKU GATEWAY</span>
+                    <span style={{ fontSize: '0.65rem', color: '#4b5563', fontWeight: '700' }}>OFFICIAL GATEWAY</span>
                   </div>
 
                   <div style={{ textAlign: 'center', marginBottom: '6px' }}>
@@ -830,7 +830,7 @@ export default function PremiumModal({
                   {duitkuData?.qrString ? (
                     <img 
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent(duitkuData.qrString)}`}
-                      alt="Duitku Real QRIS Code"
+                      alt="Official QRIS Code"
                       style={{
                         width: '180px',
                         height: '180px',
@@ -842,7 +842,7 @@ export default function PremiumModal({
                   ) : (
                     <img 
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent(`00020101021226580016ID.CO.DUITKU.WWW0118936005230000012345520458125303360540${currentPlan.numericPrice}5802ID5910NGONTEN.ID6007JAKARTA62190115${duitkuData?.merchantOrderId || 'INV'}6304ABCD`)}`}
-                      alt="Duitku QRIS"
+                      alt="Official QRIS Code"
                       style={{
                         width: '180px',
                         height: '180px',
@@ -910,7 +910,7 @@ export default function PremiumModal({
               </div>
             )}
 
-            {/* Link Checkout Duitku POP jika tersedia */}
+            {/* Link Checkout jika tersedia */}
             {duitkuData?.paymentUrl && (
               <div style={{ marginBottom: '14px' }}>
                 <a
@@ -933,7 +933,7 @@ export default function PremiumModal({
                   }}
                 >
                   <ExternalLink size={14} />
-                  <span>Buka Halaman Pembayaran Duitku Langsung</span>
+                  <span>Buka Halaman Pembayaran Instan</span>
                 </a>
               </div>
             )}

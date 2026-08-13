@@ -2183,13 +2183,13 @@ export default function App() {
         </div>
       )}
 
-      {/* OpenClaw Floating Agent Trigger Button (Owner / Superadmin Only) */}
+      {/* ngonten.id Floating AI Agent Trigger Button (Owner / Superadmin Only) */}
       {currentUser && (currentUser.role === 'superadmin' || currentUser.username === 'admin') && (
         <>
           <button
             onClick={() => setIsOpenClawModalOpen(true)}
             className="openclaw-floating-btn animate-fade-in"
-            title="OpenClaw Owner AI & Data Analyst"
+            title="ngonten.id Owner AI & Data Analyst"
             style={{
               position: 'fixed',
               bottom: isMobile ? '80px' : '24px',
@@ -2219,7 +2219,7 @@ export default function App() {
             }}
           >
             <Bot size={18} />
-            <span>OpenClaw AI</span>
+            <span>ngonten AI</span>
             <span style={{
               fontSize: '9px',
               background: '#22c55e',
@@ -2230,7 +2230,7 @@ export default function App() {
             }}>OWNER</span>
           </button>
 
-          {/* OpenClaw Data Analyst & Action Modal */}
+          {/* ngonten.id Data Analyst & Action Modal */}
           <OpenClawModal
             isOpen={isOpenClawModalOpen}
             onClose={() => setIsOpenClawModalOpen(false)}
