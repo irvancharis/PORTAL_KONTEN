@@ -144,7 +144,10 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
                 if (!isSuccess) return false;
 
                 if (expectedAmount) {
-                  const valAmount = Number(item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || item.grossAmount || 0);
+                  const valAmount = Number(
+                    item.credit !== undefined ? item.credit : 
+                    (item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || item.grossAmount || 0)
+                  );
                   const expAmount = Number(expectedAmount);
                   // Cocokkan nominal atau kelonggaran fee
                   if (valAmount === expAmount || Math.abs(valAmount - expAmount) < 5) {
