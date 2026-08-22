@@ -235,6 +235,8 @@ export default function App() {
     setSocialUrl,
     isCopied,
     setIsCopied,
+    qrisImageUrl,
+    setQrisImageUrl,
     paymentGatewayMode,
     setPaymentGatewayMode,
     minWithdrawalAmount,
@@ -412,6 +414,8 @@ export default function App() {
               setPremiumPrice={setPremiumPrice}
               paymentInstructions={paymentInstructions}
               setPaymentInstructions={setPaymentInstructions}
+              qrisImageUrl={qrisImageUrl}
+              setQrisImageUrl={setQrisImageUrl}
               paymentGatewayMode={paymentGatewayMode}
               setPaymentGatewayMode={setPaymentGatewayMode}
               users={users}
@@ -665,6 +669,7 @@ export default function App() {
         premiumPrice={premiumPrice}
         whatsappAdmin={whatsappAdmin}
         paymentInstructions={paymentInstructions}
+        qrisImageUrl={qrisImageUrl}
         paymentGatewayMode={paymentGatewayMode}
         onLoginClick={(mode) => handleOpenLoginModal(mode)}
       />

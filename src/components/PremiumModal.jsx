@@ -12,6 +12,7 @@ export default function PremiumModal({
   premiumPrice,
   whatsappAdmin = 'https://wa.me/6281234567890',
   paymentInstructions = '',
+  qrisImageUrl = '',
   paymentGatewayMode = 'manual',
   onLoginClick
 }) {
@@ -901,8 +902,23 @@ export default function PremiumModal({
                     </span>
                   </div>
 
-                  {/* QRIS Dinamis Mayar / Official */}
-                  {duitkuData?.qrString && !duitkuData?.qrString?.startsWith('http') ? (
+                  {/* QRIS Dinamis Mayar / Official Uploaded QRIS */}
+                  {qrisImageUrl ? (
+                    <img 
+                      src={qrisImageUrl}
+                      alt="Official QRIS Code"
+                      style={{
+                        width: '200px',
+                        height: '200px',
+                        objectFit: 'contain',
+                        display: 'block',
+                        margin: '8px auto',
+                        borderRadius: '8px',
+                        background: '#ffffff',
+                        padding: '4px'
+                      }}
+                    />
+                  ) : duitkuData?.qrString && !duitkuData?.qrString?.startsWith('http') ? (
                     <img 
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=${encodeURIComponent(duitkuData.qrString)}`}
                       alt="Official QRIS Code"
@@ -927,9 +943,9 @@ export default function PremiumModal({
                       }}
                     />
                   ) : (
-                    <div style={{ padding: '20px 10px' }}>
-                      <p style={{ fontSize: '0.82rem', color: '#1f2937', marginBottom: '12px' }}>
-                        Klik tombol di bawah untuk membuka halaman QRIS Resmi Mayar.id:
+                    <div style={{ padding: '16px 10px' }}>
+                      <p style={{ fontSize: '0.82rem', color: '#1f2937', marginBottom: '10px' }}>
+                        QRIS Resmi Mayar.id:
                       </p>
                       {duitkuData?.paymentUrl && (
                         <a 

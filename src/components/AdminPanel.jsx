@@ -295,6 +295,8 @@ export default function AdminPanel({
   setPremiumPrice,
   paymentInstructions = '',
   setPaymentInstructions,
+  qrisImageUrl = '',
+  setQrisImageUrl,
   paymentGatewayMode = 'manual',
   setPaymentGatewayMode,
   users = [],
@@ -6574,6 +6576,50 @@ export default function AdminPanel({
                   resize: 'vertical'
                 }}
               />
+            </div>
+
+            {/* Upload Gambar QRIS Resmi (Mayar / BCA / DANA) */}
+            <div className="form-group" style={{ marginBottom: '20px', padding: '14px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.15)' }}>
+              <label style={{ fontSize: '0.82rem', fontWeight: 'bold', color: 'white', marginBottom: '6px', display: 'block' }}>
+                🖼️ Upload Gambar QRIS Resmi Toko (Mayar / BCA / GoPay / DANA):
+              </label>
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      if (setQrisImageUrl) setQrisImageUrl(ev.target?.result);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                style={{ width: '100%', color: 'var(--text-secondary)', fontSize: '0.82rem' }}
+              />
+              {qrisImageUrl && (
+                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img 
+                    src={qrisImageUrl} 
+                    alt="QRIS Preview" 
+                    style={{ width: '80px', height: '80px', objectFit: 'contain', background: 'white', padding: '4px', borderRadius: '6px' }}
+                  />
+                  <div>
+                    <span style={{ fontSize: '0.78rem', color: '#10b981', fontWeight: 'bold', display: 'block' }}>✓ Gambar QRIS Resmi Terpasang</span>
+                    <button 
+                      type="button" 
+                      onClick={() => setQrisImageUrl && setQrisImageUrl('')} 
+                      style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.72rem', cursor: 'pointer', padding: 0, marginTop: '2px' }}
+                    >
+                      Hapus Gambar QRIS
+                    </button>
+                  </div>
+                </div>
+              )}
+              <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                Upload screenshot atau file QRIS dari dashboard Mayar.id / Merchant BCA Anda agar QRIS langsung tampil jelas dan 100% bisa discan dari seluruh bank/e-wallet.
+              </span>
             </div>
 
             {currentUser && currentUser.role === 'superadmin' && (
