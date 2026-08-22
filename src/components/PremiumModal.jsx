@@ -663,43 +663,6 @@ export default function PremiumModal({
                       {selectedMethod.startsWith('va_') && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
                     </div>
                   </div>
-
-                  {/* Channel 3: E-Wallet */}
-                  <div 
-                    onClick={() => setSelectedMethod('ewallet_dana')}
-                    className={`doku-plan-card ${selectedMethod.startsWith('ewallet_') ? 'active' : ''}`}
-                    style={{
-                      padding: '16px 20px',
-                      marginBottom: 0,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      borderRadius: '10px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <strong style={{ fontSize: '0.92rem', minWidth: '130px' }}>E-Wallet</strong>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                        <span style={{ background: '#00aed6', color: 'white', fontSize: '0.62rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>GoPay</span>
-                        <span style={{ background: '#118eea', color: 'white', fontSize: '0.62rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>DANA</span>
-                        <span style={{ background: '#ee4d2d', color: 'white', fontSize: '0.62rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>ShopeePay</span>
-                      </div>
-                    </div>
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '50%',
-                      border: '2px solid currentColor',
-                      backgroundColor: selectedMethod.startsWith('ewallet_') ? 'currentColor' : 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}>
-                      {selectedMethod.startsWith('ewallet_') && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
-                    </div>
-                  </div>
                 </>
               )}
             </div>
