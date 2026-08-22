@@ -24,6 +24,7 @@ import {
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 import CreatorProfileModal from '../components/CreatorProfileModal';
+import { MovieCardSkeleton, EventCardSkeleton } from '../components/SkeletonLoader';
 
 export default function DiscoverPage({
   activeTab,
@@ -465,17 +466,23 @@ export default function DiscoverPage({
                   </div>
                 </div>
                 <div className="movie-grid youtube-grid">
-                  {[...movies]
-                    .sort((a, b) => b.year - a.year)
-                    .slice(0, 4)
-                    .map(movie => (
-                      <MovieCard 
-                        key={movie.id} 
-                        movie={movie} 
-                        currentUser={currentUser}
-                        onSelect={handleMovieSelect}
-                      />
-                    ))}
+                  {isLoadingDB || movies.length === 0 ? (
+                    Array.from({ length: 4 }).map((_, idx) => (
+                      <MovieCardSkeleton key={idx} />
+                    ))
+                  ) : (
+                    [...movies]
+                      .sort((a, b) => b.year - a.year)
+                      .slice(0, 4)
+                      .map(movie => (
+                        <MovieCard 
+                          key={movie.id} 
+                          movie={movie} 
+                          currentUser={currentUser}
+                          onSelect={handleMovieSelect}
+                        />
+                      ))
+                  )}
                 </div>
               </div>
 
@@ -1164,9 +1171,10 @@ export default function DiscoverPage({
       )}
 
       {isLoadingDB ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '16px' }}>
-          <div style={{ width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.05)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Memuat data...</span>
+        <div className="movie-grid youtube-grid">
+          {Array.from({ length: 8 }).map((_, idx) => (
+            <MovieCardSkeleton key={idx} />
+          ))}
         </div>
       ) : filteredMovies.length > 0 ? (
         <React.Fragment>

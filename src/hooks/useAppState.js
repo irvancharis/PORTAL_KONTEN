@@ -684,14 +684,6 @@ export default function useAppState() {
     }
   }, [currentUser]);
 
-  const prevUserRef = useRef(null);
-  useEffect(() => {
-    if (currentUser && !prevUserRef.current) {
-      window.scrollTo(0, 0);
-    }
-    prevUserRef.current = currentUser;
-  }, [currentUser]);
-
   // Automatic premium membership expiration check (30 days limit) for current user
   useEffect(() => {
     if (currentUser && (currentUser.role === 'member' || currentUser.role === 'pro') && currentUser.premiumExpiresAt) {
@@ -735,6 +727,20 @@ export default function useAppState() {
   const [isLoadingDB, setIsLoadingDB] = useState(() => {
     return isFirebaseConfigured();
   });
+
+  const [isOffline, setIsOffline] = useState(() => typeof navigator !== 'undefined' ? !navigator.onLine : false);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Login Modal states
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -2320,7 +2326,6 @@ export default function useAppState() {
   // 2. Path-based Router & Event Listener
   useEffect(() => {
     const handlePathRoute = () => {
-      window.scrollTo(0, 0);
       const path = window.location.pathname;
 
       if (path && path !== '/') {
@@ -3052,6 +3057,8 @@ export default function useAppState() {
     gifts,
     handleSetGifts,
     handleAwardEventGift,
-    handleRedeemGiftCode
+    handleRedeemGiftCode,
+    isOffline,
+    isLoadingDB
   };
 }

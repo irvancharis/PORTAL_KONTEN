@@ -15,6 +15,7 @@ import ProfilePage from './pages/ProfilePage';
 import TicketPassPage from './components/TicketPassPage';
 import OpenClawModal from './components/OpenClawModal';
 import SearchableSelect from './components/SearchableSelect';
+import { OfflineBanner } from './components/SkeletonLoader';
 import useAppState from './hooks/useAppState';
 import { slugify, formatIndonesianDate, fetchJSONP } from './utils/helpers';
 import { isFirebaseConfigured, auth, saveFirestoreUser } from './firebase';
@@ -254,6 +255,7 @@ export default function App() {
     allYears,
     allCountries,
     isLoadingDB,
+    isOffline,
     adminSubTab,
     setAdminSubTab,
     handleCheckProfileSocialMedia,
@@ -2246,6 +2248,9 @@ export default function App() {
           />
         </>
       )}
+
+      {/* Offline Banner */}
+      <OfflineBanner isOffline={isOffline} onRetry={() => window.location.reload()} />
 
       {/* PWA Prompt */}
       <PWAInstallPrompt />
