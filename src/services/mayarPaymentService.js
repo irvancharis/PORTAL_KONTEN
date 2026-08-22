@@ -165,11 +165,11 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
             const isPaid = rawStatus === 'paid' || rawStatus === 'success';
             if (!isPaid) return false;
 
-            if (expectedAmount) {
-              const valAmount = Number(it.credit !== undefined ? it.credit : (it.amount || 0));
-              const expAmount = Number(expectedAmount);
-              if (valAmount !== expAmount && Math.abs(valAmount - expAmount) >= 5) {
-                return false;
+            // Transaksi harus dibuat SETELAH QR dibuat (waktu sekarang)
+            if (qrCreatedAt && it.createdAt) {
+              const itemTime = Number(it.createdAt);
+              if (itemTime < (Number(qrCreatedAt) - 15000)) {
+                return false; // Transaksi lama diabaikan
               }
             }
 
@@ -177,7 +177,7 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
           });
 
           if (found) {
-            console.log('✅ [Mayar Transaksi Terakhir Terverifikasi]:', found);
+            console.log('✅ [Mayar Transaksi Baru Terverifikasi]:', found);
             return { isPaid: true, data: found };
           }
         }
