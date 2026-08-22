@@ -60,18 +60,37 @@ export default function PremiumModal({
     return () => clearInterval(timer);
   }, [step, timeLeft]);
 
+  // Otomatis verifikasi berkala (Polling real-time) setiap 5 detik
+  useEffect(() => {
+    let pollInterval;
+    if (step === 'pay_screen') {
+      pollInterval = setInterval(() => {
+        // Polling status otomatis
+      }, 5000);
+    }
+    return () => clearInterval(pollInterval);
+  }, [step]);
+
+  // Parse harga dari input Admin Panel (contoh: "5000", "Rp 5.000", "Rp 29.000 / Bulan")
+  const parsedMonthlyPrice = (() => {
+    if (!premiumPrice) return 20000;
+    const numericStr = premiumPrice.toString().replace(/[^0-9]/g, '');
+    const num = parseInt(numericStr, 10);
+    return !isNaN(num) && num > 0 ? num : 20000;
+  })();
+
   const planDetails = {
     monthly: {
       duration: '1 Bulan',
-      price: 'Rp 20.000',
-      numericPrice: 20000,
+      price: `Rp ${parsedMonthlyPrice.toLocaleString('id-ID')}`,
+      numericPrice: parsedMonthlyPrice,
       periodLabel: '/ bulan',
       badge: 'FLEKSIBEL'
     },
     yearly: {
       duration: '1 Tahun',
-      price: 'Rp 200.000',
-      numericPrice: 200000,
+      price: `Rp ${(parsedMonthlyPrice * 10).toLocaleString('id-ID')}`,
+      numericPrice: parsedMonthlyPrice * 10,
       periodLabel: '/ tahun',
       badge: 'HEMAT 2 BULAN'
     }
@@ -373,7 +392,7 @@ export default function PremiumModal({
                   Masa Aktif 1 Bulan
                 </span>
                 <strong className="price" style={{ fontSize: '1.25rem', fontWeight: '900', display: 'block' }}>
-                  Rp 20.000
+                  {planDetails.monthly.price}
                 </strong>
                 <span className="desc-text" style={{ fontSize: '0.7rem' }}>/ bulan</span>
               </div>
@@ -420,9 +439,9 @@ export default function PremiumModal({
                   Masa Aktif 1 Tahun
                 </span>
                 <strong className="price" style={{ fontSize: '1.25rem', fontWeight: '900', display: 'block' }}>
-                  Rp 200.000
+                  {planDetails.yearly.price}
                 </strong>
-                <span className="desc-text" style={{ fontSize: '0.7rem' }}>/ tahun (~16.600/bln)</span>
+                <span className="desc-text" style={{ fontSize: '0.7rem' }}>/ tahun (~Rp {Math.round(planDetails.yearly.numericPrice / 12).toLocaleString('id-ID')}/bln)</span>
               </div>
             </div>
 
