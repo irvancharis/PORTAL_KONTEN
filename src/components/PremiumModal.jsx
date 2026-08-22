@@ -60,28 +60,6 @@ export default function PremiumModal({
     return () => clearInterval(timer);
   }, [step, timeLeft]);
 
-  // Otomatis verifikasi berkala (Polling real-time) setiap 3 detik
-  useEffect(() => {
-    let pollInterval;
-    if (step === 'pay_screen') {
-      pollInterval = setInterval(async () => {
-        try {
-          const res = await checkMayarPaymentStatus(
-            duitkuData?.reference || duitkuData?.merchantOrderId,
-            currentPlan?.numericPrice
-          );
-          if (res && res.isPaid) {
-            clearInterval(pollInterval);
-            handleVerifyPayment();
-          }
-        } catch (e) {
-          // Silent catch for background polling
-        }
-      }, 3000);
-    }
-    return () => clearInterval(pollInterval);
-  }, [step, duitkuData, currentPlan]);
-
   // Parse harga dari input Admin Panel (contoh: "5000", "Rp 5.000", "Rp 29.000 / Bulan")
   const parsedMonthlyPrice = (() => {
     if (!premiumPrice) return 20000;
@@ -108,6 +86,52 @@ export default function PremiumModal({
   };
 
   const currentPlan = planDetails[billingCycle];
+
+  const handleVerifyPayment = () => {
+    setIsVerifying(true);
+    setTimeout(() => {
+      setIsVerifying(false);
+      setStep('success');
+
+      if (setConfirmations) {
+        setConfirmations(prev => [{
+          id: `pay_${Date.now()}`,
+          orderId: duitkuData?.merchantOrderId || `NGONTEN-${Date.now()}`,
+          reference: duitkuData?.reference || '',
+          userId: currentUser?.id || currentUser?.username,
+          username: currentUser?.username,
+          bankName: selectedMethod.toUpperCase(),
+          gateway: 'MAYAR',
+          senderName: currentUser?.name || currentUser?.username,
+          amount: `Rp ${currentPlan.numericPrice.toLocaleString('id-ID')}`,
+          status: 'approved',
+          timestamp: new Date().toISOString()
+        }, ...(prev || [])]);
+      }
+    }, 1200);
+  };
+
+  // Otomatis verifikasi berkala (Polling real-time) setiap 3 detik
+  useEffect(() => {
+    let pollInterval;
+    if (step === 'pay_screen') {
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await checkMayarPaymentStatus(
+            duitkuData?.reference || duitkuData?.merchantOrderId,
+            currentPlan?.numericPrice
+          );
+          if (res && res.isPaid) {
+            clearInterval(pollInterval);
+            handleVerifyPayment();
+          }
+        } catch (e) {
+          // Silent catch for background polling
+        }
+      }, 3000);
+    }
+    return () => clearInterval(pollInterval);
+  }, [step, duitkuData, currentPlan]);
 
   // Fetch dynamic payment methods whenever entering select_method or changing plan
   useEffect(() => {
@@ -276,30 +300,6 @@ export default function PremiumModal({
     navigator.clipboard.writeText(text);
     setCopiedOrderId(true);
     setTimeout(() => setCopiedOrderId(false), 2000);
-  };
-
-  const handleVerifyPayment = () => {
-    setIsVerifying(true);
-    setTimeout(() => {
-      setIsVerifying(false);
-      setStep('success');
-
-      if (setConfirmations) {
-        setConfirmations(prev => [{
-          id: `pay_${Date.now()}`,
-          orderId: duitkuData?.merchantOrderId || `NGONTEN-${Date.now()}`,
-          reference: duitkuData?.reference || '',
-          userId: currentUser?.id || currentUser?.username,
-          username: currentUser?.username,
-          bankName: selectedMethod.toUpperCase(),
-          gateway: 'DUITKU',
-          senderName: currentUser?.name || currentUser?.username,
-          amount: `Rp ${currentPlan.numericPrice.toLocaleString('id-ID')}`,
-          status: 'approved',
-          timestamp: new Date().toISOString()
-        }, ...(prev || [])]);
-      }
-    }, 1200);
   };
 
   const vaNumbers = {
