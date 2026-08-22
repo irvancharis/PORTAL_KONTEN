@@ -902,7 +902,19 @@ export default function PremiumModal({
                   </div>
 
                   {/* QRIS Dinamis Mayar / Official */}
-                  {duitkuData?.qrString?.startsWith('http') ? (
+                  {duitkuData?.qrString && !duitkuData?.qrString?.startsWith('http') ? (
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=${encodeURIComponent(duitkuData.qrString)}`}
+                      alt="Official QRIS Code"
+                      style={{
+                        width: '180px',
+                        height: '180px',
+                        display: 'block',
+                        margin: '6px auto',
+                        borderRadius: '6px'
+                      }}
+                    />
+                  ) : duitkuData?.qrString?.startsWith('http') ? (
                     <img 
                       src={duitkuData.qrString}
                       alt="Official Mayar QRIS Code"
@@ -914,30 +926,34 @@ export default function PremiumModal({
                         borderRadius: '6px'
                       }}
                     />
-                  ) : duitkuData?.qrString ? (
-                    <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent(duitkuData.qrString)}`}
-                      alt="Official QRIS Code"
-                      style={{
-                        width: '180px',
-                        height: '180px',
-                        display: 'block',
-                        margin: '6px auto',
-                        borderRadius: '6px'
-                      }}
-                    />
                   ) : (
-                    <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent(`00020101021226580016ID.CO.MAYAR.WWW0118936005230000012345520458125303360540${currentPlan.numericPrice}5802ID5910NGONTEN.ID6007JAKARTA62190115${duitkuData?.merchantOrderId || 'INV'}6304ABCD`)}`}
-                      alt="Official QRIS Code"
-                      style={{
-                        width: '180px',
-                        height: '180px',
-                        display: 'block',
-                        margin: '6px auto',
-                        borderRadius: '6px'
-                      }}
-                    />
+                    <div style={{ padding: '20px 10px' }}>
+                      <p style={{ fontSize: '0.82rem', color: '#1f2937', marginBottom: '12px' }}>
+                        Klik tombol di bawah untuk membuka halaman QRIS Resmi Mayar.id:
+                      </p>
+                      {duitkuData?.paymentUrl && (
+                        <a 
+                          href={duitkuData.paymentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: '#2563eb',
+                            color: '#ffffff',
+                            padding: '10px 18px',
+                            borderRadius: '8px',
+                            fontWeight: 'bold',
+                            fontSize: '0.85rem',
+                            textDecoration: 'none'
+                          }}
+                        >
+                          <ExternalLink size={16} />
+                          <span>Buka QRIS Mayar</span>
+                        </a>
+                      )}
+                    </div>
                   )}
 
                   <div style={{ fontSize: '0.7rem', color: '#374151', marginTop: '6px', fontWeight: '600' }}>
