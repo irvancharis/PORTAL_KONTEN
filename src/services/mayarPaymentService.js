@@ -65,9 +65,10 @@ export const createMayarQRISPayment = async ({
     });
 
     const data = await res.json();
+    console.log('📦 [Mayar Create QR Raw Response]:', data);
     if (res.ok && data && (data.data?.url || data.url)) {
       const qrImageUrl = data.data?.url || data.url;
-      const trxId = data.data?.id || data.id || data.data?.transactionId || orderId;
+      const trxId = data.data?.id || data.id || data.data?.transactionId || data.data?.invoiceId || data.data?.identifier || orderId;
       return {
         status: 'success',
         data: {
