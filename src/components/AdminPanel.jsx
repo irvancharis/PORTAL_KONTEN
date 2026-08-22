@@ -5101,7 +5101,13 @@ export default function AdminPanel({
                             key={creator.username} 
                             className="table-row-hover"
                             onClick={() => {
-                              const isUserPremium = currentUser && (currentUser.isPremium || ['superadmin', 'staf', 'panitia'].includes(currentUser.role));
+                              const isUserPremium = currentUser && (
+                                currentUser.isPremium || 
+                                currentUser.role === 'member' || 
+                                currentUser.role === 'pro' || 
+                                ['superadmin', 'staf', 'panitia'].includes(currentUser.role) ||
+                                (currentUser.premiumExpiresAt && currentUser.premiumExpiresAt > Date.now())
+                              );
                               if (!currentUser) {
                                 if (handleOpenLoginModal) handleOpenLoginModal('login');
                                 return;

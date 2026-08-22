@@ -340,7 +340,13 @@ export default function DiscoverPage({
                     className="creator-card glass-panel"
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      const isUserPremium = currentUser && (currentUser.isPremium || ['superadmin', 'staf', 'panitia'].includes(currentUser.role));
+                      const isUserPremium = currentUser && (
+                        currentUser.isPremium || 
+                        currentUser.role === 'member' || 
+                        currentUser.role === 'pro' || 
+                        ['superadmin', 'staf', 'panitia'].includes(currentUser.role) ||
+                        (currentUser.premiumExpiresAt && currentUser.premiumExpiresAt > Date.now())
+                      );
                       if (!currentUser) {
                         if (handleOpenLoginModal) handleOpenLoginModal('login');
                         return;
@@ -836,7 +842,13 @@ export default function DiscoverPage({
                       style={{ cursor: 'pointer' }}
                       title="Klik untuk Lihat Detail Portofolio (Akun Premium)"
                       onClick={() => {
-                        const isUserPremium = currentUser && (currentUser.isPremium || ['superadmin', 'staf', 'panitia'].includes(currentUser.role));
+                        const isUserPremium = currentUser && (
+                          currentUser.isPremium || 
+                          currentUser.role === 'member' || 
+                          currentUser.role === 'pro' || 
+                          ['superadmin', 'staf', 'panitia'].includes(currentUser.role) ||
+                          (currentUser.premiumExpiresAt && currentUser.premiumExpiresAt > Date.now())
+                        );
                         if (!currentUser) {
                           if (handleOpenLoginModal) handleOpenLoginModal('login');
                           return;
