@@ -53,7 +53,7 @@ export default function PremiumModal({
       setReceiptFile('');
       setIsSubmittingManual(false);
     }
-  }, [isOpen, currentUser]);
+  }, [isOpen]);
 
   useEffect(() => {
     let timer;
