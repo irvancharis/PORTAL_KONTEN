@@ -146,48 +146,6 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
     }
   }
 
-  // 2. Query Transaksi Terbaru /hl/v1/transactions (Mencocokkan ID Transaksi yang Paid)
-  if (activeApiKey) {
-    try {
-      const res = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=10&page=1`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${activeApiKey.trim()}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (res.ok) {
-        const resData = await res.json();
-        const items = resData.data || resData.items || [];
-        if (Array.isArray(items) && items.length > 0) {
-          const found = items.find(it => {
-            const rawStatus = String(it.status || '').toLowerCase();
-            const isPaid = rawStatus === 'paid' || rawStatus === 'success';
-            if (!isPaid) return false;
-
-            // Cocokkan nominal jika ada
-            if (expectedAmount) {
-              const valAmount = Number(it.credit !== undefined ? it.credit : (it.amount || 0));
-              const expAmount = Number(expectedAmount);
-              if (valAmount !== expAmount && Math.abs(valAmount - expAmount) >= 5) {
-                return false;
-              }
-            }
-
-            return true;
-          });
-
-          if (found) {
-            console.log('✅ [Mayar Transaksi Terakhir Terverifikasi]:', found);
-            return { isPaid: true, data: found };
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('Mayar list transactions check error:', e);
-    }
-  }
-
+  // Jika ID salah / tidak ditemukan / belum lunas, selalu return false
   return { isPaid: false };
 };
