@@ -113,29 +113,37 @@ export default function PremiumModal({
 
   // Otomatis verifikasi berkala (Polling real-time) setiap 2 detik
   useEffect(() => {
-    let pollInterval;
-    if (step === 'pay_screen') {
-      const orderRef = duitkuData?.reference || duitkuData?.merchantOrderId;
-      const expectedAmount = currentPlan?.numericPrice;
-      
-      console.log('Starting Auto-Check Live Polling for order:', orderRef, 'amount:', expectedAmount);
+    if (step !== 'pay_screen') return;
 
-      pollInterval = setInterval(async () => {
-        try {
-          const res = await checkMayarPaymentStatus(orderRef, expectedAmount);
-          console.log('Mayar Live Check Result:', res);
-          if (res && res.isPaid) {
-            console.log('Payment Confirmed Paid! Redirecting to Success Screen...');
-            clearInterval(pollInterval);
-            handleVerifyPayment();
-          }
-        } catch (e) {
-          console.warn('Mayar Live Check Error:', e);
+    const orderRef = duitkuData?.reference || duitkuData?.merchantOrderId;
+    const expectedAmount = currentPlan?.numericPrice;
+    
+    console.log('⚡ [Auto-Check Polling] Active for Order:', orderRef, 'Amount:', expectedAmount);
+
+    let isPolling = true;
+
+    const checkNow = async () => {
+      if (!isPolling) return;
+      try {
+        const res = await checkMayarPaymentStatus(orderRef, expectedAmount);
+        console.log('⚡ [Auto-Check Result]:', res);
+        if (res && res.isPaid && isPolling) {
+          console.log('🎉 Payment SUCCESS detected! Activating Premium...');
+          isPolling = false;
+          handleVerifyPayment();
         }
-      }, 2500);
-    }
+      } catch (e) {
+        console.warn('⚡ [Auto-Check Warning]:', e);
+      }
+    };
+
+    // Jalankan segera dan ulangi tiap 2.5 detik
+    checkNow();
+    const interval = setInterval(checkNow, 2500);
+
     return () => {
-      if (pollInterval) clearInterval(pollInterval);
+      isPolling = false;
+      clearInterval(interval);
     };
   }, [step, duitkuData, currentPlan]);
 
