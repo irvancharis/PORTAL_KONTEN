@@ -60,13 +60,16 @@ export default function PremiumModal({
     return () => clearInterval(timer);
   }, [step, timeLeft]);
 
-  // Otomatis verifikasi berkala (Polling real-time) setiap 4 detik
+  // Otomatis verifikasi berkala (Polling real-time) setiap 3 detik
   useEffect(() => {
     let pollInterval;
-    if (step === 'pay_screen' && duitkuData?.merchantOrderId) {
+    if (step === 'pay_screen') {
       pollInterval = setInterval(async () => {
         try {
-          const res = await checkMayarPaymentStatus(duitkuData.reference || duitkuData.merchantOrderId);
+          const res = await checkMayarPaymentStatus(
+            duitkuData?.reference || duitkuData?.merchantOrderId,
+            currentPlan?.numericPrice
+          );
           if (res && res.isPaid) {
             clearInterval(pollInterval);
             handleVerifyPayment();
@@ -74,10 +77,10 @@ export default function PremiumModal({
         } catch (e) {
           // Silent catch for background polling
         }
-      }, 4000);
+      }, 3000);
     }
     return () => clearInterval(pollInterval);
-  }, [step, duitkuData]);
+  }, [step, duitkuData, currentPlan]);
 
   // Parse harga dari input Admin Panel (contoh: "5000", "Rp 5.000", "Rp 29.000 / Bulan")
   const parsedMonthlyPrice = (() => {
