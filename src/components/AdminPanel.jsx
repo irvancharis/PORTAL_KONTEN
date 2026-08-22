@@ -43,7 +43,9 @@ import {
   ShieldCheck,
   TrendingUp,
   ChevronDown,
-  MapPin
+  MapPin,
+  CreditCard,
+  Landmark
 } from 'lucide-react';
 
 import INDONESIAN_REGIONS from '../data/regions.json';
