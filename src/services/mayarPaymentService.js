@@ -107,7 +107,56 @@ export const createMayarQRISPayment = async ({
  * Cek status pembayaran transaksi Mayar secara real-time via Google Apps Script Webhook
  * (Mencegah error HTTP 429 Too Many Requests dari Mayar API)
  */
-export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null) => {
+export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null, customApiKey = '') => {
+  const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
+
+  // 1. Cek langsung ke Mayar API (karena dipicu manual oleh klik tombol, tidak akan kena rate-limit 429)
+  if (activeApiKey) {
+    try {
+      const endpoints = [
+        `${MAYAR_CONFIG.baseUrl}/hl/v1/payment?limit=10&page=1`,
+        `${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=10&page=1`
+      ];
+
+      for (const url of endpoints) {
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${activeApiKey.trim()}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (res.ok) {
+          const resData = await res.json();
+          const items = resData.data || resData.items || (Array.isArray(resData) ? resData : []);
+          
+          if (Array.isArray(items) && items.length > 0) {
+            // Cari transaksi yang sukses
+            const found = items.find(item => {
+              const itemStatus = String(item.status || item.payment_status || item.transactionStatus || '').toLowerCase();
+              const isPaid = itemStatus === 'paid' || itemStatus === 'success' || itemStatus === 'settled' || itemStatus === 'completed';
+              if (!isPaid) return false;
+
+              if (expectedAmount) {
+                const itemAmount = Number(item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || 0);
+                if (itemAmount !== Number(expectedAmount)) return false;
+              }
+              return true;
+            });
+
+            if (found) {
+              return { isPaid: true, data: found };
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Direct Mayar check warning:', e);
+    }
+  }
+
+  // 2. Fallback: Periksa Webhook Cache dari Google Apps Script
   try {
     const scriptUrl = `${MAYAR_CONFIG.appsScriptUrl}?check_mayar=1&amount=${encodeURIComponent(expectedAmount || '')}&trx_id=${encodeURIComponent(transactionId || '')}&_t=${Date.now()}`;
     const scriptRes = await fetch(scriptUrl, { method: 'GET' });
@@ -117,8 +166,9 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
         return { isPaid: true, data: scriptData.data || scriptData };
       }
     }
-    return { isPaid: false };
   } catch (error) {
-    return { isPaid: false, error: error.message };
+    console.warn('Apps Script cache check warning:', error);
   }
+
+  return { isPaid: false };
 };
