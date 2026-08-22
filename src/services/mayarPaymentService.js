@@ -109,9 +109,9 @@ export const createMayarInvoicePayment = async ({
 export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null, qrCreatedAt = null, customApiKey = '') => {
   const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
 
-  console.log('🔍 [Verifikasi Resmi Mayar via ID]:', transactionId);
+  console.log('🔍 [Verifikasi Resmi Mayar]:', { transactionId, expectedAmount, qrCreatedAt });
 
-  // 1. Cek langsung ke Endpoint Spesifik ID Resmi Mayar
+  // 1. Cek spesifik ID jika UUID Mayar
   if (activeApiKey && transactionId && !transactionId.startsWith('NGONTEN-') && !transactionId.startsWith('qris_')) {
     const specificEndpoints = [
       `${MAYAR_CONFIG.baseUrl}/hl/v2/transactions/${transactionId}`,
@@ -133,7 +133,6 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
           const item = resJson.data || resJson;
           if (item) {
             const rawStatus = String(item.status || item.payment_status || '').toLowerCase();
-            console.log(`📡 [Mayar ID ${transactionId} Check via ${url}]: Status = ${rawStatus}`);
             if (rawStatus === 'paid' || rawStatus === 'success' || rawStatus === 'settled') {
               console.log(`✅ [Mayar ID ${transactionId}] TERKONFIRMASI LUNAS!`);
               return { isPaid: true, data: item };
@@ -146,6 +145,47 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
     }
   }
 
-  // Jika ID salah / tidak ditemukan / belum lunas, selalu return false
+  // 2. Cek mutasi QRIS terbaru di /hl/v1/transactions
+  if (activeApiKey) {
+    try {
+      const res = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=10&page=1`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${activeApiKey.trim()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (res.ok) {
+        const resData = await res.json();
+        const items = resData.data || resData.items || [];
+        if (Array.isArray(items) && items.length > 0) {
+          const found = items.find(it => {
+            const rawStatus = String(it.status || '').toLowerCase();
+            const isPaid = rawStatus === 'paid' || rawStatus === 'success';
+            if (!isPaid) return false;
+
+            if (expectedAmount) {
+              const valAmount = Number(it.credit !== undefined ? it.credit : (it.amount || 0));
+              const expAmount = Number(expectedAmount);
+              if (valAmount !== expAmount && Math.abs(valAmount - expAmount) >= 5) {
+                return false;
+              }
+            }
+
+            return true;
+          });
+
+          if (found) {
+            console.log('✅ [Mayar Transaksi Terakhir Terverifikasi]:', found);
+            return { isPaid: true, data: found };
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Mayar list transactions query error:', e);
+    }
+  }
+
   return { isPaid: false };
 };
