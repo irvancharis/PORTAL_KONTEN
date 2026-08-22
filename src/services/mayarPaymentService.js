@@ -158,9 +158,11 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
                 } else if (rawTime) {
                   itemTime = new Date(rawTime).getTime();
                 }
-                const isTimeMatch = !qrCreatedAt || !itemTime || itemTime >= (qrCreatedAt - 60000); // 60 detik toleransi
+                const now = Date.now();
+                // Valid jika transaksi berumur kurang dari 10 menit
+                const isTimeMatch = !itemTime || (now - itemTime < 10 * 60 * 1000);
 
-                console.log(`🔎 Item #${idx}: [ID: ${item.id}] [Status: ${rawStatus} (Valid: ${isSuccess})] [Amount: ${valAmount} vs Exp: ${expAmount} (Match: ${isAmountMatch})] [ItemTime: ${new Date(itemTime).toLocaleTimeString()} vs QRTime: ${new Date(qrCreatedAt).toLocaleTimeString()} (Match: ${isTimeMatch})]`);
+                console.log(`🔎 Item #${idx}: [ID: ${item.id}] [Status: ${rawStatus} (Valid: ${isSuccess})] [Amount: ${valAmount} vs Exp: ${expAmount} (Match: ${isAmountMatch})] [ItemTime: ${new Date(itemTime).toLocaleTimeString()} vs Now: ${new Date(now).toLocaleTimeString()} (Match: ${isTimeMatch})]`);
 
                 return isSuccess && isAmountMatch && isTimeMatch;
               });
