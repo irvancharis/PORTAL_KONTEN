@@ -594,7 +594,7 @@ export default function PremiumModal({
                 })
               ) : (
                 <>
-                  {/* Channel 1: QRIS */}
+                  {/* Channel 1: QRIS Dinamis */}
                   <div 
                     onClick={() => setSelectedMethod('qris')}
                     className={`doku-plan-card ${selectedMethod === 'qris' ? 'active' : ''}`}
@@ -630,43 +630,6 @@ export default function PremiumModal({
                       flexShrink: 0
                     }}>
                       {selectedMethod === 'qris' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
-                    </div>
-                  </div>
-
-                  {/* Channel 2: Transfer Bank (VA) */}
-                  <div 
-                    onClick={() => setSelectedMethod('va_bca')}
-                    className={`doku-plan-card ${selectedMethod.startsWith('va_') ? 'active' : ''}`}
-                    style={{
-                      padding: '16px 20px',
-                      marginBottom: 0,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      borderRadius: '10px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <strong style={{ fontSize: '0.92rem', minWidth: '130px' }}>Transfer Bank (VA)</strong>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                        <span style={{ background: '#003399', color: 'white', fontSize: '0.62rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>ATM Bersama</span>
-                        <span style={{ background: '#0066b2', color: 'white', fontSize: '0.62rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>PRIMA</span>
-                        <span style={{ background: '#e5231b', color: 'white', fontSize: '0.62rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>ALTO</span>
-                      </div>
-                    </div>
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '50%',
-                      border: '2px solid currentColor',
-                      backgroundColor: selectedMethod.startsWith('va_') ? 'currentColor' : 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}>
-                      {selectedMethod.startsWith('va_') && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#888' }} />}
                     </div>
                   </div>
                 </>
