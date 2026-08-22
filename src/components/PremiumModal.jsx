@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw, Smartphone, ExternalLink, Sparkles, Upload, Send, MessageCircle } from 'lucide-react';
 import { DUITKU_CONFIG, DUITKU_PAYMENT_METHODS, requestDuitkuInquiry, fetchDuitkuPaymentMethods } from '../services/duitkuPaymentService';
-import { createMayarQRISPayment, checkMayarPaymentStatus } from '../services/mayarPaymentService';
+import { createMayarQRISPayment, checkMayarPaymentStatus, fetchMayarPaymentChannels } from '../services/mayarPaymentService';
 
 export default function PremiumModal({
   isOpen,
@@ -110,20 +110,26 @@ export default function PremiumModal({
   useEffect(() => {
     if (step === 'select_method' && currentPlan?.numericPrice) {
       setIsLoadingMethods(true);
-      fetchDuitkuPaymentMethods(currentPlan.numericPrice)
+      fetchMayarPaymentChannels()
         .then(res => {
-          if (res.success && Array.isArray(res.methods) && res.methods.length > 0) {
-            setDynamicMethods(res.methods);
-            // Default select the first active method (e.g. QRIS if available)
-            const hasQRIS = res.methods.find(m => m.paymentMethod === 'SP' || m.paymentMethod === 'DQ');
-            if (hasQRIS) {
-              setSelectedMethod('qris');
-            } else if (res.methods[0]?.paymentMethod) {
-              setSelectedMethod(res.methods[0].paymentMethod.toLowerCase());
-            }
+          if (res.success && Array.isArray(res.channels) && res.channels.length > 0) {
+            const formatted = res.channels.map(ch => ({
+              paymentMethod: ch.code || ch.channel || ch.id || 'qris',
+              paymentName: ch.name || ch.title || (ch.code ? ch.code.toUpperCase() : 'QRIS'),
+              paymentImage: ch.icon || ch.logo || '',
+              totalFee: ch.fee || 0
+            }));
+            setDynamicMethods(formatted);
+            setSelectedMethod(formatted[0].paymentMethod.toLowerCase());
+          } else {
+            // Fallback default
+            setDynamicMethods([]);
           }
         })
-        .catch(err => console.warn('Fetch methods error:', err))
+        .catch(err => {
+          console.warn('Fetch Mayar methods error:', err);
+          setDynamicMethods([]);
+        })
         .finally(() => setIsLoadingMethods(false));
     }
   }, [step, billingCycle]);
