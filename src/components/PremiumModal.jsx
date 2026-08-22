@@ -125,7 +125,9 @@ export default function PremiumModal({
     if (paymentGatewayMode === 'manual') {
       setStep('manual_pay');
     } else {
-      setStep('select_method');
+      // Langsung proses generate QRIS Dinamis Mayar.id secara instan
+      setSelectedMethod('qris');
+      handleProceedToPayScreen();
     }
   };
 
@@ -1044,7 +1046,7 @@ export default function PremiumModal({
               </button>
 
               <button
-                onClick={() => setStep('select_method')}
+                onClick={() => setStep('select_plan')}
                 style={{
                   width: '100%',
                   padding: '11px',
@@ -1056,7 +1058,7 @@ export default function PremiumModal({
                   cursor: 'pointer'
                 }}
               >
-                Ganti Metode Pembayaran
+                Ganti Paket / Kembali
               </button>
             </div>
           </div>

@@ -36,23 +36,24 @@ export const createMayarQRISPayment = async ({
   const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
 
   if (!activeApiKey) {
-    console.warn('Mayar API Key belum disetting di Admin Panel. Menggunakan fallback simulasi.');
+    console.warn('Mayar API Key belum diisi di Admin Panel.');
     return {
       status: 'success',
       data: {
         id: `mayar_${Date.now()}`,
         transactionId: orderId,
         amount: amount,
-        qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=4&data=${encodeURIComponent(`00020101021226580016ID.CO.MAYAR.WWW0118936005230000012345520458125303360540${amount}5802ID5910NGONTEN.ID6007JAKARTA62190115${orderId}6304ABCD`)}`,
+        qrCodeUrl: '',
         link: '',
         status: 'unpaid'
       },
-      isSimulated: true
+      isSimulated: true,
+      error: 'API Key Mayar belum diisi di menu Pengaturan Premium Admin Panel'
     };
   }
 
   try {
-    // 1. Coba panggil Endpoint Pembayaran / Payment Request Mayar
+    // 1. Coba endpoint Payment Create Mayar API
     const res = await fetch(`${MAYAR_CONFIG.baseUrl}/payment/create`, {
       method: 'POST',
       headers: {
@@ -66,42 +67,42 @@ export const createMayarQRISPayment = async ({
         amount: Number(amount),
         description,
         redirectUrl: window.location.origin,
-        channel: ['qris'] // Fokus QRIS Dinamis
+        channel: ['qris']
       })
     });
 
     const data = await res.json();
     if (res.ok && data) {
+      const qrUrl = data.data?.qrCodeUrl || data.data?.qrString || data.data?.linkQR || data.qrCodeUrl || '';
+      const payLink = data.data?.link || data.link || data.data?.url || '';
       return {
         status: 'success',
         data: {
           id: data.data?.id || data.id || orderId,
           transactionId: data.data?.transactionId || orderId,
           amount: amount,
-          qrCodeUrl: data.data?.qrCodeUrl || data.data?.qrString || data.qrCodeUrl || '',
-          link: data.data?.link || data.link || '',
+          qrCodeUrl: qrUrl,
+          link: payLink,
           status: 'unpaid'
         },
         isSimulated: false
       };
     } else {
-      console.warn('Mayar API Response Error:', data);
-      throw new Error(data?.message || 'Gagal membuat QRIS Mayar');
+      console.warn('Mayar API Response Message:', data);
+      throw new Error(data?.messages || data?.message || 'Gagal memanggil API Mayar');
     }
   } catch (error) {
-    console.warn('Mayar API Error, beralih ke dynamic QR generator:', error);
-    // Fallback QRIS dinamis berbasis standar EMVCo QRIS Mayar
+    console.warn('Mayar API Request Exception:', error);
     return {
-      status: 'success',
+      status: 'error',
       data: {
         id: `mayar_${Date.now()}`,
         transactionId: orderId,
         amount: amount,
-        qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=4&data=${encodeURIComponent(`00020101021226580016ID.CO.MAYAR.WWW0118936005230000012345520458125303360540${amount}5802ID5910NGONTEN.ID6007JAKARTA62190115${orderId}6304ABCD`)}`,
+        qrCodeUrl: '',
         link: '',
         status: 'unpaid'
       },
-      isSimulated: true,
       error: error.message
     };
   }
