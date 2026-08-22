@@ -110,79 +110,44 @@ export const createMayarQRISPayment = async ({
 export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null, qrCreatedAt = null, customApiKey = '') => {
   const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
 
-  console.log('🔍 [Verifikasi Transaksi Mayar] Memeriksa status untuk Amount:', expectedAmount, 'TrxId:', transactionId, 'QRCreatedAt:', qrCreatedAt);
+  console.log('🔍 [Verifikasi Spesifik Mayar] Memeriksa ID:', transactionId);
 
-  // 1. Cek langsung ke Mayar API
-  if (activeApiKey) {
-    try {
-      const endpoints = [
-        `${MAYAR_CONFIG.baseUrl}/hl/v1/payment?limit=20&page=1`,
-        `${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=20&page=1`,
-        `${MAYAR_CONFIG.baseUrl}/hl/v2/transactions?limit=20&page=1`
-      ];
+  // 1. Cek langsung ke Endpoint Spesifik ID Transaksi Mayar
+  if (activeApiKey && transactionId && !transactionId.startsWith('NGONTEN-') && !transactionId.startsWith('mayar_')) {
+    const specificEndpoints = [
+      `${MAYAR_CONFIG.baseUrl}/hl/v1/invoice/${transactionId}`,
+      `${MAYAR_CONFIG.baseUrl}/hl/v1/payment/${transactionId}`,
+      `${MAYAR_CONFIG.baseUrl}/hl/v1/transactions/${transactionId}`
+    ];
 
-      for (const url of endpoints) {
-        try {
-          const res = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${activeApiKey.trim()}`,
-              'Content-Type': 'application/json'
-            }
-          });
+    for (const url of specificEndpoints) {
+      try {
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${activeApiKey.trim()}`,
+            'Content-Type': 'application/json'
+          }
+        });
 
-          if (res.ok) {
-            const resData = await res.json();
-            const items = resData.data || resData.items || resData.transactions || (Array.isArray(resData) ? resData : []);
-            
-            if (Array.isArray(items) && items.length > 0) {
-              console.log(`📋 [Mayar Response ${url}] Memeriksa ${items.length} transaksi:`, items);
-
-              const found = items.find((item, idx) => {
-                const rawStatus = String(item.status || item.payment_status || item.transactionStatus || item.state || '').toUpperCase();
-                const isSuccess = rawStatus === 'SUCCESS' || rawStatus === 'PAID' || rawStatus === 'SETTLED' || rawStatus === 'COMPLETED';
-
-                // A. Nominal
-                const valAmount = Number(
-                  item.credit !== undefined ? item.credit : 
-                  (item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || item.grossAmount || 0)
-                );
-                const expAmount = Number(expectedAmount);
-                const isAmountMatch = !expectedAmount || valAmount === expAmount || Math.abs(valAmount - expAmount) < 5;
-
-                // B. Waktu
-                const rawTime = item.createdAt || item.updatedAt || item.timestamp;
-                let itemTime = 0;
-                if (typeof rawTime === 'number') {
-                  itemTime = rawTime;
-                } else if (rawTime) {
-                  itemTime = new Date(rawTime).getTime();
-                }
-                const now = Date.now();
-                // Valid jika transaksi berumur kurang dari 10 menit
-                const isTimeMatch = !itemTime || (now - itemTime < 10 * 60 * 1000);
-
-                console.log(`🔎 Item #${idx}: [ID: ${item.id}] [Status: ${rawStatus} (Valid: ${isSuccess})] [Amount: ${valAmount} vs Exp: ${expAmount} (Match: ${isAmountMatch})] [ItemTime: ${new Date(itemTime).toLocaleTimeString()} vs Now: ${new Date(now).toLocaleTimeString()} (Match: ${isTimeMatch})]`);
-
-                return isSuccess && isAmountMatch && isTimeMatch;
-              });
-
-              if (found) {
-                console.log('✅ [Mayar API] Transaksi Sah Baru Ditemukan:', found);
-                return { isPaid: true, data: found };
-              }
+        if (res.ok) {
+          const resData = await res.json();
+          const item = resData.data || resData;
+          if (item) {
+            const rawStatus = String(item.status || item.payment_status || item.transactionStatus || '').toUpperCase();
+            console.log(`📡 [Mayar Specific Status for ${transactionId}]:`, rawStatus, item);
+            if (rawStatus === 'PAID' || rawStatus === 'SUCCESS' || rawStatus === 'SETTLED' || rawStatus === 'COMPLETED') {
+              return { isPaid: true, data: item };
             }
           }
-        } catch (subErr) {
-          console.warn('Mayar endpoint error:', url, subErr);
         }
+      } catch (err) {
+        console.warn('Mayar specific check error:', url, err);
       }
-    } catch (e) {
-      console.warn('Direct Mayar check error:', e);
     }
   }
 
-  // 2. Fallback: Periksa Webhook Cache dari Google Apps Script
+  // 2. Fallback: Webhook Cache
   try {
     const scriptUrl = `${MAYAR_CONFIG.appsScriptUrl}?check_mayar=1&amount=${encodeURIComponent(expectedAmount || '')}&trx_id=${encodeURIComponent(transactionId || '')}&_t=${Date.now()}`;
     const scriptRes = await fetch(scriptUrl, { method: 'GET' });
