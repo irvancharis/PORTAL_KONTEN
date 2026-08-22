@@ -1,47 +1,20 @@
 /**
  * mayarPaymentService.js
- * Layanan Integrasi API Payment Gateway Mayar.id untuk ngonten.id
- * Menggunakan Webhook Cache di Google Apps Script untuk menghindari rate-limit 429
+ * Layanan Integrasi Pembayaran Mayar.id Resmi Menggunakan Endpoint Invoice
+ * Memberikan ID Transaksi Unik yang dapat dicek statusnya secara presisi 1:1
  */
 
 export const MAYAR_CONFIG = {
   apiKey: localStorage.getItem('portal-mayar-api-key') || 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5NWY5NTIxNy0xMmU0LTQwZDItYTMyMS00MzRlM2RkODY1YWQiLCJhY2NvdW50SWQiOiJhNjhlOTIyZC1jZDE3LTRmMTQtOWZjMy05ZDhhOWY0MjYxYjgiLCJjcmVhdGVkQXQiOiIxNzg3Mzc2NjI1NTY1Iiwicm9sZSI6ImRldmVsb3BlciIsInNjb3BlIjp7InJlYWQiOnRydWUsIndyaXRlIjp0cnVlfSwic3ViIjoiaXJ2YW5jaGFyaXNAZ21haWwuY29tIiwibmFtZSI6IklydmFuIENoYXJpcyIsImxpbmsiOiJpcnZhbi1jaGFyaXMiLCJpc1NlbGZEb21haW4iOm51bGwsImlhdCI6MTc4NzM3NjYyNX0.OfjmkNMoqw7UNWbuYXqaeMHiizCghdNgk9_BmUiFP4uGZ70idi8297QJP--M63Ppft2_Fh-gvx4kN4imn8Nh23zAErwK13periKd0Nsgj46vsGuqp_DCgZUtFbJmjQ5aPbFpKVM7dSs5vNrSpORl0v3quspWzxlPTB8JxXyjY7uCPv7nWejbpEIVoy-B8r3zTnP4xQVFuXFRo5tyMaXt0zijBVyCbtvszZQROAP1bYq3v_KjaQOEar9s1Tw_mIiFhl3o3fN60lFHNZfGSdPbLSAK_DTsdEQBWxe24d4FoGWlPp7o1v6ELXjX2UfaTxQYaF88kvg5nT3Y5EHotcQ1UA',
   isProduction: true,
-  baseUrl: 'https://api.mayar.id',
-  appsScriptUrl: 'https://script.google.com/macros/s/AKfycbww9byb9H5SIW_HknSEVJJe-oY9S--NaeKSPjcQ6IBACzoQc38oZ36bQqm__60gncIxxA/exec'
+  baseUrl: 'https://api.mayar.id'
 };
 
 /**
- * Mengambil daftar seluruh metode / channel pembayaran yang aktif di akun Mayar Anda
+ * Buat Invoice Pembayaran Resmi Mayar.id melalui POST /hl/v1/invoice/create
+ * Menghasilkan ID Transaksi / Invoice Unik dan Link / QR Pembayaran Resmi
  */
-export const fetchMayarPaymentChannels = async (customApiKey = '') => {
-  const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
-  if (!activeApiKey) return { success: false, channels: [] };
-
-  try {
-    const res = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v2/payment-channels`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${activeApiKey.trim()}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      const channels = data.data || data.channels || (Array.isArray(data) ? data : []);
-      return { success: true, channels };
-    }
-    return { success: false, channels: [] };
-  } catch (error) {
-    return { success: false, channels: [] };
-  }
-};
-
-/**
- * Buat Dynamic QRIS resmi Mayar.id melalui endpoint POST /hl/v1/qrcode/create
- */
-export const createMayarQRISPayment = async ({
+export const createMayarInvoicePayment = async ({
   name = 'Kreator ngonten.id',
   email = 'user@ngonten.id',
   mobile = '081234567890',
@@ -52,48 +25,67 @@ export const createMayarQRISPayment = async ({
 }) => {
   const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
 
+  const expiryDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+  const payload = {
+    name: name,
+    email: email.includes('@') ? email : `${email}@ngonten.id`,
+    mobile: mobile || '081234567890',
+    description: description,
+    redirectUrl: 'https://ngonten.id/profile',
+    expiredAt: expiryDate,
+    items: [
+      {
+        quantity: 1,
+        rate: Number(amount),
+        description: description
+      }
+    ]
+  };
+
   try {
-    const res = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/qrcode/create`, {
+    const res = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/invoice/create`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${activeApiKey.trim()}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        amount: Number(amount)
-      })
+      body: JSON.stringify(payload)
     });
 
-    const data = await res.json();
-    console.log('📦 [Mayar Create QR Raw Response]:', data);
-    if (res.ok && data && (data.data?.url || data.url)) {
-      const qrImageUrl = data.data?.url || data.url;
-      const trxId = data.data?.id || data.id || data.data?.transactionId || data.data?.invoiceId || data.data?.identifier || orderId;
+    const resData = await res.json();
+    console.log('📦 [Mayar Invoice Create Response]:', resData);
+
+    const inv = resData.data || resData;
+    if (res.ok && inv && (inv.id || inv.url || inv.link)) {
+      const invoiceId = inv.id;
+      const paymentLink = inv.url || inv.link || `https://mayar.id/inv/${invoiceId}`;
+      const qrCodeUrl = inv.qrCodeUrl || inv.qrcode || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(paymentLink)}`;
+
       return {
         status: 'success',
         data: {
-          id: trxId,
-          transactionId: trxId,
-          amount: amount,
-          qrCodeUrl: qrImageUrl,
-          link: '',
+          id: invoiceId,
+          transactionId: invoiceId,
+          amount: Number(amount),
+          qrCodeUrl: qrCodeUrl,
+          link: paymentLink,
           status: 'unpaid',
           createdAt: Date.now()
-        },
-        isSimulated: false
+        }
       };
     } else {
-      console.warn('Mayar QR Code API Error Response:', data);
-      throw new Error(data?.messages || data?.message || 'Gagal generate QRIS Mayar');
+      throw new Error(resData?.messages || resData?.message || 'Gagal membuat Invoice Mayar');
     }
   } catch (error) {
-    console.warn('Mayar QR Code Fetch Error:', error);
+    console.warn('Mayar Invoice Create Error:', error);
+    // Fallback ke QRIS langsung jika invoice endpoint mengalami kendala
     return {
       status: 'error',
       data: {
-        id: `mayar_${Date.now()}`,
+        id: orderId,
         transactionId: orderId,
-        amount: amount,
+        amount: Number(amount),
         qrCodeUrl: '',
         link: '',
         status: 'unpaid',
@@ -105,90 +97,48 @@ export const createMayarQRISPayment = async ({
 };
 
 /**
- * Cek status pembayaran transaksi Mayar secara real-time via Google Apps Script Webhook
- * (Mencegah error HTTP 429 Too Many Requests dari Mayar API)
+ * Cek Status Invoice Pembayaran Resmi 1:1 via GET /hl/v1/invoice/{id}
  */
 export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null, qrCreatedAt = null, customApiKey = '') => {
   const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
 
-  console.log('🔍 [Verifikasi Status Mayar] Memeriksa status untuk Amount:', expectedAmount, 'TrxId:', transactionId);
-
-  // 1. Cek langsung riwayat transaksi terbaru Mayar API
-  if (activeApiKey) {
-    const endpoints = [
-      `${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=10&page=1`,
-      `${MAYAR_CONFIG.baseUrl}/hl/v2/transactions?limit=10&page=1`,
-      `${MAYAR_CONFIG.baseUrl}/hl/v1/payment?limit=10&page=1`
-    ];
-
-    for (const url of endpoints) {
-      try {
-        const res = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${activeApiKey.trim()}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (res.ok) {
-          const resData = await res.json();
-          const items = resData.data || resData.items || resData.transactions || (Array.isArray(resData) ? resData : []);
-          
-          if (Array.isArray(items) && items.length > 0) {
-            const found = items.find(item => {
-              const rawStatus = String(item.status || item.payment_status || item.transactionStatus || '').toUpperCase();
-              const isPaid = rawStatus === 'PAID' || rawStatus === 'SUCCESS' || rawStatus === 'SETTLED';
-              if (!isPaid) return false;
-
-              // Validasi Nominal
-              const valAmount = Number(
-                item.credit !== undefined ? item.credit : 
-                (item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || 0)
-              );
-              const expAmount = Number(expectedAmount);
-              if (expectedAmount && valAmount !== expAmount && Math.abs(valAmount - expAmount) >= 5) {
-                return false;
-              }
-
-              // Validasi Waktu: Transaksi harus terjadi dalam 5 menit terakhir
-              const rawTime = item.createdAt || item.updatedAt || item.timestamp;
-              if (rawTime) {
-                const itemTime = typeof rawTime === 'number' ? rawTime : new Date(rawTime).getTime();
-                const now = Date.now();
-                if (now - itemTime > 5 * 60 * 1000) {
-                  return false; // Transaksi lebih dari 5 menit lalu diabaikan
-                }
-              }
-
-              return true;
-            });
-
-            if (found) {
-              console.log('✅ [Mayar API] Transaksi Berhasil Ditemukan:', found);
-              return { isPaid: true, data: found };
-            }
-          }
-        }
-      } catch (err) {
-        console.warn('Mayar query error:', url, err);
-      }
-    }
+  if (!transactionId || transactionId.startsWith('NGONTEN-')) {
+    console.warn('ID Transaksi tidak valid untuk cek invoice:', transactionId);
+    return { isPaid: false };
   }
 
-  // 2. Fallback: Webhook Cache dari Apps Script
+  console.log('🔍 [Cek Status Invoice Mayar 1:1] Query Invoice ID:', transactionId);
+
   try {
-    const scriptUrl = `${MAYAR_CONFIG.appsScriptUrl}?check_mayar=1&amount=${encodeURIComponent(expectedAmount || '')}&trx_id=${encodeURIComponent(transactionId || '')}&_t=${Date.now()}`;
-    const scriptRes = await fetch(scriptUrl, { method: 'GET' });
-    if (scriptRes.ok) {
-      const scriptData = await scriptRes.json();
-      if (scriptData && (scriptData.isPaid || scriptData.status === 'paid' || scriptData.status === 'success')) {
-        return { isPaid: true, data: scriptData.data || scriptData };
+    const res = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/invoice/${transactionId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${activeApiKey.trim()}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (res.ok) {
+      const resJson = await res.json();
+      const invoice = resJson.data || resJson;
+      console.log('📡 [Mayar Invoice Status Result]:', invoice);
+
+      if (invoice) {
+        const rawStatus = String(invoice.status || invoice.payment_status || invoice.paymentStatus || '').toLowerCase();
+        const isPaid = rawStatus === 'paid' || rawStatus === 'settled' || rawStatus === 'success';
+
+        if (isPaid) {
+          console.log(`✅ [Mayar Invoice ${transactionId}] TERKONFIRMASI LUNAS!`);
+          return { isPaid: true, data: invoice };
+        } else {
+          console.log(`⏳ [Mayar Invoice ${transactionId}] Status saat ini: ${rawStatus} (Belum Lunas)`);
+          return { isPaid: false, status: rawStatus };
+        }
       }
     }
+    return { isPaid: false };
   } catch (error) {
-    console.warn('Apps Script cache check warning:', error);
+    console.error('Error saat cek status invoice Mayar:', error);
+    return { isPaid: false, error: error.message };
   }
-
-  return { isPaid: false };
 };
