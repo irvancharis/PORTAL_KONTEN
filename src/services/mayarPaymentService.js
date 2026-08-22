@@ -131,9 +131,11 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
           const items = resData.data || resData.items || resData.transactions || (Array.isArray(resData) ? resData : []);
           
           if (Array.isArray(items) && items.length > 0) {
+            console.log(`📋 [Mayar Transactions List from ${url}]:`, items);
+
             const found = items.find(item => {
               const rawStatus = String(item.status || item.payment_status || item.transactionStatus || '').toUpperCase();
-              const isPaid = rawStatus === 'PAID' || rawStatus === 'SUCCESS' || rawStatus === 'SETTLED';
+              const isPaid = rawStatus === 'PAID' || rawStatus === 'SUCCESS' || rawStatus === 'SETTLED' || rawStatus === 'COMPLETED';
               if (!isPaid) return false;
 
               // Validasi Nominal
@@ -144,16 +146,6 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
               const expAmount = Number(expectedAmount);
               if (expectedAmount && valAmount !== expAmount && Math.abs(valAmount - expAmount) >= 5) {
                 return false;
-              }
-
-              // Validasi Waktu: Transaksi harus berjarak maksimal 10 menit
-              const rawTime = item.createdAt || item.updatedAt || item.timestamp;
-              if (rawTime) {
-                const itemTime = typeof rawTime === 'number' ? rawTime : new Date(rawTime).getTime();
-                const now = Date.now();
-                if (now - itemTime > 10 * 60 * 1000) {
-                  return false;
-                }
               }
 
               return true;
