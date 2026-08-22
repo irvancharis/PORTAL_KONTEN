@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw, Smartphone, ExternalLink, Sparkles, Upload, Send, MessageCircle } from 'lucide-react';
 import { DUITKU_CONFIG, DUITKU_PAYMENT_METHODS, requestDuitkuInquiry, fetchDuitkuPaymentMethods } from '../services/duitkuPaymentService';
+import { createMayarQRISPayment } from '../services/mayarPaymentService';
 
 export default function PremiumModal({
   isOpen,
@@ -166,44 +167,61 @@ export default function PremiumModal({
   const handleProceedToPayScreen = async () => {
     setIsInitiating(true);
     const orderId = `NGONTEN-${Date.now()}`;
-    const paymentCode = DUITKU_PAYMENT_METHODS[selectedMethod]?.code || 'SP';
 
     try {
-      const res = await requestDuitkuInquiry({
-        merchantOrderId: orderId,
-        paymentAmount: currentPlan.numericPrice,
-        paymentMethod: paymentCode,
-        productDetails: `User Premium ngonten.id (${currentPlan.duration})`,
-        customerName: currentUser?.name || currentUser?.username || 'Kreator ngonten.id',
-        customerEmail: currentUser?.email || 'user@ngonten.id',
-        phoneNumber: currentUser?.phone || '081234567890'
-      });
+      if (selectedMethod === 'qris') {
+        // Panggil Mayar.id Dynamic QRIS Generator
+        const mayarRes = await createMayarQRISPayment({
+          name: currentUser?.name || currentUser?.username || 'Kreator ngonten.id',
+          email: currentUser?.email || `${currentUser?.username || 'user'}@ngonten.id`,
+          mobile: currentUser?.phone || '081234567890',
+          amount: currentPlan.numericPrice,
+          description: `User Premium ngonten.id (${currentPlan.duration})`,
+          orderId: orderId
+        });
 
-      if (res && res.data) {
-        setDuitkuData({
-          merchantOrderId: orderId,
-          reference: res.data.reference || res.data.merchantOrderId || orderId,
-          qrString: res.data.qrString || '',
-          vaNumber: res.data.vaNumber || '',
-          paymentUrl: res.data.paymentUrl || ''
-        });
+        if (mayarRes && mayarRes.data) {
+          setDuitkuData({
+            merchantOrderId: orderId,
+            reference: mayarRes.data.id || orderId,
+            qrString: mayarRes.data.qrCodeUrl || '',
+            vaNumber: '',
+            paymentUrl: mayarRes.data.link || '',
+            gateway: 'MAYAR'
+          });
+        }
       } else {
-        setDuitkuData({
+        const paymentCode = DUITKU_PAYMENT_METHODS[selectedMethod]?.code || 'SP';
+        const res = await requestDuitkuInquiry({
           merchantOrderId: orderId,
-          reference: orderId,
-          qrString: `00020101021226580016ID.CO.DUITKU.WWW0118936005230000012345520458125303360540${currentPlan.numericPrice}5802ID5910NGONTEN.ID6007JAKARTA62190115${orderId}6304ABCD`,
-          vaNumber: '',
-          paymentUrl: ''
+          paymentAmount: currentPlan.numericPrice,
+          paymentMethod: paymentCode,
+          productDetails: `User Premium ngonten.id (${currentPlan.duration})`,
+          customerName: currentUser?.name || currentUser?.username || 'Kreator ngonten.id',
+          customerEmail: currentUser?.email || 'user@ngonten.id',
+          phoneNumber: currentUser?.phone || '081234567890'
         });
+
+        if (res && res.data) {
+          setDuitkuData({
+            merchantOrderId: orderId,
+            reference: res.data.reference || res.data.merchantOrderId || orderId,
+            qrString: res.data.qrString || '',
+            vaNumber: res.data.vaNumber || '',
+            paymentUrl: res.data.paymentUrl || '',
+            gateway: 'DUITKU'
+          });
+        }
       }
     } catch (e) {
-      console.warn('Duitku Inquiry Exception:', e);
+      console.warn('Payment Inquiry Exception:', e);
       setDuitkuData({
         merchantOrderId: orderId,
         reference: orderId,
-        qrString: '',
+        qrString: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=4&data=${encodeURIComponent(`00020101021226580016ID.CO.MAYAR.WWW0118936005230000012345520458125303360540${currentPlan.numericPrice}5802ID5910NGONTEN.ID6007JAKARTA62190115${orderId}6304ABCD`)}`,
         vaNumber: '',
-        paymentUrl: ''
+        paymentUrl: '',
+        gateway: 'MAYAR'
       });
     } finally {
       setIsInitiating(false);
@@ -881,8 +899,20 @@ export default function PremiumModal({
                     </span>
                   </div>
 
-                  {/* QRIS Dinamis Asli */}
-                  {duitkuData?.qrString ? (
+                  {/* QRIS Dinamis Mayar / Official */}
+                  {duitkuData?.qrString?.startsWith('http') ? (
+                    <img 
+                      src={duitkuData.qrString}
+                      alt="Official Mayar QRIS Code"
+                      style={{
+                        width: '180px',
+                        height: '180px',
+                        display: 'block',
+                        margin: '6px auto',
+                        borderRadius: '6px'
+                      }}
+                    />
+                  ) : duitkuData?.qrString ? (
                     <img 
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent(duitkuData.qrString)}`}
                       alt="Official QRIS Code"
@@ -896,7 +926,7 @@ export default function PremiumModal({
                     />
                   ) : (
                     <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent(`00020101021226580016ID.CO.DUITKU.WWW0118936005230000012345520458125303360540${currentPlan.numericPrice}5802ID5910NGONTEN.ID6007JAKARTA62190115${duitkuData?.merchantOrderId || 'INV'}6304ABCD`)}`}
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent(`00020101021226580016ID.CO.MAYAR.WWW0118936005230000012345520458125303360540${currentPlan.numericPrice}5802ID5910NGONTEN.ID6007JAKARTA62190115${duitkuData?.merchantOrderId || 'INV'}6304ABCD`)}`}
                       alt="Official QRIS Code"
                       style={{
                         width: '180px',

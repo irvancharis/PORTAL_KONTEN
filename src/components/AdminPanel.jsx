@@ -6431,7 +6431,7 @@ export default function AdminPanel({
                 </p>
               </div>
 
-              {/* Option 2: Payment Gateway */}
+              {/* Option 2: Payment Gateway (Mayar.id) */}
               <div 
                 onClick={() => setPaymentGatewayMode && setPaymentGatewayMode('gateway')}
                 style={{
@@ -6459,8 +6459,8 @@ export default function AdminPanel({
                       <QrCode size={20} />
                     </div>
                     <div>
-                      <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>Mode 2: Payment Gateway</strong>
-                      <span style={{ fontSize: '0.72rem', color: '#a855f7', fontWeight: 'bold' }}>Duitku API (Otomatis)</span>
+                      <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>Mode 2: QRIS Dinamis Mayar.id</strong>
+                      <span style={{ fontSize: '0.72rem', color: '#a855f7', fontWeight: 'bold' }}>Otomatis & Real-Time</span>
                     </div>
                   </div>
                   <div style={{
@@ -6477,10 +6477,40 @@ export default function AdminPanel({
                   </div>
                 </div>
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
-                  Menampilkan QRIS Real-time dan Virtual Account otomatis via integrasi API Duitku. Aktifkan mode ini setelah pengajuan merchant Duitku disetujui.
+                  Menghasilkan kode QRIS Dinamis real-time resmi Mayar.id langsung di modal checkout dengan verifikasi instan.
                 </p>
               </div>
             </div>
+
+            {/* Input API Key Mayar jika mode gateway aktif */}
+            {paymentGatewayMode === 'gateway' && (
+              <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 'bold', color: '#c084fc', marginBottom: '6px', display: 'block' }}>
+                  🔑 Mayar.id API Key (Production / Live):
+                </label>
+                <input 
+                  type="password"
+                  placeholder="Masukkan API Token / Bearer Token Mayar Anda (cth: myr_live_...)"
+                  defaultValue={localStorage.getItem('portal-mayar-api-key') || ''}
+                  onChange={(e) => {
+                    localStorage.setItem('portal-mayar-api-key', e.target.value.trim());
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid rgba(168, 85, 247, 0.4)',
+                    borderRadius: 'var(--radius-sm)',
+                    color: 'white',
+                    fontFamily: 'monospace',
+                    fontSize: '0.85rem'
+                  }}
+                />
+                <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  Dapatkan API Key dari dashboard Mayar.id di menu <strong>Integrations / API Keys</strong>.
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="add-affiliate-card glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
