@@ -1,6 +1,6 @@
 /**
  * mayarPaymentService.js
- * Layanan Integrasi Pembayaran Mayar.id Resmi Menggunakan Dynamic QRIS + Invoice
+ * Layanan Integrasi Pembayaran Mayar.id Resmi Berbasis Payment Request ID Unik
  */
 
 export const MAYAR_CONFIG = {
@@ -34,9 +34,8 @@ export const fetchMayarPaymentChannels = async (customApiKey = '') => {
 };
 
 /**
- * Buat Pembayaran QRIS Resmi Mayar.id
- * Menggunakan POST /hl/v1/qrcode/create untuk menghasilkan QRIS Standar Bank Indonesia (ASLI)
- * Dan mengaitkan invoice / transactionId
+ * Buat Payment Request Mayar Resmi (POST /hl/v1/payment/create)
+ * Menghasilkan Unique Payment ID yang terdaftar resmi di sistem Mayar
  */
 export const createMayarInvoicePayment = async ({
   name = 'Kreator ngonten.id',
@@ -48,44 +47,65 @@ export const createMayarInvoicePayment = async ({
   customApiKey = ''
 }) => {
   const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
+  const expiryDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
   try {
-    // 1. Buat Dynamic QRIS Asli dari Mayar
-    const qrRes = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/qrcode/create`, {
+    // 1. Buat Payment Request Resmi dengan ID
+    const payRes = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/payment/create`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${activeApiKey.trim()}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        amount: Number(amount)
+        name: name,
+        email: email.includes('@') ? email : `${email}@ngonten.id`,
+        amount: Number(amount),
+        mobile: mobile || '081234567890',
+        redirectUrl: 'https://ngonten.id/profile',
+        description: description,
+        expiredAt: expiryDate
       })
     });
 
-    const qrData = await qrRes.json();
-    console.log('📦 [Mayar Dynamic QRIS Response]:', qrData);
+    const payData = await payRes.json();
+    console.log('📦 [Mayar Payment Create Response]:', payData);
 
-    if (qrRes.ok && qrData && (qrData.data?.url || qrData.url)) {
-      const qrImageUrl = qrData.data?.url || qrData.url;
-      const initialId = qrData.data?.id || qrData.id || `qris_${Date.now()}`;
+    const paymentInfo = payData.data || payData;
+    const paymentId = paymentInfo.id || paymentInfo.transactionId || paymentInfo.transaction_id;
+    const paymentLink = paymentInfo.link || paymentInfo.url || `https://mayar.id/pay/${paymentId}`;
 
-      return {
-        status: 'success',
-        data: {
-          id: initialId,
-          transactionId: initialId,
-          amount: Number(amount),
-          qrCodeUrl: qrImageUrl,
-          link: `https://mayar.id/qris`,
-          status: 'unpaid',
-          createdAt: Date.now()
-        }
-      };
-    } else {
-      throw new Error(qrData?.messages || qrData?.message || 'Gagal generate QRIS Mayar');
+    // 2. Buat QRIS Resmi Bank Indonesia
+    let qrImageUrl = '';
+    try {
+      const qrRes = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/qrcode/create`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${activeApiKey.trim()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ amount: Number(amount) })
+      });
+      const qrData = await qrRes.json();
+      qrImageUrl = qrData.data?.url || qrData.url || '';
+    } catch (e) {
+      console.warn('QR Code generate warning:', e);
     }
+
+    return {
+      status: 'success',
+      data: {
+        id: paymentId || orderId,
+        transactionId: paymentId || orderId,
+        amount: Number(amount),
+        qrCodeUrl: qrImageUrl,
+        link: paymentLink,
+        status: 'unpaid',
+        createdAt: Date.now()
+      }
+    };
   } catch (error) {
-    console.warn('Mayar QRIS Generate Error:', error);
+    console.warn('Mayar Payment Request Error:', error);
     return {
       status: 'error',
       data: {
@@ -103,67 +123,88 @@ export const createMayarInvoicePayment = async ({
 };
 
 /**
- * Cek Status Pembayaran Transaksi Mayar Berdasarkan Riwayat Transaksi Akun
+ * Cek Status Pembayaran Transaksi Mayar Murni Berdasarkan ID / Kode Transaksi Unik
  */
 export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null, qrCreatedAt = null, customApiKey = '') => {
   const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
 
-  console.log('🔍 [Verifikasi Transaksi Mayar] Memeriksa status untuk Amount:', expectedAmount, 'TrxId:', transactionId);
+  if (!transactionId || transactionId.startsWith('NGONTEN-')) {
+    console.warn('ID Transaksi tidak valid untuk dicek:', transactionId);
+    return { isPaid: false };
+  }
 
-  if (activeApiKey) {
-    const endpoints = [
-      `${MAYAR_CONFIG.baseUrl}/hl/v1/payment?limit=15&page=1`,
-      `${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=15&page=1`,
-      `${MAYAR_CONFIG.baseUrl}/hl/v2/transactions?limit=15&page=1`
-    ];
+  console.log('🔍 [Verifikasi Berdasarkan ID Transaksi Spesifik Mayar] ID:', transactionId);
 
-    for (const url of endpoints) {
-      try {
-        const res = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${activeApiKey.trim()}`,
-            'Content-Type': 'application/json'
-          }
-        });
+  // 1. Cek langsung status ID spesifik via /hl/v1/payment/{id} atau /hl/v1/invoice/{id}
+  const idEndpoints = [
+    `${MAYAR_CONFIG.baseUrl}/hl/v1/invoice/${transactionId}`,
+    `${MAYAR_CONFIG.baseUrl}/hl/v1/payment/${transactionId}`,
+    `${MAYAR_CONFIG.baseUrl}/hl/v1/transactions/${transactionId}`
+  ];
 
-        if (res.ok) {
-          const resData = await res.json();
-          const items = resData.data || resData.items || resData.transactions || (Array.isArray(resData) ? resData : []);
-          
-          console.log(`📡 [Mayar Response ${url}]:`, items);
+  for (const url of idEndpoints) {
+    try {
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${activeApiKey.trim()}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-          if (Array.isArray(items) && items.length > 0) {
-            const found = items.find(item => {
-              const rawStatus = String(item.status || item.payment_status || item.transactionStatus || item.state || '').toUpperCase();
-              const isPaid = rawStatus === 'PAID' || rawStatus === 'SUCCESS' || rawStatus === 'SETTLED' || rawStatus === 'COMPLETED';
-              if (!isPaid) return false;
+      if (res.ok) {
+        const resData = await res.json();
+        const item = resData.data || resData;
+        console.log(`📡 [Detail Status dari Mayar ID ${transactionId}]:`, item);
 
-              // Validasi Nominal
-              if (expectedAmount) {
-                const valAmount = Number(
-                  item.credit !== undefined ? item.credit : 
-                  (item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || item.grossAmount || 0)
-                );
-                const expAmount = Number(expectedAmount);
-                if (valAmount !== expAmount && Math.abs(valAmount - expAmount) >= 5) {
-                  return false;
-                }
-              }
-
-              return true;
-            });
-
-            if (found) {
-              console.log('✅ [Mayar API] Transaksi Berhasil Terverifikasi:', found);
-              return { isPaid: true, data: found };
-            }
+        if (item) {
+          const rawStatus = String(item.status || item.payment_status || item.paymentStatus || '').toLowerCase();
+          if (rawStatus === 'paid' || rawStatus === 'success' || rawStatus === 'settled' || rawStatus === 'completed') {
+            console.log(`✅ [Mayar ID ${transactionId}] TERVERIFIKASI LUNAS!`);
+            return { isPaid: true, data: item };
+          } else {
+            console.log(`⏳ [Mayar ID ${transactionId}] Belum Lunas. Status: ${rawStatus}`);
+            return { isPaid: false, status: rawStatus };
           }
         }
-      } catch (err) {
-        console.warn('Mayar query error:', url, err);
+      }
+    } catch (err) {
+      console.warn('Mayar ID check query error:', url, err);
+    }
+  }
+
+  // 2. Cek apakah ID Transaksi ini tercantum di daftar transaksi akun (/hl/v1/payment)
+  try {
+    const listRes = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/payment?limit=20&page=1`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${activeApiKey.trim()}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (listRes.ok) {
+      const listData = await listRes.json();
+      const items = listData.data || listData.items || (Array.isArray(listData) ? listData : []);
+      
+      const matched = items.find(it => {
+        const itId = it.id || it.transactionId || it.transaction_id;
+        return itId && String(itId).toLowerCase() === String(transactionId).toLowerCase();
+      });
+
+      if (matched) {
+        const matchedStatus = String(matched.status || matched.payment_status || '').toLowerCase();
+        if (matchedStatus === 'paid' || matchedStatus === 'success' || matchedStatus === 'settled') {
+          console.log(`✅ [Mayar ID Match Found in List] ID: ${transactionId} -> LUNAS`);
+          return { isPaid: true, data: matched };
+        } else {
+          console.log(`⏳ [Mayar ID Match Found in List] ID: ${transactionId} -> Status: ${matchedStatus}`);
+          return { isPaid: false, status: matchedStatus };
+        }
       }
     }
+  } catch (listErr) {
+    console.warn('Mayar list lookup error:', listErr);
   }
 
   return { isPaid: false };
