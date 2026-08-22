@@ -92,54 +92,67 @@ export default function PremiumModal({
 
   const currentPlan = planDetails[billingCycle];
 
-  const handleVerifyPayment = () => {
+  const handleVerifyPayment = async () => {
     setIsVerifying(true);
-    setTimeout(() => {
-      setIsVerifying(false);
-      setStep('success');
+    const orderRef = duitkuData?.reference || duitkuData?.merchantOrderId;
+    const expectedAmount = currentPlan?.numericPrice;
 
-      // 1. Simpan Bukti Transaksi Approved
-      if (setConfirmations) {
-        setConfirmations(prev => [{
-          id: `pay_${Date.now()}`,
-          orderId: duitkuData?.merchantOrderId || `NGONTEN-${Date.now()}`,
-          reference: duitkuData?.reference || '',
-          userId: currentUser?.id || currentUser?.username,
-          username: currentUser?.username,
-          bankName: selectedMethod.toUpperCase(),
-          gateway: 'MAYAR',
-          senderName: currentUser?.name || currentUser?.username,
-          amount: `Rp ${currentPlan.numericPrice.toLocaleString('id-ID')}`,
-          status: 'approved',
-          timestamp: new Date().toISOString()
-        }, ...(prev || [])]);
-      }
+    try {
+      const res = await checkMayarPaymentStatus(orderRef, expectedAmount);
+      
+      if (res && res.isPaid) {
+        setIsVerifying(false);
+        setStep('success');
 
-      // 2. AKTIFKAN STATUS USER MENJADI MEMBER PREMIUM INSTAN
-      const durationMs = (currentPlan.durationDays || 30) * 24 * 60 * 60 * 1000;
-      const currentExpiry = (currentUser?.premiumExpiresAt && currentUser.premiumExpiresAt > Date.now()) ? currentUser.premiumExpiresAt : Date.now();
-      const newExpiresAt = currentExpiry + durationMs;
-
-      if (currentUser && setCurrentUser) {
-        const updatedCurrentUser = {
-          ...currentUser,
-          role: 'member',
-          premiumExpiresAt: newExpiresAt
-        };
-        setCurrentUser(updatedCurrentUser);
-        localStorage.setItem('portal-current-user', JSON.stringify(updatedCurrentUser));
-
-        if (users && handleSetUsers) {
-          const updatedUsers = users.map(u => {
-            if (u.id === currentUser.id || u.username?.toLowerCase() === currentUser.username?.toLowerCase()) {
-              return { ...u, role: 'member', premiumExpiresAt: newExpiresAt };
-            }
-            return u;
-          });
-          handleSetUsers(updatedUsers);
+        // 1. Simpan Bukti Transaksi Approved
+        if (setConfirmations) {
+          setConfirmations(prev => [{
+            id: `pay_${Date.now()}`,
+            orderId: duitkuData?.merchantOrderId || `NGONTEN-${Date.now()}`,
+            reference: duitkuData?.reference || '',
+            userId: currentUser?.id || currentUser?.username,
+            username: currentUser?.username,
+            bankName: selectedMethod.toUpperCase(),
+            gateway: 'MAYAR',
+            senderName: currentUser?.name || currentUser?.username,
+            amount: `Rp ${currentPlan.numericPrice.toLocaleString('id-ID')}`,
+            status: 'approved',
+            timestamp: new Date().toISOString()
+          }, ...(prev || [])]);
         }
+
+        // 2. AKTIFKAN STATUS USER MENJADI MEMBER PREMIUM
+        const durationMs = (currentPlan.durationDays || 30) * 24 * 60 * 60 * 1000;
+        const currentExpiry = (currentUser?.premiumExpiresAt && currentUser.premiumExpiresAt > Date.now()) ? currentUser.premiumExpiresAt : Date.now();
+        const newExpiresAt = currentExpiry + durationMs;
+
+        if (currentUser && setCurrentUser) {
+          const updatedCurrentUser = {
+            ...currentUser,
+            role: 'member',
+            premiumExpiresAt: newExpiresAt
+          };
+          setCurrentUser(updatedCurrentUser);
+          localStorage.setItem('portal-current-user', JSON.stringify(updatedCurrentUser));
+
+          if (users && handleSetUsers) {
+            const updatedUsers = users.map(u => {
+              if (u.id === currentUser.id || u.username?.toLowerCase() === currentUser.username?.toLowerCase()) {
+                return { ...u, role: 'member', premiumExpiresAt: newExpiresAt };
+              }
+              return u;
+            });
+            handleSetUsers(updatedUsers);
+          }
+        }
+      } else {
+        setIsVerifying(false);
+        alert('⚠️ Pembayaran belum terdeteksi. Silakan selesaikan pembayaran melalui QRIS terlebih dahulu, lalu klik tombol ini lagi.');
       }
-    }, 1000);
+    } catch (err) {
+      setIsVerifying(false);
+      alert('⚠️ Gagal memeriksa status pembayaran. Pastikan Anda telah menyelesaikan pembayaran QRIS.');
+    }
   };
 
 
