@@ -143,23 +143,40 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
                 const isSuccess = rawStatus === 'SUCCESS' || rawStatus === 'PAID' || rawStatus === 'SETTLED' || rawStatus === 'COMPLETED';
                 if (!isSuccess) return false;
 
+                // 1. Cocokkan ID Transaksi jika ID dari Mayar sesuai
+                const itemId = String(item.id || item.transactionId || item.paymentId || '');
+                if (transactionId && itemId && (itemId === String(transactionId) || transactionId.includes(itemId) || itemId.includes(transactionId))) {
+                  return true;
+                }
+
+                // 2. Cocokkan Nominal
                 if (expectedAmount) {
                   const valAmount = Number(
                     item.credit !== undefined ? item.credit : 
                     (item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || item.grossAmount || 0)
                   );
                   const expAmount = Number(expectedAmount);
-                  // Cocokkan nominal atau kelonggaran fee
-                  if (valAmount === expAmount || Math.abs(valAmount - expAmount) < 5) {
-                    return true;
+                  if (valAmount !== expAmount && Math.abs(valAmount - expAmount) >= 5) {
+                    return false;
                   }
-                  return false;
                 }
+
+                // 3. Cocokkan Waktu (Hanya anggap sah jika transaksi terjadi dalam 30 menit terakhir)
+                if (item.createdAt || item.updatedAt || item.timestamp) {
+                  const rawTime = item.createdAt || item.updatedAt || item.timestamp;
+                  const itemTime = typeof rawTime === 'number' ? rawTime : new Date(rawTime).getTime();
+                  const now = Date.now();
+                  // Transaksi harus berjarak maksimal 30 menit ke belakang
+                  if (now - itemTime > 30 * 60 * 1000) {
+                    return false;
+                  }
+                }
+
                 return true;
               });
 
               if (found) {
-                console.log('✅ [Mayar API] Transaksi Ditemukan:', found);
+                console.log('✅ [Mayar API] Transaksi Sah Ditemukan:', found);
                 return { isPaid: true, data: found };
               }
             }
