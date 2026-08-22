@@ -111,26 +111,32 @@ export default function PremiumModal({
     }, 1200);
   };
 
-  // Otomatis verifikasi berkala (Polling real-time) setiap 3 detik
+  // Otomatis verifikasi berkala (Polling real-time) setiap 2 detik
   useEffect(() => {
     let pollInterval;
     if (step === 'pay_screen') {
+      const orderRef = duitkuData?.reference || duitkuData?.merchantOrderId;
+      const expectedAmount = currentPlan?.numericPrice;
+      
+      console.log('Starting Auto-Check Live Polling for order:', orderRef, 'amount:', expectedAmount);
+
       pollInterval = setInterval(async () => {
         try {
-          const res = await checkMayarPaymentStatus(
-            duitkuData?.reference || duitkuData?.merchantOrderId,
-            currentPlan?.numericPrice
-          );
+          const res = await checkMayarPaymentStatus(orderRef, expectedAmount);
+          console.log('Mayar Live Check Result:', res);
           if (res && res.isPaid) {
+            console.log('Payment Confirmed Paid! Redirecting to Success Screen...');
             clearInterval(pollInterval);
             handleVerifyPayment();
           }
         } catch (e) {
-          // Silent catch for background polling
+          console.warn('Mayar Live Check Error:', e);
         }
-      }, 3000);
+      }, 2500);
     }
-    return () => clearInterval(pollInterval);
+    return () => {
+      if (pollInterval) clearInterval(pollInterval);
+    };
   }, [step, duitkuData, currentPlan]);
 
   // Fetch dynamic payment methods whenever entering select_method or changing plan
