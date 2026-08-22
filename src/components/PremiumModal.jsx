@@ -96,9 +96,10 @@ export default function PremiumModal({
     setIsVerifying(true);
     const orderRef = duitkuData?.reference || duitkuData?.merchantOrderId;
     const expectedAmount = currentPlan?.numericPrice;
+    const qrCreatedAt = duitkuData?.createdAt || Date.now();
 
     try {
-      const res = await checkMayarPaymentStatus(orderRef, expectedAmount);
+      const res = await checkMayarPaymentStatus(orderRef, expectedAmount, qrCreatedAt);
       
       if (res && res.isPaid) {
         setIsVerifying(false);
@@ -272,7 +273,8 @@ export default function PremiumModal({
             qrString: mayarRes.data.qrCodeUrl || '',
             vaNumber: '',
             paymentUrl: mayarRes.data.link || '',
-            gateway: 'MAYAR'
+            gateway: 'MAYAR',
+            createdAt: Date.now()
           });
         }
       } else {

@@ -107,10 +107,10 @@ export const createMayarQRISPayment = async ({
  * Cek status pembayaran transaksi Mayar secara real-time via Google Apps Script Webhook
  * (Mencegah error HTTP 429 Too Many Requests dari Mayar API)
  */
-export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null, customApiKey = '') => {
+export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null, qrCreatedAt = null, customApiKey = '') => {
   const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
 
-  console.log('🔍 [Verifikasi Transaksi Mayar] Memeriksa status untuk Amount:', expectedAmount, 'TrxId:', transactionId);
+  console.log('🔍 [Verifikasi Transaksi Mayar] Memeriksa status untuk Amount:', expectedAmount, 'TrxId:', transactionId, 'QRCreatedAt:', qrCreatedAt);
 
   // 1. Cek langsung ke Mayar API
   if (activeApiKey) {
@@ -135,21 +135,29 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
             const resData = await res.json();
             const items = resData.data || resData.items || resData.transactions || (Array.isArray(resData) ? resData : []);
             
-            console.log('📡 [Mayar API Response from', url, ']:', items);
-
             if (Array.isArray(items) && items.length > 0) {
               const found = items.find(item => {
                 const rawStatus = String(item.status || item.payment_status || item.transactionStatus || item.state || '').toUpperCase();
                 const isSuccess = rawStatus === 'SUCCESS' || rawStatus === 'PAID' || rawStatus === 'SETTLED' || rawStatus === 'COMPLETED';
                 if (!isSuccess) return false;
 
-                // 1. Cocokkan ID Transaksi jika ID dari Mayar sesuai
+                // A. Validasi ID Transaksi Spesifik jika cocok
                 const itemId = String(item.id || item.transactionId || item.paymentId || '');
-                if (transactionId && itemId && (itemId === String(transactionId) || transactionId.includes(itemId) || itemId.includes(transactionId))) {
-                  return true;
+                const hasMatchingId = transactionId && itemId && (itemId === String(transactionId) || transactionId.includes(itemId) || itemId.includes(transactionId));
+
+                // B. Validasi Waktu: Transaksi pembayaran HARUS terjadi SETELAH QRIS digenerate
+                if (qrCreatedAt) {
+                  const rawTime = item.createdAt || item.updatedAt || item.timestamp;
+                  if (rawTime) {
+                    const itemTime = typeof rawTime === 'number' ? rawTime : new Date(rawTime).getTime();
+                    // Toleransi 5 detik selisih jam server
+                    if (itemTime < (qrCreatedAt - 5000)) {
+                      return false; // Ini transaksi dari sesi sebelumnya, abaikan!
+                    }
+                  }
                 }
 
-                // 2. Cocokkan Nominal
+                // C. Validasi Nominal
                 if (expectedAmount) {
                   const valAmount = Number(
                     item.credit !== undefined ? item.credit : 
@@ -161,22 +169,11 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
                   }
                 }
 
-                // 3. Cocokkan Waktu (Hanya anggap sah jika transaksi terjadi dalam 30 menit terakhir)
-                if (item.createdAt || item.updatedAt || item.timestamp) {
-                  const rawTime = item.createdAt || item.updatedAt || item.timestamp;
-                  const itemTime = typeof rawTime === 'number' ? rawTime : new Date(rawTime).getTime();
-                  const now = Date.now();
-                  // Transaksi harus berjarak maksimal 30 menit ke belakang
-                  if (now - itemTime > 30 * 60 * 1000) {
-                    return false;
-                  }
-                }
-
-                return true;
+                return hasMatchingId || !!qrCreatedAt;
               });
 
               if (found) {
-                console.log('✅ [Mayar API] Transaksi Sah Ditemukan:', found);
+                console.log('✅ [Mayar API] Transaksi Sah Baru Ditemukan:', found);
                 return { isPaid: true, data: found };
               }
             }
@@ -196,7 +193,6 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
     const scriptRes = await fetch(scriptUrl, { method: 'GET' });
     if (scriptRes.ok) {
       const scriptData = await scriptRes.json();
-      console.log('📡 [Apps Script Cache Response]:', scriptData);
       if (scriptData && (scriptData.isPaid || scriptData.status === 'paid' || scriptData.status === 'success')) {
         return { isPaid: true, data: scriptData.data || scriptData };
       }
