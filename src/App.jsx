@@ -664,6 +664,9 @@ export default function App() {
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}
         currentUser={currentUser}
+        setCurrentUser={setCurrentUser}
+        users={users}
+        handleSetUsers={handleSetUsers}
         confirmations={confirmations}
         setConfirmations={handleSetConfirmations}
         premiumPrice={premiumPrice}
