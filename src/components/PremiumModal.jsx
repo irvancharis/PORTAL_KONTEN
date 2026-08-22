@@ -111,41 +111,7 @@ export default function PremiumModal({
     }, 1200);
   };
 
-  // Otomatis verifikasi berkala (Polling real-time) setiap 2 detik
-  useEffect(() => {
-    if (step !== 'pay_screen') return;
 
-    const orderRef = duitkuData?.reference || duitkuData?.merchantOrderId;
-    const expectedAmount = currentPlan?.numericPrice;
-    
-    console.log('⚡ [Auto-Check Polling] Active for Order:', orderRef, 'Amount:', expectedAmount);
-
-    let isPolling = true;
-
-    const checkNow = async () => {
-      if (!isPolling) return;
-      try {
-        const res = await checkMayarPaymentStatus(orderRef, expectedAmount);
-        console.log('⚡ [Auto-Check Result]:', res);
-        if (res && res.isPaid && isPolling) {
-          console.log('🎉 Payment SUCCESS detected! Activating Premium...');
-          isPolling = false;
-          handleVerifyPayment();
-        }
-      } catch (e) {
-        console.warn('⚡ [Auto-Check Warning]:', e);
-      }
-    };
-
-    // Jalankan segera dan ulangi tiap 2.5 detik
-    checkNow();
-    const interval = setInterval(checkNow, 2500);
-
-    return () => {
-      isPolling = false;
-      clearInterval(interval);
-    };
-  }, [step, duitkuData, currentPlan]);
 
   // Fetch dynamic payment methods whenever entering select_method or changing plan
   useEffect(() => {
