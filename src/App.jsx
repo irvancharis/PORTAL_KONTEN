@@ -235,6 +235,8 @@ export default function App() {
     setSocialUrl,
     isCopied,
     setIsCopied,
+    paymentGatewayMode,
+    setPaymentGatewayMode,
     minWithdrawalAmount,
     setMinWithdrawalAmount,
     eventAdminFee,
@@ -410,6 +412,8 @@ export default function App() {
               setPremiumPrice={setPremiumPrice}
               paymentInstructions={paymentInstructions}
               setPaymentInstructions={setPaymentInstructions}
+              paymentGatewayMode={paymentGatewayMode}
+              setPaymentGatewayMode={setPaymentGatewayMode}
               users={users}
               setUsers={handleSetUsers}
               confirmations={confirmations}
@@ -660,6 +664,8 @@ export default function App() {
         setConfirmations={handleSetConfirmations}
         premiumPrice={premiumPrice}
         whatsappAdmin={whatsappAdmin}
+        paymentInstructions={paymentInstructions}
+        paymentGatewayMode={paymentGatewayMode}
         onLoginClick={(mode) => handleOpenLoginModal(mode)}
       />
 

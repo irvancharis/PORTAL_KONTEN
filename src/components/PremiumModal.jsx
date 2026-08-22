@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw, Smartphone, ExternalLink, Sparkles } from 'lucide-react';
+import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw, Smartphone, ExternalLink, Sparkles, Upload, Send, MessageCircle } from 'lucide-react';
 import { DUITKU_CONFIG, DUITKU_PAYMENT_METHODS, requestDuitkuInquiry, fetchDuitkuPaymentMethods } from '../services/duitkuPaymentService';
 
 export default function PremiumModal({
@@ -8,9 +8,13 @@ export default function PremiumModal({
   currentUser,
   confirmations,
   setConfirmations,
+  premiumPrice,
+  whatsappAdmin = 'https://wa.me/6281234567890',
+  paymentInstructions = '',
+  paymentGatewayMode = 'manual',
   onLoginClick
 }) {
-  const [step, setStep] = useState('select_plan'); // 'select_plan' | 'select_method' | 'pay_screen' | 'success'
+  const [step, setStep] = useState('select_plan'); // 'select_plan' | 'select_method' | 'pay_screen' | 'manual_pay' | 'success'
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
   const [selectedMethod, setSelectedMethod] = useState('qris'); // 'qris' | 'va_bca' | 'va_mandiri' | 'va_bri' | 'va_bni' | 'ewallet_dana'
   const [dynamicMethods, setDynamicMethods] = useState([]);
@@ -21,6 +25,12 @@ export default function PremiumModal({
   const [isInitiating, setIsInitiating] = useState(false);
   const [duitkuData, setDuitkuData] = useState(null);
   const [timeLeft, setTimeLeft] = useState(900); // 15 menit
+
+  // Manual payment state
+  const [senderName, setSenderName] = useState('');
+  const [senderBank, setSenderBank] = useState('BCA');
+  const [receiptFile, setReceiptFile] = useState('');
+  const [isSubmittingManual, setIsSubmittingManual] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -33,8 +43,12 @@ export default function PremiumModal({
       setCopied(false);
       setCopiedOrderId(false);
       setTimeLeft(900);
+      setSenderName(currentUser?.name || currentUser?.username || '');
+      setSenderBank('BCA');
+      setReceiptFile('');
+      setIsSubmittingManual(false);
     }
-  }, [isOpen]);
+  }, [isOpen, currentUser]);
 
   useEffect(() => {
     let timer;
@@ -107,7 +121,46 @@ export default function PremiumModal({
       onClose();
       return;
     }
-    setStep('select_method');
+    if (paymentGatewayMode === 'manual') {
+      setStep('manual_pay');
+    } else {
+      setStep('select_method');
+    }
+  };
+
+  const handleManualPaymentSubmit = (e) => {
+    e.preventDefault();
+    if (!senderName.trim()) {
+      alert('Nama pengirim transfer wajib diisi!');
+      return;
+    }
+    if (!receiptFile) {
+      alert('Silakan upload foto/gambar bukti transfer Anda!');
+      return;
+    }
+
+    setIsSubmittingManual(true);
+    setTimeout(() => {
+      setIsSubmittingManual(false);
+      const newConfirmation = {
+        id: `conf_${Date.now()}`,
+        userId: currentUser?.id || currentUser?.username,
+        username: currentUser?.username,
+        bankName: senderBank,
+        senderName: senderName.trim(),
+        amount: currentPlan.price,
+        receiptUrl: receiptFile,
+        timestamp: new Date().toISOString(),
+        status: 'pending',
+        gateway: 'MANUAL',
+        billingDuration: currentPlan.duration
+      };
+
+      if (setConfirmations) {
+        setConfirmations(prev => [newConfirmation, ...(prev || [])]);
+      }
+      setStep('success');
+    }, 1000);
   };
 
   const handleProceedToPayScreen = async () => {
@@ -249,13 +302,15 @@ export default function PremiumModal({
             {step === 'select_plan' && 'Paket User Premium'}
             {step === 'select_method' && 'Metode Pembayaran'}
             {step === 'pay_screen' && 'Selesaikan Pembayaran'}
-            {step === 'success' && 'Pembayaran Berhasil!'}
+            {step === 'manual_pay' && 'Transfer Pembayaran Manual'}
+            {step === 'success' && (paymentGatewayMode === 'manual' ? 'Konfirmasi Terkirim!' : 'Pembayaran Berhasil!')}
           </h2>
           <p className="desc-text" style={{ fontSize: '0.84rem', margin: 0 }}>
             {step === 'select_plan' && 'Tingkatkan akun ke User Premium untuk akses penuh ekosistem ngonten.id.'}
             {step === 'select_method' && 'Pilih metode pembayaran instan dan terenkripsi.'}
             {step === 'pay_screen' && 'Scan QRIS atau transfer ke nomor VA di bawah untuk aktivasi instan.'}
-            {step === 'success' && 'Akun Anda resmi aktif sebagai User Premium.'}
+            {step === 'manual_pay' && 'Transfer sesuai nominal ke rekening admin dan lampirkan bukti transfer.'}
+            {step === 'success' && (paymentGatewayMode === 'manual' ? 'Bukti transfer berhasil dikirim. Admin akan segera memverifikasi akun Anda.' : 'Akun Anda resmi aktif sebagai User Premium.')}
           </p>
         </div>
 
@@ -977,6 +1032,208 @@ export default function PremiumModal({
           </div>
         )}
 
+        {/* ================= STEP: MANUAL PAYMENT TRANSFER & PROOF UPLOAD ================= */}
+        {step === 'manual_pay' && (
+          <form onSubmit={handleManualPaymentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {/* Ringkasan Tagihan */}
+            <div className="doku-plan-card" style={{ padding: '16px', marginBottom: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
+                <span className="desc-text">Paket Langganan:</span>
+                <strong style={{ fontWeight: '700' }}>User Premium ({currentPlan.duration})</strong>
+              </div>
+              <div style={{ height: '1px', backgroundColor: 'rgba(128,128,128,0.2)', margin: '8px 0' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong style={{ fontWeight: '800', fontSize: '0.9rem' }}>Total yang Harus Ditransfer:</strong>
+                <strong style={{ fontSize: '1.25rem', fontWeight: '900', color: '#10b981' }}>
+                  {currentPlan.price}
+                </strong>
+              </div>
+            </div>
+
+            {/* Rekening Tujuan Transfer */}
+            <div style={{
+              background: 'rgba(56, 189, 248, 0.08)',
+              border: '1px solid rgba(56, 189, 248, 0.25)',
+              borderRadius: '10px',
+              padding: '14px 16px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <Landmark size={18} color="#38bdf8" />
+                <strong style={{ fontSize: '0.85rem', color: '#38bdf8' }}>Nomor Rekening / E-Wallet Tujuan:</strong>
+              </div>
+              <div style={{
+                fontSize: '0.84rem',
+                lineHeight: '1.6',
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--text-primary)'
+              }}>
+                {paymentInstructions || '- Bank BCA: 1234567890 a.n. ngonten.id\n- DANA: 081234567890 a.n. Admin\n- OVO: 081234567890'}
+              </div>
+            </div>
+
+            {/* Form Input Bukti Bayar */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px', display: 'block' }}>Nama Pengirim</label>
+                <input 
+                  type="text"
+                  value={senderName}
+                  onChange={(e) => setSenderName(e.target.value)}
+                  placeholder="Nama pemilik rekening"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(128,128,128,0.25)',
+                    background: 'rgba(255,255,255,0.03)',
+                    color: 'inherit',
+                    fontSize: '0.85rem',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px', display: 'block' }}>Bank / E-Wallet Asal</label>
+                <select
+                  value={senderBank}
+                  onChange={(e) => setSenderBank(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(128,128,128,0.25)',
+                    background: 'rgba(255,255,255,0.03)',
+                    color: 'inherit',
+                    fontSize: '0.85rem',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <option value="BCA" style={{ background: '#1e293b', color: 'white' }}>BCA</option>
+                  <option value="MANDIRI" style={{ background: '#1e293b', color: 'white' }}>Mandiri</option>
+                  <option value="BRI" style={{ background: '#1e293b', color: 'white' }}>BRI</option>
+                  <option value="BNI" style={{ background: '#1e293b', color: 'white' }}>BNI</option>
+                  <option value="DANA" style={{ background: '#1e293b', color: 'white' }}>DANA</option>
+                  <option value="GOPAY" style={{ background: '#1e293b', color: 'white' }}>GoPay</option>
+                  <option value="OVO" style={{ background: '#1e293b', color: 'white' }}>OVO</option>
+                  <option value="SHOPEEPAY" style={{ background: '#1e293b', color: 'white' }}>ShopeePay</option>
+                  <option value="LAINNYA" style={{ background: '#1e293b', color: 'white' }}>Lainnya</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Upload Bukti Transfer */}
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px', display: 'block' }}>Upload Bukti Transfer</label>
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (re) => {
+                        setReceiptFile(re.target?.result);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  required={!receiptFile}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: '1px dashed rgba(128,128,128,0.4)',
+                    background: 'rgba(255,255,255,0.02)',
+                    color: 'inherit',
+                    fontSize: '0.8rem',
+                    boxSizing: 'border-box',
+                    cursor: 'pointer'
+                  }}
+                />
+              </div>
+              {receiptFile && (
+                <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <img 
+                    src={receiptFile} 
+                    alt="Bukti Bayar" 
+                    style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)' }} 
+                  />
+                  <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: '600' }}>✓ Bukti transfer terlampir</span>
+                </div>
+              )}
+            </div>
+
+            {/* Tombol Aksi */}
+            <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
+              <button
+                type="button"
+                onClick={() => setStep('select_plan')}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  backgroundColor: 'rgba(128,128,128,0.1)',
+                  border: '1px solid rgba(128,128,128,0.2)',
+                  borderRadius: '10px',
+                  fontSize: '0.88rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                <ArrowLeft size={16} />
+                <span>Kembali</span>
+              </button>
+
+              <button
+                type="submit"
+                disabled={isSubmittingManual}
+                className="doku-btn-main"
+                style={{ flex: 2 }}
+              >
+                {isSubmittingManual ? (
+                  <>
+                    <RefreshCw size={16} className="animate-spin" color="#ffffff" />
+                    <span className="doku-white-text">Mengirim Bukti...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send size={16} color="#ffffff" />
+                    <span className="doku-white-text">Kirim Konfirmasi Bayar</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {whatsappAdmin && (
+              <a 
+                href={whatsappAdmin}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  color: '#22c55e',
+                  fontSize: '0.78rem',
+                  fontWeight: '600',
+                  textDecoration: 'none',
+                  marginTop: '4px'
+                }}
+              >
+                <MessageCircle size={14} />
+                <span>Butuh Bantuan? Hubungi Admin WhatsApp</span>
+              </a>
+            )}
+          </form>
+        )}
+
         {/* ================= STEP 4: SUKSES ================= */}
         {step === 'success' && (
           <div style={{ textAlign: 'center', padding: '10px 0' }}>
@@ -984,29 +1241,35 @@ export default function PremiumModal({
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              backgroundColor: '#0f172a',
+              backgroundColor: paymentGatewayMode === 'manual' ? '#10b981' : '#0f172a',
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px auto'
             }}>
-              <Crown size={32} color="#ffffff" />
+              {paymentGatewayMode === 'manual' ? <Check size={32} color="#ffffff" strokeWidth={3} /> : <Crown size={32} color="#ffffff" />}
             </div>
 
             <h3 style={{ fontSize: '1.3rem', fontWeight: '800', margin: '0 0 8px 0' }}>
-              Selamat! User Premium Aktif ({currentPlan.duration}) 🎉
+              {paymentGatewayMode === 'manual' 
+                ? 'Bukti Pembayaran Terkirim! 🎉' 
+                : `Selamat! User Premium Aktif (${currentPlan.duration}) 🎉`}
             </h3>
             
             <p className="desc-text" style={{ fontSize: '0.85rem', lineHeight: '1.6', marginBottom: '22px', maxWidth: '380px', margin: '0 auto 22px auto' }}>
-              Pembayaran Anda telah berhasil diverifikasi. Akun Anda kini resmi memiliki status <strong>USER PREMIUM</strong> dengan potongan biaya penarikan dompet 2% dan akses penuh ekosistem ngonten.id.
+              {paymentGatewayMode === 'manual'
+                ? `Terima kasih! Bukti transfer paket ${currentPlan.duration} Anda telah masuk ke sistem. Admin akan memvalidasi pembayaran Anda dalam waktu 1-15 menit.`
+                : 'Pembayaran Anda telah berhasil diverifikasi secara otomatis. Akun Anda kini resmi memiliki status USER PREMIUM dengan potongan biaya penarikan dompet 2% dan akses penuh ekosistem ngonten.id.'}
             </p>
 
             <button
               onClick={onClose}
               className="doku-btn-main"
             >
-              <span className="doku-white-text">Mulai Eksplorasi Fitur Premium</span>
+              <span className="doku-white-text">
+                {paymentGatewayMode === 'manual' ? 'Selesai & Tutup' : 'Mulai Eksplorasi Fitur Premium'}
+              </span>
             </button>
           </div>
         )}

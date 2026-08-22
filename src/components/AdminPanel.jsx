@@ -293,6 +293,8 @@ export default function AdminPanel({
   setPremiumPrice,
   paymentInstructions = '',
   setPaymentInstructions,
+  paymentGatewayMode = 'manual',
+  setPaymentGatewayMode,
   users = [],
   setUsers,
   confirmations = [],
@@ -6360,6 +6362,125 @@ export default function AdminPanel({
         </div>
       ) : adminSubTab === 'membership' && currentUser && currentUser.role === 'superadmin' ? (
         <div className="membership-manager-section animate-fade-in">
+          {/* Setting Mode Pembayaran (Manual vs Payment Gateway) */}
+          <div className="glass-panel" style={{ 
+            padding: '24px', 
+            borderRadius: 'var(--radius-md)', 
+            marginBottom: '24px',
+            background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', color: 'white', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <CreditCard size={20} color="#38bdf8" />
+              <span>Mode Transaksi & Pembayaran Sistem</span>
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.5' }}>
+              Pilih alur transaksi pembayaran yang aktif di website saat ini. Gunakan <strong>Mode Manual</strong> jika pengajuan Payment Gateway (Duitku) masih dalam proses approval agar pengguna tetap dapat berlangganan & transaksi via transfer langsung.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+              {/* Option 1: Manual Transfer */}
+              <div 
+                onClick={() => setPaymentGatewayMode && setPaymentGatewayMode('manual')}
+                style={{
+                  padding: '18px 20px',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  border: paymentGatewayMode === 'manual' ? '2px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.1)',
+                  background: paymentGatewayMode === 'manual' ? 'rgba(56, 189, 248, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                  transition: 'all 0.2s',
+                  position: 'relative'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ 
+                      width: '36px', 
+                      height: '36px', 
+                      borderRadius: '8px', 
+                      background: paymentGatewayMode === 'manual' ? '#38bdf8' : 'rgba(255,255,255,0.05)', 
+                      color: paymentGatewayMode === 'manual' ? '#000000' : 'white',
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center' 
+                    }}>
+                      <Landmark size={20} />
+                    </div>
+                    <div>
+                      <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>Mode 1: Transfer Manual</strong>
+                      <span style={{ fontSize: '0.72rem', color: '#38bdf8', fontWeight: 'bold' }}>Sangat Disarankan Saat Ini</span>
+                    </div>
+                  </div>
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    border: `2px solid ${paymentGatewayMode === 'manual' ? '#38bdf8' : 'rgba(255,255,255,0.3)'}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: paymentGatewayMode === 'manual' ? '#38bdf8' : 'transparent'
+                  }}>
+                    {paymentGatewayMode === 'manual' && <Check size={12} color="#000000" strokeWidth={3} />}
+                  </div>
+                </div>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
+                  Pengguna mentransfer ke rekening bank / e-wallet admin secara manual, lalu bukti transfer diverifikasi oleh Superadmin di menu <strong>Pemasukan Saldo</strong>.
+                </p>
+              </div>
+
+              {/* Option 2: Payment Gateway */}
+              <div 
+                onClick={() => setPaymentGatewayMode && setPaymentGatewayMode('gateway')}
+                style={{
+                  padding: '18px 20px',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  border: paymentGatewayMode === 'gateway' ? '2px solid #a855f7' : '1px solid rgba(255, 255, 255, 0.1)',
+                  background: paymentGatewayMode === 'gateway' ? 'rgba(168, 85, 247, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                  transition: 'all 0.2s',
+                  position: 'relative'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ 
+                      width: '36px', 
+                      height: '36px', 
+                      borderRadius: '8px', 
+                      background: paymentGatewayMode === 'gateway' ? '#a855f7' : 'rgba(255,255,255,0.05)', 
+                      color: paymentGatewayMode === 'gateway' ? '#ffffff' : 'white',
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center' 
+                    }}>
+                      <QrCode size={20} />
+                    </div>
+                    <div>
+                      <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>Mode 2: Payment Gateway</strong>
+                      <span style={{ fontSize: '0.72rem', color: '#a855f7', fontWeight: 'bold' }}>Duitku API (Otomatis)</span>
+                    </div>
+                  </div>
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    border: `2px solid ${paymentGatewayMode === 'gateway' ? '#a855f7' : 'rgba(255,255,255,0.3)'}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: paymentGatewayMode === 'gateway' ? '#a855f7' : 'transparent'
+                  }}>
+                    {paymentGatewayMode === 'gateway' && <Check size={12} color="#ffffff" strokeWidth={3} />}
+                  </div>
+                </div>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
+                  Menampilkan QRIS Real-time dan Virtual Account otomatis via integrasi API Duitku. Aktifkan mode ini setelah pengajuan merchant Duitku disetujui.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="add-affiliate-card glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '16px' }}>
               <div className="form-group" style={{ margin: 0 }}>

@@ -1361,6 +1361,9 @@ export default function useAppState() {
             if (dbSettings.paymentInstructions) {
               setPaymentInstructions(dbSettings.paymentInstructions);
             }
+            if (dbSettings.paymentGatewayMode) {
+              setPaymentGatewayMode(dbSettings.paymentGatewayMode);
+            }
             if (dbSettings.minWithdrawalAmount !== undefined) {
               setMinWithdrawalAmount(dbSettings.minWithdrawalAmount);
             }
@@ -2106,6 +2109,7 @@ export default function useAppState() {
         whatsappAdmin,
         premiumPrice,
         paymentInstructions,
+        paymentGatewayMode,
         minWithdrawalAmount,
         eventAdminFee,
         withdrawalFeePercent,
@@ -2155,6 +2159,11 @@ export default function useAppState() {
     return localStorage.getItem('portal-payment-instructions') || '- Bank BCA: 1234567890 a.n. ngonten.id\n- DANA: 081234567890 a.n. Admin\n- OVO: 081234567890';
   });
 
+  // Mode Gateway Pembayaran: 'manual' (Transfer Bank Manual & Upload Bukti) vs 'gateway' (Duitku / Otomatis)
+  const [paymentGatewayMode, setPaymentGatewayMode] = useState(() => {
+    return localStorage.getItem('portal-payment-gateway-mode') || 'manual';
+  });
+
   const [minWithdrawalAmount, setMinWithdrawalAmount] = useState(() => {
     const saved = localStorage.getItem('portal-min-withdrawal');
     return saved ? parseInt(saved) : 50000;
@@ -2192,6 +2201,10 @@ export default function useAppState() {
   useEffect(() => {
     localStorage.setItem('portal-payment-instructions', paymentInstructions);
   }, [paymentInstructions]);
+
+  useEffect(() => {
+    localStorage.setItem('portal-payment-gateway-mode', paymentGatewayMode);
+  }, [paymentGatewayMode]);
 
   useEffect(() => {
     localStorage.setItem('portal-min-withdrawal', minWithdrawalAmount.toString());
@@ -3057,7 +3070,8 @@ export default function useAppState() {
     gifts,
     handleSetGifts,
     handleAwardEventGift,
-    handleRedeemGiftCode,
+    paymentGatewayMode,
+    setPaymentGatewayMode,
     isOffline,
     isLoadingDB
   };
