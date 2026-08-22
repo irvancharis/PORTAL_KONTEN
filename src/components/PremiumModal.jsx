@@ -608,14 +608,24 @@ export default function PremiumModal({
                       borderRadius: '10px'
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <strong style={{ fontSize: '0.95rem', minWidth: '60px' }}>QRIS</strong>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                        <span style={{ background: '#ee4d2d', color: 'white', fontSize: '0.62rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>ShopeePay</span>
-                        <span style={{ background: '#4c2a86', color: 'white', fontSize: '0.62rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>OVO</span>
-                        <span style={{ background: '#00aed6', color: 'white', fontSize: '0.62rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>GOPAY</span>
-                        <span style={{ background: '#118eea', color: 'white', fontSize: '0.62rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>DANA</span>
-                        <span style={{ background: '#005baa', color: 'white', fontSize: '0.62rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>BCA Mobile</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '8px',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        color: '#3b82f6',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <QrCode size={22} />
+                      </div>
+                      <div>
+                        <strong style={{ fontSize: '0.95rem', display: 'block', marginBottom: '2px' }}>QRIS (Scan Real-Time)</strong>
+                        <span className="desc-text" style={{ fontSize: '0.75rem' }}>
+                          Mendukung seluruh aplikasi m-Banking & E-Wallet
+                        </span>
                       </div>
                     </div>
                     <div style={{
