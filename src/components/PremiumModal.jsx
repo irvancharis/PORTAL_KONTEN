@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw, Smartphone, ExternalLink, Sparkles, Upload, Send, MessageCircle } from 'lucide-react';
 import { DUITKU_CONFIG, DUITKU_PAYMENT_METHODS, requestDuitkuInquiry, fetchDuitkuPaymentMethods } from '../services/duitkuPaymentService';
-import { createMayarQRISPayment } from '../services/mayarPaymentService';
+import { createMayarQRISPayment, checkMayarPaymentStatus } from '../services/mayarPaymentService';
 
 export default function PremiumModal({
   isOpen,
@@ -60,16 +60,24 @@ export default function PremiumModal({
     return () => clearInterval(timer);
   }, [step, timeLeft]);
 
-  // Otomatis verifikasi berkala (Polling real-time) setiap 5 detik
+  // Otomatis verifikasi berkala (Polling real-time) setiap 4 detik
   useEffect(() => {
     let pollInterval;
-    if (step === 'pay_screen') {
-      pollInterval = setInterval(() => {
-        // Polling status otomatis
-      }, 5000);
+    if (step === 'pay_screen' && duitkuData?.merchantOrderId) {
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await checkMayarPaymentStatus(duitkuData.reference || duitkuData.merchantOrderId);
+          if (res && res.isPaid) {
+            clearInterval(pollInterval);
+            handleVerifyPayment();
+          }
+        } catch (e) {
+          // Silent catch for background polling
+        }
+      }, 4000);
     }
     return () => clearInterval(pollInterval);
-  }, [step]);
+  }, [step, duitkuData]);
 
   // Parse harga dari input Admin Panel (contoh: "5000", "Rp 5.000", "Rp 29.000 / Bulan")
   const parsedMonthlyPrice = (() => {
