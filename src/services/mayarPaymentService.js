@@ -11,6 +11,33 @@ export const MAYAR_CONFIG = {
 };
 
 /**
+ * Mengambil daftar seluruh metode / channel pembayaran yang aktif di akun Mayar
+ */
+export const fetchMayarPaymentChannels = async (customApiKey = '') => {
+  const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
+  if (!activeApiKey) return { success: false, channels: [] };
+
+  try {
+    const res = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v2/payment-channels`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${activeApiKey.trim()}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const channels = data.data || data.channels || (Array.isArray(data) ? data : []);
+      return { success: true, channels };
+    }
+    return { success: false, channels: [] };
+  } catch (error) {
+    return { success: false, channels: [] };
+  }
+};
+
+/**
  * Buat Invoice Pembayaran Resmi Mayar.id melalui POST /hl/v1/invoice/create
  * Menghasilkan ID Transaksi / Invoice Unik dan Link / QR Pembayaran Resmi
  */

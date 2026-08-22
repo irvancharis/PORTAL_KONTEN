@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw, Smartphone, ExternalLink, Sparkles, Upload, Send, MessageCircle } from 'lucide-react';
 import { DUITKU_CONFIG, DUITKU_PAYMENT_METHODS, requestDuitkuInquiry, fetchDuitkuPaymentMethods } from '../services/duitkuPaymentService';
-import { createMayarInvoicePayment, checkMayarPaymentStatus } from '../services/mayarPaymentService';
+import { createMayarInvoicePayment, checkMayarPaymentStatus, fetchMayarPaymentChannels } from '../services/mayarPaymentService';
 
 export default function PremiumModal({
   isOpen,
