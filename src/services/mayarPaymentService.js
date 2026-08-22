@@ -108,12 +108,13 @@ export const createMayarInvoicePayment = async ({
 export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null, qrCreatedAt = null, customApiKey = '') => {
   const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
 
-  console.log('🔍 [Verifikasi Transaksi Mayar] Memeriksa status untuk Amount:', expectedAmount, 'QRCreatedAt:', qrCreatedAt);
+  console.log('🔍 [Verifikasi Transaksi Mayar] Memeriksa status untuk Amount:', expectedAmount, 'TrxId:', transactionId);
 
   if (activeApiKey) {
     const endpoints = [
-      `${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=10&page=1`,
-      `${MAYAR_CONFIG.baseUrl}/hl/v2/transactions?limit=10&page=1`
+      `${MAYAR_CONFIG.baseUrl}/hl/v1/payment?limit=15&page=1`,
+      `${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=15&page=1`,
+      `${MAYAR_CONFIG.baseUrl}/hl/v2/transactions?limit=15&page=1`
     ];
 
     for (const url of endpoints) {
@@ -130,29 +131,31 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
           const resData = await res.json();
           const items = resData.data || resData.items || resData.transactions || (Array.isArray(resData) ? resData : []);
           
-          if (Array.isArray(items) && items.length > 0) {
-            console.log(`📋 [Mayar Transactions List from ${url}]:`, items);
+          console.log(`📡 [Mayar Response ${url}]:`, items);
 
+          if (Array.isArray(items) && items.length > 0) {
             const found = items.find(item => {
-              const rawStatus = String(item.status || item.payment_status || item.transactionStatus || '').toUpperCase();
+              const rawStatus = String(item.status || item.payment_status || item.transactionStatus || item.state || '').toUpperCase();
               const isPaid = rawStatus === 'PAID' || rawStatus === 'SUCCESS' || rawStatus === 'SETTLED' || rawStatus === 'COMPLETED';
               if (!isPaid) return false;
 
               // Validasi Nominal
-              const valAmount = Number(
-                item.credit !== undefined ? item.credit : 
-                (item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || 0)
-              );
-              const expAmount = Number(expectedAmount);
-              if (expectedAmount && valAmount !== expAmount && Math.abs(valAmount - expAmount) >= 5) {
-                return false;
+              if (expectedAmount) {
+                const valAmount = Number(
+                  item.credit !== undefined ? item.credit : 
+                  (item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || item.grossAmount || 0)
+                );
+                const expAmount = Number(expectedAmount);
+                if (valAmount !== expAmount && Math.abs(valAmount - expAmount) >= 5) {
+                  return false;
+                }
               }
 
               return true;
             });
 
             if (found) {
-              console.log('✅ [Mayar API] Transaksi Berhasil Ditemukan:', found);
+              console.log('✅ [Mayar API] Transaksi Berhasil Terverifikasi:', found);
               return { isPaid: true, data: found };
             }
           }
