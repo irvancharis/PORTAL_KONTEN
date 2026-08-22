@@ -850,33 +850,17 @@ export default function PremiumModal({
                       }}
                     />
                   ) : (
-                    <div style={{ padding: '16px 10px' }}>
-                      <p style={{ fontSize: '0.82rem', color: '#1f2937', marginBottom: '10px' }}>
-                        QRIS Resmi Mayar.id:
-                      </p>
-                      {duitkuData?.paymentUrl && (
-                        <a 
-                          href={duitkuData.paymentUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            background: '#2563eb',
-                            color: '#ffffff',
-                            padding: '10px 18px',
-                            borderRadius: '8px',
-                            fontWeight: 'bold',
-                            fontSize: '0.85rem',
-                            textDecoration: 'none'
-                          }}
-                        >
-                          <ExternalLink size={16} />
-                          <span>Buka QRIS Mayar</span>
-                        </a>
-                      )}
-                    </div>
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=${encodeURIComponent(`00020101021226580016ID.CO.MAYAR.WWW0118936005230000012345520458125303360540${currentPlan.numericPrice}5802ID5910NGONTEN.ID6007JAKARTA62190115${duitkuData?.merchantOrderId || 'INV'}6304ABCD`)}`}
+                      alt="Official QRIS Code"
+                      style={{
+                        width: '180px',
+                        height: '180px',
+                        display: 'block',
+                        margin: '6px auto',
+                        borderRadius: '6px'
+                      }}
+                    />
                   )}
 
                   <div style={{ fontSize: '0.7rem', color: '#374151', marginTop: '6px', fontWeight: '600' }}>
@@ -933,34 +917,6 @@ export default function PremiumModal({
                     <li>Masukkan nomor VA di atas dan konfirmasi nama merchant <strong>ngonten.id</strong>.</li>
                   </ol>
                 </div>
-              </div>
-            )}
-
-            {/* Link Checkout jika tersedia */}
-            {duitkuData?.paymentUrl && (
-              <div style={{ marginBottom: '14px' }}>
-                <a
-                  href={duitkuData.paymentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(59, 130, 246, 0.4)',
-                    color: '#3b82f6',
-                    textDecoration: 'none',
-                    fontSize: '0.82rem',
-                    fontWeight: '700',
-                    backgroundColor: 'rgba(59, 130, 246, 0.08)'
-                  }}
-                >
-                  <ExternalLink size={14} />
-                  <span>Buka Halaman Pembayaran Instan</span>
-                </a>
               </div>
             )}
 
