@@ -2567,7 +2567,7 @@ export default function EventsUserPortal({
             marginBottom: '16px' 
           }}>
             <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
-              Event & Kompetisi Kreatif
+              Kampanye & Kompetisi Kreatif
             </h1>
           </div>
 
@@ -2590,7 +2590,7 @@ export default function EventsUserPortal({
                   whiteSpace: 'nowrap'
                 }}
               >
-                Semua Event
+                Semua Kampanye
               </button>
               <button
                 onClick={() => {
@@ -2611,7 +2611,7 @@ export default function EventsUserPortal({
                   whiteSpace: 'nowrap'
                 }}
               >
-                Kelola Event Saya
+                Kelola Kampanye Saya
               </button>
               <button
                 onClick={() => changePortalTab('offers')}
@@ -2884,7 +2884,7 @@ export default function EventsUserPortal({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari event kompetisi..."
+                  placeholder="Cari kampanye atau kompetisi..."
                   style={{
                     width: '100%',
                     padding: '10px 12px 10px 38px',
@@ -2960,7 +2960,7 @@ export default function EventsUserPortal({
               }}
             >
               <Calendar size={16} />
-              <span>Buat Event Baru</span>
+              <span>Buat Kampanye Baru</span>
             </button>
           </div>
 
