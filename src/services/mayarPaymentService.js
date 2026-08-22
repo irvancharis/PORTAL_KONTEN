@@ -110,49 +110,63 @@ export const createMayarQRISPayment = async ({
 export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null, customApiKey = '') => {
   const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
 
-  // 1. Cek langsung ke Mayar API (karena dipicu manual oleh klik tombol, tidak akan kena rate-limit 429)
+  console.log('🔍 [Verifikasi Transaksi Mayar] Memeriksa status untuk Amount:', expectedAmount, 'TrxId:', transactionId);
+
+  // 1. Cek langsung ke Mayar API
   if (activeApiKey) {
     try {
       const endpoints = [
-        `${MAYAR_CONFIG.baseUrl}/hl/v1/payment?limit=10&page=1`,
-        `${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=10&page=1`
+        `${MAYAR_CONFIG.baseUrl}/hl/v1/payment?limit=20&page=1`,
+        `${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=20&page=1`,
+        `${MAYAR_CONFIG.baseUrl}/hl/v2/transactions?limit=20&page=1`
       ];
 
       for (const url of endpoints) {
-        const res = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${activeApiKey.trim()}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        try {
+          const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${activeApiKey.trim()}`,
+              'Content-Type': 'application/json'
+            }
+          });
 
-        if (res.ok) {
-          const resData = await res.json();
-          const items = resData.data || resData.items || (Array.isArray(resData) ? resData : []);
-          
-          if (Array.isArray(items) && items.length > 0) {
-            // Cari transaksi yang sukses
-            const found = items.find(item => {
-              const itemStatus = String(item.status || item.payment_status || item.transactionStatus || '').toLowerCase();
-              const isPaid = itemStatus === 'paid' || itemStatus === 'success' || itemStatus === 'settled' || itemStatus === 'completed';
-              if (!isPaid) return false;
+          if (res.ok) {
+            const resData = await res.json();
+            const items = resData.data || resData.items || resData.transactions || (Array.isArray(resData) ? resData : []);
+            
+            console.log('📡 [Mayar API Response from', url, ']:', items);
 
-              if (expectedAmount) {
-                const itemAmount = Number(item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || 0);
-                if (itemAmount !== Number(expectedAmount)) return false;
+            if (Array.isArray(items) && items.length > 0) {
+              const found = items.find(item => {
+                const rawStatus = String(item.status || item.payment_status || item.transactionStatus || item.state || '').toUpperCase();
+                const isSuccess = rawStatus === 'SUCCESS' || rawStatus === 'PAID' || rawStatus === 'SETTLED' || rawStatus === 'COMPLETED';
+                if (!isSuccess) return false;
+
+                if (expectedAmount) {
+                  const valAmount = Number(item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || item.grossAmount || 0);
+                  const expAmount = Number(expectedAmount);
+                  // Cocokkan nominal atau kelonggaran fee
+                  if (valAmount === expAmount || Math.abs(valAmount - expAmount) < 5) {
+                    return true;
+                  }
+                  return false;
+                }
+                return true;
+              });
+
+              if (found) {
+                console.log('✅ [Mayar API] Transaksi Ditemukan:', found);
+                return { isPaid: true, data: found };
               }
-              return true;
-            });
-
-            if (found) {
-              return { isPaid: true, data: found };
             }
           }
+        } catch (subErr) {
+          console.warn('Mayar endpoint error:', url, subErr);
         }
       }
     } catch (e) {
-      console.warn('Direct Mayar check warning:', e);
+      console.warn('Direct Mayar check error:', e);
     }
   }
 
@@ -162,6 +176,7 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
     const scriptRes = await fetch(scriptUrl, { method: 'GET' });
     if (scriptRes.ok) {
       const scriptData = await scriptRes.json();
+      console.log('📡 [Apps Script Cache Response]:', scriptData);
       if (scriptData && (scriptData.isPaid || scriptData.status === 'paid' || scriptData.status === 'success')) {
         return { isPaid: true, data: scriptData.data || scriptData };
       }
