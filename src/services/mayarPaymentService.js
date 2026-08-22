@@ -136,40 +136,33 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
             const items = resData.data || resData.items || resData.transactions || (Array.isArray(resData) ? resData : []);
             
             if (Array.isArray(items) && items.length > 0) {
-              const found = items.find(item => {
+              console.log(`📋 [Mayar Response ${url}] Memeriksa ${items.length} transaksi:`, items);
+
+              const found = items.find((item, idx) => {
                 const rawStatus = String(item.status || item.payment_status || item.transactionStatus || item.state || '').toUpperCase();
                 const isSuccess = rawStatus === 'SUCCESS' || rawStatus === 'PAID' || rawStatus === 'SETTLED' || rawStatus === 'COMPLETED';
-                if (!isSuccess) return false;
 
-                // A. Validasi ID Transaksi Spesifik jika cocok
-                const itemId = String(item.id || item.transactionId || item.paymentId || '');
-                const hasMatchingId = transactionId && itemId && (itemId === String(transactionId) || transactionId.includes(itemId) || itemId.includes(transactionId));
+                // A. Nominal
+                const valAmount = Number(
+                  item.credit !== undefined ? item.credit : 
+                  (item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || item.grossAmount || 0)
+                );
+                const expAmount = Number(expectedAmount);
+                const isAmountMatch = !expectedAmount || valAmount === expAmount || Math.abs(valAmount - expAmount) < 5;
 
-                // B. Validasi Waktu: Transaksi pembayaran HARUS terjadi SETELAH QRIS digenerate
-                if (qrCreatedAt) {
-                  const rawTime = item.createdAt || item.updatedAt || item.timestamp;
-                  if (rawTime) {
-                    const itemTime = typeof rawTime === 'number' ? rawTime : new Date(rawTime).getTime();
-                    // Toleransi 5 detik selisih jam server
-                    if (itemTime < (qrCreatedAt - 5000)) {
-                      return false; // Ini transaksi dari sesi sebelumnya, abaikan!
-                    }
-                  }
+                // B. Waktu
+                const rawTime = item.createdAt || item.updatedAt || item.timestamp;
+                let itemTime = 0;
+                if (typeof rawTime === 'number') {
+                  itemTime = rawTime;
+                } else if (rawTime) {
+                  itemTime = new Date(rawTime).getTime();
                 }
+                const isTimeMatch = !qrCreatedAt || !itemTime || itemTime >= (qrCreatedAt - 60000); // 60 detik toleransi
 
-                // C. Validasi Nominal
-                if (expectedAmount) {
-                  const valAmount = Number(
-                    item.credit !== undefined ? item.credit : 
-                    (item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || item.grossAmount || 0)
-                  );
-                  const expAmount = Number(expectedAmount);
-                  if (valAmount !== expAmount && Math.abs(valAmount - expAmount) >= 5) {
-                    return false;
-                  }
-                }
+                console.log(`🔎 Item #${idx}: [ID: ${item.id}] [Status: ${rawStatus} (Valid: ${isSuccess})] [Amount: ${valAmount} vs Exp: ${expAmount} (Match: ${isAmountMatch})] [ItemTime: ${new Date(itemTime).toLocaleTimeString()} vs QRTime: ${new Date(qrCreatedAt).toLocaleTimeString()} (Match: ${isTimeMatch})]`);
 
-                return hasMatchingId || !!qrCreatedAt;
+                return isSuccess && isAmountMatch && isTimeMatch;
               });
 
               if (found) {
