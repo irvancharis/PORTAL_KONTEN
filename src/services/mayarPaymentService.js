@@ -111,17 +111,17 @@ export const createMayarQRISPayment = async ({
 export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null, qrCreatedAt = null, customApiKey = '') => {
   const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
 
-  console.log('🔍 [Verifikasi Spesifik Mayar] Memeriksa ID:', transactionId);
+  console.log('🔍 [Verifikasi Status Mayar] Memeriksa status untuk Amount:', expectedAmount, 'TrxId:', transactionId);
 
-  // 1. Cek langsung ke Endpoint Spesifik ID Transaksi Mayar
-  if (activeApiKey && transactionId && !transactionId.startsWith('NGONTEN-') && !transactionId.startsWith('mayar_')) {
-    const specificEndpoints = [
-      `${MAYAR_CONFIG.baseUrl}/hl/v1/invoice/${transactionId}`,
-      `${MAYAR_CONFIG.baseUrl}/hl/v1/payment/${transactionId}`,
-      `${MAYAR_CONFIG.baseUrl}/hl/v1/transactions/${transactionId}`
+  // 1. Cek langsung riwayat transaksi terbaru Mayar API
+  if (activeApiKey) {
+    const endpoints = [
+      `${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=10&page=1`,
+      `${MAYAR_CONFIG.baseUrl}/hl/v2/transactions?limit=10&page=1`,
+      `${MAYAR_CONFIG.baseUrl}/hl/v1/payment?limit=10&page=1`
     ];
 
-    for (const url of specificEndpoints) {
+    for (const url of endpoints) {
       try {
         const res = await fetch(url, {
           method: 'GET',
@@ -133,22 +133,50 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
 
         if (res.ok) {
           const resData = await res.json();
-          const item = resData.data || resData;
-          if (item) {
-            const rawStatus = String(item.status || item.payment_status || item.transactionStatus || '').toUpperCase();
-            console.log(`📡 [Mayar Specific Status for ${transactionId}]:`, rawStatus, item);
-            if (rawStatus === 'PAID' || rawStatus === 'SUCCESS' || rawStatus === 'SETTLED' || rawStatus === 'COMPLETED') {
-              return { isPaid: true, data: item };
+          const items = resData.data || resData.items || resData.transactions || (Array.isArray(resData) ? resData : []);
+          
+          if (Array.isArray(items) && items.length > 0) {
+            const found = items.find(item => {
+              const rawStatus = String(item.status || item.payment_status || item.transactionStatus || '').toUpperCase();
+              const isPaid = rawStatus === 'PAID' || rawStatus === 'SUCCESS' || rawStatus === 'SETTLED';
+              if (!isPaid) return false;
+
+              // Validasi Nominal
+              const valAmount = Number(
+                item.credit !== undefined ? item.credit : 
+                (item.amount || item.totalAmount || item.netAmount || item.paymentLinkAmount || 0)
+              );
+              const expAmount = Number(expectedAmount);
+              if (expectedAmount && valAmount !== expAmount && Math.abs(valAmount - expAmount) >= 5) {
+                return false;
+              }
+
+              // Validasi Waktu: Transaksi harus terjadi dalam 5 menit terakhir
+              const rawTime = item.createdAt || item.updatedAt || item.timestamp;
+              if (rawTime) {
+                const itemTime = typeof rawTime === 'number' ? rawTime : new Date(rawTime).getTime();
+                const now = Date.now();
+                if (now - itemTime > 5 * 60 * 1000) {
+                  return false; // Transaksi lebih dari 5 menit lalu diabaikan
+                }
+              }
+
+              return true;
+            });
+
+            if (found) {
+              console.log('✅ [Mayar API] Transaksi Berhasil Ditemukan:', found);
+              return { isPaid: true, data: found };
             }
           }
         }
       } catch (err) {
-        console.warn('Mayar specific check error:', url, err);
+        console.warn('Mayar query error:', url, err);
       }
     }
   }
 
-  // 2. Fallback: Webhook Cache
+  // 2. Fallback: Webhook Cache dari Apps Script
   try {
     const scriptUrl = `${MAYAR_CONFIG.appsScriptUrl}?check_mayar=1&amount=${encodeURIComponent(expectedAmount || '')}&trx_id=${encodeURIComponent(transactionId || '')}&_t=${Date.now()}`;
     const scriptRes = await fetch(scriptUrl, { method: 'GET' });
