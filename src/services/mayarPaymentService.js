@@ -1,7 +1,7 @@
 /**
  * mayarPaymentService.js
  * Layanan Integrasi API Payment Gateway Mayar.id untuk ngonten.id
- * Mendukung: Dynamic QRIS, Fetch Payment Channels, Realtime Transactions Status Inquiry
+ * Mendukung: Dynamic QRIS, Fetch Payment Channels, Realtime Status Polling
  */
 
 export const MAYAR_CONFIG = {
@@ -67,7 +67,7 @@ export const createMayarQRISPayment = async ({
     const data = await res.json();
     if (res.ok && data && (data.data?.url || data.url)) {
       const qrImageUrl = data.data?.url || data.url;
-      const trxId = data.data?.id || data.id || orderId;
+      const trxId = data.data?.id || data.id || data.data?.transactionId || orderId;
       return {
         status: 'success',
         data: {
@@ -76,7 +76,8 @@ export const createMayarQRISPayment = async ({
           amount: amount,
           qrCodeUrl: qrImageUrl,
           link: '',
-          status: 'unpaid'
+          status: 'unpaid',
+          createdAt: Date.now()
         },
         isSimulated: false
       };
@@ -94,7 +95,8 @@ export const createMayarQRISPayment = async ({
         amount: amount,
         qrCodeUrl: '',
         link: '',
-        status: 'unpaid'
+        status: 'unpaid',
+        createdAt: Date.now()
       },
       error: error.message
     };
@@ -104,13 +106,74 @@ export const createMayarQRISPayment = async ({
 /**
  * Cek status pembayaran transaksi Mayar secara real-time via berbagai endpoint
  */
-export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null, customApiKey = '') => {
+export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null, customApiKey = '', startTime = null) => {
   const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
   if (!activeApiKey) return { isPaid: false };
 
   try {
-    // 1. Coba check by transaction ID
-    if (transactionId) {
+    // 1. Coba periksa riwayat pembayaran terbaru (GET /hl/v1/payment atau /hl/v1/transactions)
+    const endpoints = [
+      `${MAYAR_CONFIG.baseUrl}/hl/v1/payment?limit=10&page=1`,
+      `${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=10&page=1`,
+      `${MAYAR_CONFIG.baseUrl}/hl/v1/qrcode/history?limit=10`
+    ];
+
+    for (const url of endpoints) {
+      try {
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${activeApiKey.trim()}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (res.ok) {
+          const listData = await res.json();
+          const items = listData.data || listData.items || (Array.isArray(listData) ? listData : []);
+          
+          if (Array.isArray(items) && items.length > 0) {
+            const found = items.find(item => {
+              const itemStatus = String(item.status || item.payment_status || item.transactionStatus || '').toLowerCase();
+              const isPaid = itemStatus === 'paid' || itemStatus === 'success' || itemStatus === 'settled' || itemStatus === 'completed';
+              
+              if (!isPaid) return false;
+
+              // Cocokkan nominal jika ada
+              if (expectedAmount) {
+                const itemAmount = Number(item.amount || item.totalAmount || item.netAmount || 0);
+                if (itemAmount !== Number(expectedAmount)) return false;
+              }
+
+              // Cocokkan ID jika ada
+              if (transactionId && (item.id === transactionId || item.transactionId === transactionId || item.orderId === transactionId)) {
+                return true;
+              }
+
+              // Jika baru dibayar (dalam 15 menit terakhir)
+              if (item.createdAt || item.updatedAt || item.timestamp) {
+                const itemTime = new Date(item.updatedAt || item.createdAt || item.timestamp).getTime();
+                const now = Date.now();
+                if (now - itemTime < 15 * 60 * 1000) {
+                  return true;
+                }
+              }
+
+              return true;
+            });
+
+            if (found) {
+              return { isPaid: true, data: found };
+            }
+          }
+        }
+      } catch (e) {
+        // Continue to next endpoint
+      }
+    }
+
+    // 2. Coba periksa direct invoice/transaction ID
+    if (transactionId && !transactionId.startsWith('NGONTEN-')) {
       const resTrx = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/invoice/${transactionId}`, {
         method: 'GET',
         headers: {
@@ -121,36 +184,10 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
 
       if (resTrx.ok) {
         const data = await resTrx.json();
-        const status = (data.data?.status || data.status || '').toLowerCase();
+        const status = String(data.data?.status || data.status || '').toLowerCase();
         if (status === 'paid' || status === 'success' || status === 'completed') {
           return { isPaid: true, data };
         }
-      }
-    }
-
-    // 2. Coba check dari riwayat transaksi terbaru (GET /hl/v1/transactions atau /hl/v1/payment)
-    const resList = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=5`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${activeApiKey.trim()}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (resList.ok) {
-      const listData = await resList.json();
-      const items = listData.data || listData.items || (Array.isArray(listData) ? listData : []);
-      
-      // Cari transaksi yang statusnya paid dengan waktu dalam 15 menit terakhir
-      const matched = items.find(item => {
-        const itemStatus = (item.status || '').toLowerCase();
-        const isPaidStatus = itemStatus === 'paid' || itemStatus === 'success' || itemStatus === 'settled';
-        const matchesAmount = expectedAmount ? Number(item.amount) === Number(expectedAmount) : true;
-        return isPaidStatus && matchesAmount;
-      });
-
-      if (matched) {
-        return { isPaid: true, data: matched };
       }
     }
 
