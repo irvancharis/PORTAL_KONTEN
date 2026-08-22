@@ -62,7 +62,7 @@ export default function CommunitiesPage({
     const isRegularUserLocal = currentUser && !(currentUser.isCommunity || currentUser.role === 'panitia');
 
     return (
-      <div className="profile-view-container animate-fade-in" style={{ width: '100%' }}>
+      <div className="community-portal-container animate-fade-in" style={{ width: '100%', padding: '4px', textAlign: 'left' }}>
         {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && (
           <div style={{
             background: 'rgba(245, 158, 11, 0.1)',
@@ -556,7 +556,7 @@ export default function CommunitiesPage({
   }
 
   return (
-    <div className="profile-view-container animate-fade-in" style={{ width: '100%' }}>
+    <div className="community-portal-container animate-fade-in" style={{ width: '100%', padding: '4px', textAlign: 'left' }}>
       {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && (
         <div style={{
           background: 'rgba(245, 158, 11, 0.1)',
