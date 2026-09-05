@@ -6374,9 +6374,8 @@ export default function AdminPanel({
         <div className="membership-manager-section animate-fade-in">
           {/* Setting Mode Pembayaran (Manual vs Payment Gateway) */}
           <div className="glass-panel" style={{ 
-            padding: '24px', 
-            borderRadius: 'var(--radius-md)', 
-            marginBottom: '24px',
+            padding: '24px',
+            borderRadius: '16px',
             background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%)',
             border: '1px solid rgba(255, 255, 255, 0.1)'
           }}>
@@ -6385,7 +6384,7 @@ export default function AdminPanel({
               <span>Mode Transaksi & Pembayaran Sistem</span>
             </h3>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.5' }}>
-              Pilih alur transaksi pembayaran yang aktif di website saat ini. Gunakan <strong>Mode Manual</strong> jika pengajuan Payment Gateway (Duitku) masih dalam proses approval agar pengguna tetap dapat berlangganan & transaksi via transfer langsung.
+              Pilih alur transaksi pembayaran yang aktif di website. Gunakan <strong>Mode Payment Gateway (TriPay)</strong> untuk memproses QRIS, Virtual Account (BCA, Mandiri, BRI, BNI), dan E-Wallet secara otomatis dan instan.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
@@ -6418,7 +6417,7 @@ export default function AdminPanel({
                     </div>
                     <div>
                       <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>Mode 1: Transfer Manual</strong>
-                      <span style={{ fontSize: '0.72rem', color: '#38bdf8', fontWeight: 'bold' }}>Sangat Disarankan Saat Ini</span>
+                      <span style={{ fontSize: '0.72rem', color: '#38bdf8', fontWeight: 'bold' }}>Verifikasi Bukti Transfer</span>
                     </div>
                   </div>
                   <div style={{
@@ -6439,15 +6438,15 @@ export default function AdminPanel({
                 </p>
               </div>
 
-              {/* Option 2: Payment Gateway (Mayar.id) */}
+              {/* Option 2: Payment Gateway (TriPay) */}
               <div 
                 onClick={() => setPaymentGatewayMode && setPaymentGatewayMode('gateway')}
                 style={{
                   padding: '18px 20px',
                   borderRadius: '12px',
                   cursor: 'pointer',
-                  border: paymentGatewayMode === 'gateway' ? '2px solid #a855f7' : '1px solid rgba(255, 255, 255, 0.1)',
-                  background: paymentGatewayMode === 'gateway' ? 'rgba(168, 85, 247, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                  border: paymentGatewayMode === 'gateway' ? '2px solid #06b6d4' : '1px solid rgba(255, 255, 255, 0.1)',
+                  background: paymentGatewayMode === 'gateway' ? 'rgba(6, 182, 212, 0.08)' : 'rgba(255, 255, 255, 0.02)',
                   transition: 'all 0.2s',
                   position: 'relative'
                 }}
@@ -6458,7 +6457,7 @@ export default function AdminPanel({
                       width: '36px', 
                       height: '36px', 
                       borderRadius: '8px', 
-                      background: paymentGatewayMode === 'gateway' ? '#a855f7' : 'rgba(255,255,255,0.05)', 
+                      background: paymentGatewayMode === 'gateway' ? '#06b6d4' : 'rgba(255,255,255,0.05)', 
                       color: paymentGatewayMode === 'gateway' ? '#ffffff' : 'white',
                       display: 'flex', 
                       alignItems: 'center', 
@@ -6467,56 +6466,46 @@ export default function AdminPanel({
                       <QrCode size={20} />
                     </div>
                     <div>
-                      <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>Mode 2: QRIS Dinamis Mayar.id</strong>
-                      <span style={{ fontSize: '0.72rem', color: '#a855f7', fontWeight: 'bold' }}>Otomatis & Real-Time</span>
+                      <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>Mode 2: Payment Gateway TriPay Resmi</strong>
+                      <span style={{ fontSize: '0.72rem', color: '#06b6d4', fontWeight: 'bold' }}>QRIS, VA & E-Wallet Otomatis</span>
                     </div>
                   </div>
                   <div style={{
                     width: '20px',
                     height: '20px',
                     borderRadius: '50%',
-                    border: `2px solid ${paymentGatewayMode === 'gateway' ? '#a855f7' : 'rgba(255,255,255,0.3)'}`,
+                    border: `2px solid ${paymentGatewayMode === 'gateway' ? '#06b6d4' : 'rgba(255,255,255,0.3)'}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: paymentGatewayMode === 'gateway' ? '#a855f7' : 'transparent'
+                    background: paymentGatewayMode === 'gateway' ? '#06b6d4' : 'transparent'
                   }}>
                     {paymentGatewayMode === 'gateway' && <Check size={12} color="#ffffff" strokeWidth={3} />}
                   </div>
                 </div>
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
-                  Menghasilkan kode QRIS Dinamis real-time resmi Mayar.id langsung di modal checkout dengan verifikasi instan.
+                  Memproses transaksi secara real-time via TriPay API & Cloud Functions dengan notifikasi lunas instan.
                 </p>
               </div>
             </div>
 
-            {/* Input API Key Mayar jika mode gateway aktif */}
+            {/* TriPay Info & Connection Summary */}
             {paymentGatewayMode === 'gateway' && (
-              <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                <label style={{ fontSize: '0.82rem', fontWeight: 'bold', color: '#c084fc', marginBottom: '6px', display: 'block' }}>
-                  🔑 Mayar.id API Key (Production / Live):
-                </label>
-                <input 
-                  type="password"
-                  placeholder="Masukkan API Token / Bearer Token Mayar Anda (cth: myr_live_...)"
-                  defaultValue={localStorage.getItem('portal-mayar-api-key') || ''}
-                  onChange={(e) => {
-                    localStorage.setItem('portal-mayar-api-key', e.target.value.trim());
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    border: '1px solid rgba(168, 85, 247, 0.4)',
-                    borderRadius: 'var(--radius-sm)',
-                    color: 'white',
-                    fontFamily: 'monospace',
-                    fontSize: '0.85rem'
-                  }}
-                />
-                <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  Dapatkan API Key dari dashboard Mayar.id di menu <strong>Integrations / API Keys</strong>.
-                </span>
+              <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#38bdf8', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                  <ShieldCheck size={16} />
+                  <span>Koneksi Server TriPay (Firebase Cloud Functions):</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', fontSize: '0.78rem' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <span style={{ color: 'var(--text-secondary)', display: 'block' }}>Kode Merchant:</span>
+                    <strong style={{ color: '#ffffff' }}>T52611</strong>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <span style={{ color: 'var(--text-secondary)', display: 'block' }}>Whitelist IP Terdaftar:</span>
+                    <strong style={{ color: '#34d399' }}>199.36.158.100</strong>
+                  </div>
+                </div>
               </div>
             )}
           </div>

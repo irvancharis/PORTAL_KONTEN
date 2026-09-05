@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dokumen Penjelasan & Alur Penggunaan Midtrans - ngonten.id</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 15mm;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #1e293b;
+      line-height: 1.5;
+      margin: 0;
+      padding: 20px;
+      font-size: 11pt;
+    }
+    .header {
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 {
+      margin: 0;
+      color: #1e3a8a;
+      font-size: 18pt;
+      font-weight: 800;
+    }
+    .header p {
+      margin: 2px 0 0 0;
+      color: #64748b;
+      font-size: 9.5pt;
+    }
+    .badge {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 9pt;
+    }
+    h2 {
+      color: #1e293b;
+      font-size: 12pt;
+      border-left: 4px solid #2563eb;
+      padding-left: 8px;
+      margin-top: 18px;
+      margin-bottom: 8px;
+    }
+    p, li {
+      color: #334155;
+      font-size: 10pt;
+    }
+    ul, ol {
+      margin: 6px 0;
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+    .flowchart-container {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 14px 0;
+    }
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .flow-num {
+      background: #2563eb;
+      color: #ffffff;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9pt;
+      font-weight: bold;
+      margin-right: 12px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .flow-content {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      flex-grow: 1;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .flow-content strong {
+      color: #0f172a;
+      font-size: 10pt;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .flow-content span {
+      color: #475569;
+      font-size: 9pt;
+    }
+    .footer {
+      margin-top: 24px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      color: #64748b;
+      font-size: 8.5pt;
+    }
+    .sign-box {
+      margin-top: 20px;
+      text-align: right;
+    }
+    .sign-box p {
+      margin: 2px 0;
+      font-size: 9.5pt;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <h1>ngonten.id</h1>
+      <p>Platform Ekosistem Kampanye Kreatif, Video Creator & Digital Escrow</p>
+      <p>Website: <strong>https://jamkosong.web.app</strong> / <strong>ngonten.id</strong></p>
+    </div>
+    <div>
+      <span class="badge">DOKUMEN VERIFIKASI RESMI</span>
+    </div>
+  </div>
+
+  <h2>1. Profil Usaha & Model Bisnis</h2>
+  <p>
+    <strong>ngonten.id</strong> adalah platform digital penghubung antara <strong>Penyelenggara/Brand</strong> (pemberi proyek/kampanye) dengan <strong>Kreator Video/Peserta</strong>. Model bisnis platform terdiri dari:
+  </p>
+  <ul>
+    <li><strong>Pembiayaan & Penyelenggaraan Kampanye (Inbound):</strong> Brand mendanai kompetisi/kampanye kreatif secara resmi dengan dana reward yang ditampung secara aman (Escrow) di platform.</li>
+    <li><strong>Layanan Digital Premium (Inbound):</strong> Langganan keanggotaan User Premium untuk akses fitur eksklusif analisis performa dan potongan biaya admin.</li>
+    <li><strong>Penyaluran Benefit Hadiah (Outbound / Payout):</strong> Penyaluran reward hadiah tunai kepada kreator pemenang melalui transfer bank / e-wallet.</li>
+  </ul>
+
+  <h2>2. Tujuan Penggunaan Midtrans Payment Gateway</h2>
+  <ol>
+    <li><strong>Midtrans Snap / Core API (Inbound):</strong> Menerima pembayaran pendanaan kampanye dan langganan User Premium via QRIS, Virtual Account (BCA, Mandiri, BRI, BNI), dan E-Wallet.</li>
+    <li><strong>Midtrans Iris (Disbursement / Outbound):</strong> Mentransfer dana benefit/hadiah dari dompet digital platform ke rekening bank/e-wallet kreator secara real-time dan transparan.</li>
+  </ol>
+
+  <h2>3. Flowchart Alur Transaksi End-to-End</h2>
+  <div class="flowchart-container">
+    
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div class="flow-content">
+        <strong>Penyelenggara Membuat Kampanye & Melakukan Pembayaran (Midtrans Inbound)</strong>
+        <span>Penyelenggara menetapkan budget reward, lalu membayar via QRIS/VA Midtrans. Dana masuk ke sistem penampungan platform (Escrow).</span>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div class="flow-content">
+        <strong>Publikasi Kampanye & Pengiriman Karya oleh Kreator</strong>
+        <span>Kampanye aktif secara publik. Kreator/peserta mendaftar dan mengirimkan karya video kreatif sesuai kriteria kampanye.</span>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num">3</div>
+      <div class="flow-content">
+        <strong>Penjurian & Penetapan Pemenang Kampanye</strong>
+        <span>Penyelenggara mengkurasi karya dan menentukan karya terbaik sebagai pemenang yang berhak menerima reward hadiah.</span>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num">4</div>
+      <div class="flow-content">
+        <strong>Alokasi Benefit Hadiah ke Dompet Kreator (In-App Wallet)</strong>
+        <span>Sistem secara otomatis mengalokasikan saldo hadiah dari escrow kampanye langsung ke akun Dompet Digital masing-masing pemenang.</span>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num">5</div>
+      <div class="flow-content">
+        <strong>Permintaan Penarikan Saldo (Withdrawal Request)</strong>
+        <span>Pemenang mengajukan penarikan dana di menu Dompet dengan memasukkan nomor rekening Bank / E-Wallet tujuan atas nama pribadi.</span>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num">6</div>
+      <div class="flow-content">
+        <strong>Pencairan Dana ke Rekening Kreator (Midtrans Iris / Payout)</strong>
+        <span>Sistem memproses pencairan saldo langsung ke rekening/e-wallet kreator dengan aman dan otomatis.</span>
+      </div>
+    </div>
+
+  </div>
+
+  <h2>4. Pernyataan Kepatuhan Hukum</h2>
+  <p>
+    Platform <strong>ngonten.id</strong> beroperasi secara legal dalam kategori jasa periklanan konten, industri kreatif, dan teknologi informasi, serta tidak memperjualbelikan barang/jasa terlarang maupun aktivitas yang melanggar hukum Indonesia dan kebijakan kepatuhan Midtrans.
+  </p>
+
+  <div class="sign-box">
+    <p>Hormat kami,</p>
+    <br><br>
+    <p><strong>Pengelola Platform ngonten.id</strong></p>
+    <p>Email: harusbisangonten@gmail.com</p>
+  </div>
+
+  <div class="footer">
+    <span>Dokumen Resmi Konfirmasi Onboarding Midtrans</span>
+    <span>ngonten.id © 2026</span>
+  </div>
+
+</body>
+</html>

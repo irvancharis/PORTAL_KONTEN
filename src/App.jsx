@@ -15,6 +15,9 @@ import ProfilePage from './pages/ProfilePage';
 import TicketPassPage from './components/TicketPassPage';
 import OpenClawModal from './components/OpenClawModal';
 import SearchableSelect from './components/SearchableSelect';
+import LegalModal from './components/LegalModal';
+import PricingCatalogSection from './components/PricingCatalogSection';
+import SiteFooter from './components/SiteFooter';
 import { OfflineBanner } from './components/SkeletonLoader';
 import useAppState from './hooks/useAppState';
 import { slugify, formatIndonesianDate, fetchJSONP } from './utils/helpers';
@@ -307,6 +310,40 @@ export default function App() {
   } = state;
 
   const [isOpenClawModalOpen, setIsOpenClawModalOpen] = React.useState(false);
+  const [isLegalModalOpen, setIsLegalModalOpen] = React.useState(false);
+  const [legalModalTab, setLegalModalTab] = React.useState('terms');
+
+  const handleOpenLegal = (tab = 'terms') => {
+    setLegalModalTab(tab);
+    setIsLegalModalOpen(true);
+  };
+
+  const handleScrollToPricing = () => {
+    const el = document.getElementById('pricing-catalog');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      setShowPremiumModal(true);
+    }
+  };
+
+  const handleSelectPricingPlan = (plan) => {
+    if (plan.id === 'creator_starter') {
+      if (!currentUser) {
+        handleOpenLoginModal('register', 'kreator');
+      } else {
+        setToast({ type: 'success', message: 'Anda sudah aktif di paket Creator Starter!' });
+      }
+    } else if (plan.id === 'creator_pro') {
+      setShowPremiumModal(true);
+    } else if (plan.id === 'brand_campaign') {
+      if (!currentUser) {
+        handleOpenLoginModal('register', 'panitia');
+      } else {
+        handleTabChange('events');
+      }
+    }
+  };
 
   // Standalone dedicated Ticket Page (New Tab / Direct Link from Email)
   if (activeTicketParam) {
@@ -644,6 +681,12 @@ export default function App() {
               handleToggleJoinCommunity={handleToggleJoinCommunity}
             />
           )}
+
+          {/* Public Compliance & Business Footer */}
+          <SiteFooter 
+            onOpenLegal={handleOpenLegal}
+            onScrollToPricing={() => setShowPremiumModal(true)}
+          />
         </main>
       </div>
 
@@ -657,6 +700,13 @@ export default function App() {
         adminSubTab={adminSubTab}
         onAdminSubTabChange={handleAdminSubTabChange}
         customRoles={customRoles}
+      />
+
+      {/* Legal & Policy Compliance Modal */}
+      <LegalModal 
+        isOpen={isLegalModalOpen}
+        onClose={() => setIsLegalModalOpen(false)}
+        initialTab={legalModalTab}
       />
 
       {/* Premium Subscription Modal */}

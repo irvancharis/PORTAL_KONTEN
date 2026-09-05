@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw, Smartphone, ExternalLink, Sparkles, Upload, Send, MessageCircle } from 'lucide-react';
 import { DUITKU_CONFIG, DUITKU_PAYMENT_METHODS, requestDuitkuInquiry, fetchDuitkuPaymentMethods } from '../services/duitkuPaymentService';
 import { createMayarInvoicePayment, checkMayarPaymentStatus, fetchMayarPaymentChannels } from '../services/mayarPaymentService';
+import { createTripayPayment, TRIPAY_PAYMENT_METHODS } from '../services/tripayPaymentService';
+import { isFirebaseConfigured, saveFirestoreUser } from '../firebase';
 
 export default function PremiumModal({
   isOpen,
@@ -39,21 +41,102 @@ export default function PremiumModal({
 
   useEffect(() => {
     if (isOpen) {
-      setStep('select_plan');
-      setBillingCycle('monthly');
-      setSelectedMethod('qris');
       setIsVerifying(false);
       setIsInitiating(false);
-      setDuitkuData(null);
       setCopied(false);
       setCopiedOrderId(false);
-      setTimeLeft(900);
       setSenderName(currentUser?.name || currentUser?.username || '');
       setSenderBank('BCA');
       setReceiptFile('');
       setIsSubmittingManual(false);
+
+      // Cek apakah user memiliki transaksi pending aktif (misal dalam 15-30 menit terakhir)
+      const userPending = (confirmations || []).find(c => 
+        c.status === 'pending' && 
+        (c.userId === currentUser?.id || c.username?.toLowerCase() === currentUser?.username?.toLowerCase()) &&
+        (Date.now() - new Date(c.timestamp).getTime() < 30 * 60 * 1000)
+      );
+
+      const savedSessionStr = localStorage.getItem('portal-active-payment-session');
+      let savedSession = null;
+      if (savedSessionStr) {
+        try {
+          const parsed = JSON.parse(savedSessionStr);
+          if (parsed && (Date.now() - parsed.createdAt < 30 * 60 * 1000) && 
+              (parsed.userId === currentUser?.id || parsed.username === currentUser?.username)) {
+            savedSession = parsed;
+          }
+        } catch (e) {}
+      }
+
+      if (savedSession && savedSession.duitkuData?.qrString) {
+        setDuitkuData(savedSession.duitkuData);
+        setSelectedMethod(savedSession.selectedMethod || 'qris');
+        setBillingCycle(savedSession.billingCycle || 'monthly');
+        const elapsedSec = Math.floor((Date.now() - savedSession.createdAt) / 1000);
+        setTimeLeft(Math.max(60, 900 - elapsedSec));
+        setStep('pay_screen');
+      } else if (userPending && userPending.qrString) {
+        setBillingCycle(userPending.billingDuration?.includes('Tahun') ? 'yearly' : 'monthly');
+        setSelectedMethod('qris');
+        setDuitkuData({
+          merchantOrderId: userPending.orderId,
+          reference: userPending.reference || userPending.orderId,
+          qrString: userPending.qrString,
+          vaNumber: userPending.vaNumber || '',
+          paymentUrl: userPending.paymentUrl || '',
+          gateway: userPending.gateway || 'MAYAR',
+          createdAt: new Date(userPending.timestamp).getTime()
+        });
+        const elapsedSec = Math.floor((Date.now() - new Date(userPending.timestamp).getTime()) / 1000);
+        setTimeLeft(Math.max(60, 900 - elapsedSec));
+        setStep('pay_screen');
+      } else if (savedSession || userPending) {
+        // Jika sesi ada tapi belum punya URL gambar QRIS, buatkan QRIS langsung
+        const activeOrderId = savedSession?.duitkuData?.merchantOrderId || userPending?.orderId || `NGONTEN-${Date.now()}`;
+        const activePlan = planDetails[savedSession?.billingCycle || (userPending?.billingDuration?.includes('Tahun') ? 'yearly' : 'monthly')];
+        
+        setBillingCycle(savedSession?.billingCycle || (userPending?.billingDuration?.includes('Tahun') ? 'yearly' : 'monthly'));
+        setSelectedMethod('qris');
+        setStep('pay_screen');
+
+        createMayarInvoicePayment({
+          name: currentUser?.name || currentUser?.username || 'Kreator ngonten.id',
+          email: currentUser?.email || `${currentUser?.username || 'user'}@ngonten.id`,
+          mobile: currentUser?.phone || '081234567890',
+          amount: activePlan.numericPrice,
+          orderId: activeOrderId
+        }).then(res => {
+          if (res?.data?.qrCodeUrl) {
+            const freshData = {
+              merchantOrderId: activeOrderId,
+              reference: res.data.id || activeOrderId,
+              qrString: res.data.qrCodeUrl,
+              vaNumber: '',
+              paymentUrl: res.data.link || '',
+              gateway: 'MAYAR',
+              createdAt: Date.now()
+            };
+            setDuitkuData(freshData);
+            localStorage.setItem('portal-active-payment-session', JSON.stringify({
+              userId: currentUser?.id || currentUser?.username,
+              username: currentUser?.username,
+              duitkuData: freshData,
+              selectedMethod: 'qris',
+              billingCycle: savedSession?.billingCycle || 'monthly',
+              createdAt: Date.now()
+            }));
+          }
+        });
+      } else {
+        setStep('select_plan');
+        setBillingCycle('monthly');
+        setSelectedMethod('qris');
+        setDuitkuData(null);
+        setTimeLeft(900);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, currentUser, confirmations]);
 
   useEffect(() => {
     let timer;
@@ -100,59 +183,86 @@ export default function PremiumModal({
 
     try {
       const res = await checkMayarPaymentStatus(orderRef, expectedAmount, qrCreatedAt);
-      
+      console.log('🔍 [Hasil checkMayarPaymentStatus]:', res);
+
       if (res && res.isPaid) {
         setIsVerifying(false);
         setStep('success');
 
-        // 1. Simpan Bukti Transaksi Approved
-        if (setConfirmations) {
-          setConfirmations(prev => [{
-            id: `pay_${Date.now()}`,
-            orderId: duitkuData?.merchantOrderId || `NGONTEN-${Date.now()}`,
-            reference: duitkuData?.reference || '',
-            userId: currentUser?.id || currentUser?.username,
-            username: currentUser?.username,
-            bankName: selectedMethod.toUpperCase(),
-            gateway: 'MAYAR',
-            senderName: currentUser?.name || currentUser?.username,
-            amount: `Rp ${currentPlan.numericPrice.toLocaleString('id-ID')}`,
-            status: 'approved',
-            timestamp: new Date().toISOString()
-          }, ...(prev || [])]);
+        // 1. Simpan / Perbarui Bukti Transaksi Approved ke Database
+        try {
+          if (setConfirmations) {
+            setConfirmations(prev => {
+              const list = prev || [];
+              const existingIdx = list.findIndex(c => c.orderId === (duitkuData?.merchantOrderId || orderRef) || (duitkuData?.reference && c.reference === duitkuData.reference));
+              const approvedItem = {
+                id: duitkuData?.transactionRecordId || `pay_${Date.now()}`,
+                orderId: duitkuData?.merchantOrderId || orderRef || `NGONTEN-${Date.now()}`,
+                reference: duitkuData?.reference || '',
+                userId: currentUser?.id || currentUser?.username || 'user',
+                username: currentUser?.username || 'user',
+                bankName: (duitkuData?.gateway || 'MAYAR') + ' - ' + selectedMethod.toUpperCase(),
+                gateway: duitkuData?.gateway || 'MAYAR',
+                senderName: currentUser?.name || currentUser?.username || 'user',
+                amount: `Rp ${currentPlan.numericPrice.toLocaleString('id-ID')}`,
+                status: 'approved',
+                timestamp: new Date().toISOString(),
+                billingDuration: currentPlan.duration
+              };
+
+              if (existingIdx >= 0) {
+                const copy = [...list];
+                copy[existingIdx] = { ...copy[existingIdx], ...approvedItem };
+                return copy;
+              }
+              return [approvedItem, ...list];
+            });
+          }
+        } catch (dbErr) {
+          console.warn('Simpan konfirmasi error:', dbErr);
         }
 
         // 2. AKTIFKAN STATUS USER MENJADI MEMBER PREMIUM
-        const durationMs = (currentPlan.durationDays || 30) * 24 * 60 * 60 * 1000;
-        const currentExpiry = (currentUser?.premiumExpiresAt && currentUser.premiumExpiresAt > Date.now()) ? currentUser.premiumExpiresAt : Date.now();
-        const newExpiresAt = currentExpiry + durationMs;
+        try {
+          const durationMs = (currentPlan.durationDays || 30) * 24 * 60 * 60 * 1000;
+          const currentExpiry = (currentUser?.premiumExpiresAt && currentUser.premiumExpiresAt > Date.now()) ? currentUser.premiumExpiresAt : Date.now();
+          const newExpiresAt = currentExpiry + durationMs;
 
-        if (currentUser && setCurrentUser) {
-          const updatedCurrentUser = {
-            ...currentUser,
-            role: 'member',
-            premiumExpiresAt: newExpiresAt
-          };
-          setCurrentUser(updatedCurrentUser);
-          localStorage.setItem('portal-current-user', JSON.stringify(updatedCurrentUser));
+          if (currentUser && setCurrentUser) {
+            const updatedCurrentUser = {
+              ...currentUser,
+              role: 'member',
+              premiumExpiresAt: newExpiresAt
+            };
+            setCurrentUser(updatedCurrentUser);
+            localStorage.setItem('portal-current-user', JSON.stringify(updatedCurrentUser));
+            localStorage.removeItem('portal-active-payment-session');
 
-          if (users && handleSetUsers) {
-            const updatedUsers = users.map(u => {
-              if (u.id === currentUser.id || u.username?.toLowerCase() === currentUser.username?.toLowerCase()) {
-                return { ...u, role: 'member', premiumExpiresAt: newExpiresAt };
-              }
-              return u;
-            });
-            handleSetUsers(updatedUsers);
+            if (isFirebaseConfigured()) {
+              saveFirestoreUser(updatedCurrentUser).catch(e => console.warn('Sync user Firestore error:', e));
+            }
+
+            if (users && handleSetUsers) {
+              const updatedUsers = users.map(u => {
+                if (u.id === currentUser.id || u.username?.toLowerCase() === currentUser.username?.toLowerCase()) {
+                  return { ...u, role: 'member', premiumExpiresAt: newExpiresAt };
+                }
+                return u;
+              });
+              handleSetUsers(updatedUsers);
+            }
           }
+        } catch (userErr) {
+          console.warn('Update user error:', userErr);
         }
       } else {
         setIsVerifying(false);
         alert('⚠️ Pembayaran belum terdeteksi. Silakan selesaikan pembayaran melalui QRIS terlebih dahulu, lalu klik tombol ini lagi.');
       }
     } catch (err) {
+      console.error('Verifikasi Payment Error:', err);
       setIsVerifying(false);
-      alert('⚠️ Gagal memeriksa status pembayaran. Pastikan Anda telah menyelesaikan pembayaran QRIS.');
+      alert('⚠️ Gagal memeriksa status pembayaran: ' + (err.message || 'Terjadi kesalahan sistem'));
     }
   };
 
@@ -254,65 +364,120 @@ export default function PremiumModal({
     setIsInitiating(true);
     const orderId = `NGONTEN-${Date.now()}`;
 
+    let resultData = {
+      merchantOrderId: orderId,
+      reference: orderId,
+      qrString: '',
+      vaNumber: '',
+      paymentUrl: '',
+      gateway: selectedMethod === 'qris' ? 'MAYAR' : 'DUITKU',
+      createdAt: Date.now()
+    };
+
     try {
-      if (selectedMethod === 'qris') {
-        // Panggil Mayar.id Invoice Generator Resmi (Menghasilkan ID Invoice 1:1)
-        const mayarRes = await createMayarInvoicePayment({
-          name: currentUser?.name || currentUser?.username || 'Kreator ngonten.id',
-          email: currentUser?.email || `${currentUser?.username || 'user'}@ngonten.id`,
-          mobile: currentUser?.phone || '081234567890',
-          amount: currentPlan.numericPrice,
-          description: `User Premium ngonten.id (${currentPlan.duration})`,
-          orderId: orderId
-        });
+      const tripayMethodMap = {
+        qris: 'QRIS',
+        va_bca: 'BCAVA',
+        va_mandiri: 'MANDIRIVA',
+        va_bri: 'BRIVA',
+        va_bni: 'BNIVA',
+        va_permata: 'PERMATAVA',
+        ewallet_dana: 'QRIS',
+        ewallet_ovo: 'OVO',
+        ewallet_shopee: 'SHOPEEPAY'
+      };
 
-        if (mayarRes && mayarRes.data) {
-          setDuitkuData({
-            merchantOrderId: orderId,
-            reference: mayarRes.data.id || orderId,
-            qrString: mayarRes.data.qrCodeUrl || '',
-            vaNumber: '',
-            paymentUrl: mayarRes.data.link || '',
-            gateway: 'MAYAR',
-            createdAt: Date.now()
-          });
-        }
+      const tripayCode = tripayMethodMap[selectedMethod] || 'QRIS';
+      const tripayRes = await createTripayPayment({
+        method: tripayCode,
+        amount: currentPlan.numericPrice,
+        customerName: currentUser?.name || currentUser?.username || 'Kreator ngonten.id',
+        customerEmail: currentUser?.email || `${currentUser?.username || 'user'}@ngonten.id`,
+        customerPhone: currentUser?.phone || '081234567890',
+        orderItems: [
+          {
+            sku: 'PREMIUM-' + billingCycle.toUpperCase(),
+            name: `User Premium ngonten.id (${currentPlan.duration})`,
+            price: currentPlan.numericPrice,
+            quantity: 1
+          }
+        ]
+      });
+
+      if (tripayRes && tripayRes.success) {
+        resultData = {
+          merchantOrderId: tripayRes.merchantRef || orderId,
+          reference: tripayRes.reference || orderId,
+          qrString: tripayRes.qrUrl || '',
+          vaNumber: tripayRes.payCode || '',
+          paymentUrl: tripayRes.checkoutUrl || '',
+          gateway: 'TRIPAY',
+          createdAt: Date.now()
+        };
       } else {
-        const paymentCode = DUITKU_PAYMENT_METHODS[selectedMethod]?.code || 'SP';
-        const res = await requestDuitkuInquiry({
+        // Fallback jika API sedang dalam proses approval
+        resultData = {
           merchantOrderId: orderId,
-          paymentAmount: currentPlan.numericPrice,
-          paymentMethod: paymentCode,
-          productDetails: `User Premium ngonten.id (${currentPlan.duration})`,
-          customerName: currentUser?.name || currentUser?.username || 'Kreator ngonten.id',
-          customerEmail: currentUser?.email || 'user@ngonten.id',
-          phoneNumber: currentUser?.phone || '081234567890'
-        });
-
-        if (res && res.data) {
-          setDuitkuData({
-            merchantOrderId: orderId,
-            reference: res.data.reference || res.data.merchantOrderId || orderId,
-            qrString: res.data.qrString || '',
-            vaNumber: res.data.vaNumber || '',
-            paymentUrl: res.data.paymentUrl || '',
-            gateway: 'DUITKU'
-          });
-        }
+          reference: orderId,
+          qrString: '',
+          vaNumber: '',
+          paymentUrl: '',
+          gateway: 'TRIPAY',
+          createdAt: Date.now()
+        };
       }
     } catch (e) {
-      console.warn('Payment Inquiry Exception:', e);
-      setDuitkuData({
+      console.warn('TriPay Payment Exception:', e);
+      resultData = {
         merchantOrderId: orderId,
         reference: orderId,
-        qrString: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=4&data=${encodeURIComponent(`00020101021226580016ID.CO.MAYAR.WWW0118936005230000012345520458125303360540${currentPlan.numericPrice}5802ID5910NGONTEN.ID6007JAKARTA62190115${orderId}6304ABCD`)}`,
+        qrString: '',
         vaNumber: '',
         paymentUrl: '',
-        gateway: 'MAYAR'
-      });
+        gateway: 'TRIPAY',
+        createdAt: Date.now()
+      };
     } finally {
       setIsInitiating(false);
+      setDuitkuData(resultData);
       setStep('pay_screen');
+
+      // Simpan session aktif ke localStorage
+      localStorage.setItem('portal-active-payment-session', JSON.stringify({
+        userId: currentUser?.id || currentUser?.username,
+        username: currentUser?.username,
+        duitkuData: resultData,
+        selectedMethod,
+        billingCycle,
+        createdAt: Date.now()
+      }));
+
+      // Catat transaksi awal (pending / unpaid) ke Database & State
+      if (setConfirmations) {
+        const initialRecord = {
+          id: `pay_${Date.now()}`,
+          orderId: orderId,
+          reference: resultData?.reference || orderId,
+          qrString: resultData?.qrString || '',
+          vaNumber: resultData?.vaNumber || '',
+          paymentUrl: resultData?.paymentUrl || '',
+          userId: currentUser?.id || currentUser?.username,
+          username: currentUser?.username,
+          bankName: (selectedMethod === 'qris' ? 'MAYAR - QRIS' : `DUITKU - ${selectedMethod.toUpperCase()}`),
+          gateway: (selectedMethod === 'qris' ? 'MAYAR' : 'DUITKU'),
+          senderName: currentUser?.name || currentUser?.username,
+          amount: `Rp ${currentPlan.numericPrice.toLocaleString('id-ID')}`,
+          status: 'pending',
+          timestamp: new Date().toISOString(),
+          billingDuration: currentPlan.duration
+        };
+        setConfirmations(prev => {
+          const list = prev || [];
+          const exists = list.some(c => c.orderId === orderId);
+          if (exists) return list;
+          return [initialRecord, ...list];
+        });
+      }
     }
   };
 
@@ -807,8 +972,23 @@ export default function PremiumModal({
                     </span>
                   </div>
 
-                  {/* QRIS Dinamis Mayar / Official Uploaded QRIS */}
-                  {qrisImageUrl ? (
+                  {/* QRIS Dinamis Mayar Resmi / Official Uploaded QRIS */}
+                  {duitkuData?.qrString?.startsWith('http') ? (
+                    <img 
+                      src={duitkuData.qrString}
+                      alt="Official Mayar QRIS Code"
+                      style={{
+                        width: '200px',
+                        height: '200px',
+                        display: 'block',
+                        margin: '8px auto',
+                        borderRadius: '8px',
+                        background: '#ffffff',
+                        padding: '4px',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  ) : qrisImageUrl ? (
                     <img 
                       src={qrisImageUrl}
                       alt="Official QRIS Code"
@@ -823,46 +1003,55 @@ export default function PremiumModal({
                         padding: '4px'
                       }}
                     />
-                  ) : duitkuData?.qrString && !duitkuData?.qrString?.startsWith('http') ? (
+                  ) : duitkuData?.qrString ? (
                     <img 
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=${encodeURIComponent(duitkuData.qrString)}`}
                       alt="Official QRIS Code"
                       style={{
-                        width: '180px',
-                        height: '180px',
+                        width: '200px',
+                        height: '200px',
                         display: 'block',
-                        margin: '6px auto',
-                        borderRadius: '6px'
-                      }}
-                    />
-                  ) : duitkuData?.qrString?.startsWith('http') ? (
-                    <img 
-                      src={duitkuData.qrString}
-                      alt="Official Mayar QRIS Code"
-                      style={{
-                        width: '180px',
-                        height: '180px',
-                        display: 'block',
-                        margin: '6px auto',
-                        borderRadius: '6px'
+                        margin: '8px auto',
+                        borderRadius: '8px'
                       }}
                     />
                   ) : (
-                    <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=${encodeURIComponent(`00020101021226580016ID.CO.MAYAR.WWW0118936005230000012345520458125303360540${currentPlan.numericPrice}5802ID5910NGONTEN.ID6007JAKARTA62190115${duitkuData?.merchantOrderId || 'INV'}6304ABCD`)}`}
-                      alt="Official QRIS Code"
-                      style={{
-                        width: '180px',
-                        height: '180px',
-                        display: 'block',
-                        margin: '6px auto',
-                        borderRadius: '6px'
-                      }}
-                    />
+                    <div style={{ padding: '24px 12px', fontSize: '0.82rem', color: '#ef4444' }}>
+                      QRIS sedang dipersiapkan, silakan klik tombol verifikasi setelah membayar.
+                    </div>
                   )}
 
-                  <div style={{ fontSize: '0.7rem', color: '#374151', marginTop: '6px', fontWeight: '600' }}>
-                    Buka BCA, Mandiri, GoPay, OVO, DANA lalu Scan QR
+                  {duitkuData?.paymentUrl && (
+                    <div style={{ margin: '12px 0 6px 0' }}>
+                      <a
+                        href={duitkuData.paymentUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          backgroundColor: '#2563eb',
+                          color: '#ffffff',
+                          padding: '10px 16px',
+                          borderRadius: '8px',
+                          fontSize: '0.84rem',
+                          fontWeight: '700',
+                          textDecoration: 'none',
+                          boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+                          width: '100%',
+                          boxSizing: 'border-box'
+                        }}
+                      >
+                        <span>Bayar Langsung via Gateway Mayar</span>
+                        <ExternalLink size={15} color="#ffffff" />
+                      </a>
+                    </div>
+                  )}
+
+                  <div style={{ fontSize: '0.72rem', color: '#4b5563', marginTop: '8px', lineHeight: '1.4' }}>
+                    📱 Scan QR di atas menggunakan <strong>Kamera HP</strong> atau klik tombol biru di atas untuk menyelesaikan pembayaran QRIS & E-Wallet.
                   </div>
                 </div>
               </div>
@@ -939,7 +1128,10 @@ export default function PremiumModal({
               </button>
 
               <button
-                onClick={() => setStep('select_plan')}
+                onClick={() => {
+                  localStorage.removeItem('portal-active-payment-session');
+                  setStep('select_plan');
+                }}
                 style={{
                   width: '100%',
                   padding: '11px',
@@ -951,7 +1143,7 @@ export default function PremiumModal({
                   cursor: 'pointer'
                 }}
               >
-                Ganti Paket / Kembali
+                Ganti Paket / Mulai Baru
               </button>
             </div>
           </div>

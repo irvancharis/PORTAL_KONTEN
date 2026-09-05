@@ -55,6 +55,7 @@ import moviesData from '../data/movies.json';
 import { slugify, formatIndonesianDate, fetchJSONP } from '../utils/helpers';
 import INDONESIAN_REGIONS from '../data/regions.json';
 import { dispatchOpenClawEvent } from '../services/openClawService';
+import { checkMayarPaymentStatus } from '../services/mayarPaymentService';
 
 const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbww9byb9H5SIW_HknSEVJJe-oY9S--NaeKSPjcQ6IBACzoQc38oZ36bQqm__60gncIxxA/exec';
 
@@ -717,6 +718,99 @@ export default function useAppState() {
   }, [users]);
 
 
+
+  // Auto-verify active payment session on window focus / return from gateway redirect
+  useEffect(() => {
+    const checkActivePayment = async () => {
+      const savedSessionStr = localStorage.getItem('portal-active-payment-session');
+      if (!savedSessionStr) return;
+
+      try {
+        const session = JSON.parse(savedSessionStr);
+        const orderRef = session?.duitkuData?.reference || session?.duitkuData?.merchantOrderId;
+        const qrCreatedAt = session?.duitkuData?.createdAt || session?.createdAt;
+
+        if (orderRef) {
+          const res = await checkMayarPaymentStatus(orderRef, null, qrCreatedAt);
+          if (res && res.isPaid) {
+            console.log('🎉 [Auto-Verify Redirect]: Pembayaran Mayar terverifikasi lunas!', res);
+
+            const durationDays = session?.billingCycle === 'yearly' ? 365 : 30;
+            const durationMs = durationDays * 24 * 60 * 60 * 1000;
+            const newExpiresAt = Date.now() + durationMs;
+
+            // 1. Update current user
+            if (currentUser) {
+              const updatedUser = {
+                ...currentUser,
+                role: 'member',
+                premiumExpiresAt: newExpiresAt
+              };
+              setCurrentUser(updatedUser);
+              localStorage.setItem('portal-current-user', JSON.stringify(updatedUser));
+              localStorage.removeItem('portal-active-payment-session');
+
+              if (isFirebaseConfigured()) {
+                saveFirestoreUser(updatedUser).catch(e => console.warn('Sync user Firestore error:', e));
+              }
+
+              if (handleSetUsers) {
+                handleSetUsers(prev => {
+                  const list = Array.isArray(prev) ? prev : users;
+                  return list.map(u => {
+                    if (u.id === currentUser.id || u.username?.toLowerCase() === currentUser.username?.toLowerCase()) {
+                      return { ...u, role: 'member', premiumExpiresAt: newExpiresAt };
+                    }
+                    return u;
+                  });
+                });
+              }
+
+              // 2. Update confirmations
+              if (handleSetConfirmations) {
+                handleSetConfirmations(prev => {
+                  const list = prev || [];
+                  const existingIdx = list.findIndex(c => c.orderId === orderRef || (c.reference && c.reference === orderRef));
+                  const approvedItem = {
+                    id: `pay_${Date.now()}`,
+                    orderId: orderRef,
+                    reference: orderRef,
+                    userId: currentUser.id || currentUser.username,
+                    username: currentUser.username,
+                    bankName: 'MAYAR - QRIS',
+                    gateway: 'MAYAR',
+                    senderName: currentUser.name || currentUser.username,
+                    amount: session?.duitkuData?.amount ? `Rp ${Number(session.duitkuData.amount).toLocaleString('id-ID')}` : 'Rp 20.000',
+                    status: 'approved',
+                    timestamp: new Date().toISOString(),
+                    billingDuration: durationDays === 365 ? '1 Tahun' : '1 Bulan'
+                  };
+
+                  if (existingIdx >= 0) {
+                    const copy = [...list];
+                    copy[existingIdx] = { ...copy[existingIdx], ...approvedItem };
+                    return copy;
+                  }
+                  return [approvedItem, ...list];
+                });
+              }
+
+              setToast({
+                message: '🎉 Pembayaran berhasil! Akun Anda kini aktif sebagai User Premium.',
+                type: 'success'
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Auto-verify payment check error:', err);
+      }
+    };
+
+    checkActivePayment();
+    window.addEventListener('focus', checkActivePayment);
+    return () => window.removeEventListener('focus', checkActivePayment);
+  }, [currentUser]);
 
   // Save confirmations state changes
   useEffect(() => {

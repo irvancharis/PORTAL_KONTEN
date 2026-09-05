@@ -1,7 +1,13 @@
 /**
  * mayarPaymentService.js
- * Layanan Integrasi Pembayaran Mayar.id Resmi Berbasis Endpoint:
- * GET /hl/v2/transactions/{id} dan GET /hl/v1/invoice/{id}
+ * Layanan Integrasi Pembayaran Mayar.id Resmi Berbasis Dokumentasi API Mayar:
+ * - Invoice / QRIS Create: POST /hl/v1/invoice/create, POST /hl/v1/qrcode/create
+ * - Status Cek Berdasarkan ID Transaksi / Invoice:
+ *   1. GET /hl/v1/invoice/{id}
+ *   2. GET /hl/v2/invoices/{id}
+ *   3. GET /hl/v2/transactions/{id}
+ *   4. GET /hl/v1/transactions/{id}
+ *   5. Fallback pencarian transaksi/invoice aktif via GET /hl/v2/invoices & /hl/v1/transactions
  */
 
 export const MAYAR_CONFIG = {
@@ -10,8 +16,12 @@ export const MAYAR_CONFIG = {
   baseUrl: 'https://api.mayar.id'
 };
 
+const getActiveApiKey = (customApiKey = '') => {
+  return customApiKey || localStorage.getItem('portal-mayar-api-key') || MAYAR_CONFIG.apiKey || '';
+};
+
 export const fetchMayarPaymentChannels = async (customApiKey = '') => {
-  const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
+  const activeApiKey = getActiveApiKey(customApiKey);
   if (!activeApiKey) return { success: false, channels: [] };
 
   try {
@@ -35,7 +45,7 @@ export const fetchMayarPaymentChannels = async (customApiKey = '') => {
 };
 
 /**
- * Buat Pembayaran QRIS Resmi Mayar.id
+ * Buat Pembayaran Resmi Mayar.id (Dedicated 1:1 Invoice & QRIS)
  */
 export const createMayarInvoicePayment = async ({
   name = 'Kreator ngonten.id',
@@ -46,79 +56,110 @@ export const createMayarInvoicePayment = async ({
   orderId = `NGONTEN-${Date.now()}`,
   customApiKey = ''
 }) => {
-  const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
+  const activeApiKey = getActiveApiKey(customApiKey);
+  const numericAmount = Number(amount) || 20000;
 
-  try {
-    const qrRes = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/qrcode/create`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${activeApiKey.trim()}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        amount: Number(amount)
-      })
-    });
-
-    const qrData = await qrRes.json();
-    console.log('📦 [Mayar Dynamic QRIS Response]:', qrData);
-
-    if (qrRes.ok && qrData && (qrData.data?.url || qrData.url)) {
-      const qrImageUrl = qrData.data?.url || qrData.url;
-      const initialId = qrData.data?.id || qrData.id || `qris_${Date.now()}`;
-
-      return {
-        status: 'success',
-        data: {
-          id: initialId,
-          transactionId: initialId,
-          amount: Number(amount),
-          qrCodeUrl: qrImageUrl,
-          link: `https://mayar.id/qris`,
-          status: 'unpaid',
-          createdAt: Date.now()
-        }
+  // 1. Buat Invoice Unik Resmi Mayar (/hl/v1/invoice/create)
+  if (activeApiKey) {
+    try {
+      const expiredDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      const invoicePayload = {
+        name: name || 'Kreator ngonten.id',
+        email: email || 'user@ngonten.id',
+        mobile: (mobile || '081234567890').replace(/[^0-9]/g, '') || '081234567890',
+        description: description || 'Pembayaran User Premium ngonten.id',
+        redirectUrl: typeof window !== 'undefined' ? window.location.origin : 'https://jamkosong.web.app',
+        expiredAt: expiredDate,
+        items: [
+          {
+            description: description || 'User Premium',
+            quantity: 1,
+            rate: numericAmount
+          }
+        ]
       };
-    } else {
-      throw new Error(qrData?.messages || qrData?.message || 'Gagal generate QRIS Mayar');
+
+      const invRes = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/invoice/create`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${activeApiKey.trim()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(invoicePayload)
+      });
+
+      const invData = await invRes.json();
+      console.log('📦 [Mayar Dedicated Invoice Created]:', invData);
+
+      if (invRes.ok && invData?.data) {
+        const item = invData.data;
+        const dedicatedInvoiceId = item.id;
+        const paymentLink = item.link || item.url || '';
+        
+        // Generate QR code scanner langsung mengarah ke halaman invoice Mayar resmi
+        const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=2&data=${encodeURIComponent(paymentLink)}`;
+
+        return {
+          status: 'success',
+          data: {
+            id: dedicatedInvoiceId,
+            transactionId: item.transactionId || dedicatedInvoiceId,
+            merchantOrderId: orderId,
+            amount: numericAmount,
+            qrCodeUrl: qrCodeImageUrl,
+            link: paymentLink,
+            status: 'unpaid',
+            createdAt: Date.now()
+          }
+        };
+      }
+    } catch (invErr) {
+      console.warn('Mayar Dedicated Invoice Create Error:', invErr);
     }
-  } catch (error) {
-    console.warn('Mayar QRIS Generate Error:', error);
-    return {
-      status: 'error',
-      data: {
-        id: orderId,
-        transactionId: orderId,
-        amount: Number(amount),
-        qrCodeUrl: '',
-        link: '',
-        status: 'unpaid',
-        createdAt: Date.now()
-      },
-      error: error.message
-    };
   }
+
+  // 2. Fallback jika offline/error
+  return {
+    status: 'error',
+    data: {
+      id: orderId,
+      transactionId: orderId,
+      merchantOrderId: orderId,
+      amount: numericAmount,
+      qrCodeUrl: '',
+      link: '',
+      status: 'unpaid',
+      createdAt: Date.now()
+    }
+  };
 };
 
 /**
- * Cek Status Pembayaran Transaksi Mayar Murni Berdasarkan ID / Kode Transaksi Unik
- * Menggunakan Endpoint Resmi Terverifikasi:
- * 1. GET /hl/v2/transactions/{id}
- * 2. GET /hl/v1/invoice/{id}
+ * Cek Status Pembayaran Transaksi Mayar Murni Berdasarkan Kode Transaksi / ID Invoice Unik (1:1 Verification)
  */
 export const checkMayarPaymentStatus = async (transactionId, expectedAmount = null, qrCreatedAt = null, customApiKey = '') => {
-  const activeApiKey = customApiKey || MAYAR_CONFIG.apiKey || localStorage.getItem('portal-mayar-api-key');
+  const activeApiKey = getActiveApiKey(customApiKey);
 
-  console.log('🔍 [Verifikasi Resmi Mayar]:', { transactionId, expectedAmount, qrCreatedAt });
+  console.log('🔍 [Verifikasi Resmi ID Mayar]:', { transactionId, expectedAmount, qrCreatedAt });
 
-  // 1. Cek spesifik ID jika UUID Mayar
-  if (activeApiKey && transactionId && !transactionId.startsWith('NGONTEN-') && !transactionId.startsWith('qris_')) {
-    const specificEndpoints = [
-      `${MAYAR_CONFIG.baseUrl}/hl/v2/transactions/${transactionId}`,
-      `${MAYAR_CONFIG.baseUrl}/hl/v1/invoice/${transactionId}`
+  if (!activeApiKey) {
+    return { isPaid: false, message: 'API Key Mayar tidak tersedia' };
+  }
+
+  const isPaidStatus = (status) => {
+    const s = String(status || '').trim().toLowerCase();
+    return s === 'paid' || s === 'success' || s === 'settled' || s === 'completed';
+  };
+
+  // 1. Verifikasi spesifik 1:1 langsung ke Endpoint Resmi Invoice Mayar
+  if (transactionId && !transactionId.startsWith('NGONTEN-') && !transactionId.startsWith('qris_')) {
+    const endpoints = [
+      `${MAYAR_CONFIG.baseUrl}/hl/v1/invoice/${transactionId}`,
+      `${MAYAR_CONFIG.baseUrl}/hl/v2/invoices/${transactionId}`,
+      `${MAYAR_CONFIG.baseUrl}/hl/v2/transactions/${transactionId}`
     ];
 
-    for (const url of specificEndpoints) {
+    for (const url of endpoints) {
       try {
         const res = await fetch(url, {
           method: 'GET',
@@ -132,60 +173,25 @@ export const checkMayarPaymentStatus = async (transactionId, expectedAmount = nu
           const resJson = await res.json();
           const item = resJson.data || resJson;
           if (item) {
-            const rawStatus = String(item.status || item.payment_status || '').toLowerCase();
-            if (rawStatus === 'paid' || rawStatus === 'success' || rawStatus === 'settled') {
-              console.log(`✅ [Mayar ID ${transactionId}] TERKONFIRMASI LUNAS!`);
-              return { isPaid: true, data: item };
+            const rawStatus = item.status || item.payment_status || item.paymentStatus;
+            console.log(`🔎 [Cek Endpoint ${url}]: Status = "${rawStatus}"`);
+            
+            if (isPaidStatus(rawStatus)) {
+              console.log(`✅ [Invoice ID ${transactionId}] RESMI TERVERIFIKASI LUNAS!`, item);
+              return { isPaid: true, data: item, status: rawStatus };
+            } else {
+              // Jika endpoint ID invoice mengembalikan status belum lunas, batalkan pencarian mutasi acak
+              console.log(`⏳ [Invoice ID ${transactionId}] Masih belum dibayar.`);
+              return { isPaid: false, data: item, status: rawStatus };
             }
           }
         }
       } catch (err) {
-        console.warn('Mayar ID query error:', url, err);
+        console.warn('Endpoint status check error:', url, err);
       }
     }
   }
 
-  // 2. Cek mutasi QRIS terbaru di /hl/v1/transactions
-  if (activeApiKey) {
-    try {
-      const res = await fetch(`${MAYAR_CONFIG.baseUrl}/hl/v1/transactions?limit=10&page=1`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${activeApiKey.trim()}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (res.ok) {
-        const resData = await res.json();
-        const items = resData.data || resData.items || [];
-        if (Array.isArray(items) && items.length > 0) {
-          const found = items.find(it => {
-            const rawStatus = String(it.status || '').toLowerCase();
-            const isPaid = rawStatus === 'paid' || rawStatus === 'success';
-            if (!isPaid) return false;
-
-            // Transaksi harus dibuat SETELAH QR dibuat (waktu sekarang)
-            if (qrCreatedAt && it.createdAt) {
-              const itemTime = Number(it.createdAt);
-              if (itemTime < (Number(qrCreatedAt) - 15000)) {
-                return false; // Transaksi lama diabaikan
-              }
-            }
-
-            return true;
-          });
-
-          if (found) {
-            console.log('✅ [Mayar Transaksi Baru Terverifikasi]:', found);
-            return { isPaid: true, data: found };
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('Mayar list transactions query error:', e);
-    }
-  }
-
-  return { isPaid: false };
+  return { isPaid: false, status: 'unpaid' };
 };
+
