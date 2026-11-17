@@ -4222,6 +4222,27 @@ select option {
   fill: #ffffff !important;
 }
 
+/* Payment Bank Card Header text styles to ensure 100% white text */
+.payment-bank-header,
+.payment-bank-header *,
+.light-theme .payment-bank-header,
+.light-theme .payment-bank-header * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.payment-bank-header .payment-bank-icon,
+.light-theme .payment-bank-header .payment-bank-icon {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.payment-bank-header .payment-bank-icon svg,
+.light-theme .payment-bank-header .payment-bank-icon svg {
+  color: #0f172a !important;
+  stroke: #0f172a !important;
+}
+
 /* Explicit rule: Submit buttons with black background must ALWAYS have white text in all themes */
 button.btn-submit-konfirmasi,
 button.btn-submit-konfirmasi *,

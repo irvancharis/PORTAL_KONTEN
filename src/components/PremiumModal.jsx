@@ -1197,51 +1197,78 @@ export default function PremiumModal({
                     return (
                       <div 
                         key={bank.id || bIdx}
+                        className="payment-bank-card"
                         style={{
                           background: '#ffffff',
-                          border: bank.isPrimary ? '1.5px solid #003d79' : '1.5px solid #cbd5e1',
+                          border: '1px solid #e2e8f0',
                           borderRadius: '16px',
                           overflow: 'hidden',
-                          boxShadow: '0 8px 24px -4px rgba(0, 61, 121, 0.1)'
+                          boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.08)'
                         }}
                       >
                         {/* Card Header Brand - Kontras Tinggi Hitam/Putih Monokrom Premium */}
-                        <div style={{
-                          background: '#0f172a',
-                          padding: '14px 18px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                        }}>
+                        <div 
+                          className="payment-bank-header"
+                          style={{
+                            backgroundColor: '#0f172a',
+                            padding: '16px 18px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'flex-start',
+                            borderBottom: '1px solid #1e293b'
+                          }}
+                        >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{
-                              width: '36px',
-                              height: '36px',
-                              borderRadius: '8px',
-                              background: '#ffffff',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#0f172a',
-                              flexShrink: 0
-                            }}>
-                              {isEwallet ? <Smartphone size={20} strokeWidth={2.5} /> : <Landmark size={20} strokeWidth={2.5} />}
+                            <div 
+                              className="payment-bank-icon"
+                              style={{
+                                width: '38px',
+                                height: '38px',
+                                borderRadius: '10px',
+                                backgroundColor: '#ffffff',
+                                color: '#0f172a',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
+                              }}
+                            >
+                              {isEwallet ? <Smartphone size={20} strokeWidth={2.5} color="#0f172a" /> : <Landmark size={20} strokeWidth={2.5} color="#0f172a" />}
                             </div>
-                            <div>
-                              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '900', color: '#ffffff', letterSpacing: '0.5px' }}>
+                            <div style={{ textAlign: 'left' }}>
+                              <h3 
+                                className="payment-bank-title"
+                                style={{ 
+                                  margin: 0, 
+                                  fontSize: '1.05rem', 
+                                  fontWeight: '900', 
+                                  color: '#ffffff', 
+                                  letterSpacing: '0.5px',
+                                  textAlign: 'left'
+                                }}
+                              >
                                 {(bank.bankName || 'BANK MANDIRI').toUpperCase()}
                               </h3>
-                              <span style={{ fontSize: '0.72rem', color: '#cbd5e1', fontWeight: '500', display: 'block', marginTop: '2px' }}>
+                              <span 
+                                className="payment-bank-subtitle"
+                                style={{ 
+                                  fontSize: '0.74rem', 
+                                  color: '#cbd5e1', 
+                                  fontWeight: '500', 
+                                  display: 'block', 
+                                  marginTop: '2px',
+                                  textAlign: 'left'
+                                }}
+                              >
                                 {bank.branch ? `Rekening Resmi (${bank.branch})` : (isEwallet ? 'Akun E-Wallet Penerima Resmi' : 'Rekening Penerima Pembayaran Resmi')}
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        {/* Card Body dengan Nomor Rekening/HP Terpampang Jelas */}
-                        <div style={{ padding: '18px 20px', background: '#fafbfc' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '600', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        {/* Card Body dengan Nomor Rekening & Nama Rata Kiri */}
+                        <div style={{ padding: '18px 20px', background: '#fafbfc', textAlign: 'left' }}>
+                          <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: '700', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'left' }}>
                             {isEwallet ? 'Nomor Akun / HP ' : 'Nomor Rekening '}{bank.bankName || ''}
                           </span>
                           
@@ -1253,7 +1280,7 @@ export default function PremiumModal({
                             border: '1.5px dashed #cbd5e1',
                             borderRadius: '12px',
                             padding: '12px 16px',
-                            marginBottom: '12px'
+                            marginBottom: '14px'
                           }}>
                             <span style={{
                               fontSize: '1.45rem',
@@ -1282,7 +1309,7 @@ export default function PremiumModal({
                                 alignItems: 'center',
                                 gap: '6px',
                                 transition: 'all 0.2s',
-                                boxShadow: copied ? '0 2px 8px rgba(16, 185, 129, 0.3)' : '0 2px 8px rgba(15, 23, 42, 0.3)'
+                                boxShadow: copied ? '0 2px 8px rgba(16, 185, 129, 0.3)' : '0 2px 8px rgba(15, 23, 42, 0.25)'
                               }}
                             >
                               {copied ? <Check size={14} color="#ffffff" strokeWidth={2.5} /> : <Copy size={14} color="#ffffff" />}
@@ -1290,9 +1317,28 @@ export default function PremiumModal({
                             </button>
                           </div>
 
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.82rem', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
-                            <span style={{ color: '#64748b' }}>Atas Nama:</span>
-                            <strong style={{ color: '#0f172a', fontWeight: '700' }}>{bank.accountHolder || 'PT Ngonten Media Indonesia'}</strong>
+                          {/* Bagian Atas Nama: Dibuat Rata Kiri Bersih & Jelas */}
+                          <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '2px',
+                            borderTop: '1px solid #e2e8f0',
+                            paddingTop: '10px',
+                            textAlign: 'left',
+                            alignItems: 'flex-start'
+                          }}>
+                            <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                              Atas Nama:
+                            </span>
+                            <span style={{
+                              fontSize: '0.98rem',
+                              fontWeight: '800',
+                              color: '#0f172a',
+                              letterSpacing: '0.2px',
+                              textAlign: 'left'
+                            }}>
+                              {bank.accountHolder || 'PT Ngonten Media Indonesia'}
+                            </span>
                           </div>
                         </div>
                       </div>
