@@ -66,7 +66,8 @@ import {
   Unlock,
   Camera,
   Upload,
-  Wallet
+  Wallet,
+  Landmark
 } from 'lucide-react';
 
 export default function App() {
