@@ -18,6 +18,7 @@ import SearchableSelect from './components/SearchableSelect';
 import LegalModal from './components/LegalModal';
 import PricingCatalogSection from './components/PricingCatalogSection';
 import SiteFooter from './components/SiteFooter';
+import AppTourModal from './components/AppTourModal';
 import { OfflineBanner } from './components/SkeletonLoader';
 import useAppState from './hooks/useAppState';
 import { slugify, formatIndonesianDate, fetchJSONP } from './utils/helpers';
@@ -2461,6 +2462,13 @@ export default function App() {
 
       {/* PWA Prompt */}
       <PWAInstallPrompt />
+
+      {/* Interaktif Onboarding Tour Pengguna Baru */}
+      <AppTourModal 
+        currentUser={currentUser}
+        onNavigateTab={(tabId) => handleTabChange(tabId)}
+        onOpenPremium={() => setShowPremiumModal(true)}
+      />
     </div>
   );
 }
