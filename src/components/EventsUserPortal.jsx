@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Trophy, Calendar, Users, User, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown, X, Maximize2, ExternalLink, MapPin, ClipboardList, Play } from 'lucide-react';
 import { sendEmailNotification } from '../services/emailNotificationService';
+import { generateSecureTicketUrl } from '../utils/security';
 
 const slugify = (text) => {
   if (!text) return '';
@@ -865,7 +866,7 @@ export default function EventsUserPortal({
           message: `Selamat! Pendaftaran Anda di event <strong>"${registeringEvent.title}"</strong> telah berhasil dan status Anda resmi terdaftar. Klik tombol di bawah untuk melihat pass tiket QR resmi Anda saat hadir di acara.`,
           type: 'ticket',
           eventTitle: registeringEvent.title,
-          actionUrl: `https://ngonten.id/ticket/${tktCode}`,
+          actionUrl: generateSecureTicketUrl(tktCode, registeringEvent.id),
           actionLabel: 'Lihat E-Tiket Saya',
           secondaryActionUrl: `https://ngonten.id/event/${registeringEvent.slug || registeringEvent.id}`,
           secondaryActionLabel: 'Buka Detail Event',
@@ -1014,7 +1015,7 @@ export default function EventsUserPortal({
             message: `Selamat! Pendaftaran Anda di event <strong>"${registeringEvent.title}"</strong> telah berhasil dan status Anda resmi terdaftar. Klik tombol di bawah untuk melihat pass tiket QR resmi Anda saat hadir di acara.`,
             type: 'ticket',
             eventTitle: registeringEvent.title,
-            actionUrl: `https://ngonten.id/ticket/${tktCode}`,
+            actionUrl: generateSecureTicketUrl(tktCode, registeringEvent.id),
             actionLabel: 'Lihat E-Tiket Saya',
             secondaryActionUrl: `https://ngonten.id/event/${registeringEvent.slug || registeringEvent.id}`,
             secondaryActionLabel: 'Buka Detail Event',

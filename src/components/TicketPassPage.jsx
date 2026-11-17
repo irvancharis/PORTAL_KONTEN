@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, ExternalLink } from 'lucide-react';
+import { X, ExternalLink, ShieldCheck } from 'lucide-react';
+import { decodeSecureTicketToken } from '../utils/security';
 
 export default function TicketPassPage({
   ticketParam,
@@ -7,8 +8,11 @@ export default function TicketPassPage({
   events = [],
   currentUser
 }) {
-  // 1. Find participant by ticket code or participant ID
-  const cleanParam = (ticketParam || '').trim().toLowerCase();
+  // 1. Decode token enkripsi aman atau terima kode tiket legacy
+  const rawParam = (ticketParam || '').trim();
+  const decryptedCode = decodeSecureTicketToken(rawParam);
+  const cleanParam = (decryptedCode || rawParam).toLowerCase();
+
   const participant = eventParticipants.find(p => 
     (p.ticketCode && p.ticketCode.toLowerCase() === cleanParam) ||
     (p.id && p.id.toLowerCase() === cleanParam) ||
@@ -18,9 +22,9 @@ export default function TicketPassPage({
   // 2. Find event
   const event = participant 
     ? events.find(e => e.id === participant.eventId)
-    : events.find(e => e.id === ticketParam || (e.slug && e.slug.toLowerCase() === cleanParam));
+    : events.find(e => e.id === cleanParam || (e.slug && e.slug.toLowerCase() === cleanParam));
 
-  const ticketCode = participant?.ticketCode || (participant ? `TKT-${participant.id.substring(participant.id.length - 6).toUpperCase()}` : (ticketParam ? ticketParam.toUpperCase() : 'TKT-OFFICIAL'));
+  const ticketCode = participant?.ticketCode || (participant ? `TKT-${participant.id.substring(participant.id.length - 6).toUpperCase()}` : (cleanParam ? cleanParam.toUpperCase() : 'TKT-OFFICIAL'));
   const attendeeName = participant?.name || participant?.username || currentUser?.name || currentUser?.username || 'Peserta Terdaftar';
   const attendeeEmail = participant?.email || currentUser?.email || `${(participant?.username || 'peserta')}@gmail.com`;
   const eventTitle = event?.title || participant?.eventTitle || 'Event ngonten.id';

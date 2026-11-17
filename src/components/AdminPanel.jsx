@@ -7,6 +7,7 @@ import React, {
 import { isFirebaseConfigured, db } from '../firebase';
 import { createPortal } from 'react-dom';
 import { sendEmailNotification } from '../services/emailNotificationService';
+import { generateSecureTicketUrl } from '../utils/security';
 import { 
   Plus, 
   Edit, 
@@ -1528,7 +1529,7 @@ export default function AdminPanel({
       const evTitle = evt ? evt.title : (part.eventTitle || 'Event');
       const evSlug = evt ? (evt.slug || evt.id) : part.eventId;
       const evUrl = `https://ngonten.id/event/${evSlug}`;
-      const directTicketUrl = `https://ngonten.id/ticket/${part.ticketCode || part.id}`;
+      const directTicketUrl = generateSecureTicketUrl(part.ticketCode || part.id, part.eventId);
 
       const category = (evt?.category || '').toLowerCase();
       const hasTasks = !!(evt?.tasks?.length || evt?.submissionRequired || evt?.hasSubmission || evt?.benefitAmount > 0 || ['kompetisi', 'lomba', 'challenge', 'review', 'ulasan'].some(k => category.includes(k)));
