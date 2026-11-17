@@ -672,6 +672,7 @@ export default function Navbar({
         {/* Center: Search Bar or Admin Header */}
         {activeTab === 'admin' ? null : (
           <form 
+            id="tour-navbar-search"
             onSubmit={handleSearchSubmit}
             className={`navbar-search-wrapper ${isSearchFocused ? 'focused' : ''}`}
           >
@@ -739,13 +740,14 @@ export default function Navbar({
 
           {currentUser ? (
             <div 
+              id="tour-navbar-user"
               className="user-logged-in-container" 
               ref={userMenuRef} 
               style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative' }}
             >
               {/* Notification Bell (All Logged In Users) */}
               {currentUser && (
-                <div ref={notificationRef} style={{ position: 'relative', marginRight: '6px' }}>
+                <div id="tour-navbar-notif" ref={notificationRef} style={{ position: 'relative', marginRight: '6px' }}>
                   <button
                     onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                     style={{

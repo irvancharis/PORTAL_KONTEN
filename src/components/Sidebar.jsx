@@ -154,6 +154,7 @@ export default function Sidebar({
     return (
       <button
         key={item.id}
+        id={`tour-sidebar-${item.id}`}
         className={`sidebar-item ${isActive ? 'active' : ''}`}
         onClick={() => handleNav(item.id, isSubTab)}
         title={item.label}

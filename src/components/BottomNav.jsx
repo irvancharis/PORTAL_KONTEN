@@ -97,6 +97,7 @@ export default function BottomNav({
         return (
           <button 
             key={item.id}
+            id={`tour-bottomnav-${item.id}`}
             className={`bottom-nav-item ${isActive ? 'active' : ''}`}
             onClick={() => handleNavClick(item)}
           >
