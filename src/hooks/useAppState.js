@@ -56,6 +56,7 @@ import { slugify, formatIndonesianDate, fetchJSONP } from '../utils/helpers';
 import INDONESIAN_REGIONS from '../data/regions.json';
 import { dispatchOpenClawEvent } from '../services/openClawService';
 import { checkMayarPaymentStatus } from '../services/mayarPaymentService';
+import { requestAndSyncFCMToken, listenForegroundFCM } from '../services/fcmNotificationService';
 
 const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbww9byb9H5SIW_HknSEVJJe-oY9S--NaeKSPjcQ6IBACzoQc38oZ36bQqm__60gncIxxA/exec';
 
@@ -1151,6 +1152,9 @@ export default function useAppState() {
 
         if (foundUser) {
           setCurrentUser(foundUser);
+          try {
+            requestAndSyncFCMToken(foundUser).catch(() => {});
+          } catch (e) {}
           setIsLoginModalOpen(false);
           setLoginUsername('');
           setLoginPassword('');
@@ -1171,6 +1175,9 @@ export default function useAppState() {
       );
       if (foundUser) {
         setCurrentUser(foundUser);
+        try {
+          requestAndSyncFCMToken(foundUser).catch(() => {});
+        } catch (e) {}
         setIsLoginModalOpen(false);
         setLoginUsername('');
         setLoginPassword('');
@@ -1706,6 +1713,13 @@ export default function useAppState() {
         }
 
         setCurrentUser(matchedUser);
+
+        // Update & simpan FCM Token ke database Firestore saat user berhasil login
+        try {
+          requestAndSyncFCMToken(matchedUser).catch(fcmErr => {
+            console.warn('FCM Token sync error on login:', fcmErr);
+          });
+        } catch (fcmE) {}
         
         // Auto-close modal and reset fields upon login detection
         setIsLoginModalOpen(false);
@@ -1726,6 +1740,41 @@ export default function useAppState() {
     });
 
     return () => unsubscribeAuth();
+  }, []);
+
+  // Foreground FCM Push Notification listener
+  useEffect(() => {
+    let unsubscribeFCM = null;
+    listenForegroundFCM((payload) => {
+      const notifTitle = payload.notification?.title || payload.data?.title || 'Notifikasi Baru';
+      const notifBody = payload.notification?.body || payload.data?.body || 'Anda memiliki pemberitahuan baru.';
+      
+      // Tampilkan toast kustom jika ada
+      if (typeof showCustomToast === 'function') {
+        showCustomToast(`${notifTitle}: ${notifBody}`, 'success');
+      }
+
+      // Tampilkan notification native jika izin sudah diberikan
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification(notifTitle, {
+            body: notifBody,
+            icon: payload.notification?.icon || '/favicon.png',
+            badge: '/favicon.png'
+          });
+        } catch (nErr) {
+          console.warn('Native notification error:', nErr);
+        }
+      }
+    }).then(unsub => {
+      unsubscribeFCM = unsub;
+    }).catch(e => console.warn('listenForegroundFCM error:', e));
+
+    return () => {
+      if (typeof unsubscribeFCM === 'function') {
+        unsubscribeFCM();
+      }
+    };
   }, []);
 
   // Intercept movie changes and sync to Firestore
