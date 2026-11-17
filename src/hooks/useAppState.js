@@ -917,6 +917,10 @@ export default function useAppState() {
   const [editProfileYoutubeHandle, setEditProfileYoutubeHandle] = useState('');
   const [editProfileYoutubeVerified, setEditProfileYoutubeVerified] = useState(false);
   const [editProfileRegional, setEditProfileRegional] = useState('');
+  const [editProfilePayoutMethod, setEditProfilePayoutMethod] = useState('Dana');
+  const [editProfilePayoutBank, setEditProfilePayoutBank] = useState('BCA');
+  const [editProfilePayoutAccount, setEditProfilePayoutAccount] = useState('');
+  const [editProfilePayoutAccountName, setEditProfilePayoutAccountName] = useState('');
   const [regions, setRegions] = useState(INDONESIAN_REGIONS);
 
   // Social Verification Temp states
@@ -1049,6 +1053,10 @@ export default function useAppState() {
     setEditProfileActiveMembers(currentUser.activeMembersCount || '');
     setEditProfileActivityImages(currentUser.activityImages ? currentUser.activityImages.join(', ') : '');
     setEditProfileRegional(currentUser.userRegional || '');
+    setEditProfilePayoutMethod(currentUser.payoutMethod || 'Dana');
+    setEditProfilePayoutBank(currentUser.payoutBank || 'BCA');
+    setEditProfilePayoutAccount(currentUser.payoutAccount || '');
+    setEditProfilePayoutAccountName(currentUser.payoutAccountName || '');
     
     // Social handles
     setEditProfileFacebookHandle(currentUser.facebookHandle || '');
@@ -1430,6 +1438,17 @@ export default function useAppState() {
               whatsappAdmin: dbSettings?.whatsappAdmin || 'https://wa.me/6281234567890',
               premiumPrice: dbSettings?.premiumPrice || 'Rp 29.000 / Bulan',
               paymentInstructions: dbSettings?.paymentInstructions || '- Bank BCA: 1234567890 a.n. ngonten.id\n- DANA: 081234567890 a.n. Admin\n- OVO: 081234567890',
+              platformBankAccounts: dbSettings?.platformBankAccounts || [
+                {
+                  id: 'bank_mandiri_main',
+                  bankName: 'Bank Mandiri',
+                  accountNumber: '127000999888',
+                  accountNumberFormatted: '127-000-999-888',
+                  accountHolder: 'PT Ngonten Media Indonesia',
+                  branch: 'KC Jakarta Thamrin',
+                  isPrimary: true
+                }
+              ],
               minWithdrawalAmount: dbSettings?.minWithdrawalAmount || 50000,
               eventAdminFee: dbSettings?.eventAdminFee || 0,
               withdrawalFeePercent: dbSettings?.withdrawalFeePercent !== undefined ? dbSettings.withdrawalFeePercent : 5,
@@ -1454,6 +1473,9 @@ export default function useAppState() {
             }
             if (dbSettings.paymentInstructions) {
               setPaymentInstructions(dbSettings.paymentInstructions);
+            }
+            if (dbSettings.platformBankAccounts && Array.isArray(dbSettings.platformBankAccounts)) {
+              setPlatformBankAccounts(dbSettings.platformBankAccounts);
             }
             if (dbSettings.qrisImageUrl) {
               setQrisImageUrl(dbSettings.qrisImageUrl);
@@ -2206,6 +2228,7 @@ export default function useAppState() {
         whatsappAdmin,
         premiumPrice,
         paymentInstructions,
+        platformBankAccounts,
         qrisImageUrl,
         paymentGatewayMode,
         minWithdrawalAmount,
@@ -2256,6 +2279,53 @@ export default function useAppState() {
   const [paymentInstructions, setPaymentInstructions] = useState(() => {
     return localStorage.getItem('portal-payment-instructions') || '- Bank BCA: 1234567890 a.n. ngonten.id\n- DANA: 081234567890 a.n. Admin\n- OVO: 081234567890';
   });
+
+  // Rekening Bank Utama Platform (Dapat diubah dan ditambah oleh Superadmin)
+  const [platformBankAccounts, setPlatformBankAccounts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('portal-platform-bank-accounts');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return [
+      {
+        id: 'bank_mandiri_main',
+        bankName: 'Bank Mandiri',
+        accountNumber: '127000999888',
+        accountNumberFormatted: '127-000-999-888',
+        accountHolder: 'PT Ngonten Media Indonesia',
+        branch: 'KC Jakarta Thamrin',
+        isPrimary: true
+      }
+    ];
+  });
+
+  const handleSetPlatformBankAccounts = async (newAccounts) => {
+    let resolvedAccounts = [];
+    if (typeof newAccounts === 'function') {
+      resolvedAccounts = newAccounts(platformBankAccounts);
+    } else {
+      resolvedAccounts = newAccounts;
+    }
+    setPlatformBankAccounts(resolvedAccounts);
+    localStorage.setItem('portal-platform-bank-accounts', JSON.stringify(resolvedAccounts));
+
+    if (isFirebaseConfigured()) {
+      try {
+        await saveFirestoreSettings({
+          platformBankAccounts: resolvedAccounts
+        });
+      } catch (err) {
+        console.warn('Sync platformBankAccounts to Firestore failed:', err);
+      }
+    }
+  };
+
+  useEffect(() => {
+    localStorage.setItem('portal-platform-bank-accounts', JSON.stringify(platformBankAccounts));
+  }, [platformBankAccounts]);
 
   // Gambar QRIS Resmi (Mayar / BCA / DANA) yang bisa diupload langsung
   const [qrisImageUrl, setQrisImageUrl] = useState(() => {
@@ -3010,6 +3080,8 @@ export default function useAppState() {
     setWithdrawalFeePercentPremium,
     paymentInstructions,
     setPaymentInstructions,
+    platformBankAccounts,
+    setPlatformBankAccounts: handleSetPlatformBankAccounts,
     customRoles,
     setCustomRoles,
     currentUser,
@@ -3100,6 +3172,14 @@ export default function useAppState() {
     setEditProfileYoutubeVerified,
     editProfileRegional,
     setEditProfileRegional,
+    editProfilePayoutMethod,
+    setEditProfilePayoutMethod,
+    editProfilePayoutBank,
+    setEditProfilePayoutBank,
+    editProfilePayoutAccount,
+    setEditProfilePayoutAccount,
+    editProfilePayoutAccountName,
+    setEditProfilePayoutAccountName,
     verifyingPlatform,
     setVerifyingPlatform,
     verificationStep,

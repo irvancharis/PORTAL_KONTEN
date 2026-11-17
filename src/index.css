@@ -4116,7 +4116,8 @@ select option {
 }
 
 .doku-modal-card * {
-  color: inherit;
+  /* Allow element-specific colors instead of force inherit */
+  box-sizing: border-box;
 }
 
 .doku-plan-card {
@@ -4161,14 +4162,14 @@ select option {
 }
 
 .light-theme .doku-modal-card h2,
-.light-theme .doku-modal-card h3,
-.light-theme .doku-modal-card h4,
-.light-theme .doku-modal-card strong {
+.light-theme .doku-modal-card h3:not([style*="color"]),
+.light-theme .doku-modal-card h4:not([style*="color"]),
+.light-theme .doku-modal-card strong:not([style*="color"]) {
   color: #0f172a !important;
 }
 
-.light-theme .doku-modal-card p,
-.light-theme .doku-modal-card .desc-text {
+.light-theme .doku-modal-card p:not([style*="color"]),
+.light-theme .doku-modal-card .desc-text:not([style*="color"]) {
   color: #475569 !important;
 }
 
@@ -4219,6 +4220,48 @@ select option {
 .light-theme .doku-btn-main * {
   color: #ffffff !important;
   fill: #ffffff !important;
+}
+
+/* Explicit rule: Submit buttons with black background must ALWAYS have white text in all themes */
+button.btn-submit-konfirmasi,
+button.btn-submit-konfirmasi *,
+button.btn-copy-account,
+button.btn-copy-account *,
+.light-theme button.btn-submit-konfirmasi,
+.light-theme button.btn-submit-konfirmasi *,
+.light-theme button.btn-copy-account,
+.light-theme button.btn-copy-account *,
+.doku-modal-card button.btn-submit-konfirmasi,
+.doku-modal-card button.btn-submit-konfirmasi *,
+.doku-modal-card button.btn-copy-account,
+.doku-modal-card button.btn-copy-account *,
+button[style*="background-color: #0f172a"],
+button[style*="background-color:#0f172a"],
+button[style*="background: #0f172a"],
+button[style*="background:#0f172a"],
+.light-theme button[style*="background-color: #0f172a"],
+.light-theme button[style*="background-color:#0f172a"],
+.light-theme button[style*="background: #0f172a"],
+.light-theme button[style*="background:#0f172a"] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+button.btn-submit-konfirmasi svg,
+button.btn-copy-account svg,
+.light-theme button.btn-submit-konfirmasi svg,
+.light-theme button.btn-copy-account svg,
+button[style*="background-color: #0f172a"] *,
+button[style*="background-color:#0f172a"] *,
+button[style*="background: #0f172a"] *,
+button[style*="background:#0f172a"] *,
+.light-theme button[style*="background-color: #0f172a"] *,
+.light-theme button[style*="background-color:#0f172a"] *,
+.light-theme button[style*="background: #0f172a"] *,
+.light-theme button[style*="background:#0f172a"] * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 /* Badge Pill */

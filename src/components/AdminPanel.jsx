@@ -45,7 +45,9 @@ import {
   ChevronDown,
   MapPin,
   CreditCard,
-  Landmark
+  Landmark,
+  Copy,
+  CheckCircle2
 } from 'lucide-react';
 
 import INDONESIAN_REGIONS from '../data/regions.json';
@@ -295,6 +297,8 @@ export default function AdminPanel({
   setPremiumPrice,
   paymentInstructions = '',
   setPaymentInstructions,
+  platformBankAccounts = [],
+  setPlatformBankAccounts,
   qrisImageUrl = '',
   setQrisImageUrl,
   paymentGatewayMode = 'manual',
@@ -691,6 +695,7 @@ export default function AdminPanel({
   const [senderName, setSenderName] = useState('');
   const [senderBank, setSenderBank] = useState('BCA');
   const [receiptFile, setReceiptFile] = useState('');
+  const [isCopiedMandiri, setIsCopiedMandiri] = useState(false);
 
   useEffect(() => {
     setVisibleMoviesCount(12);
@@ -711,6 +716,16 @@ export default function AdminPanel({
     setDepositingEvent(evt);
   };
   const [rankingWinnerEvent, setRankingWinnerEvent] = useState(null);
+  const [editingPlatformBank, setEditingPlatformBank] = useState(null);
+  const [newPlatformBank, setNewPlatformBank] = useState({
+    bankName: 'Bank Mandiri',
+    accountNumber: '',
+    accountNumberFormatted: '',
+    accountHolder: 'PT Ngonten Media Indonesia',
+    branch: 'KC Jakarta Thamrin',
+    isPrimary: false
+  });
+  const [isAddingPlatformBank, setIsAddingPlatformBank] = useState(false);
   const [authModal, setAuthModal] = useState(null);
   const [authPassword, setAuthPassword] = useState('');
   const [authError, setAuthError] = useState('');
@@ -1811,7 +1826,7 @@ export default function AdminPanel({
 
     const actionLabel = action === 'approved' ? 'MENYETUJUI & MEMBAYAR' : 'MENOLAK & MEMINTA PERBAIKAN';
     const confirmMessage = action === 'approved' 
-      ? `Apakah Anda yakin ingin ${actionLabel} ulasan dari @${sub.username}? Tindakan ini akan mentransfer saldo Rp ${(evt.benefitAmount || 0).toLocaleString('id-ID')} dari Escrow ke wallet peserta.`
+      ? `Apakah Anda yakin ingin ${actionLabel} ulasan dari @${sub.username}? Tindakan ini akan mentransfer saldo Rp ${(evt.benefitAmount || 0).toLocaleString('id-ID')} ke wallet peserta.`
       : `Apakah Anda yakin ingin ${actionLabel} ulasan dari @${sub.username} dengan alasan: "${feedbackText.trim()}"?`;
 
     if (!window.confirm(confirmMessage)) {
@@ -1825,7 +1840,7 @@ export default function AdminPanel({
 
       if (alreadyPaid === 0) {
         if (payoutAmount > currentRemaining) {
-          alert('Gagal menyetujui: Budget Rekber Escrow event ini tidak mencukupi untuk membayar ulasan ini!');
+          alert('Gagal menyetujui: Budget event ini tidak mencukupi untuk membayar ulasan ini!');
           return;
         }
 
@@ -1948,7 +1963,7 @@ export default function AdminPanel({
 
       if (alreadyPaid === 0) {
         if (payoutAmount > currentRemaining) {
-          alert('Gagal menyetujui: Budget Rekber Escrow event ini tidak mencukupi untuk membayar ulasan ini!');
+          alert('Gagal menyetujui: Budget event ini tidak mencukupi untuk membayar ulasan ini!');
           return;
         }
 
@@ -2266,7 +2281,7 @@ export default function AdminPanel({
       case 'event-payment':
         return {
           title: 'Payment',
-          subtitle: 'Riwayat transaksi keluar masuk keuangan panitia (dana escrow, biaya platform, pencairan benefit).'
+          subtitle: 'Riwayat transaksi keluar masuk keuangan panitia (alokasi dana, biaya platform, pencairan benefit).'
         };
       case 'movies':
         return {
@@ -2311,7 +2326,7 @@ export default function AdminPanel({
       case 'finance-report':
         return {
           title: 'Laporan Keuangan',
-          subtitle: 'Rincian detail total pemasukan, keuntungan bersih sistem, dana escrow, dan histori transaksi.'
+          subtitle: 'Rincian detail total pemasukan, keuntungan bersih sistem, alokasi dana event, dan histori transaksi.'
         };
       case 'creator-marketplace':
         return {
@@ -3810,12 +3825,12 @@ export default function AdminPanel({
                           </div>
                         </div>
                       )}
-                      {/* Platform Fee & Escrow Info */}
+                      {/* Platform Fee & Budget Info */}
                       {eventAdminFee > 0 && (() => {
                         const isFlatOrViews = eventBudgetMode === 'views' || eventBudgetMode === 'submit';
                         const currentTargetBudget = isFlatOrViews ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0));
                         const currentAdminFeeVal = Math.round((currentTargetBudget * eventAdminFee) / 100);
-                        const totalDepositEscrowVal = currentTargetBudget + currentAdminFeeVal;
+                        const totalDepositBudgetVal = currentTargetBudget + currentAdminFeeVal;
                         return (
                           <div style={{ marginTop: '16px', padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -3831,9 +3846,9 @@ export default function AdminPanel({
                               </strong>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
-                              <span style={{ color: 'white' }}>Total Deposit Escrow:</span>
+                              <span style={{ color: 'white' }}>Total Pembayaran:</span>
                               <strong style={{ color: 'white', fontSize: '0.92rem', borderBottom: '1px solid white', paddingBottom: '2px' }}>
-                                Rp {totalDepositEscrowVal.toLocaleString('id-ID')}
+                                Rp {totalDepositBudgetVal.toLocaleString('id-ID')}
                               </strong>
                             </div>
                           </div>
@@ -4112,15 +4127,99 @@ export default function AdminPanel({
                     </div>
                   </div>
 
-                  {/* Escrow Bank Instructions */}
-                  <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '20px', borderRadius: '12px' }}>
-                    <h4 style={{ margin: '0 0 12px 0', color: 'white', fontSize: '0.95rem', fontWeight: 'bold' }}>Rekening Tujuan Transfer (Escrow):</h4>
-                    <div style={{ fontFamily: 'monospace', color: '#f1f5f9', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                      BANK MANDIRI KAB. JAKARTA<br />
-                      No. Rekening: <strong style={{ color: 'white', fontSize: '1.05rem' }}>127-000-999-888</strong><br />
-                      Atas Nama: <strong>PT Ngonten Media Indonesia (Escrow)</strong>
-                    </div>
-                  </div>
+                  {/* Rekening Tujuan Platform Box dengan Tombol Salin */}
+                  {(() => {
+                    const banksToShow = (platformBankAccounts && platformBankAccounts.length > 0)
+                      ? platformBankAccounts
+                      : [
+                          {
+                            id: 'default_mandiri',
+                            bankName: 'Bank Mandiri',
+                            accountNumber: '127000999888',
+                            accountNumberFormatted: '127-000-999-888',
+                            accountHolder: 'PT Ngonten Media Indonesia',
+                            branch: 'KC Jakarta Thamrin',
+                            isPrimary: true
+                          }
+                        ];
+
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {banksToShow.map((b, bIdx) => (
+                          <div 
+                            key={b.id || bIdx}
+                            style={{ 
+                              background: 'linear-gradient(135deg, rgba(30, 58, 138, 0.15) 0%, rgba(15, 23, 42, 0.6) 100%)', 
+                              border: '1px solid rgba(59, 130, 246, 0.25)', 
+                              padding: '18px 20px', 
+                              borderRadius: '14px',
+                              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#60a5fa' }}>
+                                  <Landmark size={20} />
+                                </div>
+                                <div>
+                                  <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#93c5fd', fontWeight: 'bold' }}>
+                                    {b.isPrimary ? 'Rekening Utama Platform' : 'Rekening Pembayaran Platform'}
+                                  </span>
+                                  <h4 style={{ margin: 0, color: 'white', fontSize: '0.98rem', fontWeight: '700' }}>{b.bankName || 'Bank Mandiri'}</h4>
+                                </div>
+                              </div>
+                              <span style={{ fontSize: '0.72rem', background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', padding: '4px 10px', borderRadius: '20px', border: '1px solid rgba(59, 130, 246, 0.3)', fontWeight: '600' }}>
+                                Transfer Manual
+                              </span>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', background: 'rgba(0, 0, 0, 0.3)', padding: '14px 16px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                              <div>
+                                <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Nomor Rekening {b.bankName || 'Bank'}:</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ color: '#ffffff', fontSize: '1.2rem', fontWeight: '800', letterSpacing: '1px', fontFamily: 'monospace' }}>
+                                    {b.accountNumberFormatted || b.accountNumber}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(b.accountNumber ? b.accountNumber.replace(/\D/g, '') : '');
+                                      setIsCopiedMandiri(true);
+                                      setTimeout(() => setIsCopiedMandiri(false), 2000);
+                                    }}
+                                    title="Salin Nomor Rekening"
+                                    style={{
+                                      background: isCopiedMandiri ? '#10b981' : 'rgba(255, 255, 255, 0.08)',
+                                      border: isCopiedMandiri ? '1px solid #10b981' : '1px solid rgba(255, 255, 255, 0.15)',
+                                      color: 'white',
+                                      borderRadius: '6px',
+                                      padding: '5px 10px',
+                                      fontSize: '0.72rem',
+                                      fontWeight: '600',
+                                      cursor: 'pointer',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      transition: 'all 0.2s'
+                                    }}
+                                  >
+                                    {isCopiedMandiri ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+                                    <span>{isCopiedMandiri ? 'Tersalin!' : 'Salin'}</span>
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div>
+                                <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Atas Nama Pemilik:</span>
+                                <strong style={{ color: '#ffffff', fontSize: '0.98rem', display: 'block' }}>{b.accountHolder || 'PT Ngonten Media Indonesia'}</strong>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{b.branch || 'Pusat Operasional'}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
 
                   {/* Payment Confirmation Form */}
                   <form onSubmit={(e) => {
@@ -4364,7 +4463,7 @@ export default function AdminPanel({
                   <span>Tentukan Pemenang Kompetisi</span>
                 </h3>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-                  Pilih peserta pemenang untuk mendistribusikan total hadiah <strong>Rp {rankingWinnerEvent.campaignBudget?.toLocaleString('id-ID')}</strong> dari Escrow sistem.
+                  Pilih peserta pemenang untuk mendistribusikan total hadiah <strong>Rp {rankingWinnerEvent.campaignBudget?.toLocaleString('id-ID')}</strong> ke dompet pemenang.
                 </p>
 
                 {(() => {
@@ -4442,8 +4541,8 @@ export default function AdminPanel({
                           return;
                         }
                         setAuthModal({
-                          title: 'Otorisasi Release Escrow Juara',
-                          message: `Anda akan mengirim hadiah kontes (Juara 1: ${winnerJuara1}${winnerJuara2 ? ', Juara 2: ' + winnerJuara2 : ''}${winnerJuara3 ? ', Juara 3: ' + winnerJuara3 : ''}) dengan total hadiah Rp ${( (rankingWinnerEvent.prize1 || 0) + (winnerJuara2 ? rankingWinnerEvent.prize2 || 0 : 0) + (winnerJuara3 ? rankingWinnerEvent.prize3 || 0 : 0) ).toLocaleString('id-ID')} dari Rekber Escrow ke dompet para pemenang.`,
+                          title: 'Otorisasi Pengiriman Hadiah Juara',
+                          message: `Anda akan mengirim hadiah kontes (Juara 1: ${winnerJuara1}${winnerJuara2 ? ', Juara 2: ' + winnerJuara2 : ''}${winnerJuara3 ? ', Juara 3: ' + winnerJuara3 : ''}) dengan total hadiah Rp ${( (rankingWinnerEvent.prize1 || 0) + (winnerJuara2 ? rankingWinnerEvent.prize2 || 0 : 0) + (winnerJuara3 ? rankingWinnerEvent.prize3 || 0 : 0) ).toLocaleString('id-ID')} ke dompet para pemenang.`,
                           onConfirm: () => {
                             // 1. Release payouts to user wallets
                             if (winnerJuara1) handleTransferWallet(winnerJuara1, rankingWinnerEvent.prize1 || 0);
@@ -4463,13 +4562,13 @@ export default function AdminPanel({
                             }));
 
                             setRankingWinnerEvent(null);
-                            alert('Berhasil mengumumkan pemenang dan mendistribusikan total hadiah dari Rekber Escrow ke dompet masing-masing pemenang!');
+                            alert('Berhasil mengumumkan pemenang dan mendistribusikan total hadiah ke dompet masing-masing pemenang!');
                           }
                         });
                       }}
                       style={{ padding: '10px 24px', borderRadius: '30px', fontSize: '0.88rem', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: 'none', fontWeight: 'bold' }}
                     >
-                      Kirim Hadiah (Release Escrow)
+                      Kirim Hadiah Pemenang
                     </button>
                   )}
                 </div>
@@ -6372,146 +6471,474 @@ export default function AdminPanel({
         </div>
       ) : adminSubTab === 'membership' && currentUser && currentUser.role === 'superadmin' ? (
         <div className="membership-manager-section animate-fade-in">
-          {/* Setting Mode Pembayaran (Manual vs Payment Gateway) */}
-          <div className="glass-panel" style={{ 
-            padding: '24px',
+          {/* Pengaturan Rekening Utama Platform & Pembayaran Manual (Multi-Bank & E-Wallet) */}
+          <div style={{ 
+            background: '#ffffff',
             borderRadius: '16px',
-            background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%)',
-            border: '1px solid rgba(255, 255, 255, 0.1)'
+            border: '1.5px solid #e2e8f0',
+            padding: '24px',
+            boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.06)',
+            marginBottom: '24px'
           }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', color: 'white', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <CreditCard size={20} color="#38bdf8" />
-              <span>Mode Transaksi & Pembayaran Sistem</span>
-            </h3>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.5' }}>
-              Pilih alur transaksi pembayaran yang aktif di website. Gunakan <strong>Mode Payment Gateway (TriPay)</strong> untuk memproses QRIS, Virtual Account (BCA, Mandiri, BRI, BNI), dan E-Wallet secara otomatis dan instan.
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-              {/* Option 1: Manual Transfer */}
-              <div 
-                onClick={() => setPaymentGatewayMode && setPaymentGatewayMode('manual')}
-                style={{
-                  padding: '18px 20px',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  border: paymentGatewayMode === 'manual' ? '2px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.1)',
-                  background: paymentGatewayMode === 'manual' ? 'rgba(56, 189, 248, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-                  transition: 'all 0.2s',
-                  position: 'relative'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ 
-                      width: '36px', 
-                      height: '36px', 
-                      borderRadius: '8px', 
-                      background: paymentGatewayMode === 'manual' ? '#38bdf8' : 'rgba(255,255,255,0.05)', 
-                      color: paymentGatewayMode === 'manual' ? '#000000' : 'white',
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center' 
-                    }}>
-                      <Landmark size={20} />
-                    </div>
-                    <div>
-                      <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>Mode 1: Transfer Manual</strong>
-                      <span style={{ fontSize: '0.72rem', color: '#38bdf8', fontWeight: 'bold' }}>Verifikasi Bukti Transfer</span>
-                    </div>
-                  </div>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    border: `2px solid ${paymentGatewayMode === 'manual' ? '#38bdf8' : 'rgba(255,255,255,0.3)'}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: paymentGatewayMode === 'manual' ? '#38bdf8' : 'transparent'
-                  }}>
-                    {paymentGatewayMode === 'manual' && <Check size={12} color="#000000" strokeWidth={3} />}
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
-                  Pengguna mentransfer ke rekening bank / e-wallet admin secara manual, lalu bukti transfer diverifikasi oleh Superadmin di menu <strong>Pemasukan Saldo</strong>.
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Landmark size={22} color="#0284c7" />
+                  <span>Rekening Bank & E-Wallet Platform (Penerima Pembayaran)</span>
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0, lineHeight: '1.5' }}>
+                  Kelola daftar rekening bank (Mandiri, BCA, BRI, BNI) dan E-Wallet (DANA, GoPay, OVO) untuk menerima transfer pembayaran pengguna secara langsung.
                 </p>
               </div>
 
-              {/* Option 2: Payment Gateway (TriPay) */}
-              <div 
-                onClick={() => setPaymentGatewayMode && setPaymentGatewayMode('gateway')}
-                style={{
-                  padding: '18px 20px',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  border: paymentGatewayMode === 'gateway' ? '2px solid #06b6d4' : '1px solid rgba(255, 255, 255, 0.1)',
-                  background: paymentGatewayMode === 'gateway' ? 'rgba(6, 182, 212, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-                  transition: 'all 0.2s',
-                  position: 'relative'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ 
-                      width: '36px', 
-                      height: '36px', 
-                      borderRadius: '8px', 
-                      background: paymentGatewayMode === 'gateway' ? '#06b6d4' : 'rgba(255,255,255,0.05)', 
-                      color: paymentGatewayMode === 'gateway' ? '#ffffff' : 'white',
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center' 
-                    }}>
-                      <QrCode size={20} />
-                    </div>
-                    <div>
-                      <strong style={{ fontSize: '0.95rem', color: 'white', display: 'block' }}>Mode 2: Payment Gateway TriPay Resmi</strong>
-                      <span style={{ fontSize: '0.72rem', color: '#06b6d4', fontWeight: 'bold' }}>QRIS, VA & E-Wallet Otomatis</span>
-                    </div>
-                  </div>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    border: `2px solid ${paymentGatewayMode === 'gateway' ? '#06b6d4' : 'rgba(255,255,255,0.3)'}`,
+              {!isAddingPlatformBank && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewPlatformBank({
+                      accountType: 'bank',
+                      bankName: 'Bank Mandiri',
+                      accountNumber: '',
+                      accountNumberFormatted: '',
+                      accountHolder: 'PT Ngonten Media Indonesia',
+                      branch: '',
+                      isPrimary: false
+                    });
+                    setIsAddingPlatformBank(true);
+                  }}
+                  className="btn btn-primary"
+                  style={{
+                    backgroundColor: '#0284c7',
+                    borderColor: '#0284c7',
+                    color: '#ffffff',
+                    padding: '8px 16px',
+                    fontSize: '0.84rem',
+                    fontWeight: '700',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    background: paymentGatewayMode === 'gateway' ? '#06b6d4' : 'transparent'
-                  }}>
-                    {paymentGatewayMode === 'gateway' && <Check size={12} color="#ffffff" strokeWidth={3} />}
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
-                  Memproses transaksi secara real-time via TriPay API & Cloud Functions dengan notifikasi lunas instan.
-                </p>
-              </div>
+                    gap: '6px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(2, 132, 199, 0.25)'
+                  }}
+                >
+                  <Plus size={16} />
+                  <span>Tambah Rekening / E-Wallet</span>
+                </button>
+              )}
             </div>
 
-            {/* TriPay Info & Connection Summary */}
-            {paymentGatewayMode === 'gateway' && (
-              <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#38bdf8', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                  <ShieldCheck size={16} />
-                  <span>Koneksi Server TriPay (Firebase Cloud Functions):</span>
+            {/* Form Tambah Rekening / E-Wallet Baru */}
+            {isAddingPlatformBank && (
+              <div style={{
+                background: '#f8fafc',
+                border: '2px solid #0284c7',
+                borderRadius: '12px',
+                padding: '20px',
+                marginTop: '16px',
+                marginBottom: '20px',
+                boxShadow: '0 6px 18px rgba(2, 132, 199, 0.1)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <strong style={{ color: '#0369a1', fontSize: '0.98rem', fontWeight: '800' }}>
+                    + Tambah Rekening Bank / E-Wallet Baru
+                  </strong>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingPlatformBank(false)}
+                    style={{ background: '#e2e8f0', border: 'none', color: '#475569', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', fontSize: '0.78rem' }}>
-                  <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <span style={{ color: 'var(--text-secondary)', display: 'block' }}>Kode Merchant:</span>
-                    <strong style={{ color: '#ffffff' }}>T52611</strong>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px', marginBottom: '16px' }}>
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '5px' }}>
+                      Kategori Akun
+                    </label>
+                    <select
+                      value={newPlatformBank.accountType || 'bank'}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setNewPlatformBank(prev => ({
+                          ...prev,
+                          accountType: val,
+                          bankName: val === 'ewallet' ? 'DANA' : 'Bank Mandiri'
+                        }));
+                      }}
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #cbd5e1', background: '#ffffff', color: '#0f172a', fontSize: '0.85rem', fontWeight: '600' }}
+                    >
+                      <option value="bank">Rekening Bank</option>
+                      <option value="ewallet">E-Wallet (DANA / GoPay / OVO)</option>
+                    </select>
                   </div>
-                  <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <span style={{ color: 'var(--text-secondary)', display: 'block' }}>Whitelist IP Terdaftar:</span>
-                    <strong style={{ color: '#34d399' }}>199.36.158.100</strong>
+
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '5px' }}>
+                      Nama Bank / Penyedia E-Wallet
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={newPlatformBank.accountType === 'ewallet' ? 'Contoh: DANA / GoPay / OVO' : 'Contoh: Bank Mandiri / Bank BCA / BRI'}
+                      value={newPlatformBank.bankName}
+                      onChange={(e) => setNewPlatformBank(prev => ({ ...prev, bankName: e.target.value }))}
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #cbd5e1', background: '#ffffff', color: '#0f172a', fontSize: '0.85rem', fontWeight: '600' }}
+                    />
                   </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '5px' }}>
+                      Nomor Rekening / No. HP E-Wallet
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: 127000999888 atau 08123456789"
+                      value={newPlatformBank.accountNumber}
+                      onChange={(e) => setNewPlatformBank(prev => ({ ...prev, accountNumber: e.target.value.replace(/[^0-9]/g, '') }))}
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #cbd5e1', background: '#ffffff', color: '#0f172a', fontSize: '0.9rem', fontFamily: 'monospace', fontWeight: '700' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '5px' }}>
+                      Atas Nama Rekening (Pemilik)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: PT Ngonten Media Indonesia"
+                      value={newPlatformBank.accountHolder}
+                      onChange={(e) => setNewPlatformBank(prev => ({ ...prev, accountHolder: e.target.value }))}
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #cbd5e1', background: '#ffffff', color: '#0f172a', fontSize: '0.85rem', fontWeight: '600' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '5px' }}>
+                      Keterangan / Cabang (Opsional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: KC Jakarta Thamrin / Akun Bisnis"
+                      value={newPlatformBank.branch || ''}
+                      onChange={(e) => setNewPlatformBank(prev => ({ ...prev, branch: e.target.value }))}
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #cbd5e1', background: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingPlatformBank(false)}
+                    style={{ padding: '8px 16px', fontSize: '0.82rem', borderRadius: '8px', background: '#e2e8f0', color: '#334155', border: 'none', fontWeight: '600', cursor: 'pointer' }}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!newPlatformBank.accountNumber.trim()) {
+                        alert('Nomor rekening atau nomor HP e-wallet wajib diisi!');
+                        return;
+                      }
+                      const newBankObj = {
+                        id: `acc_${Date.now()}`,
+                        accountType: newPlatformBank.accountType || 'bank',
+                        bankName: newPlatformBank.bankName.trim() || 'Bank Mandiri',
+                        accountNumber: newPlatformBank.accountNumber.trim(),
+                        accountNumberFormatted: newPlatformBank.accountNumber.trim(),
+                        accountHolder: newPlatformBank.accountHolder.trim() || 'PT Ngonten Media Indonesia',
+                        branch: newPlatformBank.branch?.trim() || '',
+                        isPrimary: (platformBankAccounts || []).length === 0
+                      };
+                      if (setPlatformBankAccounts) {
+                        const updatedList = [...(platformBankAccounts || []), newBankObj];
+                        await setPlatformBankAccounts(updatedList);
+                      }
+                      setIsAddingPlatformBank(false);
+                      alert(`Rekening / E-Wallet ${newBankObj.bankName} (${newBankObj.accountNumber}) berhasil ditambahkan dan disimpan!`);
+                    }}
+                    style={{ padding: '8px 20px', fontSize: '0.82rem', borderRadius: '8px', background: '#0284c7', color: '#ffffff', border: 'none', fontWeight: '700', cursor: 'pointer' }}
+                  >
+                    Simpan Akun
+                  </button>
                 </div>
               </div>
             )}
+
+            {/* Daftar Rekening & E-Wallet Platform Tersimpan */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+              {((platformBankAccounts && platformBankAccounts.length > 0) ? platformBankAccounts : [
+                {
+                  id: 'bank_mandiri_main',
+                  accountType: 'bank',
+                  bankName: 'Bank Mandiri',
+                  accountNumber: '127000999888',
+                  accountNumberFormatted: '127-000-999-888',
+                  accountHolder: 'PT Ngonten Media Indonesia',
+                  branch: 'KC Jakarta Thamrin',
+                  isPrimary: true
+                }
+              ]).map((bank, index) => {
+                const isEditingThis = editingPlatformBank && editingPlatformBank.id === bank.id;
+                const isEwallet = bank.accountType === 'ewallet' || ['dana', 'gopay', 'ovo', 'shopeepay', 'linkaja'].some(ew => (bank.bankName || '').toLowerCase().includes(ew));
+
+                if (isEditingThis) {
+                  return (
+                    <div 
+                      key={bank.id || index}
+                      style={{
+                        background: '#f8fafc',
+                        border: '2px solid #0284c7',
+                        borderRadius: '14px',
+                        padding: '16px',
+                        boxShadow: '0 4px 14px rgba(2, 132, 199, 0.12)'
+                      }}
+                    >
+                      <strong style={{ color: '#0369a1', fontSize: '0.9rem', display: 'block', marginBottom: '12px' }}>
+                        Edit Akun Pembayaran ({bank.bankName})
+                      </strong>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.74rem', fontWeight: '700', color: '#475569' }}>Nama Bank / E-Wallet</label>
+                          <input 
+                            type="text" 
+                            value={editingPlatformBank.bankName} 
+                            onChange={(e) => setEditingPlatformBank(prev => ({ ...prev, bankName: e.target.value }))}
+                            style={{ width: '100%', padding: '8px 10px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', color: '#0f172a', fontSize: '0.84rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.74rem', fontWeight: '700', color: '#475569' }}>Nomor Rekening / No HP</label>
+                          <input 
+                            type="text" 
+                            value={editingPlatformBank.accountNumber} 
+                            onChange={(e) => setEditingPlatformBank(prev => ({ ...prev, accountNumber: e.target.value.replace(/[^0-9]/g, '') }))}
+                            style={{ width: '100%', padding: '8px 10px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', color: '#0f172a', fontSize: '0.84rem', fontFamily: 'monospace' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.74rem', fontWeight: '700', color: '#475569' }}>Atas Nama Rekening</label>
+                          <input 
+                            type="text" 
+                            value={editingPlatformBank.accountHolder} 
+                            onChange={(e) => setEditingPlatformBank(prev => ({ ...prev, accountHolder: e.target.value }))}
+                            style={{ width: '100%', padding: '8px 10px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', color: '#0f172a', fontSize: '0.84rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.74rem', fontWeight: '700', color: '#475569' }}>Keterangan / Cabang</label>
+                          <input 
+                            type="text" 
+                            value={editingPlatformBank.branch || ''} 
+                            onChange={(e) => setEditingPlatformBank(prev => ({ ...prev, branch: e.target.value }))}
+                            style={{ width: '100%', padding: '8px 10px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', color: '#0f172a', fontSize: '0.84rem' }}
+                          />
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => setEditingPlatformBank(null)}
+                          style={{ padding: '6px 12px', fontSize: '0.78rem', borderRadius: '6px', background: '#e2e8f0', color: '#475569', border: 'none', cursor: 'pointer' }}
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (setPlatformBankAccounts) {
+                              setPlatformBankAccounts(prev => (prev || []).map(b => b.id === editingPlatformBank.id ? { ...editingPlatformBank, accountNumberFormatted: editingPlatformBank.accountNumber } : b));
+                            }
+                            setEditingPlatformBank(null);
+                          }}
+                          style={{ padding: '6px 14px', fontSize: '0.78rem', borderRadius: '6px', background: '#0284c7', color: '#ffffff', border: 'none', fontWeight: '700', cursor: 'pointer' }}
+                        >
+                          Simpan
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={bank.id || index}
+                    style={{
+                      background: '#ffffff',
+                      border: bank.isPrimary ? '2px solid #0284c7' : '1.5px solid #cbd5e1',
+                      borderRadius: '14px',
+                      overflow: 'hidden',
+                      boxShadow: bank.isPrimary ? '0 8px 20px -3px rgba(2, 132, 199, 0.18)' : '0 2px 8px rgba(0, 0, 0, 0.04)',
+                      display: 'flex',
+                      flexDirection: 'column'
+                    }}
+                  >
+                    {/* Header Kartu - Monokrom Hitam Pekat dengan Teks Putih Kontras Tinggi */}
+                    <div style={{
+                      background: '#0f172a',
+                      padding: '12px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '8px',
+                          background: '#ffffff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#0f172a',
+                          flexShrink: 0
+                        }}>
+                          {isEwallet ? <Smartphone size={18} strokeWidth={2.5} /> : <Landmark size={18} strokeWidth={2.5} />}
+                        </div>
+                        <div>
+                          <strong style={{ fontSize: '0.94rem', color: '#ffffff', display: 'block', letterSpacing: '0.4px', fontWeight: '800' }}>
+                            {(bank.bankName || 'BANK MANDIRI').toUpperCase()}
+                          </strong>
+                          <span style={{ fontSize: '0.7rem', color: '#cbd5e1', fontWeight: '500', display: 'block', marginTop: '1px' }}>
+                            {bank.branch || (isEwallet ? 'E-Wallet Resmi' : 'Transfer Bank')}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span style={{
+                        fontSize: '0.68rem',
+                        fontWeight: '800',
+                        color: bank.isPrimary ? '#0f172a' : '#1e293b',
+                        background: '#ffffff',
+                        padding: '3px 10px',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        letterSpacing: '0.3px'
+                      }}>
+                        {bank.isPrimary ? '★ UTAMA' : 'OPSI TRANSFER'}
+                      </span>
+                    </div>
+
+                    {/* Body Kartu */}
+                    <div style={{ padding: '14px 16px', background: '#ffffff', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>
+                          {isEwallet ? 'Nomor E-Wallet / HP:' : 'Nomor Rekening:'}
+                        </span>
+                        <div style={{
+                          fontSize: '1.25rem',
+                          fontWeight: '800',
+                          color: '#0f172a',
+                          letterSpacing: '1px',
+                          fontFamily: 'monospace',
+                          background: '#f8fafc',
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: '1px dashed #cbd5e1',
+                          marginBottom: '8px',
+                          wordBreak: 'break-all'
+                        }}>
+                          {bank.accountNumberFormatted || bank.accountNumber}
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: '#334155', marginBottom: '12px' }}>
+                          <span style={{ color: '#64748b' }}>Atas Nama: </span>
+                          <strong>{bank.accountHolder}</strong>
+                        </div>
+                      </div>
+
+                      {/* Aksi */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+                        <div>
+                          {!bank.isPrimary && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (setPlatformBankAccounts) {
+                                  setPlatformBankAccounts(prev => (prev || []).map(b => ({ ...b, isPrimary: b.id === bank.id })));
+                                }
+                              }}
+                              style={{
+                                background: '#f0fdf4',
+                                border: '1px solid #86efac',
+                                color: '#16a34a',
+                                padding: '5px 10px',
+                                borderRadius: '6px',
+                                fontSize: '0.72rem',
+                                fontWeight: '700',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Jadikan Utama
+                            </button>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setEditingPlatformBank({ ...bank })}
+                            style={{
+                              background: '#e0f2fe',
+                              border: '1px solid #bae6fd',
+                              color: '#0284c7',
+                              padding: '5px 10px',
+                              borderRadius: '6px',
+                              fontSize: '0.72rem',
+                              fontWeight: '700',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <Edit size={12} />
+                            <span>Ubah</span>
+                          </button>
+
+                          {(platformBankAccounts || []).length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`Hapus rekening ${bank.bankName} (${bank.accountNumber})?`)) {
+                                  if (setPlatformBankAccounts) {
+                                    setPlatformBankAccounts(prev => {
+                                      const filtered = (prev || []).filter(b => b.id !== bank.id);
+                                      if (filtered.length > 0 && !filtered.some(b => b.isPrimary)) {
+                                        filtered[0].isPrimary = true;
+                                      }
+                                      return filtered;
+                                    });
+                                  }
+                                }
+                              }}
+                              style={{
+                                background: '#fef2f2',
+                                border: '1px solid #fecaca',
+                                color: '#ef4444',
+                                padding: '5px 8px',
+                                borderRadius: '6px',
+                                fontSize: '0.72rem',
+                                cursor: 'pointer'
+                              }}
+                              title="Hapus Rekening"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div className="add-affiliate-card glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '8px' }}>
               <div className="form-group" style={{ margin: 0 }}>
                 <label style={{ fontSize: '0.8rem', marginBottom: '4px', display: 'block', color: 'var(--text-secondary)' }}>WhatsApp Link Admin</label>
                 <input
@@ -6550,71 +6977,6 @@ export default function AdminPanel({
                   }}
                 />
               </div>
-            </div>
-            
-            <div className="form-group" style={{ marginBottom: '16px' }}>
-              <label style={{ fontSize: '0.8rem', marginBottom: '4px', display: 'block', color: 'var(--text-secondary)' }}>Instruksi Transfer / Metode Pembayaran</label>
-              <textarea
-                placeholder={`Contoh:\n- Bank BCA: 1234567890 a.n. Admin\n- DANA: 081234567890\n- OVO: 081234567890`}
-                value={paymentInstructions}
-                onChange={(e) => setPaymentInstructions(e.target.value)}
-                rows={4}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: '0.9rem',
-                  resize: 'vertical'
-                }}
-              />
-            </div>
-
-            {/* Upload Gambar QRIS Resmi (Mayar / BCA / DANA) */}
-            <div className="form-group" style={{ marginBottom: '20px', padding: '14px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.15)' }}>
-              <label style={{ fontSize: '0.82rem', fontWeight: 'bold', color: 'white', marginBottom: '6px', display: 'block' }}>
-                🖼️ Upload Gambar QRIS Resmi Toko (Mayar / BCA / GoPay / DANA):
-              </label>
-              <input 
-                type="file" 
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                      if (setQrisImageUrl) setQrisImageUrl(ev.target?.result);
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
-                style={{ width: '100%', color: 'var(--text-secondary)', fontSize: '0.82rem' }}
-              />
-              {qrisImageUrl && (
-                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <img 
-                    src={qrisImageUrl} 
-                    alt="QRIS Preview" 
-                    style={{ width: '80px', height: '80px', objectFit: 'contain', background: 'white', padding: '4px', borderRadius: '6px' }}
-                  />
-                  <div>
-                    <span style={{ fontSize: '0.78rem', color: '#10b981', fontWeight: 'bold', display: 'block' }}>✓ Gambar QRIS Resmi Terpasang</span>
-                    <button 
-                      type="button" 
-                      onClick={() => setQrisImageUrl && setQrisImageUrl('')} 
-                      style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.72rem', cursor: 'pointer', padding: 0, marginTop: '2px' }}
-                    >
-                      Hapus Gambar QRIS
-                    </button>
-                  </div>
-                </div>
-              )}
-              <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
-                Upload screenshot atau file QRIS dari dashboard Mayar.id / Merchant BCA Anda agar QRIS langsung tampil jelas dan 100% bisa discan dari seluruh bank/e-wallet.
-              </span>
             </div>
 
             {currentUser && currentUser.role === 'superadmin' && (
@@ -8873,15 +9235,15 @@ export default function AdminPanel({
                 </div>
               </div>
 
-              {/* Card 3: Dana Escrow Event */}
+              {/* Card 3: Dana Alokasi Event */}
               <div className="admin-stat-card glass-panel" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%)', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
                 <div className="stat-content">
-                  <span className="stat-label" style={{ color: 'var(--text-secondary)' }}>Dana Escrow (Rekber Kontes)</span>
+                  <span className="stat-label" style={{ color: 'var(--text-secondary)' }}>Alokasi Dana Event Berjalan</span>
                   <span className="stat-value" style={{ color: '#fbbf24', fontSize: '1.8rem', fontWeight: 'bold' }}>
                     Rp {escrowFund.toLocaleString('id-ID')}
                   </span>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    Sedang ditahan sistem untuk pemenang event berjalan
+                    Dana siap disalurkan untuk pemenang event berjalan
                   </div>
                 </div>
                 <div className="stat-icon-wrapper" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}>

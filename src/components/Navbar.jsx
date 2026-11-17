@@ -589,7 +589,7 @@ export default function Navbar({
                     { id: 'community-members', label: 'Anggota Komunitas' }
                   ]),
                   { id: 'finance-report', label: 'Laporan Keuangan' },
-                  { id: 'movies', label: 'Kelola Film' },
+                  // { id: 'movies', label: 'Kelola Film' }, // Disembunyikan sementara, fokus ke event & kompetisi
                   { id: 'users', label: 'Kelola Pengguna' },
                   { id: 'roles', label: 'Kelola Role' },
                   { id: 'membership', label: 'Pengaturan Premium' },
@@ -679,7 +679,7 @@ export default function Navbar({
               <Search className="search-icon-left" size={16} />
               <input
                 type="text"
-                placeholder="Telusuri film, genre, deskripsi..."
+                placeholder="Telusuri event, kompetisi, kreator..."
                 value={localInput}
                 onChange={(e) => setLocalInput(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}

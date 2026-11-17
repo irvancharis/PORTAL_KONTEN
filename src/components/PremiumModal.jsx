@@ -17,6 +17,7 @@ export default function PremiumModal({
   premiumPrice,
   whatsappAdmin = 'https://wa.me/6281234567890',
   paymentInstructions = '',
+  platformBankAccounts = [],
   qrisImageUrl = '',
   paymentGatewayMode = 'manual',
   onLoginClick
@@ -318,11 +319,8 @@ export default function PremiumModal({
       onClose();
       return;
     }
-    if (paymentGatewayMode === 'manual') {
-      setStep('manual_pay');
-    } else {
-      setStep('select_method');
-    }
+    // Langsung arahkan ke transfer Bank Mandiri
+    setStep('manual_pay');
   };
 
   const handleManualPaymentSubmit = (e) => {
@@ -544,19 +542,19 @@ export default function PremiumModal({
           }}>
             <Crown size={24} color="#ffffff" />
           </div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: '800', margin: '0 0 6px 0' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: '800', margin: '0 0 6px 0', color: '#0f172a' }}>
             {step === 'select_plan' && 'Paket User Premium'}
             {step === 'select_method' && 'Metode Pembayaran'}
             {step === 'pay_screen' && 'Selesaikan Pembayaran'}
-            {step === 'manual_pay' && 'Transfer Pembayaran Manual'}
-            {step === 'success' && (paymentGatewayMode === 'manual' ? 'Konfirmasi Terkirim!' : 'Pembayaran Berhasil!')}
+            {step === 'manual_pay' && 'Transfer Bank Mandiri'}
+            {step === 'success' && 'Konfirmasi Terkirim!'}
           </h2>
-          <p className="desc-text" style={{ fontSize: '0.84rem', margin: 0 }}>
+          <p className="desc-text" style={{ fontSize: '0.84rem', margin: 0, color: '#64748b' }}>
             {step === 'select_plan' && 'Tingkatkan akun ke User Premium untuk akses penuh ekosistem ngonten.id.'}
             {step === 'select_method' && 'Pilih metode pembayaran instan dan terenkripsi.'}
             {step === 'pay_screen' && 'Scan QRIS atau transfer ke nomor VA di bawah untuk aktivasi instan.'}
-            {step === 'manual_pay' && 'Transfer sesuai nominal ke rekening admin dan lampirkan bukti transfer.'}
-            {step === 'success' && (paymentGatewayMode === 'manual' ? 'Bukti transfer berhasil dikirim. Admin akan segera memverifikasi akun Anda.' : 'Akun Anda resmi aktif sebagai User Premium.')}
+            {step === 'manual_pay' && 'Silakan transfer sesuai tagihan ke rekening Bank Mandiri resmi kami.'}
+            {step === 'success' && 'Bukti transfer berhasil dikirim. Admin akan segera memverifikasi akun Anda.'}
           </p>
         </div>
 
@@ -1151,99 +1149,235 @@ export default function PremiumModal({
 
         {/* ================= STEP: MANUAL PAYMENT TRANSFER & PROOF UPLOAD ================= */}
         {step === 'manual_pay' && (
-          <form onSubmit={handleManualPaymentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <form onSubmit={handleManualPaymentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             {/* Ringkasan Tagihan */}
-            <div className="doku-plan-card" style={{ padding: '16px', marginBottom: '4px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
-                <span className="desc-text">Paket Langganan:</span>
-                <strong style={{ fontWeight: '700' }}>User Premium ({currentPlan.duration})</strong>
-              </div>
-              <div style={{ height: '1px', backgroundColor: 'rgba(128,128,128,0.2)', margin: '8px 0' }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <strong style={{ fontWeight: '800', fontSize: '0.9rem' }}>Total yang Harus Ditransfer:</strong>
-                <strong style={{ fontSize: '1.25rem', fontWeight: '900', color: '#10b981' }}>
-                  {currentPlan.price}
-                </strong>
-              </div>
-            </div>
-
-            {/* Rekening Tujuan Transfer */}
             <div style={{
-              background: 'rgba(56, 189, 248, 0.08)',
-              border: '1px solid rgba(56, 189, 248, 0.25)',
-              borderRadius: '10px',
-              padding: '14px 16px'
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '14px',
+              padding: '16px 20px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <Landmark size={18} color="#38bdf8" />
-                <strong style={{ fontSize: '0.85rem', color: '#38bdf8' }}>Nomor Rekening / E-Wallet Tujuan:</strong>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ fontSize: '0.84rem', color: '#64748b', fontWeight: '500' }}>Paket Langganan:</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: '700', color: '#0f172a' }}>
+                  User Premium ({currentPlan.duration})
+                </span>
               </div>
-              <div style={{
-                fontSize: '0.84rem',
-                lineHeight: '1.6',
-                whiteSpace: 'pre-wrap',
-                fontFamily: 'var(--font-sans)',
-                color: 'var(--text-primary)'
-              }}>
-                {paymentInstructions || '- Bank BCA: 1234567890 a.n. ngonten.id\n- DANA: 081234567890 a.n. Admin\n- OVO: 081234567890'}
+              <div style={{ height: '1px', backgroundColor: '#e2e8f0', margin: '8px 0 10px 0' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.88rem', fontWeight: '600', color: '#334155' }}>Total Tagihan:</span>
+                <span style={{ fontSize: '1.35rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.5px' }}>
+                  {currentPlan.price}
+                </span>
               </div>
             </div>
 
-            {/* Form Input Bukti Bayar */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            {/* Kartu Rekening Platform (Dinamis dari platformBankAccounts) */}
+            {(() => {
+              const activeBanks = (platformBankAccounts && platformBankAccounts.length > 0)
+                ? platformBankAccounts
+                : [
+                    {
+                      id: 'default_mandiri',
+                      bankName: 'Bank Mandiri',
+                      accountNumber: '127000999888',
+                      accountNumberFormatted: '127-000-999-888',
+                      accountHolder: 'PT Ngonten Media Indonesia',
+                      branch: 'KC Jakarta Thamrin',
+                      isPrimary: true
+                    }
+                  ];
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {activeBanks.map((bank, bIdx) => {
+                    const isEwallet = bank.accountType === 'ewallet' || ['dana', 'gopay', 'ovo', 'shopeepay', 'linkaja'].some(ew => (bank.bankName || '').toLowerCase().includes(ew));
+
+                    return (
+                      <div 
+                        key={bank.id || bIdx}
+                        style={{
+                          background: '#ffffff',
+                          border: bank.isPrimary ? '1.5px solid #003d79' : '1.5px solid #cbd5e1',
+                          borderRadius: '16px',
+                          overflow: 'hidden',
+                          boxShadow: '0 8px 24px -4px rgba(0, 61, 121, 0.1)'
+                        }}
+                      >
+                        {/* Card Header Brand - Kontras Tinggi Hitam/Putih Monokrom Premium */}
+                        <div style={{
+                          background: '#0f172a',
+                          padding: '14px 18px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '8px',
+                              background: '#ffffff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#0f172a',
+                              flexShrink: 0
+                            }}>
+                              {isEwallet ? <Smartphone size={20} strokeWidth={2.5} /> : <Landmark size={20} strokeWidth={2.5} />}
+                            </div>
+                            <div>
+                              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '900', color: '#ffffff', letterSpacing: '0.5px' }}>
+                                {(bank.bankName || 'BANK MANDIRI').toUpperCase()}
+                              </h3>
+                              <span style={{ fontSize: '0.72rem', color: '#cbd5e1', fontWeight: '500', display: 'block', marginTop: '2px' }}>
+                                {bank.branch ? `Rekening Resmi (${bank.branch})` : (isEwallet ? 'Akun E-Wallet Penerima Resmi' : 'Rekening Penerima Pembayaran Resmi')}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Card Body dengan Nomor Rekening/HP Terpampang Jelas */}
+                        <div style={{ padding: '18px 20px', background: '#fafbfc' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '600', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            {isEwallet ? 'Nomor Akun / HP ' : 'Nomor Rekening '}{bank.bankName || ''}
+                          </span>
+                          
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            background: '#ffffff',
+                            border: '1.5px dashed #cbd5e1',
+                            borderRadius: '12px',
+                            padding: '12px 16px',
+                            marginBottom: '12px'
+                          }}>
+                            <span style={{
+                              fontSize: '1.45rem',
+                              fontWeight: '800',
+                              color: '#0f172a',
+                              letterSpacing: '1.5px',
+                              fontFamily: 'monospace'
+                            }}>
+                              {bank.accountNumberFormatted || bank.accountNumber}
+                            </span>
+
+                            <button
+                              type="button"
+                              className="btn-copy-account"
+                              onClick={() => handleCopy(bank.accountNumber ? bank.accountNumber.replace(/\D/g, '') : '')}
+                              style={{
+                                backgroundColor: copied ? '#10b981' : '#0f172a',
+                                color: '#ffffff',
+                                border: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                fontSize: '0.82rem',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'all 0.2s',
+                                boxShadow: copied ? '0 2px 8px rgba(16, 185, 129, 0.3)' : '0 2px 8px rgba(15, 23, 42, 0.3)'
+                              }}
+                            >
+                              {copied ? <Check size={14} color="#ffffff" strokeWidth={2.5} /> : <Copy size={14} color="#ffffff" />}
+                              <span style={{ color: '#ffffff', fontWeight: '700' }}>{copied ? 'Tersalin!' : (isEwallet ? 'Salin No. HP' : 'Salin Nomor')}</span>
+                            </button>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.82rem', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
+                            <span style={{ color: '#64748b' }}>Atas Nama:</span>
+                            <strong style={{ color: '#0f172a', fontWeight: '700' }}>{bank.accountHolder || 'PT Ngonten Media Indonesia'}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
+            {/* Form Input Detail Pengirim */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <label style={{ fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px', display: 'block' }}>Nama Pengirim</label>
+                <label style={{ fontSize: '0.78rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px', display: 'block' }}>
+                  Nama Pemilik Rekening Pengirim
+                </label>
                 <input 
                   type="text"
                   value={senderName}
                   onChange={(e) => setSenderName(e.target.value)}
-                  placeholder="Nama pemilik rekening"
+                  placeholder="Nama sesuai rekening Anda"
                   required
                   style={{
                     width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(128,128,128,0.25)',
-                    background: 'rgba(255,255,255,0.03)',
-                    color: 'inherit',
-                    fontSize: '0.85rem',
+                    padding: '11px 14px',
+                    borderRadius: '10px',
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    color: '#0f172a',
+                    fontSize: '0.88rem',
                     boxSizing: 'border-box'
                   }}
                 />
               </div>
+
               <div>
-                <label style={{ fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px', display: 'block' }}>Bank / E-Wallet Asal</label>
+                <label style={{ fontSize: '0.78rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px', display: 'block' }}>
+                  Bank / E-Wallet Pengirim
+                </label>
                 <select
                   value={senderBank}
                   onChange={(e) => setSenderBank(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(128,128,128,0.25)',
-                    background: 'rgba(255,255,255,0.03)',
-                    color: 'inherit',
-                    fontSize: '0.85rem',
+                    padding: '11px 14px',
+                    borderRadius: '10px',
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    color: '#0f172a',
+                    fontSize: '0.88rem',
                     boxSizing: 'border-box'
                   }}
                 >
-                  <option value="BCA" style={{ background: '#1e293b', color: 'white' }}>BCA</option>
-                  <option value="MANDIRI" style={{ background: '#1e293b', color: 'white' }}>Mandiri</option>
-                  <option value="BRI" style={{ background: '#1e293b', color: 'white' }}>BRI</option>
-                  <option value="BNI" style={{ background: '#1e293b', color: 'white' }}>BNI</option>
-                  <option value="DANA" style={{ background: '#1e293b', color: 'white' }}>DANA</option>
-                  <option value="GOPAY" style={{ background: '#1e293b', color: 'white' }}>GoPay</option>
-                  <option value="OVO" style={{ background: '#1e293b', color: 'white' }}>OVO</option>
-                  <option value="SHOPEEPAY" style={{ background: '#1e293b', color: 'white' }}>ShopeePay</option>
-                  <option value="LAINNYA" style={{ background: '#1e293b', color: 'white' }}>Lainnya</option>
+                  <option value="MANDIRI">Bank Mandiri</option>
+                  <option value="BCA">Bank BCA</option>
+                  <option value="BRI">Bank BRI</option>
+                  <option value="BNI">Bank BNI</option>
+                  <option value="BSI">Bank BSI</option>
+                  <option value="CIMB">CIMB Niaga</option>
+                  <option value="DANA">DANA</option>
+                  <option value="GOPAY">GoPay</option>
+                  <option value="OVO">OVO</option>
+                  <option value="SHOPEEPAY">ShopeePay</option>
+                  <option value="LAINNYA">Bank Lainnya</option>
                 </select>
               </div>
             </div>
 
             {/* Upload Bukti Transfer */}
             <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px', display: 'block' }}>Upload Bukti Transfer</label>
-              <div style={{ position: 'relative' }}>
+              <label style={{ fontSize: '0.78rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px', display: 'block' }}>
+                Lampirkan Foto / Bukti Struk Transfer
+              </label>
+              <label style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '2px dashed #94a3b8',
+                borderRadius: '12px',
+                padding: '20px 16px',
+                background: '#f8fafc',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                position: 'relative'
+              }}>
                 <input 
                   type="file"
                   accept="image/*"
@@ -1258,44 +1392,58 @@ export default function PremiumModal({
                     }
                   }}
                   required={!receiptFile}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    border: '1px dashed rgba(128,128,128,0.4)',
-                    background: 'rgba(255,255,255,0.02)',
-                    color: 'inherit',
-                    fontSize: '0.8rem',
-                    boxSizing: 'border-box',
-                    cursor: 'pointer'
-                  }}
+                  style={{ display: 'none' }}
                 />
-              </div>
+                <div style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '10px',
+                  background: '#0f172a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '10px',
+                  color: '#ffffff'
+                }}>
+                  <Upload size={20} color="#ffffff" strokeWidth={2.2} />
+                </div>
+                <span style={{ fontSize: '0.88rem', fontWeight: '700', color: '#0f172a', marginBottom: '2px' }}>
+                  {receiptFile ? 'Klik untuk Mengganti Foto Bukti' : 'Pilih Foto Struk / Bukti Transfer'}
+                </span>
+                <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                  Format JPG, PNG, atau screenshot transfer m-Banking
+                </span>
+              </label>
+
               {receiptFile && (
-                <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px', background: '#ecfdf5', padding: '8px 14px', borderRadius: '10px', border: '1px solid #a7f3d0' }}>
                   <img 
                     src={receiptFile} 
                     alt="Bukti Bayar" 
-                    style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)' }} 
+                    style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #6ee7b7' }} 
                   />
-                  <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: '600' }}>✓ Bukti transfer terlampir</span>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: '0.82rem', color: '#065f46', fontWeight: '700' }}>✓ Foto bukti struk terlampir</span>
+                    <span style={{ fontSize: '0.72rem', color: '#047857' }}>Siap dikirim untuk verifikasi admin</span>
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Tombol Aksi */}
-            <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
               <button
                 type="button"
                 onClick={() => setStep('select_plan')}
                 style={{
                   flex: 1,
-                  padding: '12px',
-                  backgroundColor: 'rgba(128,128,128,0.1)',
-                  border: '1px solid rgba(128,128,128,0.2)',
+                  padding: '13px',
+                  backgroundColor: '#f1f5f9',
+                  border: '1.5px solid #cbd5e1',
                   borderRadius: '10px',
-                  fontSize: '0.88rem',
+                  fontSize: '0.9rem',
                   fontWeight: '700',
+                  color: '#0f172a',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -1303,51 +1451,44 @@ export default function PremiumModal({
                   gap: '6px'
                 }}
               >
-                <ArrowLeft size={16} />
-                <span>Kembali</span>
+                <ArrowLeft size={16} color="#0f172a" />
+                <span style={{ color: '#0f172a', fontWeight: '700' }}>Batal</span>
               </button>
 
               <button
                 type="submit"
                 disabled={isSubmittingManual}
-                className="doku-btn-main"
-                style={{ flex: 2 }}
+                className="btn-submit-konfirmasi"
+                style={{
+                  flex: 2,
+                  padding: '13px 18px',
+                  backgroundColor: '#0f172a',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '0.92rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(15, 23, 42, 0.25)'
+                }}
               >
                 {isSubmittingManual ? (
                   <>
-                    <RefreshCw size={16} className="animate-spin" color="#ffffff" />
-                    <span className="doku-white-text">Mengirim Bukti...</span>
+                    <RefreshCw size={16} className="animate-spin" color="#ffffff" style={{ color: '#ffffff' }} />
+                    <span style={{ color: '#ffffff', fontWeight: '700' }}>Mengirim Bukti...</span>
                   </>
                 ) : (
                   <>
-                    <Send size={16} color="#ffffff" />
-                    <span className="doku-white-text">Kirim Konfirmasi Bayar</span>
+                    <Send size={16} color="#ffffff" style={{ color: '#ffffff' }} />
+                    <span style={{ color: '#ffffff', fontWeight: '700' }}>Kirim Konfirmasi Bayar</span>
                   </>
                 )}
               </button>
             </div>
-
-            {whatsappAdmin && (
-              <a 
-                href={whatsappAdmin}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  color: '#22c55e',
-                  fontSize: '0.78rem',
-                  fontWeight: '600',
-                  textDecoration: 'none',
-                  marginTop: '4px'
-                }}
-              >
-                <MessageCircle size={14} />
-                <span>Butuh Bantuan? Hubungi Admin WhatsApp</span>
-              </a>
-            )}
           </form>
         )}
 

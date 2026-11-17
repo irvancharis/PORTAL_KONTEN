@@ -20,7 +20,8 @@ export default function WalletUserPortal({
   withdrawalFeePercentPremium = 5,
   eventParticipants = [],
   gifts = [],
-  setGifts
+  setGifts,
+  onEditProfileClick
 }) {
   const [isWdModalOpen, setIsWdModalOpen] = useState(false);
   const [wdAmount, setWdAmount] = useState(0);
@@ -273,9 +274,9 @@ export default function WalletUserPortal({
           className="btn btn-primary"
           onClick={() => {
             setWdAmount(0);
-            setWdAccount('');
-            setWdName('');
-            setWdMethod('Dana');
+            setWdAccount(currentUser?.payoutAccount || '');
+            setWdName(currentUser?.payoutAccountName || currentUser?.organizerName || '');
+            setWdMethod(currentUser?.payoutMethod === 'Bank Transfer' ? `Bank ${currentUser?.payoutBank || 'BCA'}` : (currentUser?.payoutMethod || 'Dana'));
             setWdPassword('');
             setIsWdModalOpen(true);
           }}
@@ -292,6 +293,7 @@ export default function WalletUserPortal({
           Tarik Saldo Dompet
         </button>
       </div>
+
 
 
 
@@ -490,8 +492,35 @@ export default function WalletUserPortal({
               </tbody>
             </table>
           ) : (
-            <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              Belum ada riwayat transaksi keuangan pada dompet Anda.
+            <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+              {txFilter === 'debit' ? (
+                <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '8px', maxWidth: '460px' }}>
+                  <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-primary)', fontWeight: '600' }}>
+                    Belum ada riwayat penarikan saldo.
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
+                    Penarikan dapat dilakukan dengan minimal <strong>Rp {minWithdrawalAmount.toLocaleString('id-ID')}</strong> ke rekening Bank atau E-Wallet (DANA/GoPay/OVO) terdaftar. Proses pencairan 1x24 jam kerja.
+                  </p>
+                </div>
+              ) : txFilter === 'credit' ? (
+                <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                  <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--text-primary)', fontWeight: '600' }}>
+                    Belum ada riwayat pemasukan saldo.
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                    Pendapatan dari benefit view atau hadiah kompetisi akan tercatat otomatis di sini.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '6px', maxWidth: '460px' }}>
+                  <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--text-primary)', fontWeight: '600' }}>
+                    Belum ada riwayat transaksi keuangan pada dompet Anda.
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
+                    Minimal penarikan saldo adalah <strong>Rp {minWithdrawalAmount.toLocaleString('id-ID')}</strong> (Admin: {activeFeePercent > 0 ? `${activeFeePercent}%` : '0%'} • Proses: 1x24 jam).
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -785,109 +814,181 @@ export default function WalletUserPortal({
                 <strong style={{ color: 'white', fontSize: '1.1rem' }}>Rp {walletBalance.toLocaleString('id-ID')}</strong>
               </div>
 
-              <div className="form-group">
-                <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-primary)', fontSize: '0.85rem' }}>Metode Penarikan</label>
-                <select 
-                  value={wdMethod} 
-                  onChange={(e) => setWdMethod(e.target.value)}
-                  style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }}
-                >
-                  <option value="Dana">Dana</option>
-                  <option value="GoPay">GoPay</option>
-                  <option value="OVO">OVO</option>
-                  <option value="Bank Transfer">Bank Transfer (Mandiri/BCA)</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-primary)', fontSize: '0.85rem' }}>Nomor Rekening / No. HP Akun</label>
-                <input 
-                  type="text" 
-                  required 
-                  value={wdAccount} 
-                  onChange={(e) => setWdAccount(e.target.value.replace(/\D/g, ''))} 
-                  placeholder="Contoh: 0812XXXXXXXX / No Rek" 
-                  style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
-                />
-              </div>
-
-              <div className="form-group">
-                <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-primary)', fontSize: '0.85rem' }}>Nama Pemilik Akun</label>
-                <input 
-                  type="text" 
-                  required 
-                  value={wdName} 
-                  onChange={(e) => setWdName(e.target.value)} 
-                  placeholder="Masukkan nama lengkap pemilik akun" 
-                  style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
-                />
-              </div>
-
-              <div className="form-group">
-                <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-primary)', fontSize: '0.85rem' }}>Nominal Penarikan (IDR)</label>
-                <input 
-                  type="text" 
-                  required 
-                  value={formatInputCurrency(wdAmount)} 
-                  onChange={(e) => {
-                    const parsed = e.target.value.replace(/\D/g, '');
-                    setWdAmount(parsed ? parseInt(parsed) : 0);
-                  }} 
-                  placeholder="Masukkan nominal, cth: 50.000" 
-                  style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
-                />
-                <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  Batas minimal penarikan: <strong>Rp {minWithdrawalAmount.toLocaleString('id-ID')}</strong>
-                </span>
-                <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Biaya Penarikan ({(activeFeePercent || 0)}%):</span>
-                    <span style={{ color: 'white', fontWeight: 'bold' }}>
-                      {(activeFeePercent || 0) > 0 ? `Rp ${Math.round(wdAmount * activeFeePercent / 100).toLocaleString('id-ID')}` : 'Gratis'}
-                    </span>
+              {/* Alert jika belum ada rekening di profil */}
+              {!currentUser?.payoutAccount ? (
+                <div style={{
+                  background: 'rgba(245, 158, 11, 0.08)',
+                  border: '1px solid rgba(245, 158, 11, 0.25)',
+                  borderRadius: '12px',
+                  padding: '24px 20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  gap: '16px',
+                  margin: '8px 0'
+                }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    background: 'rgba(245, 158, 11, 0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#fbbf24'
+                  }}>
+                    <Wallet size={24} />
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
-                    <span style={{ color: 'white' }}>Total Bersih Diterima:</span>
-                    <span style={{ color: 'white', fontSize: '0.98rem', borderBottom: '1px solid white', pb: '2px' }}>Rp {Math.max(0, wdAmount - Math.round(wdAmount * (activeFeePercent || 0) / 100)).toLocaleString('id-ID')}</span>
+                  <div>
+                    <h4 style={{ margin: '0 0 6px 0', color: '#fbbf24', fontSize: '1rem', fontWeight: 'bold' }}>
+                      Metode Pencairan Belum Diatur
+                    </h4>
+                    <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: '1.5', maxWidth: '420px' }}>
+                      Untuk keamanan dan kenyamanan penarikan saldo, silakan atur rekening Bank atau nomor E-Wallet (DANA/GoPay/OVO) terlebih dahulu pada profil Anda.
+                    </p>
                   </div>
-                </div>
-              </div>
-
-              {currentUser.password !== 'firebase-auth-managed' ? (
-                <div className="form-group" style={{ marginTop: '12px' }}>
-                  <label style={{ display: 'block', marginBottom: '6px', color: '#ffffff', fontSize: '0.85rem', fontWeight: '600' }}>Verifikasi Keamanan: Password Akun</label>
-                  <input 
-                    type="password" 
-                    required 
-                    value={wdPassword} 
-                    onChange={(e) => setWdPassword(e.target.value)} 
-                    placeholder="Masukkan password akun Anda untuk verifikasi" 
-                    style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
-                  />
+                  {onEditProfileClick && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsWdModalOpen(false);
+                        onEditProfileClick();
+                      }}
+                      style={{
+                        background: '#fbbf24',
+                        color: '#000000',
+                        border: 'none',
+                        padding: '10px 24px',
+                        borderRadius: '24px',
+                        fontSize: '0.85rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s',
+                        boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)'
+                      }}
+                    >
+                      Atur Rekening Pencairan di Profil
+                    </button>
+                  )}
                 </div>
               ) : (
-                <div style={{ marginTop: '12px', padding: '12px', background: '#ffffff', borderRadius: '8px', fontSize: '0.82rem', color: '#000000', lineHeight: '1.4', fontWeight: '500' }}>
-                  <strong>Verifikasi Keamanan:</strong> Akun Anda terverifikasi menggunakan <strong>Google Auth</strong>. Penarikan dapat langsung dilanjutkan dengan aman tanpa password tambahan.
-                </div>
-              )}
+                <>
+                  <div style={{
+                    background: 'rgba(74, 222, 128, 0.06)',
+                    border: '1px solid rgba(74, 222, 128, 0.2)',
+                    borderRadius: '10px',
+                    padding: '12px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <CheckCircle2 size={18} style={{ color: '#4ade80', flexShrink: 0 }} />
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)' }}>
+                        Tujuan pencairan: <strong>{currentUser.payoutMethod === 'Bank Transfer' ? `Bank ${currentUser.payoutBank || 'BCA'}` : (currentUser.payoutMethod || 'Dana')} ({currentUser.payoutAccount})</strong> a.n <strong>{currentUser.payoutAccountName || currentUser.organizerName}</strong>
+                      </div>
+                    </div>
+                    {onEditProfileClick && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsWdModalOpen(false);
+                          onEditProfileClick();
+                        }}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--text-secondary)',
+                          fontSize: '0.75rem',
+                          textDecoration: 'underline',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        Ubah Rekening
+                      </button>
+                    )}
+                  </div>
 
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
-                  onClick={() => setIsWdModalOpen(false)}
-                  style={{ padding: '8px 16px', borderRadius: '20px', fontSize: '0.85rem' }}
-                >
-                  Batal
-                </button>
-                <button 
-                  type="submit" 
-                  className="btn btn-primary"
-                  style={{ padding: '8px 20px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}
-                >
-                  Ajukan Penarikan
-                </button>
-              </div>
+                  <div className="form-group">
+                    <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-primary)', fontSize: '0.85rem' }}>Metode Penarikan Terdaftar</label>
+                    <input 
+                      type="text" 
+                      disabled 
+                      value={`${currentUser.payoutMethod === 'Bank Transfer' ? `Bank ${currentUser.payoutBank || 'BCA'}` : (currentUser.payoutMethod || 'Dana')} - ${currentUser.payoutAccount} (a.n ${currentUser.payoutAccountName || currentUser.organizerName})`} 
+                      style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none', cursor: 'not-allowed' }} 
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-primary)', fontSize: '0.85rem' }}>Nominal Penarikan (IDR)</label>
+                    <input 
+                      type="text" 
+                      required 
+                      value={formatInputCurrency(wdAmount)} 
+                      onChange={(e) => {
+                        const parsed = e.target.value.replace(/\D/g, '');
+                        setWdAmount(parsed ? parseInt(parsed) : 0);
+                      }} 
+                      placeholder="Masukkan nominal, cth: 50.000" 
+                      style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
+                    />
+                    <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      Batas minimal penarikan: <strong>Rp {minWithdrawalAmount.toLocaleString('id-ID')}</strong>
+                    </span>
+                    <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>Biaya Penarikan ({(activeFeePercent || 0)}%):</span>
+                        <span style={{ color: 'white', fontWeight: 'bold' }}>
+                          {(activeFeePercent || 0) > 0 ? `Rp ${Math.round(wdAmount * activeFeePercent / 100).toLocaleString('id-ID')}` : 'Gratis'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
+                        <span style={{ color: 'white' }}>Total Bersih Diterima:</span>
+                        <span style={{ color: 'white', fontSize: '0.98rem', borderBottom: '1px solid white', pb: '2px' }}>Rp {Math.max(0, wdAmount - Math.round(wdAmount * (activeFeePercent || 0) / 100)).toLocaleString('id-ID')}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {currentUser.password !== 'firebase-auth-managed' ? (
+                    <div className="form-group" style={{ marginTop: '12px' }}>
+                      <label style={{ display: 'block', marginBottom: '6px', color: '#ffffff', fontSize: '0.85rem', fontWeight: '600' }}>Verifikasi Keamanan: Password Akun</label>
+                      <input 
+                        type="password" 
+                        required 
+                        value={wdPassword} 
+                        onChange={(e) => setWdPassword(e.target.value)} 
+                        placeholder="Masukkan password akun Anda untuk verifikasi" 
+                        style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none' }} 
+                      />
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: '12px', padding: '12px', background: '#ffffff', borderRadius: '8px', fontSize: '0.82rem', color: '#000000', lineHeight: '1.4', fontWeight: '500' }}>
+                      <strong>Verifikasi Keamanan:</strong> Akun Anda terverifikasi menggunakan <strong>Google Auth</strong>. Penarikan dapat langsung dilanjutkan dengan aman tanpa password tambahan.
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+                    <button 
+                      type="button" 
+                      className="btn btn-secondary" 
+                      onClick={() => setIsWdModalOpen(false)}
+                      style={{ padding: '8px 16px', borderRadius: '20px', fontSize: '0.85rem' }}
+                    >
+                      Batal
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="btn btn-primary"
+                      style={{ padding: '8px 20px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}
+                    >
+                      Ajukan Penarikan
+                    </button>
+                  </div>
+                </>
+              )}
             </form>
           </div>
         </div>,

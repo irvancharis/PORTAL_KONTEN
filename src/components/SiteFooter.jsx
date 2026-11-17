@@ -33,7 +33,7 @@ export default function SiteFooter({ onOpenLegal }) {
               </span>
             </div>
             <p style={{ margin: 0, fontSize: '0.84rem', color: '#64748b', lineHeight: '1.6' }}>
-              Platform ekosistem kreatif terpadu di Indonesia yang menghubungkan Brand & Penyelenggara Kampanye dengan Kreator Video melalui sistem penjaminan reward aman (Digital Escrow).
+              Platform ekosistem kreatif terpadu di Indonesia yang menghubungkan Brand & Penyelenggara Kampanye dengan Kreator Konten secara langsung.
             </p>
           </div>
 

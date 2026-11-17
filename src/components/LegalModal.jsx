@@ -169,7 +169,7 @@ export default function LegalModal({ isOpen, onClose, initialTab = 'terms' }) {
                     1. Definisi & Ruang Lingkup
                   </h4>
                   <p style={{ margin: 0 }}>
-                    <strong>ngonten.id</strong> adalah platform ekosistem digital yang memfasilitasi publikasi kampanye konten kreatif, kompetisi video, dan sistem penjaminan dana hadiah (Digital Escrow) antara Penyelenggara/Brand dengan Konten Kreator.
+                    <strong>ngonten.id</strong> adalah platform ekosistem digital yang memfasilitasi publikasi kampanye konten kreatif, kompetisi video, dan kolaborasi antara Penyelenggara/Brand dengan Konten Kreator.
                   </p>
                 </div>
 
@@ -187,12 +187,12 @@ export default function LegalModal({ isOpen, onClose, initialTab = 'terms' }) {
                     3. Metode Pembayaran & Saluran Resmi
                   </h4>
                   <p style={{ margin: '0 0 6px 0' }}>
-                    Semua transaksi pembayaran diproses secara resmi melalui Payment Gateway berizin Bank Indonesia:
+                    Transaksi pembayaran dilakukan melalui transfer langsung ke Rekening Resmi Bank Mandiri:
                   </p>
                   <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    <li>QRIS (Gopay, OVO, Dana, ShopeePay, Mobile Banking).</li>
-                    <li>Virtual Account Bank (BCA, Mandiri, BRI, BNI, Permata, CIMB).</li>
-                    <li>Outlet Retail Resmi (Indomaret / Alfamart).</li>
+                    <li>Bank: <strong>Bank Mandiri</strong></li>
+                    <li>No. Rekening: <strong>127-000-999-888</strong></li>
+                    <li>Atas Nama: <strong>PT Ngonten Media Indonesia</strong></li>
                   </ul>
                 </div>
 
@@ -201,7 +201,7 @@ export default function LegalModal({ isOpen, onClose, initialTab = 'terms' }) {
                     4. Penyaluran Reward & Perlindungan Karya
                   </h4>
                   <p style={{ margin: 0 }}>
-                    Dana hadiah kampanye ditampung secara aman di dompet escrow dan disalurkan secara otomatis ke rekening pemenang setelah kurasi selesai. Platform melarang konten plagiarisme, pornografi, maupun aktivitas ilegal.
+                    Alokasi reward kampanye disalurkan ke akun pemenang setelah kurasi selesai sesuai ketentuan penyelenggara. Platform melarang konten plagiarisme, pornografi, maupun aktivitas ilegal.
                   </p>
                 </div>
               </div>
@@ -245,7 +245,7 @@ export default function LegalModal({ isOpen, onClose, initialTab = 'terms' }) {
                 <h3 style={{ margin: 0, color: '#0f172a', fontSize: '1.05rem', fontWeight: '800' }}>
                   KEBIJAKAN PENGEMBALIAN DANA (REFUND & CANCELLATION POLICY)
                 </h3>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Jaminan Perlindungan Transaksi Konsumen</span>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Prosedur Pengembalian Dana Konsumen</span>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

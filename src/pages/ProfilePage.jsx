@@ -9,7 +9,11 @@ import {
   Globe, 
   Users, 
   LogOut,
-  Calendar
+  Calendar,
+  CreditCard,
+  Wallet,
+  Copy,
+  CheckCircle2
 } from 'lucide-react';
 
 export default function ProfilePage({
@@ -25,6 +29,7 @@ export default function ProfilePage({
   handleTabChange,
   slugify
 }) {
+  const [copiedAccount, setCopiedAccount] = React.useState(false);
   const isCurrentUserCommunity = currentUser?.isCommunity || currentUser?.role === 'panitia';
 
   return (
@@ -202,6 +207,71 @@ export default function ProfilePage({
             <span style={{ fontSize: '0.85rem' }}>WhatsApp / HP</span>
           </div>
           <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>{currentUser?.organizerPhone || '-'}</span>
+        </div>
+
+        {/* Rekening / Akun Pencairan Saldo (Default) */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', paddingTop: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+            <Wallet size={16} />
+            <span style={{ fontSize: '0.85rem' }}>Rekening Terdaftar</span>
+          </div>
+          {currentUser?.payoutAccount ? (
+            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'monospace' }}>
+                  {currentUser.payoutMethod === 'Bank Transfer' ? `Bank ${currentUser.payoutBank || 'MANDIRI'}` : (currentUser.payoutMethod || 'Mandiri')} • {currentUser.payoutAccount}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(currentUser.payoutAccount);
+                    setCopiedAccount(true);
+                    setTimeout(() => setCopiedAccount(false), 2000);
+                  }}
+                  title="Salin Nomor Rekening"
+                  style={{
+                    background: copiedAccount ? '#10b981' : 'rgba(255, 255, 255, 0.08)',
+                    border: 'none',
+                    color: 'white',
+                    padding: '3px 7px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    fontSize: '0.68rem'
+                  }}
+                >
+                  {copiedAccount ? <CheckCircle2 size={12} /> : <Copy size={12} />}
+                  <span>{copiedAccount ? 'Tersalin' : 'Salin'}</span>
+                </button>
+              </div>
+              {currentUser.payoutAccountName && (
+                <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                  a.n {currentUser.payoutAccountName}
+                </span>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Belum Diatur</span>
+              <button
+                onClick={handleOpenEditProfile}
+                style={{
+                  background: 'none',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.72rem',
+                  fontWeight: '600',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Atur
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Kategori Kreator */}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Sparkles, Shield, Crown, Building2, ArrowRight, Lock } from 'lucide-react';
+import { Check, Sparkles, Shield, Crown, Building2, ArrowRight, Lock, Landmark } from 'lucide-react';
 
 export default function PricingCatalogSection({ onSelectPlan, onOpenLegal }) {
   const plans = [
@@ -49,13 +49,13 @@ export default function PricingCatalogSection({ onSelectPlan, onOpenLegal }) {
       category: 'Penyelenggara / Brand',
       price: 'Rp 250.000',
       period: '/ kampanye',
-      description: 'Luncurkan kompetisi kreasi konten dengan sistem Escrow hadiah terjamin.',
+      description: 'Luncurkan kompetisi kreasi konten dengan sistem pengelolaan terstruktur.',
       badge: 'Untuk Bisnis & Brand',
       icon: Building2,
       iconColor: '#06b6d4',
       features: [
         'Publikasi kampanye ke ribuan kreator',
-        'Sistem Digital Escrow Reward (Aman 100%)',
+        'Sistem Alokasi Budget Hadiah Transparan',
         'Dashboard kurasi karya & analitik video',
         'Verifikasi karya otomatis & plagiarisme check',
         'Kanal distribusi hadiah multi-bank/e-wallet',
@@ -72,13 +72,13 @@ export default function PricingCatalogSection({ onSelectPlan, onOpenLegal }) {
         {/* Header Title */}
         <div className="pricing-header-box">
           <div className="pricing-badge-pill">
-            <Shield size={14} /> Transparan & Bergaransi Resmi
+            <Shield size={14} /> Transparan & Resmi
           </div>
           <h2 className="pricing-main-title">
             Katalog Layanan & Paket Harga <span style={{ color: '#06b6d4' }}>ngonten.id</span>
           </h2>
           <p className="pricing-main-subtitle">
-            Pilih solusi terbaik untuk kebutuhan monetisasi kreator maupun eksposur promosi brand Anda dengan metode pembayaran resmi terverifikasi.
+            Pilih solusi terbaik untuk kebutuhan kolaborasi kreator maupun publikasi brand Anda dengan alur transaksi yang jelas.
           </p>
         </div>
 
@@ -143,15 +143,15 @@ export default function PricingCatalogSection({ onSelectPlan, onOpenLegal }) {
         {/* Security & Badges Banner */}
         <div className="pricing-security-banner">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ padding: '8px', background: 'rgba(16, 185, 129, 0.12)', borderRadius: '10px', color: '#10b981' }}>
-              <Shield size={22} />
+            <div style={{ padding: '8px', background: 'rgba(59, 130, 246, 0.12)', borderRadius: '10px', color: '#60a5fa' }}>
+              <Landmark size={22} />
             </div>
             <div>
               <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                Jaminan Transaksi Aman & Bergaransi
+                Pembayaran Resmi Bank Mandiri
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                Didukung Payment Gateway resmi berlisensi Bank Indonesia (QRIS & Virtual Account).
+                Transfer langsung ke rekening Bank Mandiri resmi PT Ngonten Media Indonesia.
               </div>
             </div>
           </div>

@@ -54,7 +54,7 @@ export default function Sidebar({
   ];
 
   const systemMenuItems = [
-    { id: 'movies', label: 'Kelola Film', icon: Film },
+    // { id: 'movies', label: 'Kelola Film', icon: Film }, // Hidden sementara, fokus ke event & kompetisi
     { id: 'affiliates', label: 'Link Afiliasi', icon: LinkIcon },
     { id: 'membership', label: 'Pengaturan Premium', icon: CreditCard },
     { id: 'confirmations', label: 'Pemasukan Saldo', icon: CheckSquare },

@@ -65,7 +65,8 @@ import {
   Lock,
   Unlock,
   Camera,
-  Upload
+  Upload,
+  Wallet
 } from 'lucide-react';
 
 export default function App() {
@@ -134,6 +135,8 @@ export default function App() {
     setWithdrawalFeePercentPremium,
     paymentInstructions,
     setPaymentInstructions,
+    platformBankAccounts,
+    setPlatformBankAccounts,
     customRoles,
     setCustomRoles,
     currentUser,
@@ -224,6 +227,14 @@ export default function App() {
     setEditProfileYoutubeVerified,
     editProfileRegional,
     setEditProfileRegional,
+    editProfilePayoutMethod,
+    setEditProfilePayoutMethod,
+    editProfilePayoutBank,
+    setEditProfilePayoutBank,
+    editProfilePayoutAccount,
+    setEditProfilePayoutAccount,
+    editProfilePayoutAccountName,
+    setEditProfilePayoutAccountName,
     verifyingPlatform,
     setVerifyingPlatform,
     verificationStep,
@@ -451,6 +462,8 @@ export default function App() {
               setPremiumPrice={setPremiumPrice}
               paymentInstructions={paymentInstructions}
               setPaymentInstructions={setPaymentInstructions}
+              platformBankAccounts={platformBankAccounts}
+              setPlatformBankAccounts={setPlatformBankAccounts}
               qrisImageUrl={qrisImageUrl}
               setQrisImageUrl={setQrisImageUrl}
               paymentGatewayMode={paymentGatewayMode}
@@ -516,6 +529,7 @@ export default function App() {
               eventParticipants={eventParticipants}
               gifts={gifts}
               setGifts={handleSetGifts}
+              onEditProfileClick={handleOpenEditProfile}
             />
           ) : activeTab === 'communities' ? (
             <CommunitiesPage 
@@ -722,6 +736,7 @@ export default function App() {
         premiumPrice={premiumPrice}
         whatsappAdmin={whatsappAdmin}
         paymentInstructions={paymentInstructions}
+        platformBankAccounts={platformBankAccounts}
         qrisImageUrl={qrisImageUrl}
         paymentGatewayMode={paymentGatewayMode}
         onLoginClick={(mode) => handleOpenLoginModal(mode)}
@@ -826,7 +841,11 @@ export default function App() {
                       instagramVerified: editProfileInstagramVerified,
                       youtubeHandle: editProfileYoutubeHandle.trim(),
                       youtubeVerified: editProfileYoutubeVerified,
-                      userRegional: editProfileRegional.trim()
+                      userRegional: editProfileRegional.trim(),
+                      payoutMethod: editProfilePayoutMethod,
+                      payoutBank: editProfilePayoutMethod === 'Bank Transfer' ? editProfilePayoutBank : '',
+                      payoutAccount: editProfilePayoutAccount.trim(),
+                      payoutAccountName: editProfilePayoutAccountName.trim()
                     };
 
                     // Update locally
@@ -1098,6 +1117,129 @@ export default function App() {
                       fontFamily: 'inherit'
                     }}
                   />
+                </div>
+
+                {/* Pengaturan Rekening / Akun Pencairan Saldo (Default) */}
+                {/* Bagian Pengisian Rekening Bank (Utama: Mandiri) */}
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Landmark size={18} style={{ color: '#38bdf8' }} />
+                    <span style={{ fontSize: '0.88rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                      Informasi Rekening Bank Pembayaran & Pencairan
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                    Pastikan nama dan nomor rekening sesuai dengan buku tabungan Anda. Rekening ini digunakan untuk verifikasi transaksi dan penerimaan pencairan benefit.
+                  </p>
+
+                  <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Bank</label>
+                    <select
+                      value={editProfilePayoutBank || 'MANDIRI'}
+                      onChange={(e) => {
+                        setEditProfilePayoutBank(e.target.value);
+                        setEditProfilePayoutMethod('Bank Transfer');
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        background: '#0a0a0a',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'white',
+                        fontSize: '0.88rem',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="MANDIRI">Bank Mandiri (Direkomendasikan)</option>
+                      <option value="BCA">Bank Central Asia (BCA)</option>
+                      <option value="BRI">Bank Rakyat Indonesia (BRI)</option>
+                      <option value="BNI">Bank Negara Indonesia (BNI)</option>
+                      <option value="BSI">Bank Syariah Indonesia (BSI)</option>
+                      <option value="CIMB">Bank CIMB Niaga</option>
+                      <option value="PERMATA">Bank Permata</option>
+                      <option value="JAGO">Bank Jago</option>
+                      <option value="SEABANK">SeaBank Indonesia</option>
+                      <option value="DANAMON">Bank Danamon</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                        Nomor Rekening
+                      </label>
+                      {editProfilePayoutAccount && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(editProfilePayoutAccount);
+                            setIsCopied(true);
+                            setTimeout(() => setIsCopied(false), 2000);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: isCopied ? '#10b981' : '#38bdf8',
+                            fontSize: '0.72rem',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px'
+                          }}
+                        >
+                          {isCopied ? <Check size={12} /> : <Copy size={12} />}
+                          <span>{isCopied ? 'Tersalin' : 'Salin No. Rekening'}</span>
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      value={editProfilePayoutAccount}
+                      onChange={(e) => setEditProfilePayoutAccount(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Contoh: 127000999888 (Hanya Angka)"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'var(--text-primary)',
+                        outline: 'none',
+                        fontSize: '0.9rem',
+                        fontFamily: 'monospace',
+                        letterSpacing: '0.5px'
+                      }}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Nama Pemilik Rekening (Sesuai Buku Tabungan)</label>
+                    <input
+                      type="text"
+                      value={editProfilePayoutAccountName}
+                      onChange={(e) => setEditProfilePayoutAccountName(e.target.value)}
+                      placeholder="Contoh: Rudi Wijaya"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'var(--text-primary)',
+                        outline: 'none',
+                        fontSize: '0.88rem'
+                      }}
+                    />
+                  </div>
                 </div>
 
                 {currentUser?.role === 'panitia' && (

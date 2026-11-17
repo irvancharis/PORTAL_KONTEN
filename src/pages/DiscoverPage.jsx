@@ -169,8 +169,8 @@ export default function DiscoverPage({
           </button>
         </div>
 
-        {/* Category 1: Film & Video */}
-        {(() => {
+        {/* Category 1: Film & Video (Hidden sementara, fokus ke event & kompetisi) */}
+        {/* {(() => {
           const results = movies.filter(m => 
             m.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
             m.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -192,7 +192,7 @@ export default function DiscoverPage({
               </div>
             </div>
           );
-        })()}
+        })()} */}
 
         {/* Category 2: Event & Kompetisi */}
         {(() => {
@@ -460,8 +460,8 @@ export default function DiscoverPage({
                 </div>
               </div>
 
-              {/* 2. Film Baru Rilis */}
-              <div id="new-releases-section" className="dashboard-section animate-fade-in">
+              {/* 2. Film Baru Rilis (Hidden sementara, fokus ke event & kompetisi) */}
+              {/* <div id="new-releases-section" className="dashboard-section animate-fade-in">
                 <div className="dashboard-section-header">
                   <div className="dashboard-section-title-wrapper">
                     <h3>
@@ -492,7 +492,7 @@ export default function DiscoverPage({
                 </div>
               </div>
 
-              <div className="section-divider"></div>
+              <div className="section-divider"></div> */}
 
               {/* 3. Event & Kompetisi Grid */}
               <div className="dashboard-split-grid animate-fade-in">
