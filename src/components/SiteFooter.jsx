@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Mail, MapPin, Lock, CheckCircle2, Globe } from 'lucide-react';
+import { Shield, Mail, Lock, CheckCircle2, Globe } from 'lucide-react';
 
 export default function SiteFooter({ onOpenLegal }) {
   return (
@@ -96,10 +96,6 @@ export default function SiteFooter({ onOpenLegal }) {
                 <Mail size={15} style={{ color: '#0284c7', flexShrink: 0 }} />
                 <span style={{ fontWeight: '500' }}>harusbisangonten@gmail.com</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <MapPin size={15} style={{ color: '#7c3aed', flexShrink: 0 }} />
-                <span style={{ fontWeight: '500' }}>Bululawang, Kabupaten Malang</span>
-              </div>
             </div>
           </div>
 
@@ -121,13 +117,9 @@ export default function SiteFooter({ onOpenLegal }) {
             <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#475569', fontWeight: '500' }}>
               <Lock size={13} style={{ color: '#059669' }} /> 256-Bit SSL Encrypted
             </span>
-            <span>•</span>
-            <span>Payment Gateway Berlisensi Bank Indonesia</span>
-            <span>•</span>
-            <span>QRIS & Virtual Account</span>
           </div>
           <div>
-            <span>© 2026 <strong>ngonten.id</strong>. Hak Cipta Dilindungi Undang-Undang.</span>
+            <span>© 2026 <strong>ngonten.id</strong></span>
           </div>
         </div>
       </div>
