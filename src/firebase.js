@@ -9,7 +9,8 @@ import {
   setDoc, 
   deleteDoc, 
   getDoc,
-  writeBatch 
+  writeBatch,
+  runTransaction 
 } from "firebase/firestore";
 import { 
   getAuth, 
@@ -160,6 +161,40 @@ export const deleteFirestoreUser = async (userId) => {
   } catch (e) {
     console.error("Error deleting user from Firestore:", e);
     return false;
+  }
+};
+
+/**
+ * Transaksi Atomik Mutasi Saldo Dompet (Wallet Balance)
+ * Mencegah race-condition dan manipulasi saldo ilegal.
+ */
+export const atomicUpdateUserWallet = async (userId, deltaAmount) => {
+  if (!db || !userId) return { success: false, message: 'Database tidak terhubung' };
+  try {
+    const userDocRef = doc(db, "users", userId);
+    const result = await runTransaction(db, async (transaction) => {
+      const userSnapshot = await transaction.get(userDocRef);
+      if (!userSnapshot.exists()) {
+        throw new Error("Pengguna tidak ditemukan");
+      }
+      const currentBalance = Number(userSnapshot.data().walletBalance || 0);
+      const newBalance = currentBalance + Number(deltaAmount);
+      
+      if (newBalance < 0) {
+        throw new Error("Saldo tidak mencukupi untuk transaksi ini");
+      }
+
+      transaction.update(userDocRef, { 
+        walletBalance: newBalance,
+        lastWalletUpdate: new Date().toISOString()
+      });
+      return newBalance;
+    });
+
+    return { success: true, newBalance: result };
+  } catch (err) {
+    console.error("Transaksi atomik saldo gagal:", err);
+    return { success: false, message: err.message };
   }
 };
 

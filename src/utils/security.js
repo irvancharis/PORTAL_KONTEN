@@ -83,10 +83,11 @@ export const encodeSecureTicketToken = (ticketCode, eventId = '') => {
  * Decode dan Verifikasi Keaslian Token Tiket
  * 
  * @param {string} tokenOrCode - Token URL yang terenkripsi atau kode tiket legacy
- * @returns {string} Kode tiket asli yang telah divalidasi keasliannya
+ * @param {number} [maxAgeMs=2592000000] - Masa berlaku token (default 30 hari dalam ms)
+ * @returns {{ valid: boolean, ticketCode: string, isEncrypted: boolean, expired?: boolean }} Hasil verifikasi token
  */
-export const decodeSecureTicketToken = (tokenOrCode) => {
-  if (!tokenOrCode) return '';
+export const decodeSecureTicketToken = (tokenOrCode, maxAgeMs = 30 * 24 * 60 * 60 * 1000) => {
+  if (!tokenOrCode) return { valid: false, ticketCode: '', isEncrypted: false };
   const trimmed = tokenOrCode.trim();
 
   // Jika berupa secure token (diawali 'tkn_')
@@ -97,27 +98,48 @@ export const decodeSecureTicketToken = (tokenOrCode) => {
 
       if (!encodedPayload || !signature) {
         console.warn('Format token tidak valid');
-        return '';
+        return { valid: false, ticketCode: '', isEncrypted: true };
       }
 
       // Verifikasi checksum tanda tangan digital
       const expectedSignature = computeChecksum(encodedPayload);
       if (signature !== expectedSignature) {
         console.error('Peringatan Keamanan: Token URL telah dimanipulasi!');
-        return '';
+        return { valid: false, ticketCode: '', isEncrypted: true };
       }
 
       const decodedString = fromBase64Url(encodedPayload);
       const parsed = JSON.parse(decodedString);
-      return parsed.t || '';
+      
+      // Verifikasi masa berlaku jika timestamp tersedia
+      if (parsed.c && Date.now() - parsed.c > maxAgeMs) {
+        console.warn('Token tiket telah kedaluwarsa');
+        return { valid: false, ticketCode: parsed.t || '', isEncrypted: true, expired: true };
+      }
+
+      return { valid: true, ticketCode: parsed.t || '', isEncrypted: true, eventId: parsed.e };
     } catch (err) {
       console.warn('Gagal membaca token aman tiket:', err);
-      return '';
+      return { valid: false, ticketCode: '', isEncrypted: true };
     }
   }
 
   // Fallback untuk kode tiket plaintext legacy (misal: "TKT-123456")
-  return trimmed;
+  return { valid: true, ticketCode: trimmed, isEncrypted: false };
+};
+
+/**
+ * Sanitasi string input pengguna untuk mencegah serangan Stored XSS / Script Injection
+ * @param {string} rawString 
+ * @returns {string} String yang aman
+ */
+export const sanitizeTextInput = (rawString) => {
+  if (typeof rawString !== 'string') return '';
+  return rawString
+    .replace(/[<>]/g, '') // Hapus tag pembuka/penutup HTML
+    .replace(/javascript:/gi, '') // Hapus URI scheme berbahaya
+    .replace(/onload|onerror|onclick/gi, '') // Hapus event handlers inline
+    .trim();
 };
 
 /**

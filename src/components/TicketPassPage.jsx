@@ -10,8 +10,9 @@ export default function TicketPassPage({
 }) {
   // 1. Decode token enkripsi aman atau terima kode tiket legacy
   const rawParam = (ticketParam || '').trim();
-  const decryptedCode = decodeSecureTicketToken(rawParam);
-  const cleanParam = (decryptedCode || rawParam).toLowerCase();
+  const tokenResult = decodeSecureTicketToken(rawParam);
+  const cleanParam = (tokenResult.ticketCode || rawParam).toLowerCase();
+  const isSecurityTokenValid = tokenResult.isEncrypted ? tokenResult.valid : true;
 
   const participant = eventParticipants.find(p => 
     (p.ticketCode && p.ticketCode.toLowerCase() === cleanParam) ||
@@ -97,27 +98,46 @@ export default function TicketPassPage({
         </button>
 
         {/* Top Header Badge (Pure White Text on Black Pill) */}
-        <div className="ticket-header-pill" style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          backgroundColor: '#111827',
-          border: '2px solid #111827',
-          padding: '6px 16px',
-          borderRadius: '20px',
-          marginBottom: '14px'
-        }}>
-          <span className="ticket-header-pill-text" style={{
-            color: '#ffffff',
-            WebkitTextFillColor: '#ffffff',
-            fontSize: '0.68rem',
-            fontWeight: '900',
-            textTransform: 'uppercase',
-            letterSpacing: '1.5px',
-            display: 'block'
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', marginBottom: '14px' }}>
+          <div className="ticket-header-pill" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            backgroundColor: '#111827',
+            border: '2px solid #111827',
+            padding: '6px 16px',
+            borderRadius: '20px'
           }}>
-            SCAN TIKET MASUK
-          </span>
+            <span className="ticket-header-pill-text" style={{
+              color: '#ffffff',
+              WebkitTextFillColor: '#ffffff',
+              fontSize: '0.68rem',
+              fontWeight: '900',
+              textTransform: 'uppercase',
+              letterSpacing: '1.5px',
+              display: 'block'
+            }}>
+              SCAN TIKET MASUK
+            </span>
+          </div>
+
+          {tokenResult.isEncrypted && (
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              backgroundColor: isSecurityTokenValid ? '#ecfdf5' : '#fef2f2',
+              color: isSecurityTokenValid ? '#065f46' : '#991b1b',
+              border: isSecurityTokenValid ? '1px solid #a7f3d0' : '1px solid #fecaca',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              fontSize: '0.66rem',
+              fontWeight: '700'
+            }}>
+              <ShieldCheck size={12} color={isSecurityTokenValid ? '#059669' : '#dc2626'} />
+              <span>{isSecurityTokenValid ? 'Token Digital Terverifikasi' : 'Token Tidak Sah / Kedaluwarsa'}</span>
+            </div>
+          )}
         </div>
 
         {/* Event Title */}
