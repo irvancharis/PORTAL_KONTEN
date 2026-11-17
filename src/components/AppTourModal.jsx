@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   Trophy, 
@@ -11,10 +11,10 @@ import {
   ArrowRight, 
   ArrowLeft, 
   X,
-  Compass
+  Compass,
+  CheckCircle2,
+  ShieldCheck
 } from 'lucide-react';
-
-const TOUR_STORAGE_KEY = 'portal-user-tour-completed-v1';
 
 export default function AppTourModal({ 
   currentUser, 
@@ -25,86 +25,95 @@ export default function AppTourModal({
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState(null);
 
+  // 1. TOUR HANYA MUNCUL BAGI PENGGUNA YANG BERHASIL LOGIN
   useEffect(() => {
-    const isCompleted = localStorage.getItem(TOUR_STORAGE_KEY);
+    if (!currentUser || !currentUser.id && !currentUser.username) {
+      setIsOpen(false);
+      return;
+    }
+
+    const userIdKey = currentUser.id || currentUser.username;
+    const tourStorageKey = `portal-tour-completed-${userIdKey}-v2`;
+    const isCompleted = localStorage.getItem(tourStorageKey);
+
     if (!isCompleted) {
       const timer = setTimeout(() => {
         setIsOpen(true);
-      }, 1000);
+      }, 800);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [currentUser]);
 
   const tourSteps = [
     {
       title: "Selamat Datang di ngonten.id!",
-      subtitle: "Pusat Kolaborasi Kreator, Brand, & Komunitas",
-      desc: "ngonten.id menghubungkan ekosistem kreatif di seluruh Indonesia. Anda dapat berpartisipasi dalam kampanye berhadiah, membangun komunitas, memantau penghasilan dompet, dan menerbitkan e-tiket resmi.",
+      subtitle: "Platform Ekosistem Kreatif Terpadu",
+      desc: "Hai kreator! Terima kasih telah bergabung. Mari kenali fitur-fitur penting yang siap membantu Anda mengikuti kampanye berhadiah, berjejaring dengan komunitas, dan mengelola hasil karya secara profesional.",
       icon: Sparkles,
-      tag: "Pengenalan Platform",
-      actionLabel: "Mulai Tur Eksplorasi",
+      tag: "Langkah 1 • Pengenalan",
+      tip: "💡 Eksplorasi seluruh fitur kapan saja melalui navigasi utama.",
       targetId: null,
       tab: 'discover'
     },
     {
-      title: "Pencarian Cerdas & Eksplorasi Cepat",
-      subtitle: "Navigasi Instan ke Konten & Kampanye",
-      desc: "Gunakan kolom pencarian di header atas untuk menemukan event lomba, kompetisi video aktif, profil kreator idola, atau topik komunitas lokal secara instan.",
+      title: "Pencarian Cerdas & Cepat",
+      subtitle: "Temukan Event, Kompetisi, & Kreator",
+      desc: "Cari kompetisi video aktif, peluang kolaborasi brand, karya talenta kreatif, atau komunitas daerah Anda hanya dengan mengetik kata kunci pada kolom pencarian di bagian atas.",
       icon: Search,
-      tag: "Fitur Pencarian",
-      actionLabel: "Lanjut ke Menu Kampanye",
+      tag: "Langkah 2 • Navigasi",
+      tip: "🔍 Tekan Enter untuk langsung memfilter hasil pencarian.",
       targetId: "tour-navbar-search",
       tab: 'discover'
     },
     {
-      title: "Jelajahi & Ikuti Kampanye Kreatif",
-      subtitle: "Raih Hadiah, Sertifikat, & E-Tiket Resmi",
-      desc: "Menu Kampanye memuat daftar kompetisi video, event workshop, dan tantangan brand sponsor. Klik untuk membaca petunjuk teknis (juknis), mendaftar, dan mengunggah karya Anda.",
+      title: "Ikuti Kampanye & Kompetisi Berhadiah",
+      subtitle: "Raih Benefit Tunai, Pengakuan, & E-Tiket",
+      desc: "Jelajahi beragam event video, festival film, dan tantangan brand. Cek panduan teknis (juknis), kirimkan link karya Anda, dan peroleh e-tiket resmi bertanda tangan digital aman.",
       icon: Trophy,
-      tag: "Menu Utama: Kampanye",
-      actionLabel: "Lanjut ke Komunitas",
+      tag: "Langkah 3 • Kampanye",
+      tip: "🏆 Pastikan akun sosial media Anda sudah terhubung di profil.",
       targetId: "tour-sidebar-events",
       fallbackTargetId: "tour-bottomnav-events",
       tab: 'events'
     },
     {
-      title: "Jejaring Komunitas Kreator Indonesia",
+      title: "Jejaring Komunitas Kreator Daerah",
       subtitle: "Wadah Silaturahmi & Kolaborasi Karya",
-      desc: "Temukan wadah komunitas videografer, editor, animator, dan content creator sesuai kota domisili Anda. Bergabunglah untuk mengikuti agenda temu karya dan mentoring berkala.",
+      desc: "Bangun koneksi bersama rekan videografer, editor, animator, dan fotografer di kota Anda. Ikuti temu karya, mentoring rutin, dan proyek kolaboratif bersama.",
       icon: Users,
-      tag: "Menu Utama: Komunitas",
-      actionLabel: "Lanjut ke Dompet",
+      tag: "Langkah 4 • Komunitas",
+      tip: "🤝 Gabung komunitas daerah untuk peluang proyek lokal.",
       targetId: "tour-sidebar-communities",
       fallbackTargetId: "tour-bottomnav-communities",
       tab: 'communities'
     },
     {
-      title: "Dompet Finansial & Transparansi Benefit",
-      subtitle: "Pantau Saldo & Tarik Dana Langsung",
-      desc: "Seluruh reward kemenangan event, insentif kreator, dan komisi afiliasi tercatat transparan di menu Dompet. Anda dapat mencairkan saldo kapan saja langsung ke rekening Bank Anda.",
+      title: "Dompet Kreator & Pencairan Dana",
+      subtitle: "Transparansi Penuh atas Hasil Karya Anda",
+      desc: "Semua reward event, hadiah kompetisi, dan bonus kemitraan terkumpul rapi di dompet Anda. Anda dapat menarik saldo langsung ke rekening Bank atau E-Wallet tanpa potongan tersembunyi.",
       icon: Wallet,
-      tag: "Menu Dompet & Benefit",
-      actionLabel: "Lanjut ke Notifikasi",
+      tag: "Langkah 5 • Finansial",
+      tip: "💳 Pastikan nomor rekening dan nama bank diisi dengan benar.",
       targetId: "tour-bottomnav-wallet",
       tab: 'wallet'
     },
     {
-      title: "Pemberitahuan & Update Otomatis",
-      subtitle: "Informasi Seleksi & Persetujuan Tugas",
-      desc: "Ikon Lonceng di pojok kanan atas akan memberi kabar secara realtime saat karya Anda dinilai juri, tiket masuk disetujui panitia, atau pencairan saldo berhasil diproses.",
+      title: "Pusat Notifikasi Realtime",
+      subtitle: "Kabar Persetujuan & Seleksi Tugas",
+      desc: "Ikon lonceng ini akan memberi tahu Anda secara instan ketika pendaftaran event disetujui, karya dinilai juri, atau pencairan saldo berhasil dikirim.",
       icon: Bell,
-      tag: "Pusat Notifikasi",
-      actionLabel: "Lanjut ke Member Premium",
+      tag: "Langkah 6 • Notifikasi",
+      tip: "🔔 Periksa lonceng secara berkala untuk update penting.",
       targetId: "tour-navbar-notif",
       tab: 'discover'
     },
     {
       title: "Upgrade Member Premium",
-      subtitle: "Buka Potensi Maksimal Karya Anda",
-      desc: "Jadilah Member Premium untuk menikmati prioritas review karya, verifikasi profil eksklusif, e-tiket VIP, serta akses ke seluruh kompetisi brand berhadiah tinggi.",
+      subtitle: "Maksimalkan Peluang Karir Kreatif Anda",
+      desc: "Dapatkan akses tanpa batas ke event eksklusif brand ternama, prioritas peninjauan tugas juri, lencana profil terpercaya, dan fasilitas kurasi portofolio unggulan.",
       icon: Crown,
-      tag: "Akses Eksklusif",
-      actionLabel: "Siap Mulai Berkarya!",
+      tag: "Langkah 7 • Akses Eksklusif",
+      tip: "⭐ Member Premium menikmati kemudahan akses prioritas.",
       targetId: null,
       tab: 'discover'
     }
@@ -112,7 +121,7 @@ export default function AppTourModal({
 
   const currentStepData = tourSteps[currentStep];
 
-  // Efek untuk mencari dan menyorot elemen UI target
+  // Efek penyorotan elemen UI target
   useEffect(() => {
     if (!isOpen) return;
 
@@ -145,7 +154,7 @@ export default function AppTourModal({
       }
     };
 
-    const timer = setTimeout(updateRect, 250);
+    const timer = setTimeout(updateRect, 220);
     window.addEventListener('resize', updateRect);
     window.addEventListener('scroll', updateRect);
 
@@ -157,7 +166,10 @@ export default function AppTourModal({
   }, [currentStep, isOpen, currentStepData]);
 
   const handleClose = () => {
-    localStorage.setItem(TOUR_STORAGE_KEY, 'true');
+    if (currentUser) {
+      const userIdKey = currentUser.id || currentUser.username;
+      localStorage.setItem(`portal-tour-completed-${userIdKey}-v2`, 'true');
+    }
     setIsOpen(false);
   };
 
@@ -175,17 +187,11 @@ export default function AppTourModal({
     }
   };
 
-  if (!isOpen) return null;
+  // Jangan render jika belum login atau tour ditutup
+  if (!isOpen || !currentUser) return null;
 
   const StepIcon = currentStepData.icon;
   const isLast = currentStep === tourSteps.length - 1;
-
-  let popoverStyle = {
-    position: 'relative',
-    width: '100%',
-    maxWidth: '430px',
-    margin: 'auto'
-  };
 
   return (
     <div style={{
@@ -193,9 +199,10 @@ export default function AppTourModal({
       inset: 0,
       zIndex: 999999,
       pointerEvents: 'auto',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      fontFamily: "'Outfit', -apple-system, sans-serif"
     }}>
-      {/* Dynamic Cutout Overlay Backdrop */}
+      {/* Dynamic SVG Spotlight Cutout Backdrop */}
       {targetRect ? (
         <svg
           style={{
@@ -209,17 +216,15 @@ export default function AppTourModal({
           onClick={handleClose}
         >
           <defs>
-            <mask id="tour-spotlight-mask">
-              {/* Putih menutup seluruh layar */}
+            <mask id="tour-spotlight-mask-v2">
               <rect x="0" y="0" width="100%" height="100%" fill="white" />
-              {/* Hitam melubangi elemen yang disorot */}
               <rect
-                x={targetRect.left - 6}
-                y={targetRect.top - 6}
-                width={targetRect.width + 12}
-                height={targetRect.height + 12}
-                rx="14"
-                ry="14"
+                x={targetRect.left - 8}
+                y={targetRect.top - 8}
+                width={targetRect.width + 16}
+                height={targetRect.height + 16}
+                rx="16"
+                ry="16"
                 fill="black"
               />
             </mask>
@@ -229,8 +234,8 @@ export default function AppTourModal({
             y="0"
             width="100%"
             height="100%"
-            fill="rgba(0, 0, 0, 0.78)"
-            mask="url(#tour-spotlight-mask)"
+            fill="rgba(15, 23, 42, 0.82)"
+            mask="url(#tour-spotlight-mask-v2)"
           />
         </svg>
       ) : (
@@ -238,27 +243,27 @@ export default function AppTourModal({
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.78)',
-            backdropFilter: 'blur(6px)',
-            WebkitBackdropFilter: 'blur(6px)',
+            backgroundColor: 'rgba(15, 23, 42, 0.82)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
             zIndex: 1
           }} 
           onClick={handleClose}
         />
       )}
 
-      {/* Spotlight Ring Border Animasi di Sekitar Elemen yang Disorot */}
+      {/* Spotlight Ring Border Glow */}
       {targetRect && (
         <div 
           style={{
             position: 'fixed',
-            top: targetRect.top - 6,
-            left: targetRect.left - 6,
-            width: targetRect.width + 12,
-            height: targetRect.height + 12,
-            borderRadius: '14px',
-            border: '2.5px solid #ffffff',
-            boxShadow: '0 0 0 4px rgba(255, 255, 255, 0.25), 0 0 25px rgba(255, 255, 255, 0.5)',
+            top: targetRect.top - 8,
+            left: targetRect.left - 8,
+            width: targetRect.width + 16,
+            height: targetRect.height + 16,
+            borderRadius: '16px',
+            border: '2px solid #ffffff',
+            boxShadow: '0 0 0 4px rgba(255, 255, 255, 0.3), 0 0 35px rgba(255, 255, 255, 0.65)',
             pointerEvents: 'none',
             zIndex: 2,
             transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
@@ -266,7 +271,7 @@ export default function AppTourModal({
         />
       )}
 
-      {/* Main Tour Card Dialog Container */}
+      {/* Main Tour Modal Card Container */}
       <div 
         style={{
           position: 'fixed',
@@ -275,191 +280,235 @@ export default function AppTourModal({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '20px',
+          padding: '24px 16px',
           pointerEvents: 'none'
         }}
       >
         <div 
-          className="tour-card animate-fade-in"
+          className="animate-fade-in"
           style={{
-            ...popoverStyle,
             pointerEvents: 'auto',
-            backgroundColor: '#0f172a',
-            color: '#ffffff',
-            borderRadius: '20px',
-            border: '1.5px solid #334155',
-            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0,0,0,0.5)',
-            padding: '26px 22px',
+            backgroundColor: '#ffffff',
+            color: '#0f172a',
+            width: '100%',
+            maxWidth: '460px',
+            borderRadius: '24px',
+            border: '1.5px solid #e2e8f0',
+            boxShadow: '0 25px 70px -15px rgba(0, 0, 0, 0.4), 0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+            overflow: 'hidden',
+            position: 'relative',
             textAlign: 'left'
           }}
         >
-          {/* Tombol Tutup / Lewati */}
-          <button
-            onClick={handleClose}
-            style={{
-              position: 'absolute',
-              top: '16px',
-              right: '16px',
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: 'none',
-              color: '#94a3b8',
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s'
-            }}
-            title="Lewati Tur"
-          >
-            <X size={18} color="#cbd5e1" />
-          </button>
-
-          {/* Tag & Info Langkah */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-            <span style={{
-              backgroundColor: '#ffffff',
-              color: '#0f172a',
-              fontSize: '0.7rem',
-              fontWeight: '800',
-              padding: '3px 10px',
-              borderRadius: '20px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}>
-              {currentStepData.tag}
-            </span>
-            <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: '600' }}>
-              Langkah {currentStep + 1} dari {tourSteps.length}
-            </span>
-          </div>
-
-          {/* Icon & Judul Utama */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-            <div style={{
-              width: '46px',
-              height: '46px',
-              borderRadius: '12px',
-              backgroundColor: '#ffffff',
-              color: '#0f172a',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              boxShadow: '0 4px 12px rgba(255, 255, 255, 0.15)'
-            }}>
-              <StepIcon size={24} strokeWidth={2.4} color="#0f172a" />
-            </div>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '1.12rem', fontWeight: '800', color: '#ffffff', lineHeight: '1.3' }}>
-                {currentStepData.title}
-              </h3>
-              <span style={{ fontSize: '0.76rem', color: '#cbd5e1', fontWeight: '500', display: 'block', marginTop: '2px' }}>
-                {currentStepData.subtitle}
-              </span>
-            </div>
-          </div>
-
-          {/* Deskripsi Edukasi Fitur */}
-          <p style={{
-            margin: '0 0 20px 0',
-            fontSize: '0.86rem',
-            color: '#cbd5e1',
-            lineHeight: '1.6',
-            borderTop: '1px solid #1e293b',
-            paddingTop: '12px'
+          {/* Top Elegant Header Band (Hitam Pekat Kontras Tinggi) */}
+          <div style={{
+            backgroundColor: '#0f172a',
+            padding: '22px 24px',
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid #1e293b'
           }}>
-            {currentStepData.desc}
-          </p>
-
-          {/* Step Indicators Dots */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '20px' }}>
-            {tourSteps.map((_, idx) => (
-              <div
-                key={idx}
-                onClick={() => setCurrentStep(idx)}
-                style={{
-                  width: idx === currentStep ? '22px' : '7px',
-                  height: '7px',
-                  borderRadius: '4px',
-                  backgroundColor: idx === currentStep ? '#ffffff' : '#334155',
-                  transition: 'all 0.3s ease',
-                  cursor: 'pointer'
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Navigasi Aksi Bawah */}
-          <div style={{ display: 'flex', gap: '10px' }}>
-            {currentStep > 0 ? (
-              <button
-                type="button"
-                onClick={handlePrev}
-                style={{
-                  flex: 1,
-                  padding: '11px',
-                  backgroundColor: '#1e293b',
-                  color: '#ffffff',
-                  border: '1px solid #334155',
-                  borderRadius: '10px',
-                  fontSize: '0.86rem',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px'
-                }}
-              >
-                <ArrowLeft size={16} color="#ffffff" />
-                <span>Kembali</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleClose}
-                style={{
-                  flex: 1,
-                  padding: '11px',
-                  backgroundColor: 'transparent',
-                  color: '#94a3b8',
-                  border: '1px solid #334155',
-                  borderRadius: '10px',
-                  fontSize: '0.86rem',
-                  fontWeight: '600',
-                  cursor: 'pointer'
-                }}
-              >
-                Lewati
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={handleNext}
-              style={{
-                flex: 2,
-                padding: '11px 16px',
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '12px',
                 backgroundColor: '#ffffff',
                 color: '#0f172a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: '0 4px 12px rgba(255, 255, 255, 0.2)'
+              }}>
+                <StepIcon size={22} strokeWidth={2.5} color="#0f172a" />
+              </div>
+              <div>
+                <span style={{
+                  fontSize: '0.68rem',
+                  fontWeight: '800',
+                  color: '#94a3b8',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.8px',
+                  display: 'block'
+                }}>
+                  {currentStepData.tag}
+                </span>
+                <span style={{
+                  fontSize: '0.98rem',
+                  fontWeight: '800',
+                  color: '#ffffff',
+                  display: 'block',
+                  marginTop: '1px'
+                }}>
+                  {currentStepData.subtitle}
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleClose}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 border: 'none',
-                borderRadius: '10px',
-                fontSize: '0.9rem',
-                fontWeight: '800',
+                color: '#ffffff',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 14px rgba(255, 255, 255, 0.2)'
+                transition: 'all 0.2s'
               }}
+              title="Lewati Tur"
             >
-              <span>{isLast ? 'Selesai & Mulai' : 'Lanjut'}</span>
-              {isLast ? <Check size={16} strokeWidth={3} color="#0f172a" /> : <ArrowRight size={16} strokeWidth={2.5} color="#0f172a" />}
+              <X size={16} color="#ffffff" />
             </button>
+          </div>
+
+          {/* Modal Body */}
+          <div style={{ padding: '24px 24px 22px 24px' }}>
+            <h3 style={{
+              margin: '0 0 10px 0',
+              fontSize: '1.25rem',
+              fontWeight: '800',
+              color: '#0f172a',
+              letterSpacing: '-0.3px',
+              lineHeight: '1.3'
+            }}>
+              {currentStepData.title}
+            </h3>
+
+            <p style={{
+              margin: '0 0 18px 0',
+              fontSize: '0.88rem',
+              color: '#475569',
+              lineHeight: '1.65'
+            }}>
+              {currentStepData.desc}
+            </p>
+
+            {/* Smart Friendly Tip Box */}
+            <div style={{
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '12px 14px',
+              fontSize: '0.78rem',
+              color: '#334155',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '22px'
+            }}>
+              <span>{currentStepData.tip}</span>
+            </div>
+
+            {/* Step Progress Dots */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              marginBottom: '22px'
+            }}>
+              {tourSteps.map((_, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setCurrentStep(idx)}
+                  style={{
+                    width: idx === currentStep ? '24px' : '7px',
+                    height: '7px',
+                    borderRadius: '4px',
+                    backgroundColor: idx === currentStep ? '#0f172a' : '#cbd5e1',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer'
+                  }}
+                  title={`Langkah ${idx + 1}`}
+                />
+              ))}
+            </div>
+
+            {/* Tombol Aksi Bawah */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {currentStep > 0 ? (
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    backgroundColor: '#f1f5f9',
+                    color: '#0f172a',
+                    border: '1.5px solid #cbd5e1',
+                    borderRadius: '12px',
+                    fontSize: '0.88rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <ArrowLeft size={16} color="#0f172a" />
+                  <span>Kembali</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    backgroundColor: 'transparent',
+                    color: '#64748b',
+                    border: '1.5px solid #e2e8f0',
+                    borderRadius: '12px',
+                    fontSize: '0.88rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Lewati
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleNext}
+                style={{
+                  flex: 2,
+                  padding: '12px 18px',
+                  backgroundColor: '#0f172a',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '0.92rem',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <span>{isLast ? 'Selesai & Mulai Berkarya' : 'Lanjut Panduan'}</span>
+                {isLast ? (
+                  <Check size={16} strokeWidth={3} color="#ffffff" />
+                ) : (
+                  <ArrowRight size={16} strokeWidth={2.5} color="#ffffff" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
