@@ -1122,32 +1122,42 @@ export default function useAppState() {
         setLoginPassword('');
         setLoginError('');
       } catch (err) {
-        // Fallback: Check if user exists in the Firestore database users list (e.g. legacy username-only account)
         let foundUser = null;
-        try {
-          const { collection, query, where, getDocs } = await import("firebase/firestore");
-          // Check by username
-          let q = query(collection(db, "users"), where("username", "==", emailOrUser));
-          let querySnapshot = await getDocs(q);
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.password === password) {
-              foundUser = { id: doc.id, ...data };
-            }
-          });
-          // If not found and input contains '@', check by email
-          if (!foundUser && emailOrUser.includes('@')) {
-            q = query(collection(db, "users"), where("email", "==", emailOrUser));
-            querySnapshot = await getDocs(q);
+
+        // Cek fallback pertama: local state users (jika ada akun demo/lokal)
+        const localMatched = users.find(
+          u => (u.username?.toLowerCase() === emailOrUser.toLowerCase() || u.email?.toLowerCase() === emailOrUser.toLowerCase()) &&
+               u.password === password
+        );
+        if (localMatched) {
+          foundUser = localMatched;
+        }
+
+        // Cek fallback kedua: query Firestore hanya jika auth aktif
+        if (!foundUser && auth?.currentUser) {
+          try {
+            const { collection, query, where, getDocs } = await import("firebase/firestore");
+            let q = query(collection(db, "users"), where("username", "==", emailOrUser));
+            let querySnapshot = await getDocs(q);
             querySnapshot.forEach((doc) => {
               const data = doc.data();
               if (data.password === password) {
                 foundUser = { id: doc.id, ...data };
               }
             });
+            if (!foundUser && emailOrUser.includes('@')) {
+              q = query(collection(db, "users"), where("email", "==", emailOrUser));
+              querySnapshot = await getDocs(q);
+              querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                if (data.password === password) {
+                  foundUser = { id: doc.id, ...data };
+                }
+              });
+            }
+          } catch (dbErr) {
+            // Abaikan silently jika akses dibatasi oleh aturan Firestore
           }
-        } catch (dbErr) {
-          console.error("Firestore legacy user check failed:", dbErr);
         }
 
         if (foundUser) {
@@ -1163,7 +1173,7 @@ export default function useAppState() {
             handleTabChange('discover');
           }
         } else {
-          console.error("Firebase Login failed:", err);
+          // Gagal login: Tampilkan error UI bersih ke pengguna
           setLoginError('Email/Username atau password salah.');
         }
       } finally {
