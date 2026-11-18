@@ -48,7 +48,8 @@ import {
   CreditCard,
   Landmark,
   Copy,
-  CheckCircle2
+  CheckCircle2,
+  Sliders
 } from 'lucide-react';
 
 import INDONESIAN_REGIONS from '../data/regions.json';
