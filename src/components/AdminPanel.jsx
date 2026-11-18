@@ -634,6 +634,7 @@ export default function AdminPanel({
 
   // Event creation form states
   const [showEventForm, setShowEventForm] = useState(autoOpenCreateForm);
+  const [isEventFormLoading, setIsEventFormLoading] = useState(false);
   const [eventTitle, setEventTitle] = useState('');
   const [eventCategory, setEventCategory] = useState('Short Film');
   const [eventDeadline, setEventDeadline] = useState('');
@@ -3531,6 +3532,19 @@ export default function AdminPanel({
                   </button>
                 </div>
 
+                {isEventFormLoading ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 0', gap: '16px' }} className="animate-fade-in">
+                    <div style={{
+                      width: '38px',
+                      height: '38px',
+                      border: '3.5px solid var(--border-color)',
+                      borderTop: '3.5px solid var(--text-primary)',
+                      borderRadius: '50%',
+                      animation: 'spin 0.8s linear infinite'
+                    }} />
+                    <span style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>Memuat form konfigurasi event...</span>
+                  </div>
+                ) : (
                 <form onSubmit={handleEventSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div className="form-group">
                     <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Judul Event</label>
@@ -4118,6 +4132,7 @@ export default function AdminPanel({
                     <button type="submit" className="btn btn-primary" style={{ padding: '12px 28px', borderRadius: '30px', fontSize: '0.9rem', fontWeight: 'bold' }}>{editingEventId ? 'Simpan Perubahan' : 'Simpan Event'}</button>
                   </div>
                 </form>
+                )}
               </div>
             </div>,
             document.body
@@ -4764,7 +4779,9 @@ export default function AdminPanel({
                     setEventAreaRegional('');
                     setEventTicketPrice(0);
                     setEventType('competition');
+                    setIsEventFormLoading(true);
                     setShowEventForm(true);
+                    setTimeout(() => setIsEventFormLoading(false), 280);
                   }}
                   style={{
                     display: 'flex',

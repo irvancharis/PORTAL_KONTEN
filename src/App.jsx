@@ -19,6 +19,7 @@ import LegalModal from './components/LegalModal';
 import PricingCatalogSection from './components/PricingCatalogSection';
 import SiteFooter from './components/SiteFooter';
 import AppTourModal from './components/AppTourModal';
+import PageLoadingSkeleton from './components/PageLoadingSkeleton';
 import { OfflineBanner } from './components/SkeletonLoader';
 import useAppState from './hooks/useAppState';
 import { slugify, formatIndonesianDate, fetchJSONP } from './utils/helpers';
@@ -449,7 +450,13 @@ export default function App() {
         {/* Main Content Area */}
         <main className="main-content">
 
-          {activeTab === 'admin' && currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role) ? (
+          {isPageLoading && (
+            <div style={{ padding: '16px 0', width: '100%' }}>
+              <PageLoadingSkeleton type={['events', 'communities', 'admin'].includes(activeTab) ? 'cards' : 'generic'} />
+            </div>
+          )}
+
+          {!isPageLoading && (activeTab === 'admin' && currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role) ? (
             <AdminPanel 
               regions={regions}
               movies={movies} 
@@ -696,7 +703,7 @@ export default function App() {
               users={users}
               handleToggleJoinCommunity={handleToggleJoinCommunity}
             />
-          )}
+          ))}
 
           {/* Public Compliance & Business Footer */}
           <SiteFooter 
