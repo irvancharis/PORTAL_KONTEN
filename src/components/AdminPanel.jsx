@@ -3862,34 +3862,34 @@ export default function AdminPanel({
 
                         return (
                           <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {/* Card Kalkulator Simulasi Interaktif */}
+                            {/* Card Kalkulator Simulasi Interaktif - Mengikuti Design System Monokrom/Tema Terang-Gelap */}
                             {eventBudgetMode === 'views' && (
                               <div style={{
                                 padding: '14px 16px',
-                                background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%)',
-                                border: '1.5px solid rgba(56, 189, 248, 0.25)',
+                                background: 'var(--bg-secondary, rgba(0,0,0,0.03))',
+                                border: '1px solid var(--border-color, #e5e7eb)',
                                 borderRadius: '10px',
                                 fontSize: '0.82rem'
                               }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#38bdf8', fontWeight: 'bold' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: 'var(--text-primary)', fontWeight: '700' }}>
                                   <Sliders size={16} />
                                   <span>Kalkulator Simulasi Budget & Payout Views</span>
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
-                                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '8px' }}>
-                                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Estimasi Jangkauan Total Views:</span>
-                                    <strong style={{ fontSize: '1.1rem', color: '#38bdf8' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                                  <div style={{ background: 'var(--card-bg, #ffffff)', border: '1px solid var(--border-color, #e5e7eb)', padding: '12px 14px', borderRadius: '8px' }}>
+                                    <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: '500' }}>Estimasi Jangkauan Total Views:</span>
+                                    <strong style={{ fontSize: '1.15rem', color: 'var(--text-primary)', fontWeight: '800' }}>
                                       {estimatedTotalViews.toLocaleString('id-ID')} Views
                                     </strong>
                                   </div>
-                                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '8px' }}>
-                                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Rata-rata Cost Per View (CPV):</span>
-                                    <strong style={{ fontSize: '1.1rem', color: '#4ade80' }}>
-                                      Rp {(payoutPerStep / stepViews).toFixed(2)} / view
+                                  <div style={{ background: 'var(--card-bg, #ffffff)', border: '1px solid var(--border-color, #e5e7eb)', padding: '12px 14px', borderRadius: '8px' }}>
+                                    <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: '500' }}>Rata-rata Cost Per View (CPV):</span>
+                                    <strong style={{ fontSize: '1.15rem', color: 'var(--text-primary)', fontWeight: '800' }}>
+                                      Rp {(payoutPerStep / stepViews).toFixed(2)} <span style={{ fontSize: '0.8rem', fontWeight: 'normal', color: 'var(--text-secondary)' }}>/ view</span>
                                     </strong>
                                   </div>
                                 </div>
-                                <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: '1.4' }}>
+                                <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '10px', lineHeight: '1.45' }}>
                                   * Dengan budget Rp {currentTargetBudget.toLocaleString('id-ID')}, kampanye Anda berpotensi menghasilkan hingga {estimatedTotalViews.toLocaleString('id-ID')} penayangan video organik dari kreator.
                                 </span>
                               </div>
@@ -3898,18 +3898,18 @@ export default function AdminPanel({
                             {eventBudgetMode === 'submit' && (
                               <div style={{
                                 padding: '14px 16px',
-                                background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%)',
-                                border: '1.5px solid rgba(74, 222, 128, 0.25)',
+                                background: 'var(--bg-secondary, rgba(0,0,0,0.03))',
+                                border: '1px solid var(--border-color, #e5e7eb)',
                                 borderRadius: '10px',
                                 fontSize: '0.82rem'
                               }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#4ade80', fontWeight: 'bold' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: 'var(--text-primary)', fontWeight: '700' }}>
                                   <Sliders size={16} />
                                   <span>Kalkulator Simulasi Ulasan Bisnis</span>
                                 </div>
-                                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '8px' }}>
-                                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Estimasi Total Ulasan Diterima:</span>
-                                  <strong style={{ fontSize: '1.1rem', color: '#4ade80' }}>
+                                <div style={{ background: 'var(--card-bg, #ffffff)', border: '1px solid var(--border-color, #e5e7eb)', padding: '12px 14px', borderRadius: '8px' }}>
+                                  <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: '500' }}>Estimasi Total Ulasan Diterima:</span>
+                                  <strong style={{ fontSize: '1.15rem', color: 'var(--text-primary)', fontWeight: '800' }}>
                                     {estimatedTotalSubmits.toLocaleString('id-ID')} Ulasan Terverifikasi
                                   </strong>
                                 </div>
@@ -3917,24 +3917,24 @@ export default function AdminPanel({
                             )}
 
                             {/* Rincian Finansial Platform */}
-                            <div style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                            <div style={{ padding: '14px 16px', background: 'var(--bg-secondary, rgba(0,0,0,0.02))', border: '1px solid var(--border-color, #e5e7eb)', borderRadius: '10px', fontSize: '0.84rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                 <span style={{ color: 'var(--text-secondary)' }}>Total Budget Kampanye:</span>
-                                <strong style={{ color: 'white' }}>
+                                <strong style={{ color: 'var(--text-primary)' }}>
                                   Rp {currentTargetBudget.toLocaleString('id-ID')}
                                 </strong>
                               </div>
                               {eventAdminFee > 0 && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                   <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform ({eventAdminFee}%):</span>
-                                  <strong style={{ color: 'white' }}>
+                                  <strong style={{ color: 'var(--text-primary)' }}>
                                     + Rp {currentAdminFeeVal.toLocaleString('id-ID')}
                                   </strong>
                                 </div>
                               )}
-                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
-                                <span style={{ color: 'white' }}>Total Pembayaran:</span>
-                                <strong style={{ color: 'white', fontSize: '0.92rem', borderBottom: '1px solid white', paddingBottom: '2px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid var(--border-color, #e5e7eb)', paddingTop: '10px', marginTop: '8px' }}>
+                                <span style={{ color: 'var(--text-primary)' }}>Total Pembayaran:</span>
+                                <strong style={{ color: 'var(--text-primary)', fontSize: '0.98rem' }}>
                                   Rp {totalDepositBudgetVal.toLocaleString('id-ID')}
                                 </strong>
                               </div>
