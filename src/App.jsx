@@ -2278,7 +2278,7 @@ export default function App() {
       )}
 
 
-      {/* Global Loading Overlay */}
+      {/* Global Loading Overlay with Modern Glass Card & Spinner */}
       {globalLoadingText && (
         <div 
           style={{
@@ -2287,28 +2287,48 @@ export default function App() {
             left: 0,
             width: '100vw',
             height: '100vh',
-            background: 'rgba(0, 0, 0, 0.8)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            background: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 999999,
-            gap: '16px'
+            animation: 'fadeIn 0.2s ease-out'
           }}
         >
           <div style={{
-            width: '40px',
-            height: '40px',
-            border: '4px solid rgba(255, 255, 254, 0.15)',
-            borderTop: '4px solid #fffffe',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite'
-          }} />
-          <span className="badge" style={{ color: '#fffffe', fontSize: '1.05rem', fontWeight: '600', letterSpacing: '0.5px' }}>
-            {globalLoadingText}
-          </span>
+            background: 'var(--card-bg, #0b0f19)',
+            border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+            boxShadow: '0 24px 60px rgba(0, 0, 0, 0.5)',
+            borderRadius: '20px',
+            padding: '28px 36px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '16px',
+            maxWidth: '90vw',
+            animation: 'modalPopupSpring 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+          }}>
+            <div style={{
+              width: '44px',
+              height: '44px',
+              border: '3.5px solid var(--border-color, rgba(255, 255, 255, 0.15))',
+              borderTop: '3.5px solid var(--text-primary, #ffffff)',
+              borderRadius: '50%',
+              animation: 'spin 0.85s linear infinite'
+            }} />
+            <span style={{ 
+              color: 'var(--text-primary)', 
+              fontSize: '0.96rem', 
+              fontWeight: '600', 
+              letterSpacing: '0.3px',
+              textAlign: 'center'
+            }}>
+              {globalLoadingText}
+            </span>
+          </div>
         </div>
       )}
 
