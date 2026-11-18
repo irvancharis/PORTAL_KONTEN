@@ -3843,30 +3843,100 @@ export default function AdminPanel({
                         </div>
                       )}
                       {/* Platform Fee & Budget Info */}
-                      {eventAdminFee > 0 && (() => {
+                      {(() => {
                         const isFlatOrViews = eventBudgetMode === 'views' || eventBudgetMode === 'submit';
                         const currentTargetBudget = isFlatOrViews ? (eventBudget || 0) : ((eventPrize1 || 0) + (eventPrize2 || 0) + (eventPrize3 || 0));
-                        const currentAdminFeeVal = Math.round((currentTargetBudget * eventAdminFee) / 100);
+                        const currentAdminFeeVal = eventAdminFee > 0 ? Math.round((currentTargetBudget * eventAdminFee) / 100) : 0;
                         const totalDepositBudgetVal = currentTargetBudget + currentAdminFeeVal;
+
+                        // Kalkulator Simulasi Jangkauan & Payout
+                        const stepViews = eventBenefitViewsStep || 1000;
+                        const payoutPerStep = eventBenefitAmount || 1;
+                        const estimatedTotalViews = (eventBudgetMode === 'views' && payoutPerStep > 0)
+                          ? Math.floor(currentTargetBudget / payoutPerStep) * stepViews
+                          : 0;
+                        const estimatedTotalSubmits = (eventBudgetMode === 'submit' && payoutPerStep > 0)
+                          ? Math.floor(currentTargetBudget / payoutPerStep)
+                          : 0;
+
                         return (
-                          <div style={{ marginTop: '16px', padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                              <span style={{ color: 'var(--text-secondary)' }}>Total Budget Kampanye:</span>
-                              <strong style={{ color: 'white' }}>
-                                Rp {currentTargetBudget.toLocaleString('id-ID')}
-                              </strong>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                              <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform ({eventAdminFee}%):</span>
-                              <strong style={{ color: 'white' }}>
-                                + Rp {currentAdminFeeVal.toLocaleString('id-ID')}
-                              </strong>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
-                              <span style={{ color: 'white' }}>Total Pembayaran:</span>
-                              <strong style={{ color: 'white', fontSize: '0.92rem', borderBottom: '1px solid white', paddingBottom: '2px' }}>
-                                Rp {totalDepositBudgetVal.toLocaleString('id-ID')}
-                              </strong>
+                          <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {/* Card Kalkulator Simulasi Interaktif */}
+                            {eventBudgetMode === 'views' && (
+                              <div style={{
+                                padding: '14px 16px',
+                                background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%)',
+                                border: '1.5px solid rgba(56, 189, 248, 0.25)',
+                                borderRadius: '10px',
+                                fontSize: '0.82rem'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#38bdf8', fontWeight: 'bold' }}>
+                                  <Sliders size={16} />
+                                  <span>Kalkulator Simulasi Budget & Payout Views</span>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '8px' }}>
+                                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Estimasi Jangkauan Total Views:</span>
+                                    <strong style={{ fontSize: '1.1rem', color: '#38bdf8' }}>
+                                      {estimatedTotalViews.toLocaleString('id-ID')} Views
+                                    </strong>
+                                  </div>
+                                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '8px' }}>
+                                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Rata-rata Cost Per View (CPV):</span>
+                                    <strong style={{ fontSize: '1.1rem', color: '#4ade80' }}>
+                                      Rp {(payoutPerStep / stepViews).toFixed(2)} / view
+                                    </strong>
+                                  </div>
+                                </div>
+                                <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: '1.4' }}>
+                                  * Dengan budget Rp {currentTargetBudget.toLocaleString('id-ID')}, kampanye Anda berpotensi menghasilkan hingga {estimatedTotalViews.toLocaleString('id-ID')} penayangan video organik dari kreator.
+                                </span>
+                              </div>
+                            )}
+
+                            {eventBudgetMode === 'submit' && (
+                              <div style={{
+                                padding: '14px 16px',
+                                background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%)',
+                                border: '1.5px solid rgba(74, 222, 128, 0.25)',
+                                borderRadius: '10px',
+                                fontSize: '0.82rem'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#4ade80', fontWeight: 'bold' }}>
+                                  <Sliders size={16} />
+                                  <span>Kalkulator Simulasi Ulasan Bisnis</span>
+                                </div>
+                                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '8px' }}>
+                                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Estimasi Total Ulasan Diterima:</span>
+                                  <strong style={{ fontSize: '1.1rem', color: '#4ade80' }}>
+                                    {estimatedTotalSubmits.toLocaleString('id-ID')} Ulasan Terverifikasi
+                                  </strong>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Rincian Finansial Platform */}
+                            <div style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                <span style={{ color: 'var(--text-secondary)' }}>Total Budget Kampanye:</span>
+                                <strong style={{ color: 'white' }}>
+                                  Rp {currentTargetBudget.toLocaleString('id-ID')}
+                                </strong>
+                              </div>
+                              {eventAdminFee > 0 && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                  <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform ({eventAdminFee}%):</span>
+                                  <strong style={{ color: 'white' }}>
+                                    + Rp {currentAdminFeeVal.toLocaleString('id-ID')}
+                                  </strong>
+                                </div>
+                              )}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '6px' }}>
+                                <span style={{ color: 'white' }}>Total Pembayaran:</span>
+                                <strong style={{ color: 'white', fontSize: '0.92rem', borderBottom: '1px solid white', paddingBottom: '2px' }}>
+                                  Rp {totalDepositBudgetVal.toLocaleString('id-ID')}
+                                </strong>
+                              </div>
                             </div>
                           </div>
                         );
