@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Wallet, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle2, AlertCircle, XCircle, Search, X } from 'lucide-react';
+import { Wallet, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle2, AlertCircle, XCircle, Search, X, Download } from 'lucide-react';
 
 const formatInputCurrency = (num) => {
   if (num === 0 || !num) return '';
@@ -244,6 +244,32 @@ export default function WalletUserPortal({
 
   const myGifts = gifts.filter(g => g.recipientUsername?.toLowerCase() === currentUser.username.toLowerCase());
 
+  // Export CSV Helper
+  const handleExportCSV = () => {
+    if (filteredTxs.length === 0) {
+      alert('Tidak ada riwayat mutasi untuk diekspor.');
+      return;
+    }
+
+    const headers = ['Tanggal', 'Keterangan Transaksi', 'Tipe', 'Nominal', 'Status'];
+    const rows = filteredTxs.map(tx => [
+      `"${new Date(tx.date).toLocaleString('id-ID')}"`,
+      `"${tx.description.replace(/"/g, '""')}"`,
+      tx.type === 'credit' ? 'Pemasukan' : 'Penarikan',
+      tx.amount,
+      tx.status || 'Berhasil'
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Mutasi_Dompet_${currentUser.username}_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="wallet-portal-container animate-fade-in-up" style={{ color: 'var(--text-primary)' }}>
       {/* Header Banner */}
@@ -377,36 +403,68 @@ export default function WalletUserPortal({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: 0 }}>Riwayat Mutasi Saldo</h3>
           
-          {/* Filters */}
-          <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-            <button 
-              onClick={() => setTxFilter('all')} 
-              style={{ 
-                padding: '6px 12px', 
-                fontSize: '0.8rem', 
-                border: 'none', 
-                background: txFilter === 'all' ? 'var(--text-primary)' : 'transparent', 
-                color: txFilter === 'all' ? 'var(--bg-main)' : 'var(--text-secondary)', 
-                cursor: 'pointer', 
-                borderRadius: '6px', 
+          {/* Filters & Export */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              onClick={handleExportCSV}
+              title="Unduh Laporan Mutasi Saldo (CSV)"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '7px 14px',
+                fontSize: '0.8rem',
                 fontWeight: '600',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '8px',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--text-primary)';
+                e.currentTarget.style.color = 'var(--bg-main)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+              }}
             >
-              Semua
+              <Download size={14} />
+              <span>Ekspor CSV</span>
             </button>
-            <button 
-              onClick={() => setTxFilter('credit')} 
-              style={{ padding: '6px 12px', fontSize: '0.8rem', border: 'none', background: txFilter === 'credit' ? 'rgba(74, 222, 128, 0.1)' : 'transparent', color: txFilter === 'credit' ? '#4ade80' : 'var(--text-secondary)', cursor: 'pointer', borderRadius: '6px', fontWeight: '500' }}
-            >
-              Pemasukan
-            </button>
-            <button 
-              onClick={() => setTxFilter('debit')} 
-              style={{ padding: '6px 12px', fontSize: '0.8rem', border: 'none', background: txFilter === 'debit' ? 'rgba(239, 68, 68, 0.1)' : 'transparent', color: txFilter === 'debit' ? '#f87171' : 'var(--text-secondary)', cursor: 'pointer', borderRadius: '6px', fontWeight: '500' }}
-            >
-              Penarikan
-            </button>
+
+            <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              <button 
+                onClick={() => setTxFilter('all')} 
+                style={{ 
+                  padding: '6px 12px', 
+                  fontSize: '0.8rem', 
+                  border: 'none', 
+                  background: txFilter === 'all' ? 'var(--text-primary)' : 'transparent', 
+                  color: txFilter === 'all' ? 'var(--bg-main)' : 'var(--text-secondary)', 
+                  cursor: 'pointer', 
+                  borderRadius: '6px', 
+                  fontWeight: '600',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Semua
+              </button>
+              <button 
+                onClick={() => setTxFilter('credit')} 
+                style={{ padding: '6px 12px', fontSize: '0.8rem', border: 'none', background: txFilter === 'credit' ? 'rgba(74, 222, 128, 0.1)' : 'transparent', color: txFilter === 'credit' ? '#4ade80' : 'var(--text-secondary)', cursor: 'pointer', borderRadius: '6px', fontWeight: '500' }}
+              >
+                Pemasukan
+              </button>
+              <button 
+                onClick={() => setTxFilter('debit')} 
+                style={{ padding: '6px 12px', fontSize: '0.8rem', border: 'none', background: txFilter === 'debit' ? 'rgba(239, 68, 68, 0.1)' : 'transparent', color: txFilter === 'debit' ? '#f87171' : 'var(--text-secondary)', cursor: 'pointer', borderRadius: '6px', fontWeight: '500' }}
+              >
+                Penarikan
+              </button>
+            </div>
           </div>
         </div>
 

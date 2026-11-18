@@ -1370,6 +1370,22 @@ export default function AdminPanel({
   }, [loadedCreators, users, eventSubmissions, eventParticipants, events, marketplaceSearch, marketplaceLevelFilter, marketplaceRegionalFilter]);
 
   const getEventStatus = (evt) => {
+    // Cek auto-expired untuk event pending pembayaran lebih dari 24 jam
+    const isPaymentPending = evt.paymentStatus !== 'paid' && evt.paymentStatus !== 'pending_verification';
+    if (isPaymentPending && evt.createdAt) {
+      const createdTime = new Date(evt.createdAt).getTime();
+      const nowTime = Date.now();
+      const hoursPassed = (nowTime - createdTime) / (1000 * 60 * 60);
+      if (hoursPassed > 24) {
+        return {
+          label: 'Dibatalkan (Expired)',
+          color: '#ef4444',
+          bg: 'rgba(239, 68, 68, 0.1)',
+          info: 'Pembayaran biaya event kedaluwarsa karena tidak diselesaikan dalam 1x24 jam.'
+        };
+      }
+    }
+
     if (evt.paymentStatus === 'pending_verification') {
       return {
         label: 'Menunggu Verifikasi',

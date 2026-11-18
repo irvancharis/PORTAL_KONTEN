@@ -54,6 +54,17 @@ export default function AppTourModal({
     }
   }, [currentUser]);
 
+  // Listener untuk trigger restart tour dari luar (misal tombol di Halaman Profil)
+  useEffect(() => {
+    const handleRestartTour = () => {
+      setCurrentStep(0);
+      setIsOpen(true);
+    };
+
+    window.addEventListener('restart-app-tour', handleRestartTour);
+    return () => window.removeEventListener('restart-app-tour', handleRestartTour);
+  }, []);
+
   // Langkah-langkah tour komprehensif termasuk kelola kampanye
   const tourSteps = [
     {

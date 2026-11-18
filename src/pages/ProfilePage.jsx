@@ -13,7 +13,8 @@ import {
   CreditCard,
   Wallet,
   Copy,
-  CheckCircle2
+  CheckCircle2,
+  Compass
 } from 'lucide-react';
 
 export default function ProfilePage({
@@ -591,8 +592,43 @@ export default function ProfilePage({
         </div>
       )}
 
-      {/* Logout Button */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '32px' }}>
+      {/* Tour Restart & Logout Actions */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginTop: '32px' }}>
+        <button
+          type="button"
+          onClick={() => {
+            window.dispatchEvent(new Event('restart-app-tour'));
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            width: '100%',
+            maxWidth: '300px',
+            padding: '12px 24px',
+            fontSize: '0.88rem',
+            color: 'var(--text-primary)',
+            background: 'var(--primary-glow)',
+            border: '1.5px solid var(--border-color)',
+            borderRadius: '30px',
+            cursor: 'pointer',
+            fontWeight: '700',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--text-primary)';
+            e.currentTarget.style.color = 'var(--bg-main)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--primary-glow)';
+            e.currentTarget.style.color = 'var(--text-primary)';
+          }}
+        >
+          <Compass size={16} />
+          <span>Mulai Ulang Tour Aplikasi</span>
+        </button>
+
         <button
           onClick={handleLogout}
           style={{

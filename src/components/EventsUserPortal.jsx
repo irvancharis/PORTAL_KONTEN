@@ -1066,6 +1066,17 @@ export default function EventsUserPortal({
       return;
     }
 
+    // Validasi Anti-Fraud Duplikasi URL Karya
+    const trimmedUrl = workVideoUrl.trim().toLowerCase();
+    const isUrlAlreadySubmitted = eventSubmissions.some(
+      s => s.videoUrl && s.videoUrl.trim().toLowerCase() === trimmedUrl && s.id !== submittingEvent.id
+    );
+
+    if (trimmedUrl && isUrlAlreadySubmitted) {
+      alert('Tautan/URL karya ini sudah pernah didaftarkan sebelumnya oleh peserta lain atau pada event ini. Harap gunakan URL karya orisinal Anda.');
+      return;
+    }
+
     if (window.setGlobalLoading) window.setGlobalLoading('Sedang mengirimkan karya Anda...');
 
     setTimeout(() => {
