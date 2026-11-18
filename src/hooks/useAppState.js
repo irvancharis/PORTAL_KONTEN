@@ -1505,7 +1505,10 @@ export default function useAppState() {
           }
 
           // Fetch all other collections once to populate state initially (heavy optimization)
+          // Hanya fetch data sensitif/admin jika user sudah login dan memiliki wewenang
           console.log("Fetching one-time Firestore snapshot for collections...");
+          const isUserAdmin = currentUser && ['admin', 'superadmin', 'staf', 'moderator'].includes(currentUser.role?.toLowerCase());
+
           const [
             dbMovies,
             dbConfirmations,
@@ -1521,14 +1524,14 @@ export default function useAppState() {
             dbGifts
           ] = await Promise.all([
             getFirestoreMovies(),
-            getFirestoreConfirmations(),
+            currentUser ? getFirestoreConfirmations() : Promise.resolve([]),
             getFirestoreEvents(),
             getFirestoreEventParticipants(),
             getFirestoreEventSubmissions(),
-            getFirestoreWithdrawals(),
-            getFirestoreOffers(),
-            getFirestoreUsers(),
-            getFirestoreFinancialJournals(),
+            currentUser ? getFirestoreWithdrawals() : Promise.resolve([]),
+            currentUser ? getFirestoreOffers() : Promise.resolve([]),
+            currentUser ? getFirestoreUsers() : Promise.resolve([]),
+            isUserAdmin ? getFirestoreFinancialJournals() : Promise.resolve([]),
             getFirestoreCommunities(),
             getFirestoreRegions(),
             getFirestoreGifts()
@@ -1599,9 +1602,11 @@ export default function useAppState() {
     initFirestore();
   }, [currentUser]);
 
-  // General Ledger sync and auto-migration trigger
+  // General Ledger sync and auto-migration trigger (Hanya dijalankan jika user login sebagai Admin)
   useEffect(() => {
     if (isLoadingDB) return;
+    const isUserAdmin = currentUser && ['admin', 'superadmin', 'staf'].includes(currentUser.role?.toLowerCase());
+    if (!isUserAdmin) return;
 
     let updatedJournals = [...financialJournals];
     let changed = false;
