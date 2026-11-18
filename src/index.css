@@ -4969,53 +4969,54 @@ button[style*="background:#0f172a"] *,
   transform: translateX(-50%) !important;
   bottom: auto !important;
   right: auto !important;
-  background: #000000 !important; /* Strict black base background */
-  border-radius: 30px !important; /* Sleek pill shape */
-  padding: 10px 20px !important;
+  background: var(--card-bg, #ffffff) !important;
+  border: 1px solid var(--border-color, #e5e7eb) !important;
+  border-radius: 14px !important;
+  padding: 12px 18px !important;
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
   z-index: 99999999 !important;
   max-width: 90vw !important;
   width: max-content !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
   animation: slide-down-fade-toast 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  transition: all 0.3s ease !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  transition: all 0.25s ease !important;
 }
 
 @keyframes slide-down-fade-toast {
   from {
-    transform: translate(-50%, -20px);
+    transform: translate(-50%, -20px) scale(0.96);
     opacity: 0;
   }
   to {
-    transform: translate(-50%, 0);
+    transform: translate(-50%, 0) scale(1);
     opacity: 1;
   }
 }
 
-/* Success status toast (green text/icon) */
+/* Success status toast */
 .custom-toast.success {
-  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
 }
 .custom-toast.success .custom-toast-icon {
-  background: rgba(34, 197, 94, 0.1) !important;
-  border: 1px solid rgba(34, 197, 94, 0.2) !important;
-  color: #22c55e !important;
+  background: rgba(16, 185, 129, 0.1) !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+  color: #10b981 !important;
 }
 .custom-toast.success .custom-toast-message {
-  color: #22c55e !important;
+  color: var(--text-primary) !important;
 }
 .custom-toast.success .custom-toast-close {
-  color: rgba(34, 197, 94, 0.6) !important;
+  color: var(--text-secondary) !important;
 }
 .custom-toast.success .custom-toast-close:hover {
-  color: #22c55e !important;
+  color: var(--text-primary) !important;
 }
 
-/* Error status toast (red text/icon) */
+/* Error status toast */
 .custom-toast.error {
   border: 1px solid rgba(239, 68, 68, 0.3) !important;
 }
@@ -5025,10 +5026,10 @@ button[style*="background:#0f172a"] *,
   color: #ef4444 !important;
 }
 .custom-toast.error .custom-toast-message {
-  color: #ef4444 !important;
+  color: var(--text-primary) !important;
 }
 .custom-toast.error .custom-toast-close {
-  color: rgba(239, 68, 68, 0.6) !important;
+  color: var(--text-secondary) !important;
 }
 .custom-toast.error .custom-toast-close:hover {
   color: #ef4444 !important;
@@ -5036,8 +5037,8 @@ button[style*="background:#0f172a"] *,
 
 .custom-toast-icon {
   border-radius: 50% !important;
-  width: 30px !important;
-  height: 30px !important;
+  width: 28px !important;
+  height: 28px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -5046,9 +5047,9 @@ button[style*="background:#0f172a"] *,
 
 .custom-toast-message {
   margin: 0 !important;
-  font-size: 0.85rem !important;
+  font-size: 0.86rem !important;
   font-weight: 600 !important;
-  line-height: 1.4 !important;
+  line-height: 1.45 !important;
 }
 
 .custom-toast-close {
@@ -5066,9 +5067,33 @@ button[style*="background:#0f172a"] *,
   transform: scale(1.1) !important;
 }
 
-/* Disable light-theme overrides so toast background is always black */
+/* Dark Theme specific toast background */
+:root:not(.light-theme) .custom-toast {
+  background: #0d121f !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.6) !important;
+}
+:root:not(.light-theme) .custom-toast-message {
+  color: #f3f4f6 !important;
+}
+:root:not(.light-theme) .custom-toast-close {
+  color: #9ca3af !important;
+}
+:root:not(.light-theme) .custom-toast-close:hover {
+  color: #ffffff !important;
+}
+
+/* Light Theme specific toast background */
 .light-theme .custom-toast {
-  background: #000000 !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.1) !important;
+}
+.light-theme .custom-toast-message {
+  color: #111827 !important;
+}
+.light-theme .custom-toast-close {
+  color: #6b7280 !important;
 }
 .light-theme .custom-toast-close:hover {
   color: #111827 !important;
