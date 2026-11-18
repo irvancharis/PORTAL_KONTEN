@@ -2574,12 +2574,17 @@ export default function useAppState() {
 
   // 1. Initial Path Route for Tabs (runs immediately on mount or user change)
   useEffect(() => {
-    if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role)) {
-      setActiveTab('admin');
-      window.history.replaceState(null, '', `/admin/${adminSubTab}`);
-      return;
-    }
     const path = window.location.pathname;
+    if (currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role)) {
+      // Hanya redirect ke /admin jika user berada di root '/' atau memang membuka halaman admin
+      if (!path || path === '/' || path.startsWith('/admin') || path.startsWith('/creator')) {
+        setActiveTab('admin');
+        if (!path.startsWith('/admin')) {
+          window.history.replaceState(null, '', `/admin/${adminSubTab}`);
+        }
+        return;
+      }
+    }
     if (path && path !== '/') {
       if (path.startsWith('/event/')) {
         setActiveTab('events');
