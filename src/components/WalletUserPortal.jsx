@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Wallet, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle2, AlertCircle, XCircle, Search, X, Download } from 'lucide-react';
+import { Wallet, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle2, AlertCircle, XCircle, Search, X, Download, Calendar } from 'lucide-react';
 
 const formatInputCurrency = (num) => {
   if (num === 0 || !num) return '';
@@ -30,6 +30,8 @@ export default function WalletUserPortal({
   const [wdMethod, setWdMethod] = useState('Dana');
   const [wdPassword, setWdPassword] = useState('');
   const [txFilter, setTxFilter] = useState('all'); // 'all', 'credit', 'debit'
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [activeWalletTab, setActiveWalletTab] = useState('transactions'); // 'transactions', 'gifts'
   const [selectedVoucherGift, setSelectedVoucherGift] = useState(null);
 
@@ -237,8 +239,21 @@ export default function WalletUserPortal({
 
   // Filtered transactions
   const filteredTxs = allTransactions.filter(tx => {
-    if (txFilter === 'credit') return tx.type === 'credit';
-    if (txFilter === 'debit') return tx.type === 'debit';
+    if (txFilter === 'credit' && tx.type !== 'credit') return false;
+    if (txFilter === 'debit' && tx.type !== 'debit') return false;
+
+    if (startDate) {
+      const txTime = new Date(tx.date).getTime();
+      const startTime = new Date(`${startDate}T00:00:00`).getTime();
+      if (txTime < startTime) return false;
+    }
+
+    if (endDate) {
+      const txTime = new Date(tx.date).getTime();
+      const endTime = new Date(`${endDate}T23:59:59`).getTime();
+      if (txTime > endTime) return false;
+    }
+
     return true;
   });
 
@@ -405,6 +420,69 @@ export default function WalletUserPortal({
           
           {/* Filters & Export */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {/* Filter Rentang Tanggal */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 10px',
+              background: 'var(--bg-secondary, rgba(255,255,255,0.03))',
+              border: '1px solid var(--border-color)',
+              borderRadius: '8px',
+              fontSize: '0.8rem',
+              color: 'var(--text-secondary)'
+            }}>
+              <Calendar size={14} style={{ color: 'var(--text-secondary)' }} />
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                title="Tanggal Mulai"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.78rem',
+                  fontFamily: 'inherit',
+                  cursor: 'pointer'
+                }}
+              />
+              <span style={{ color: 'var(--text-muted)' }}>—</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                title="Tanggal Akhir"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.78rem',
+                  fontFamily: 'inherit',
+                  cursor: 'pointer'
+                }}
+              />
+              {(startDate || endDate) && (
+                <button
+                  onClick={() => { setStartDate(''); setEndDate(''); }}
+                  title="Reset Filter Tanggal"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: '2px',
+                    cursor: 'pointer',
+                    color: 'var(--text-secondary)',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
             <button
               onClick={handleExportCSV}
               title="Unduh Laporan Mutasi Saldo (CSV)"
