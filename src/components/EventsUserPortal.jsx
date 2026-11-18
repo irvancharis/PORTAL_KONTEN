@@ -2594,6 +2594,7 @@ export default function EventsUserPortal({
                 Semua Kampanye
               </button>
               <button
+                id="tour-tab-manage-events"
                 onClick={() => {
                   changePortalTab('manage');
                   setAutoOpenForm(false);

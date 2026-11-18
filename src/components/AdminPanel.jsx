@@ -4630,6 +4630,7 @@ export default function AdminPanel({
 
                 {/* Create Event Button */}
                 <button 
+                  id="tour-manage-create-event-btn"
                   className="btn btn-primary" 
                   onClick={() => {
                     const isCommunityUser = currentUser?.isCommunity || currentUser?.role === 'panitia';
@@ -4719,12 +4720,13 @@ export default function AdminPanel({
                         </div>
                       );
                     }
-                    return filteredEvents.map((evt) => {
+                    return filteredEvents.map((evt, idx) => {
                       const status = getEventStatus(evt);
                       const isLocked = (currentUser?.role === 'panitia' || currentUser?.role === 'user') && status.label === 'Berjalan';
                       return (
                         <div 
                           key={evt.id}
+                          id={idx === 0 ? "tour-manage-first-card" : undefined}
                           onClick={() => { setSelectedManageEvent(evt); setInnerManageTab('participants'); }}
                           style={{ 
                             borderRadius: '12px', 

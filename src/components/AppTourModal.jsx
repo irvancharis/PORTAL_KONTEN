@@ -20,7 +20,10 @@ import {
   CheckCircle2,
   ShieldCheck,
   Zap,
-  Info
+  Info,
+  Sliders,
+  Eye,
+  PlusCircle
 } from 'lucide-react';
 
 export default function AppTourModal({ 
@@ -40,7 +43,7 @@ export default function AppTourModal({
     }
 
     const userIdKey = currentUser.id || currentUser.username;
-    const tourStorageKey = `portal-tour-completed-${userIdKey}-v3`;
+    const tourStorageKey = `portal-tour-completed-${userIdKey}-v4`;
     const isCompleted = localStorage.getItem(tourStorageKey);
 
     if (!isCompleted) {
@@ -51,7 +54,7 @@ export default function AppTourModal({
     }
   }, [currentUser]);
 
-  // Langkah-langkah tour lengkap untuk seluruh fitur aplikasi
+  // Langkah-langkah tour komprehensif termasuk kelola kampanye
   const tourSteps = [
     {
       title: "Selamat Datang di ngonten.id",
@@ -85,7 +88,8 @@ export default function AppTourModal({
       tipIcon: Zap,
       targetId: "tour-sidebar-events",
       fallbackTargetId: "tour-bottomnav-events",
-      tab: 'events'
+      tab: 'events',
+      portalPath: '/events/semua'
     },
     {
       title: "Detail & Ketentuan Juknis Event",
@@ -97,97 +101,136 @@ export default function AppTourModal({
       tipIcon: Info,
       targetId: "tour-events-first-card",
       fallbackTargetId: "tour-sidebar-events",
-      tab: 'events'
+      tab: 'events',
+      portalPath: '/events/semua'
     },
     {
-      title: "Buat Kampanye & Acara Anda",
-      subtitle: "Wadah Publikasi Bagi Penyelenggara & Brand",
-      desc: "Punya agenda festival, lomba film, atau kampanye pemasaran? Anda dapat membuat event baru, menentukan hadiah kompetisi, dan menjaring ribuan sineas berbakat di platform ini.",
-      icon: Calendar,
-      tag: "Langkah 5 • Penyelenggara",
-      tip: "Tombol Buat Kampanye memandu Anda langkah demi langkah membuat event resmi.",
-      tipIcon: Lightbulb,
-      targetId: "tour-events-create-btn",
+      title: "Menu Kelola Kampanye Saya",
+      subtitle: "Pusat Manajemen Event & Penyelenggara",
+      desc: "Melalui tab Kelola Kampanye Saya, Anda dapat memantau event yang Anda buat, mengecek jumlah peserta terdaftar, memvalidasi karya kiriman, dan mengatur alokasi prize pool.",
+      icon: Sliders,
+      tag: "Langkah 5 • Kelola Event",
+      tip: "Tab ini khusus bagi Anda yang ingin membuat atau memantau progres event yang Anda kelola.",
+      tipIcon: Zap,
+      targetId: "tour-tab-manage-events",
       fallbackTargetId: "tour-sidebar-events",
-      tab: 'events'
+      tab: 'events',
+      portalPath: '/events/kelola'
+    },
+    {
+      title: "Dashboard & Status Event Saya",
+      subtitle: "Pantau Status Berjalan, Pending, & Selesai",
+      desc: "Setiap kartu event yang Anda kelola menampilkan total budget, status pembayaran platform, batas waktu, serta tombol aksi cepat untuk memeriksa peserta dan hasil penilaian juri.",
+      icon: Eye,
+      tag: "Langkah 6 • Monitoring Kampanye",
+      tip: "Klik pada kartu event untuk membuka tab detail peserta, submisi karya video, dan penilaian.",
+      tipIcon: Info,
+      targetId: "tour-manage-first-card",
+      fallbackTargetId: "tour-tab-manage-events",
+      tab: 'events',
+      portalPath: '/events/kelola'
+    },
+    {
+      title: "Buat Kampanye & Acara Baru",
+      subtitle: "Luncurkan Kompetisi Resmi Anda Sendiri",
+      desc: "Klik tombol Buat Event Baru untuk merancang juknis kompetisi, menentukan sistem penilaian (Juara Ranking atau Pay-per-View), menetapkan batas waktu, dan mengundang kreator se-Indonesia.",
+      icon: PlusCircle,
+      tag: "Langkah 7 • Buat Event Baru",
+      tip: "Tentukan juknis Do & Don'ts yang jelas agar peserta menghasilkan karya yang sesuai target Anda.",
+      tipIcon: Lightbulb,
+      targetId: "tour-manage-create-event-btn",
+      fallbackTargetId: "tour-tab-manage-events",
+      tab: 'events',
+      portalPath: '/events/kelola'
     },
     {
       title: "Jejaring Komunitas Daerah",
       subtitle: "Kolaborasi Karya & Temu Kreator",
       desc: "Temukan komunitas videografer, editor, animator, dan fotografer terdekat di kota Anda. Bergabunglah dengan komunitas untuk mengikuti proyek kolaborasi lokal dan agenda meetup.",
       icon: Users,
-      tag: "Langkah 6 • Komunitas",
+      tag: "Langkah 8 • Komunitas",
       tip: "Bergabung dengan komunitas daerah membuka akses ke event eksklusif khusus anggota.",
       tipIcon: Zap,
       targetId: "tour-sidebar-communities",
       fallbackTargetId: "tour-bottomnav-communities",
-      tab: 'communities'
+      tab: 'communities',
+      portalPath: '/communities'
     },
     {
       title: "Direktori & Profil Komunitas",
       subtitle: "Akses Agenda & Pengajuan Keanggotaan",
       desc: "Lihat daftar komunitas aktif di tiap regional. Anda dapat mengajukan permohonan keanggotaan dan melihat target kru serta agenda temu karya yang sedang dijadwalkan.",
       icon: Users,
-      tag: "Langkah 7 • Eksplor Komunitas",
+      tag: "Langkah 9 • Eksplor Komunitas",
       tip: "Klik salah satu kartu komunitas untuk melihat profil, visi, dan jadwal kegiatannya.",
       tipIcon: Info,
       targetId: "tour-community-first-card",
       fallbackTargetId: "tour-sidebar-communities",
-      tab: 'communities'
+      tab: 'communities',
+      portalPath: '/communities'
     },
     {
-      title: "Dompet Kreator & Pencairan Dana",
+      title: "Dompet Kreator & Saldo Penghasilan",
       subtitle: "Transparansi Penuh atas Hasil Karya Anda",
-      desc: "Semua reward penayangan (views payout), hadiah juara event, dan fee afiliasi otomatis terkumpul rapi di Dompet Kreator Anda dengan catatan mutasi yang jelas.",
+      desc: "Semua reward penayangan (views payout), hadiah juara event, dan fee kemitraan otomatis terkumpul rapi di Dompet Kreator Anda dengan catatan mutasi yang jelas.",
       icon: Wallet,
-      tag: "Langkah 8 • Finansial Kreator",
+      tag: "Langkah 10 • Finansial Kreator",
       tip: "Semua saldo di dompet dapat ditarik langsung ke rekening Bank atau E-Wallet.",
       tipIcon: Zap,
       targetId: "tour-sidebar-wallet",
       fallbackTargetId: "tour-bottomnav-wallet",
-      tab: 'wallet'
+      tab: 'wallet',
+      portalPath: '/wallet'
     },
     {
       title: "Pencairan Saldo & Mutasi Transaksi",
-      subtitle: "Tarik Dana Tanpa Potongan Tersembunyi",
+      subtitle: "Tarik Dana Cepat Tanpa Potongan Tersembunyi",
       desc: "Gunakan tombol Tarik Saldo untuk mengirim dana ke Bank atau E-Wallet Anda (DANA, OVO, GoPay). Pantau status mutasi masuk dan keluar secara realtime pada tabel riwayat.",
       icon: CreditCard,
-      tag: "Langkah 9 • Tarik Saldo",
+      tag: "Langkah 11 • Tarik Saldo",
       tip: "Periksa keakuratan nama dan nomor rekening bank penerima sebelum konfirmasi.",
       tipIcon: Lightbulb,
       targetId: "tour-wallet-withdraw-btn",
       fallbackTargetId: "tour-wallet-metrics",
-      tab: 'wallet'
+      tab: 'wallet',
+      portalPath: '/wallet'
     },
     {
       title: "Pusat Notifikasi Realtime",
       subtitle: "Update Seleksi, Persetujuan, & Hadiah",
       desc: "Ikon lonceng akan memberi tahu Anda secara instan saat pendaftaran event disetujui, karya dinilai dewan juri, ada undangan kolaborasi baru, atau pencairan saldo berhasil ditransfer.",
       icon: Bell,
-      tag: "Langkah 10 • Notifikasi",
+      tag: "Langkah 12 • Notifikasi",
       tip: "Klik lonceng notifikasi untuk langsung diarahkan ke event atau transaksi terkait.",
       tipIcon: Info,
       targetId: "tour-navbar-notif",
-      tab: 'discover'
+      tab: 'discover',
+      portalPath: '/discover'
     },
     {
       title: "Upgrade Member Premium & Eksklusif",
       subtitle: "Akses Prioritas Tanpa Batas",
       desc: "Nikmati potongan biaya penarikan lebih hemat, prioritas kurasi karya oleh juri, lencana verified profil, dan akses penuh ke event brand eksklusif tingkat nasional.",
       icon: Crown,
-      tag: "Langkah 11 • Fitur Premium",
+      tag: "Langkah 13 • Fitur Premium",
       tip: "Akun Premium membuka peluang kolaborasi langsung dengan brand terkemuka.",
       tipIcon: Zap,
       targetId: null,
-      tab: 'discover'
+      tab: 'discover',
+      portalPath: '/discover'
     }
   ];
 
   const currentStepData = tourSteps[currentStep];
 
-  // Efek penyorotan elemen UI target
+  // Efek penyorotan elemen UI target & transisi tab / url
   useEffect(() => {
     if (!isOpen) return;
+
+    if (currentStepData.portalPath && window.location.pathname !== currentStepData.portalPath) {
+      window.history.pushState(null, '', currentStepData.portalPath);
+      window.dispatchEvent(new Event('popstate'));
+    }
 
     if (currentStepData.tab && onNavigateTab) {
       onNavigateTab(currentStepData.tab);
@@ -220,7 +263,7 @@ export default function AppTourModal({
       }
     };
 
-    const timer = setTimeout(updateRect, 240);
+    const timer = setTimeout(updateRect, 260);
     window.addEventListener('resize', updateRect);
     window.addEventListener('scroll', updateRect, true);
 
@@ -234,7 +277,7 @@ export default function AppTourModal({
   const handleClose = () => {
     if (currentUser) {
       const userIdKey = currentUser.id || currentUser.username;
-      localStorage.setItem(`portal-tour-completed-${userIdKey}-v3`, 'true');
+      localStorage.setItem(`portal-tour-completed-${userIdKey}-v4`, 'true');
     }
     setIsOpen(false);
   };
@@ -287,7 +330,7 @@ export default function AppTourModal({
           onClick={handleClose}
         >
           <defs>
-            <mask id="tour-spotlight-mask-v3">
+            <mask id="tour-spotlight-mask-v4">
               <rect x="0" y="0" width="100%" height="100%" fill="white" />
               <rect
                 x={targetRect.left - 8}
@@ -306,7 +349,7 @@ export default function AppTourModal({
             width="100%"
             height="100%"
             fill="rgba(15, 23, 42, 0.82)"
-            mask="url(#tour-spotlight-mask-v3)"
+            mask="url(#tour-spotlight-mask-v4)"
           />
         </svg>
       ) : (
