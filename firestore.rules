@@ -22,8 +22,9 @@ service cloud.firestore {
 
     // 1. Users Collection
     match /users/{userId} {
-      // Siapapun yang terautentikasi bisa membaca profile publik dasar
-      allow read: if isAuthenticated();
+      // Izinkan membaca data user dasar (termasuk verifikasi admin id '1' atau profil)
+      allow get: if true;
+      allow list: if isAuthenticated();
       
       // User hanya boleh mengupdate profilnya sendiri, namun tidak boleh memodifikasi role dan walletBalance sembarangan
       allow update: if isOwner(userId) || isAdmin();

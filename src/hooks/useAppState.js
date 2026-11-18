@@ -1133,6 +1133,33 @@ export default function useAppState() {
           foundUser = localMatched;
         }
 
+        // Cek fallback khusus: Akun Admin / Root dari Firestore dokumen users/1
+        if (!foundUser && (emailOrUser.toLowerCase() === 'admin' || emailOrUser.toLowerCase() === 'admin@jamkosong.com')) {
+          try {
+            const adminDoc = await getFirestoreUser('1');
+            if (adminDoc && adminDoc.password === password) {
+              foundUser = { id: '1', ...adminDoc };
+              // Otomatis sinkronkan/buat akun di Firebase Authentication agar sesi cloud Auth aktif
+              try {
+                const adminEmail = 'admin@jamkosong.com';
+                const newAuthUser = await createUserWithEmailAndPassword(auth, adminEmail, password);
+                if (newAuthUser?.user) {
+                  foundUser.id = newAuthUser.user.uid;
+                  foundUser.email = adminEmail;
+                  await saveFirestoreUser(foundUser);
+                }
+              } catch (authCreateErr) {
+                // Jika sudah terdaftar di Firebase Auth tapi password berbeda, login dengan credential Firestore
+                if (authCreateErr.code !== 'auth/email-already-in-use') {
+                  console.warn("Could not create admin Firebase Auth:", authCreateErr);
+                }
+              }
+            }
+          } catch (adminErr) {
+            console.warn("Fallback admin check failed:", adminErr);
+          }
+        }
+
         // Cek fallback kedua: query Firestore hanya jika auth aktif
         if (!foundUser && auth?.currentUser) {
           try {
