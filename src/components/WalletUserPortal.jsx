@@ -271,6 +271,7 @@ export default function WalletUserPortal({
         </div>
 
         <button 
+          id="tour-wallet-withdraw-btn"
           className="btn btn-primary"
           onClick={() => {
             setWdAmount(0);
@@ -298,7 +299,7 @@ export default function WalletUserPortal({
 
 
       {/* Metrics Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+      <div id="tour-wallet-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         {/* Card 1: Saldo */}
         <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'rgba(15, 23, 42, 0.6)' }}>
           <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Saldo Aktif (Dapat Ditarik)</span>

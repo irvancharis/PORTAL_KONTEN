@@ -2934,6 +2934,7 @@ export default function EventsUserPortal({
 
             {/* Buat Event Button */}
             <button 
+              id="tour-events-create-btn"
               onClick={handleCreateEventClick}
               className="btn btn-primary"
               style={{
@@ -2999,7 +3000,7 @@ export default function EventsUserPortal({
               }
 
               const displayed = filtered.slice(0, visibleEventsCount);
-                 return displayed.map(evt => {
+                 return displayed.map((evt, idx) => {
                 const userReg = currentUser 
                   ? eventParticipants.find(p => p.eventId === evt.id && p.username.toLowerCase() === currentUser.username.toLowerCase())
                   : null;
@@ -3011,6 +3012,7 @@ export default function EventsUserPortal({
                  return (
                   <div 
                     key={evt.id} 
+                    id={idx === 0 ? "tour-events-first-card" : undefined}
                     className={`glass-panel event-portal-card ${userReg?.status === 'approved' ? 'registered-card' : ''}`}
                     onClick={() => {
                       if (!currentUser) {

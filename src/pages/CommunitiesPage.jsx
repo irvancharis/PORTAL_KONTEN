@@ -670,7 +670,7 @@ export default function CommunitiesPage({
             );
           }
 
-          return filtered.map(comm => {
+          return filtered.map((comm, idx) => {
             const members = comm.joinedMembers || [];
             const targetLocal = Number(comm.activeMembersCount || 0);
             const currentLocal = members.length;
@@ -680,6 +680,7 @@ export default function CommunitiesPage({
             return (
               <div 
                 key={comm.id}
+                id={idx === 0 ? "tour-community-first-card" : undefined}
                 className="glass-panel community-portal-card"
                 onClick={() => {
                   if (!currentUser) {
