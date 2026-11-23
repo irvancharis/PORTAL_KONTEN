@@ -20,6 +20,7 @@ import PricingCatalogSection from './components/PricingCatalogSection';
 import SiteFooter from './components/SiteFooter';
 import AppTourModal from './components/AppTourModal';
 import PageLoadingSkeleton from './components/PageLoadingSkeleton';
+import StandaloneAdminPortal from './pages/StandaloneAdminPortal';
 import { OfflineBanner } from './components/SkeletonLoader';
 import useAppState from './hooks/useAppState';
 import { slugify, formatIndonesianDate, fetchJSONP } from './utils/helpers';
@@ -378,6 +379,104 @@ export default function App() {
           handleTabChange('events');
         }}
       />
+    );
+  }
+
+  // Standalone Dedicated Admin Control Panel (Khusus Role Pengelola Sistem)
+  if (activeTab === 'admin' && currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role?.toLowerCase())) {
+    return (
+      <>
+        {isPageLoading && <div className="top-loading-bar" />}
+        <StandaloneAdminPortal
+          regions={regions}
+          movies={movies}
+          setMovies={handleSetMovies}
+          affiliateLinks={affiliateLinks}
+          setAffiliateLinks={handleSetAffiliateLinks}
+          gdriveApiKey={gdriveApiKey}
+          setGdriveApiKey={setGdriveApiKey}
+          whatsappAdmin={whatsappAdmin}
+          setWhatsappAdmin={setWhatsappAdmin}
+          premiumPrice={premiumPrice}
+          setPremiumPrice={setPremiumPrice}
+          paymentInstructions={paymentInstructions}
+          setPaymentInstructions={setPaymentInstructions}
+          platformBankAccounts={platformBankAccounts}
+          setPlatformBankAccounts={setPlatformBankAccounts}
+          qrisImageUrl={qrisImageUrl}
+          setQrisImageUrl={setQrisImageUrl}
+          paymentGatewayMode={paymentGatewayMode}
+          setPaymentGatewayMode={setPaymentGatewayMode}
+          users={users}
+          setUsers={handleSetUsers}
+          confirmations={confirmations}
+          setConfirmations={handleSetConfirmations}
+          currentUser={currentUser}
+          onSaveSettings={handleSaveSettings}
+          adminSubTab={adminSubTab}
+          setAdminSubTab={handleAdminSubTabChange}
+          handleAdminSubTabChange={handleAdminSubTabChange}
+          events={events}
+          setEvents={handleSetEvents}
+          eventParticipants={eventParticipants}
+          setEventParticipants={handleSetEventParticipants}
+          eventSubmissions={eventSubmissions}
+          setEventSubmissions={handleSetEventSubmissions}
+          withdrawals={withdrawals}
+          setWithdrawals={handleSetWithdrawals}
+          offers={offers}
+          setOffers={handleSetOffers}
+          handleTransferWallet={handleTransferWallet}
+          minWithdrawalAmount={minWithdrawalAmount}
+          setMinWithdrawalAmount={setMinWithdrawalAmount}
+          eventAdminFee={eventAdminFee}
+          setEventAdminFee={setEventAdminFee}
+          eventFlatFee={eventFlatFee}
+          setEventFlatFee={setEventFlatFee}
+          withdrawalFeePercent={withdrawalFeePercent}
+          setWithdrawalFeePercent={setWithdrawalFeePercent}
+          withdrawalFeePercentPremium={withdrawalFeePercentPremium}
+          setWithdrawalFeePercentPremium={setWithdrawalFeePercentPremium}
+          customRoles={customRoles}
+          setCustomRoles={setCustomRoles}
+          financialJournals={financialJournals}
+          setFinancialJournals={handleSetFinancialJournals}
+          communities={communities}
+          onKickMember={handleKickMember}
+          onApproveMember={handleApproveMember}
+          onRejectMember={handleRejectMember}
+          onSaveAgenda={handleSaveAgenda}
+          gifts={gifts}
+          setGifts={handleSetGifts}
+          handleAwardEventGift={handleAwardEventGift}
+          handleRedeemGiftCode={handleRedeemGiftCode}
+          setShowPremiumModal={setShowPremiumModal}
+          handleOpenLoginModal={handleOpenLoginModal}
+          handleLogout={handleLogout}
+          handleTabChange={handleTabChange}
+          theme={theme}
+          setTheme={setTheme}
+        />
+        {/* Custom Toast Notification inside Admin */}
+        {toast && (
+          <div className={`custom-toast ${toast.type || 'success'}`}>
+            <div className="custom-toast-icon">
+              {toast.type === 'error' ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
+            </div>
+            <div style={{ flex: 1 }}>
+              <p className="custom-toast-message">
+                {toast.message}
+              </p>
+            </div>
+            <button 
+              onClick={() => setToast(null)}
+              className="custom-toast-close"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+      </>
     );
   }
 

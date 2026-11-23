@@ -998,6 +998,36 @@ export default function Navbar({
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
                 }}
               >
+                {/* Admin Quick Switch Pill for authorized roles */}
+                {currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor'].includes(currentUser.role?.toLowerCase()) && (
+                  <button
+                    onClick={() => {
+                      if (onAdminSubTabChange) onAdminSubTabChange('event-dashboard');
+                      setActiveTab('admin');
+                      window.history.pushState(null, '', '/admin/event-dashboard');
+                      window.dispatchEvent(new Event('popstate'));
+                    }}
+                    title="Buka Admin Control Panel"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '6px 12px',
+                      borderRadius: '20px',
+                      background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontSize: '0.75rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(2, 132, 199, 0.4)'
+                    }}
+                  >
+                    <ShieldCheck size={14} />
+                    <span className="desktop-only">Admin Panel</span>
+                  </button>
+                )}
+
                 <div 
                   className="user-avatar-circle"
                   style={{
