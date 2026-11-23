@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, Search, Film, X, User, Sparkles, ChevronDown, LogOut, Bell, Edit, Sun, Moon } from 'lucide-react';
+import { Menu, Search, Film, X, User, Sparkles, ChevronDown, LogOut, Bell, Edit, Sun, Moon, ShieldCheck } from 'lucide-react';
 
 const slugify = (text) => {
   if (!text) return '';
