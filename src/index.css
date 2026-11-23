@@ -5979,6 +5979,125 @@ button:not(:disabled):active,
   border-radius: 8px;
 }
 
+/* ==========================================================================
+   STANDALONE ADMIN PORTAL - HIGH CONTRAST & THEME HARMONIZATION
+   ========================================================================== */
+.standalone-admin-portal {
+  --admin-sidebar-bg: #090d16;
+  --admin-header-bg: #0b0f19;
+}
+
+.standalone-admin-portal .admin-sidebar {
+  background: #090d16 !important;
+}
+
+.standalone-admin-portal .admin-header {
+  background: #0b0f19 !important;
+}
+
+/* Ensure all sidebar items and header titles have crisp visible contrast */
+.standalone-admin-portal .admin-sidebar .admin-nav-item {
+  color: #94a3b8 !important;
+}
+
+.standalone-admin-portal .admin-sidebar .admin-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+}
+
+.standalone-admin-portal .admin-sidebar .admin-nav-item.active {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+}
+
+.standalone-admin-portal .admin-sidebar .admin-nav-item.active * {
+  color: #ffffff !important;
+}
+
+.standalone-admin-portal .admin-header h2 {
+  color: #ffffff !important;
+}
+
+/* Light Theme specific overrides for Standalone Admin Portal */
+.standalone-admin-portal.light-theme,
+.light-theme .standalone-admin-portal {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.standalone-admin-portal.light-theme .admin-sidebar,
+.light-theme .standalone-admin-portal .admin-sidebar {
+  background: #ffffff !important;
+  border-right: 1px solid #e2e8f0 !important;
+}
+
+.standalone-admin-portal.light-theme .admin-sidebar h1,
+.light-theme .standalone-admin-portal .admin-sidebar h1 {
+  color: #0f172a !important;
+}
+
+.standalone-admin-portal.light-theme .admin-sidebar span,
+.light-theme .standalone-admin-portal .admin-sidebar span {
+  color: #475569 !important;
+}
+
+.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item,
+.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item {
+  color: #334155 !important;
+}
+
+.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item:hover,
+.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item.active,
+.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item.active {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+}
+
+.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item.active *,
+.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item.active * {
+  color: #ffffff !important;
+}
+
+.standalone-admin-portal.light-theme .admin-header,
+.light-theme .standalone-admin-portal .admin-header {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.standalone-admin-portal.light-theme .admin-header h2,
+.light-theme .standalone-admin-portal .admin-header h2 {
+  color: #0f172a !important;
+}
+
+.standalone-admin-portal.light-theme .admin-header span,
+.light-theme .standalone-admin-portal .admin-header span {
+  color: #64748b !important;
+}
+
+/* Force crisp contrast for dark cards and inputs inside Admin Panel */
+.standalone-admin-portal .glass-panel,
+.standalone-admin-portal .admin-card {
+  border-color: var(--border-color) !important;
+}
+
+.light-theme .standalone-admin-portal input:not([type="submit"]):not([type="button"]),
+.light-theme .standalone-admin-portal textarea,
+.light-theme .standalone-admin-portal select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.light-theme .standalone-admin-portal input::placeholder,
+.light-theme .standalone-admin-portal textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
 
 
 

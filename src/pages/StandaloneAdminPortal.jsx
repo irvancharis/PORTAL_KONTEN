@@ -162,19 +162,22 @@ export default function StandaloneAdminPortal(props) {
       fontFamily: 'inherit'
     }}>
       {/* Sidebar Admin Eksklusif */}
-      <aside style={{
-        width: isSidebarOpen ? '260px' : '72px',
-        background: 'var(--card-bg, #0b0f19)',
-        borderRight: '1px solid var(--border-color, rgba(255,255,255,0.08))',
-        display: 'flex',
-        flexDirection: 'column',
-        transition: 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-        position: 'sticky',
-        top: 0,
-        height: '100vh',
-        zIndex: 50,
-        flexShrink: 0
-      }}>
+      <aside 
+        className="admin-sidebar"
+        style={{
+          width: isSidebarOpen ? '260px' : '72px',
+          background: 'var(--bg-navbar, #0b0f19)',
+          borderRight: '1px solid var(--border-color, rgba(255,255,255,0.08))',
+          display: 'flex',
+          flexDirection: 'column',
+          transition: 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          zIndex: 50,
+          flexShrink: 0
+        }}
+      >
         {/* Brand Header */}
         <div style={{
           padding: '20px 16px',
@@ -195,7 +198,8 @@ export default function StandaloneAdminPortal(props) {
                 justifyContent: 'center',
                 color: '#ffffff',
                 fontWeight: '900',
-                fontSize: '1rem'
+                fontSize: '1rem',
+                flexShrink: 0
               }}>
                 N
               </div>
@@ -215,7 +219,8 @@ export default function StandaloneAdminPortal(props) {
               justifyContent: 'center',
               color: '#ffffff',
               fontWeight: '900',
-              fontSize: '1rem'
+              fontSize: '1rem',
+              flexShrink: 0
             }}>
               N
             </div>
@@ -249,6 +254,7 @@ export default function StandaloneAdminPortal(props) {
                 key={item.id}
                 onClick={() => handleAdminSubTabChange(item.id)}
                 title={!isSidebarOpen ? item.label : undefined}
+                className={`admin-nav-item ${isActive ? 'active' : ''}`}
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -258,7 +264,7 @@ export default function StandaloneAdminPortal(props) {
                   justifyContent: isSidebarOpen ? 'flex-start' : 'center',
                   borderRadius: '8px',
                   background: isActive ? 'var(--primary, #0284c7)' : 'transparent',
-                  color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                  color: isActive ? '#ffffff' : 'var(--text-primary, #ffffff)',
                   border: 'none',
                   cursor: 'pointer',
                   fontWeight: isActive ? '700' : '500',
@@ -268,9 +274,9 @@ export default function StandaloneAdminPortal(props) {
                   textAlign: 'left'
                 }}
               >
-                <Icon size={18} style={{ flexShrink: 0 }} />
+                <Icon size={18} style={{ flexShrink: 0, color: isActive ? '#ffffff' : 'var(--text-secondary)' }} />
                 {isSidebarOpen && (
-                  <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: isActive ? '#ffffff' : 'inherit' }}>
                     {item.label}
                   </span>
                 )}
@@ -381,20 +387,23 @@ export default function StandaloneAdminPortal(props) {
       </aside>
 
       {/* Main Container */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflowY: 'auto' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflowY: 'auto', background: 'var(--bg-main)' }}>
         {/* Top Navbar */}
-        <header style={{
-          height: '64px',
-          background: 'var(--card-bg, #0b0f19)',
-          borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.08))',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 24px',
-          position: 'sticky',
-          top: 0,
-          zIndex: 40
-        }}>
+        <header 
+          className="admin-header"
+          style={{
+            height: '64px',
+            background: 'var(--bg-navbar, #0b0f19)',
+            borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.08))',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 24px',
+            position: 'sticky',
+            top: 0,
+            zIndex: 40
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {!isSidebarOpen && (
               <button
@@ -422,7 +431,7 @@ export default function StandaloneAdminPortal(props) {
             {setTheme && (
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                title="Ganti Tema"
+                title={`Aktifkan Mode ${theme === 'dark' ? 'Terang' : 'Gelap'}`}
                 style={{
                   background: 'var(--bg-secondary, rgba(255,255,255,0.05))',
                   border: '1px solid var(--border-color, rgba(255,255,255,0.08))',
