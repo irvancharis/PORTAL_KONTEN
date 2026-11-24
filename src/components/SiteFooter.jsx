@@ -1,125 +1,108 @@
 import React from 'react';
-import { Shield, Mail, Lock, CheckCircle2, Globe } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 
 export default function SiteFooter({ onOpenLegal }) {
   return (
     <footer style={{
       width: '100%',
-      background: '#f8fafc',
-      borderTop: '1px solid #e2e8f0',
-      color: '#475569',
+      background: 'var(--bg-card, #ffffff)',
+      borderTop: '1px solid var(--border-color, #e2e8f0)',
+      color: 'var(--text-secondary, #64748b)',
       fontFamily: "'Outfit', -apple-system, sans-serif",
       boxSizing: 'border-box',
-      marginTop: 'auto'
+      marginTop: 'auto',
+      padding: '24px 20px'
     }}>
       <div style={{
         maxWidth: '1200px',
         margin: '0 auto',
-        padding: '48px 24px 24px 24px'
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px'
       }}>
-        {/* Main 3 Columns Grid */}
+        {/* Top Minimalist Row */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '36px',
-          marginBottom: '36px'
-        }}>
-          
-          {/* Col 1: Platform Profile */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div>
-              <span style={{ fontSize: '1.35rem', fontWeight: '800', color: '#000000', letterSpacing: '-0.3px' }}>
-                ngonten.id
-              </span>
-            </div>
-            <p style={{ margin: 0, fontSize: '0.84rem', color: '#64748b', lineHeight: '1.6' }}>
-              Platform ekosistem kreatif terpadu di Indonesia yang menghubungkan Brand & Penyelenggara Campaign dengan Kreator Konten secara langsung.
-            </p>
-          </div>
-
-          {/* Col 2: Legalitas & Kebijakan */}
-          <div>
-            <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '14px' }}>
-              Pusat Kebijakan & Legal
-            </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <li>
-                <button 
-                  onClick={() => onOpenLegal && onOpenLegal('terms')} 
-                  style={{ background: 'transparent', border: 'none', color: '#475569', fontSize: '0.84rem', cursor: 'pointer', padding: 0, textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.2s', fontWeight: '500' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#0284c7'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#475569'}
-                >
-                  <Shield size={14} style={{ color: '#0284c7' }} /> Syarat & Ketentuan Layanan
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => onOpenLegal && onOpenLegal('privacy')} 
-                  style={{ background: 'transparent', border: 'none', color: '#475569', fontSize: '0.84rem', cursor: 'pointer', padding: 0, textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.2s', fontWeight: '500' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#0284c7'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#475569'}
-                >
-                  <Lock size={14} style={{ color: '#0284c7' }} /> Kebijakan Privasi
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => onOpenLegal && onOpenLegal('refund')} 
-                  style={{ background: 'transparent', border: 'none', color: '#475569', fontSize: '0.84rem', cursor: 'pointer', padding: 0, textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.2s', fontWeight: '500' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#0284c7'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#475569'}
-                >
-                  <CheckCircle2 size={14} style={{ color: '#0284c7' }} /> Kebijakan Refund & Pembatalan
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => onOpenLegal && onOpenLegal('contact')} 
-                  style={{ background: 'transparent', border: 'none', color: '#475569', fontSize: '0.84rem', cursor: 'pointer', padding: 0, textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.2s', fontWeight: '500' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#0284c7'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#475569'}
-                >
-                  <Globe size={14} style={{ color: '#0284c7' }} /> Kontak Layanan Konsumen
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 3: Layanan Pelanggan & Kontak */}
-          <div>
-            <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '14px' }}>
-              Kontak Customer Service
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.84rem', color: '#475569' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Mail size={15} style={{ color: '#0284c7', flexShrink: 0 }} />
-                <span style={{ fontWeight: '500' }}>harusbisangonten@gmail.com</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Bottom Bar */}
-        <div style={{
-          borderTop: '1px solid #e2e8f0',
-          paddingTop: '20px',
           display: 'flex',
-          alignItems: 'center',
           justifyContent: 'space-between',
+          alignItems: 'center',
           flexWrap: 'wrap',
-          gap: '12px',
-          fontSize: '0.78rem',
-          color: '#64748b'
+          gap: '16px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#475569', fontWeight: '500' }}>
-              <Lock size={13} style={{ color: '#059669' }} /> 256-Bit SSL Encrypted
+          {/* Brand & Brief */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--text-primary, #0f172a)', letterSpacing: '-0.3px' }}>
+              ngonten.id
+            </span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted, #94a3b8)' }}>
+              • Ekosistem Kolaborasi & Campaign Kreator
             </span>
           </div>
+
+          {/* Quick Legal Links (Inline & Clean) */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '14px',
+            fontSize: '0.82rem'
+          }}>
+            <button 
+              onClick={() => onOpenLegal && onOpenLegal('terms')} 
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary, #64748b)', cursor: 'pointer', padding: 0, fontWeight: '500', transition: 'color 0.2s' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary, #0f172a)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary, #64748b)'}
+            >
+              Syarat & Ketentuan
+            </button>
+            <span style={{ color: 'var(--border-color, #cbd5e1)' }}>•</span>
+            <button 
+              onClick={() => onOpenLegal && onOpenLegal('privacy')} 
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary, #64748b)', cursor: 'pointer', padding: 0, fontWeight: '500', transition: 'color 0.2s' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary, #0f172a)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary, #64748b)'}
+            >
+              Kebijakan Privasi
+            </button>
+            <span style={{ color: 'var(--border-color, #cbd5e1)' }}>•</span>
+            <button 
+              onClick={() => onOpenLegal && onOpenLegal('refund')} 
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary, #64748b)', cursor: 'pointer', padding: 0, fontWeight: '500', transition: 'color 0.2s' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary, #0f172a)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary, #64748b)'}
+            >
+              Kebijakan Refund
+            </button>
+            <span style={{ color: 'var(--border-color, #cbd5e1)' }}>•</span>
+            <a 
+              href="mailto:harusbisangonten@gmail.com"
+              style={{ textDecoration: 'none', color: 'var(--text-secondary, #64748b)', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '4px', transition: 'color 0.2s' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary, #0f172a)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary, #64748b)'}
+            >
+              <Mail size={13} />
+              <span>Bantuan</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Bottom Sub-row */}
+        <div style={{
+          borderTop: '1px solid var(--border-color, #f1f5f9)',
+          paddingTop: '12px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '8px',
+          fontSize: '0.75rem',
+          color: 'var(--text-muted, #94a3b8)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Lock size={12} style={{ color: '#10b981' }} />
+            <span>256-Bit SSL Secured</span>
+          </div>
           <div>
-            <span>© 2026 <strong>ngonten.id</strong></span>
+            &copy; {new Date().getFullYear()} ngonten.id. All rights reserved.
           </div>
         </div>
       </div>
