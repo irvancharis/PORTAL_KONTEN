@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Wallet, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle2, AlertCircle, XCircle, Search, X, Download, Calendar } from 'lucide-react';
+import { Wallet, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle2, AlertCircle, XCircle, Search, X, Download, Calendar, ChevronDown, Check } from 'lucide-react';
 
 const formatInputCurrency = (num) => {
   if (num === 0 || !num) return '';
@@ -32,8 +32,25 @@ export default function WalletUserPortal({
   const [txFilter, setTxFilter] = useState('all'); // 'all', 'credit', 'debit'
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const datePickerRef = useRef(null);
   const [activeWalletTab, setActiveWalletTab] = useState('transactions'); // 'transactions', 'gifts'
   const [selectedVoucherGift, setSelectedVoucherGift] = useState(null);
+
+  // Close date picker dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
+        setIsDatePickerOpen(false);
+      }
+    };
+    if (isDatePickerOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDatePickerOpen]);
 
   const isPremium = currentUser && currentUser.isPremium === true;
   const activeFeePercent = isPremium ? withdrawalFeePercentPremium : withdrawalFeePercent;
@@ -420,94 +437,212 @@ export default function WalletUserPortal({
           
           {/* Filters & Export */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            {/* Filter Rentang Tanggal Modern */}
-            <div 
-              className="wallet-date-filter-box"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '5px 12px',
-                background: 'var(--card-bg, rgba(255, 255, 255, 0.04))',
-                border: '1px solid var(--border-color)',
-                borderRadius: '24px',
-                fontSize: '0.82rem',
-                color: 'var(--text-primary)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)' }}>
-                <Calendar size={14} style={{ flexShrink: 0, color: 'var(--primary, #3b82f6)' }} />
-                <span style={{ fontSize: '0.72rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>Periode:</span>
-              </div>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                title="Tanggal Mulai"
-                aria-label="Tanggal Mulai"
+            {/* Professional Date Range Filter Trigger & Popup */}
+            <div ref={datePickerRef} style={{ position: 'relative' }}>
+              <button
+                type="button"
+                onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
                 style={{
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '7px 14px',
+                  background: (startDate || endDate) ? 'var(--primary-glow, rgba(59, 130, 246, 0.08))' : 'var(--card-bg, rgba(255, 255, 255, 0.04))',
+                  border: (startDate || endDate) ? '1px solid var(--primary, #3b82f6)' : '1px solid var(--border-color)',
+                  borderRadius: '24px',
                   color: 'var(--text-primary)',
-                  fontSize: '0.8rem',
+                  fontSize: '0.82rem',
                   fontWeight: '600',
-                  fontFamily: 'inherit',
                   cursor: 'pointer',
-                  padding: '2px 0'
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                  transition: 'all 0.2s ease'
                 }}
-              />
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: '500' }}>s/d</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                title="Tanggal Akhir"
-                aria-label="Tanggal Akhir"
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.8rem',
-                  fontWeight: '600',
-                  fontFamily: 'inherit',
-                  cursor: 'pointer',
-                  padding: '2px 0'
-                }}
-              />
-              {(startDate || endDate) && (
-                <button
-                  onClick={() => { setStartDate(''); setEndDate(''); }}
-                  title="Reset Filter Tanggal"
+              >
+                <Calendar size={14} style={{ color: (startDate || endDate) ? 'var(--primary, #3b82f6)' : 'var(--text-muted)' }} />
+                <span>
+                  {startDate && endDate ? (
+                    `${new Date(startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} — ${new Date(endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`
+                  ) : startDate ? (
+                    `Dari ${new Date(startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`
+                  ) : endDate ? (
+                    `Hingga ${new Date(endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`
+                  ) : (
+                    'Semua Tanggal'
+                  )}
+                </span>
+                <ChevronDown size={14} style={{ color: 'var(--text-muted)', transform: isDatePickerOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              </button>
+
+              {/* Date Filter Dropdown Card */}
+              {isDatePickerOpen && (
+                <div 
+                  className="glass-panel"
                   style={{
-                    background: 'var(--primary-glow, rgba(255,255,255,0.08))',
+                    position: 'absolute',
+                    top: 'calc(100% + 8px)',
+                    right: 0,
+                    zIndex: 200,
+                    minWidth: '290px',
+                    padding: '16px',
+                    borderRadius: '16px',
+                    background: 'var(--bg-card, #141b2d)',
                     border: '1px solid var(--border-color)',
-                    borderRadius: '50%',
-                    width: '18px',
-                    height: '18px',
-                    padding: 0,
-                    cursor: 'pointer',
-                    color: 'var(--text-secondary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginLeft: '2px',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'var(--text-primary)';
-                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'var(--text-secondary)';
-                    e.currentTarget.style.background = 'var(--primary-glow, rgba(255,255,255,0.08))';
+                    boxShadow: '0 16px 40px rgba(0,0,0,0.35)',
+                    backdropFilter: 'blur(20px)',
+                    animation: 'scale-up-center 0.15s ease-out'
                   }}
                 >
-                  <X size={11} />
-                </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>Pilih Periode Mutasi</span>
+                    {(startDate || endDate) && (
+                      <button
+                        type="button"
+                        onClick={() => { setStartDate(''); setEndDate(''); }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#ef4444',
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          padding: 0
+                        }}
+                      >
+                        Reset Filter
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Preset Pills */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '14px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = new Date().toISOString().split('T')[0];
+                        setStartDate(today);
+                        setEndDate(today);
+                      }}
+                      style={{
+                        padding: '6px 8px',
+                        fontSize: '0.75rem',
+                        fontWeight: '500',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border-color)',
+                        background: 'var(--card-bg, rgba(255,255,255,0.03))',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Hari Ini
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setDate(end.getDate() - 7);
+                        setStartDate(start.toISOString().split('T')[0]);
+                        setEndDate(end.toISOString().split('T')[0]);
+                      }}
+                      style={{
+                        padding: '6px 8px',
+                        fontSize: '0.75rem',
+                        fontWeight: '500',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border-color)',
+                        background: 'var(--card-bg, rgba(255,255,255,0.03))',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      7 Hari
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setDate(end.getDate() - 30);
+                        setStartDate(start.toISOString().split('T')[0]);
+                        setEndDate(end.toISOString().split('T')[0]);
+                      }}
+                      style={{
+                        padding: '6px 8px',
+                        fontSize: '0.75rem',
+                        fontWeight: '500',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border-color)',
+                        background: 'var(--card-bg, rgba(255,255,255,0.03))',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      30 Hari
+                    </button>
+                  </div>
+
+                  {/* Custom Range Inputs */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '4px', fontWeight: '500' }}>Dari Tanggal:</label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid var(--border-color)',
+                          background: 'var(--bg-main)',
+                          color: 'var(--text-primary)',
+                          fontSize: '0.85rem',
+                          outline: 'none',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '4px', fontWeight: '500' }}>Sampai Tanggal:</label>
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid var(--border-color)',
+                          background: 'var(--bg-main)',
+                          color: 'var(--text-primary)',
+                          fontSize: '0.85rem',
+                          outline: 'none',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Apply Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsDatePickerOpen(false)}
+                    style={{
+                      width: '100%',
+                      marginTop: '14px',
+                      padding: '8px',
+                      background: 'var(--text-primary)',
+                      color: 'var(--bg-main)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      fontWeight: 'bold',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Terapkan
+                  </button>
+                </div>
               )}
             </div>
 
