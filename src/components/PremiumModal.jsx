@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw, Smartphone, ExternalLink, Sparkles, Upload, Send, MessageCircle } from 'lucide-react';
 import { DUITKU_CONFIG, DUITKU_PAYMENT_METHODS, requestDuitkuInquiry, fetchDuitkuPaymentMethods } from '../services/duitkuPaymentService';
 import { createMayarInvoicePayment, checkMayarPaymentStatus, fetchMayarPaymentChannels } from '../services/mayarPaymentService';
@@ -23,6 +23,7 @@ export default function PremiumModal({
   onLoginClick
 }) {
   const [step, setStep] = useState('select_plan'); // 'select_plan' | 'select_method' | 'pay_screen' | 'manual_pay' | 'success'
+  const modalContainerRef = useRef(null);
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
   const [selectedMethod, setSelectedMethod] = useState('qris'); // 'qris' | 'va_bca' | 'va_mandiri' | 'va_bri' | 'va_bni' | 'ewallet_dana'
   const [dynamicMethods, setDynamicMethods] = useState([]);
@@ -39,6 +40,15 @@ export default function PremiumModal({
   const [senderBank, setSenderBank] = useState('BCA');
   const [receiptFile, setReceiptFile] = useState('');
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
+
+  useEffect(() => {
+    if (modalContainerRef.current) {
+      modalContainerRef.current.scrollTop = 0;
+    }
+    const wrapper = document.querySelector('.doku-modal-wrapper');
+    if (wrapper) wrapper.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [step, isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -502,6 +512,7 @@ export default function PremiumModal({
   return (
     <div className="doku-modal-wrapper" onClick={onClose}>
       <div 
+        ref={modalContainerRef}
         className="doku-modal-card"
         onClick={(e) => e.stopPropagation()}
       >

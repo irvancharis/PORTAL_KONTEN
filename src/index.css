@@ -4456,15 +4456,15 @@ button[style*="background:#0f172a"] *,
 
 .light-theme .bottom-nav-item.active {
   background: transparent !important;
-  color: #0284c7 !important;
+  color: #0f172a !important;
 }
 
 .light-theme .bottom-nav-item.active svg {
-  color: #0284c7 !important;
+  color: #0f172a !important;
 }
 
 .light-theme .bottom-nav-item.active::before {
-  background: #0284c7 !important;
+  display: none !important;
 }
 
 /* Section divider */
