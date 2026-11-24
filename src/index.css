@@ -6017,38 +6017,128 @@ button:not(:disabled):active,
 }
 
 /* ==========================================================================
-   STANDALONE ADMIN PORTAL - HIGH CONTRAST & THEME HARMONIZATION
+   STANDALONE ADMIN PORTAL - CURVED INVERSE CUTOUT BLACK SIDEBAR
    ========================================================================== */
 .standalone-admin-portal {
-  --admin-sidebar-bg: #090d16;
+  --admin-sidebar-bg: #000000;
   --admin-header-bg: #0b0f19;
 }
 
-.standalone-admin-portal .admin-sidebar {
-  background: #090d16 !important;
+/* Sidebar is deep black in both dark and light modes as requested */
+.standalone-admin-portal .admin-sidebar,
+.standalone-admin-portal.light-theme .admin-sidebar,
+.light-theme .standalone-admin-portal .admin-sidebar {
+  background: #000000 !important;
+  border-right: none !important;
 }
 
 .standalone-admin-portal .admin-header {
   background: #0b0f19 !important;
 }
 
-/* Ensure all sidebar items and header titles have crisp visible contrast */
-.standalone-admin-portal .admin-sidebar .admin-nav-item {
+/* Sidebar header & text on black background */
+.standalone-admin-portal .admin-sidebar h1,
+.standalone-admin-portal.light-theme .admin-sidebar h1,
+.light-theme .standalone-admin-portal .admin-sidebar h1 {
+  color: #ffffff !important;
+}
+
+.standalone-admin-portal .admin-sidebar span,
+.standalone-admin-portal.light-theme .admin-sidebar span,
+.light-theme .standalone-admin-portal .admin-sidebar span {
   color: #94a3b8 !important;
 }
 
-.standalone-admin-portal .admin-sidebar .admin-nav-item:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
+/* Default / Inactive nav items */
+.standalone-admin-portal .admin-sidebar .admin-nav-item,
+.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item,
+.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item {
+  color: #94a3b8 !important;
+  background: transparent !important;
+  border-radius: 12px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.standalone-admin-portal .admin-sidebar .admin-nav-item .nav-icon,
+.standalone-admin-portal .admin-sidebar .admin-nav-item .nav-label {
+  color: #94a3b8 !important;
+}
+
+.standalone-admin-portal .admin-sidebar .admin-nav-item:hover,
+.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item:hover,
+.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
   color: #ffffff !important;
 }
 
-.standalone-admin-portal .admin-sidebar .admin-nav-item.active {
-  background: #0284c7 !important;
+.standalone-admin-portal .admin-sidebar .admin-nav-item:hover .nav-icon,
+.standalone-admin-portal .admin-sidebar .admin-nav-item:hover .nav-label {
   color: #ffffff !important;
 }
 
-.standalone-admin-portal .admin-sidebar .admin-nav-item.active * {
-  color: #ffffff !important;
+/* Active Nav Item with Smooth Inverse Curved Cut-out matching Main Canvas */
+.standalone-admin-portal .admin-sidebar .admin-nav-item.active,
+.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item.active,
+.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item.active {
+  background: var(--bg-main, #090d16) !important;
+  border-top-left-radius: 30px !important;
+  border-bottom-left-radius: 30px !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item.active,
+.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item.active {
+  background: #f8fafc !important;
+}
+
+/* Active Item typography & icon color */
+.standalone-admin-portal .admin-sidebar .admin-nav-item.active .nav-icon,
+.standalone-admin-portal .admin-sidebar .admin-nav-item.active .nav-label {
+  color: #0284c7 !important;
+  font-weight: 700 !important;
+}
+
+/* Top curved inverted corner (cut-out) */
+.standalone-admin-portal .admin-sidebar .admin-nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: -24px;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border-bottom-right-radius: 24px;
+  box-shadow: 10px 10px 0 10px var(--bg-main, #090d16);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item.active::before,
+.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item.active::before {
+  box-shadow: 10px 10px 0 10px #f8fafc;
+}
+
+/* Bottom curved inverted corner (cut-out) */
+.standalone-admin-portal .admin-sidebar .admin-nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -24px;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border-top-right-radius: 24px;
+  box-shadow: 10px -10px 0 10px var(--bg-main, #090d16);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item.active::after,
+.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item.active::after {
+  box-shadow: 10px -10px 0 10px #f8fafc;
 }
 
 .standalone-admin-portal .admin-header h2 {
@@ -6060,44 +6150,6 @@ button:not(:disabled):active,
 .light-theme .standalone-admin-portal {
   background: #f8fafc !important;
   color: #0f172a !important;
-}
-
-.standalone-admin-portal.light-theme .admin-sidebar,
-.light-theme .standalone-admin-portal .admin-sidebar {
-  background: #ffffff !important;
-  border-right: 1px solid #e2e8f0 !important;
-}
-
-.standalone-admin-portal.light-theme .admin-sidebar h1,
-.light-theme .standalone-admin-portal .admin-sidebar h1 {
-  color: #0f172a !important;
-}
-
-.standalone-admin-portal.light-theme .admin-sidebar span,
-.light-theme .standalone-admin-portal .admin-sidebar span {
-  color: #475569 !important;
-}
-
-.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item,
-.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item {
-  color: #334155 !important;
-}
-
-.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item:hover,
-.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item:hover {
-  background: #f1f5f9 !important;
-  color: #0f172a !important;
-}
-
-.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item.active,
-.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item.active {
-  background: #0284c7 !important;
-  color: #ffffff !important;
-}
-
-.standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item.active *,
-.light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item.active * {
-  color: #ffffff !important;
 }
 
 .standalone-admin-portal.light-theme .admin-header,

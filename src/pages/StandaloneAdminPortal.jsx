@@ -245,7 +245,15 @@ export default function StandaloneAdminPortal(props) {
         </div>
 
         {/* Menu Navigation */}
-        <div style={{ flex: 1, padding: '16px 8px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div style={{
+          flex: 1,
+          padding: isSidebarOpen ? '20px 0 20px 14px' : '20px 8px',
+          overflowY: 'auto',
+          overflowX: 'visible',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px'
+        }}>
           {visibleMenuItems.map(item => {
             const Icon = item.icon;
             const isActive = adminSubTab === item.id;
@@ -260,23 +268,19 @@ export default function StandaloneAdminPortal(props) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
-                  padding: isSidebarOpen ? '10px 14px' : '10px 0',
+                  padding: isSidebarOpen ? '12px 16px' : '12px 0',
                   justifyContent: isSidebarOpen ? 'flex-start' : 'center',
-                  borderRadius: '8px',
-                  background: isActive ? 'var(--primary, #0284c7)' : 'transparent',
-                  color: isActive ? '#ffffff' : 'var(--text-primary, #ffffff)',
                   border: 'none',
                   cursor: 'pointer',
                   fontWeight: isActive ? '700' : '500',
-                  fontSize: '0.86rem',
-                  transition: 'all 0.15s ease',
+                  fontSize: '0.88rem',
                   position: 'relative',
                   textAlign: 'left'
                 }}
               >
-                <Icon size={18} style={{ flexShrink: 0, color: isActive ? '#ffffff' : 'var(--text-secondary)' }} />
+                <Icon size={19} className="nav-icon" style={{ flexShrink: 0 }} />
                 {isSidebarOpen && (
-                  <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: isActive ? '#ffffff' : 'inherit' }}>
+                  <span className="nav-label" style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {item.label}
                   </span>
                 )}
@@ -289,6 +293,7 @@ export default function StandaloneAdminPortal(props) {
                     borderRadius: '9999px',
                     padding: '2px 7px',
                     marginLeft: 'auto',
+                    marginRight: isSidebarOpen ? '14px' : '0',
                     flexShrink: 0
                   }}>
                     {item.badge}
