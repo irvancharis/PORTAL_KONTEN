@@ -131,7 +131,7 @@ export default function StandaloneAdminPortal(props) {
 
   const adminMenuItems = [
     { id: 'event-dashboard', label: 'Ringkasan & Metrik', icon: LayoutDashboard },
-    { id: 'event-manage', label: 'Kelola Campaign & Event', icon: Calendar, badge: pendingEventsCount },
+    { id: 'event-manage', label: 'Kelola Campaign', icon: Calendar, badge: pendingEventsCount },
     { id: 'confirmations', label: 'Verifikasi Pembayaran', icon: CreditCard, badge: pendingConfirmationsCount },
     { id: 'withdrawals', label: 'Pencairan Dana (Withdrawal)', icon: TrendingUp, badge: pendingWithdrawalsCount },
     { id: 'finance-report', label: 'Jurnal Kas Finansial', icon: CreditCard },

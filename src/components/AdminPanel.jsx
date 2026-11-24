@@ -738,6 +738,7 @@ export default function AdminPanel({
   const [winnerJuara3, setWinnerJuara3] = useState('');
 
   const [eventManageSearch, setEventManageSearch] = useState('');
+  const [eventManageStatusFilter, setEventManageStatusFilter] = useState('all');
   const [eventParticipantsSearch, setEventParticipantsSearch] = useState('');
   const [eventSubmissionsSearch, setEventSubmissionsSearch] = useState('');
   const [eventJudgingSearch, setEventJudgingSearch] = useState('');
@@ -2297,13 +2298,13 @@ export default function AdminPanel({
     switch (adminSubTab) {
       case 'event-dashboard':
         return {
-          title: 'Dashboard Event',
-          subtitle: 'Ringkasan metrik, aktivitas peserta, dan penilaian karya dalam event kreatif.'
+          title: 'Dashboard Campaign',
+          subtitle: 'Ringkasan metrik, performa kreator, dan statistik alokasi campaign kreatif.'
         };
       case 'event-manage':
         return {
-          title: 'Kelola Event',
-          subtitle: 'Buat kompetisi baru dan lihat daftar event yang sedang aktif.'
+          title: 'Kelola Campaign',
+          subtitle: 'Buat kompetisi baru dan pantau performa campaign yang sedang aktif.'
         };
       case 'event-payment':
         return {
@@ -2767,7 +2768,7 @@ export default function AdminPanel({
                 }}
               >
                 <ArrowLeft size={14} />
-                <span>Kembali ke Kelola Event</span>
+                <span>Kembali ke Kelola Campaign</span>
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
@@ -4688,35 +4689,40 @@ export default function AdminPanel({
             document.body
           )}
 
-          {/* Event List View */}
           <div className="event-list-container">
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                gap: '16px', 
-                marginBottom: '16px',
-                width: '100%',
-                flexWrap: 'wrap'
-              }}>
+            {/* Header Toolbar: Search, Status Filter Tabs & Create Action */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              gap: '14px', 
+              marginBottom: '20px',
+              width: '100%',
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', flex: '1 1 auto' }}>
                 {/* Search Bar */}
-                <div style={{ position: 'relative', width: '100%', maxWidth: '360px' }}>
-                  <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <div style={{ position: 'relative', width: '100%', maxWidth: '320px' }}>
+                  <Search size={15} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
                     type="text"
                     value={eventManageSearch}
                     onChange={(e) => setEventManageSearch(e.target.value)}
-                    placeholder="Cari event berdasarkan judul, kategori..."
+                    placeholder="Cari campaign, kategori..."
                     style={{
                       width: '100%',
-                      padding: '8px 12px 8px 36px',
-                      background: 'rgba(255,255,255,0.03)',
+                      padding: '10px 14px 10px 38px',
+                      background: 'var(--bg-card)',
                       border: '1px solid var(--border-color)',
-                      borderRadius: '20px',
-                      color: 'white',
-                      fontSize: '0.82rem',
-                      outline: 'none'
+                      borderRadius: '12px',
+                      color: 'var(--text-primary)',
+                      fontSize: '0.84rem',
+                      outline: 'none',
+                      boxShadow: 'var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05))',
+                      transition: 'border-color 0.2s, box-shadow 0.2s'
                     }}
+                    onFocus={(e) => { e.target.style.borderColor = 'var(--text-secondary)'; }}
+                    onBlur={(e) => { e.target.style.borderColor = 'var(--border-color)'; }}
                   />
                   {eventManageSearch && (
                     <button
@@ -4730,7 +4736,7 @@ export default function AdminPanel({
                         border: 'none',
                         color: 'var(--text-muted)',
                         cursor: 'pointer',
-                        fontSize: '0.9rem'
+                        fontSize: '0.85rem'
                       }}
                     >
                       ✕
@@ -4738,404 +4744,510 @@ export default function AdminPanel({
                   )}
                 </div>
 
-                {/* Create Event Button */}
-                <button 
-                  id="tour-manage-create-event-btn"
-                  className="btn btn-primary" 
-                  onClick={() => {
-                    const matchedUser = users.find(u => (u.id && currentUser?.id && u.id === currentUser.id) || u.username?.toLowerCase() === currentUser?.username?.toLowerCase()) || {};
-                    const activeUser = { ...matchedUser, ...currentUser };
-                    const pCheck = checkUserProfileComplete(activeUser);
-                    if (!pCheck.isComplete) {
-                      alert(`Profil Belum Lengkap!\n\nUntuk membuat Campaign, lengkapi data profil Anda: ${pCheck.missingFields.join(', ')}.`);
-                      if (onEditProfileClick) onEditProfileClick();
-                      return;
-                    }
+                {/* Status Filter Pills */}
+                <div style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '4px',
+                  padding: '4px',
+                  borderRadius: '12px',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-color)'
+                }}>
+                  {[
+                    { id: 'all', label: 'Semua' },
+                    { id: 'active', label: 'Berjalan' },
+                    { id: 'pending', label: 'Pending / Verifikasi' },
+                    { id: 'ended', label: 'Selesai' }
+                  ].map(tab => {
+                    const isActive = eventManageStatusFilter === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setEventManageStatusFilter(tab.id)}
+                        style={{
+                          border: 'none',
+                          background: isActive ? 'var(--text-primary)' : 'transparent',
+                          color: isActive ? 'var(--bg-main, #000)' : 'var(--text-secondary)',
+                          fontWeight: isActive ? '700' : '500',
+                          fontSize: '0.78rem',
+                          padding: '6px 14px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          transition: 'all 0.18s ease'
+                        }}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-                    const isCommunityUser = currentUser?.isCommunity || currentUser?.role === 'panitia';
-                    if (isCommunityUser) {
-                      const myComm = communities.find(c => c.username.toLowerCase() === currentUser.username.toLowerCase());
-                      if (myComm) {
-                        const targetCount = Number(myComm.activeMembersCount || 0);
-                        const currentCount = (myComm.joinedMembers || []).length;
-                        if (currentCount < targetCount) {
-                          alert(`Komunitas Anda belum aktif! Anda baru memiliki ${currentCount}/${targetCount} anggota. Harap capai target anggota aktif terlebih dahulu untuk membuat event.`);
-                          return;
-                        }
+              {/* Create Event Button */}
+              <button 
+                id="tour-manage-create-event-btn"
+                className="btn btn-primary" 
+                onClick={() => {
+                  const matchedUser = users.find(u => (u.id && currentUser?.id && u.id === currentUser.id) || u.username?.toLowerCase() === currentUser?.username?.toLowerCase()) || {};
+                  const activeUser = { ...matchedUser, ...currentUser };
+                  const pCheck = checkUserProfileComplete(activeUser);
+                  if (!pCheck.isComplete) {
+                    alert(`Profil Belum Lengkap!\n\nUntuk membuat Campaign, lengkapi data profil Anda: ${pCheck.missingFields.join(', ')}.`);
+                    if (onEditProfileClick) onEditProfileClick();
+                    return;
+                  }
+
+                  const isCommunityUser = currentUser?.isCommunity || currentUser?.role === 'panitia';
+                  if (isCommunityUser) {
+                    const myComm = communities.find(c => c.username.toLowerCase() === currentUser.username.toLowerCase());
+                    if (myComm) {
+                      const targetCount = Number(myComm.activeMembersCount || 0);
+                      const currentCount = (myComm.joinedMembers || []).length;
+                      if (currentCount < targetCount) {
+                        alert(`Komunitas Anda belum aktif! Anda baru memiliki ${currentCount}/${targetCount} anggota. Harap capai target anggota aktif terlebih dahulu untuk membuat event.`);
+                        return;
                       }
                     }
+                  }
 
-                    setEventTitle('');
-                    setEventCategory('Short Film');
-                    setEventDeadline('');
-                    setEventMaxParticipants(50);
-                    setEventDescription('');
-                    setEventJuknis('');
-                    setEventJuknisPlatforms({ TikTok: false, Instagram: false, YouTube: false, Facebook: false, GoogleReview: false });
-                    setEventJuknisDuration('');
-                    setEventJuknisSourceName1('');
-                    setEventJuknisSourceLink1('');
-                    setEventJuknisSourceName2('');
-                    setEventJuknisSourceLink2('');
-                    setEventJuknisBrandName('');
-                    setEventJuknisBrandLink('');
-                    setEventJuknisDos('');
-                    setEventJuknisDonts('');
-                    setEventHasGift(false);
-                    setEventGiftType('voucher');
-                    setEventGiftName('');
-                    setEventGiftValue(0);
-                    setEventGiftDescription('');
-                    setEventBudget(5000000);
-                    setEventBenefitAmount(10000);
-                    setEventBenefitViewsStep(1000);
-                    setEventMinEarningViews(0);
-                    setEventHasMaxParticipants(true);
-                    setEventTargetAudience('public');
-                    setEventAreaMode('all');
-                    setEventAreaRegional('');
-                    setEventTicketPrice(0);
-                    setEventType('competition');
-                    setIsEventFormLoading(true);
-                    setShowEventForm(true);
-                    setTimeout(() => setIsEventFormLoading(false), 280);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <Plus size={18} />
-                  <span>Buat Campaign Baru</span>
-                </button>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-                {myEvents.length > 0 ? (
-                  (() => {
-                    const filteredEvents = myEvents.filter(evt => 
+                  setEventTitle('');
+                  setEventCategory('Short Film');
+                  setEventDeadline('');
+                  setEventMaxParticipants(50);
+                  setEventDescription('');
+                  setEventJuknis('');
+                  setEventJuknisPlatforms({ TikTok: false, Instagram: false, YouTube: false, Facebook: false, GoogleReview: false });
+                  setEventJuknisDuration('');
+                  setEventJuknisSourceName1('');
+                  setEventJuknisSourceLink1('');
+                  setEventJuknisSourceName2('');
+                  setEventJuknisSourceLink2('');
+                  setEventJuknisBrandName('');
+                  setEventJuknisBrandLink('');
+                  setEventJuknisDos('');
+                  setEventJuknisDonts('');
+                  setEventHasGift(false);
+                  setEventGiftType('voucher');
+                  setEventGiftName('');
+                  setEventGiftValue(0);
+                  setEventGiftDescription('');
+                  setEventBudget(5000000);
+                  setEventBenefitAmount(10000);
+                  setEventBenefitViewsStep(1000);
+                  setEventMinEarningViews(0);
+                  setEventHasMaxParticipants(true);
+                  setEventTargetAudience('public');
+                  setEventAreaMode('all');
+                  setEventAreaRegional('');
+                  setEventTicketPrice(0);
+                  setEventType('competition');
+                  setIsEventFormLoading(true);
+                  setShowEventForm(true);
+                  setTimeout(() => setIsEventFormLoading(false), 280);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 18px',
+                  borderRadius: '12px',
+                  fontWeight: '700',
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.12)'
+                }}
+              >
+                <Plus size={18} />
+                <span>Buat Campaign Baru</span>
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+              {myEvents.length > 0 ? (
+                (() => {
+                  const filteredEvents = myEvents.filter(evt => {
+                    const matchesSearch = 
                       evt.title?.toLowerCase().includes(eventManageSearch.toLowerCase()) ||
                       evt.category?.toLowerCase().includes(eventManageSearch.toLowerCase()) ||
-                      evt.description?.toLowerCase().includes(eventManageSearch.toLowerCase())
-                    ).sort((a, b) => {
-                      const statusA = getEventStatus(a).label;
-                      const statusB = getEventStatus(b).label;
-                      const getOrder = (statusStr) => {
-                        if (statusStr === 'Menunggu Verifikasi') return 1;
-                        if (statusStr === 'Pending') return 2;
-                        if (statusStr === 'Berjalan') return 3;
-                        return 4;
-                      };
-                      const orderDiff = getOrder(statusA) - getOrder(statusB);
-                      if (orderDiff !== 0) return orderDiff;
-                      if (!a.deadline && !b.deadline) return 0;
-                      if (!a.deadline) return 1;
-                      if (!b.deadline) return -1;
-                      const timeA = new Date(a.deadline).getTime();
-                      const timeB = new Date(b.deadline).getTime();
-                      return timeA - timeB;
-                    });
-                    if (filteredEvents.length === 0) {
-                      return (
-                        <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                          Tidak ada event yang cocok dengan kata kunci pencarian Anda.
-                        </div>
-                      );
+                      evt.description?.toLowerCase().includes(eventManageSearch.toLowerCase());
+                    if (!matchesSearch) return false;
+
+                    if (eventManageStatusFilter === 'active') {
+                      return getEventStatus(evt).label === 'Berjalan';
                     }
-                    return filteredEvents.map((evt, idx) => {
-                      const status = getEventStatus(evt);
-                      const isLocked = (currentUser?.role === 'panitia' || currentUser?.role === 'user') && status.label === 'Berjalan';
-                      return (
-                        <div 
-                          key={evt.id}
-                          id={idx === 0 ? "tour-manage-first-card" : undefined}
-                          onClick={() => { setSelectedManageEvent(evt); setInnerManageTab('participants'); }}
-                          style={{ 
-                            borderRadius: '12px', 
-                            padding: '18px 24px', 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'space-between',
-                            gap: '24px',
-                            border: '1px solid var(--border-color)',
-                            background: 'var(--bg-card)',
-                            backdropFilter: 'blur(12px)',
-                            boxShadow: 'var(--shadow-premium)',
-                            flexWrap: 'wrap',
-                            width: '100%',
-                            boxSizing: 'border-box',
-                            cursor: 'pointer',
-                            transition: 'all 0.3s ease'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'var(--primary-glow)';
-                            e.currentTarget.style.borderColor = 'var(--text-secondary)';
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'var(--bg-card)';
-                            e.currentTarget.style.borderColor = 'var(--border-color)';
-                            e.currentTarget.style.transform = 'translateY(0)';
-                          }}
-                        >
-                          {/* Left Section: Tags, Title, Status & Desc */}
-                          <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                              {(() => {
-                                const style = getCategoryBadgeStyle(evt.category);
-                                return (
-                                  <span style={{ 
-                                    fontSize: '0.68rem', 
-                                    background: style.bg, 
-                                    color: style.color, 
-                                    padding: '3px 10px', 
-                                    borderRadius: '12px',
-                                    fontWeight: 'bold',
-                                    textTransform: 'uppercase',
-                                    border: style.border
-                                  }}>
-                                    {evt.category}
-                                  </span>
-                                );
-                              })()}
+                    if (eventManageStatusFilter === 'pending') {
+                      const lbl = getEventStatus(evt).label;
+                      return lbl === 'Pending' || lbl === 'Menunggu Verifikasi' || evt.paymentStatus !== 'paid';
+                    }
+                    if (eventManageStatusFilter === 'ended') {
+                      return getEventStatus(evt).label === 'Selesai';
+                    }
+                    return true;
+                  }).sort((a, b) => {
+                    const statusA = getEventStatus(a).label;
+                    const statusB = getEventStatus(b).label;
+                    const getOrder = (statusStr) => {
+                      if (statusStr === 'Menunggu Verifikasi') return 1;
+                      if (statusStr === 'Pending') return 2;
+                      if (statusStr === 'Berjalan') return 3;
+                      return 4;
+                    };
+                    const orderDiff = getOrder(statusA) - getOrder(statusB);
+                    if (orderDiff !== 0) return orderDiff;
+                    if (!a.deadline && !b.deadline) return 0;
+                    if (!a.deadline) return 1;
+                    if (!b.deadline) return -1;
+                    const timeA = new Date(a.deadline).getTime();
+                    const timeB = new Date(b.deadline).getTime();
+                    return timeA - timeB;
+                  });
 
-                              {/* Status Badge with Tooltip */}
-                              <div className="tooltip-container">
-                                <span 
-                                  className={status.label === 'Berjalan' ? 'animate-glow-green' :
-                                             status.label === 'Pending' ? 'animate-glow-amber' :
-                                             status.label === 'Menunggu Verifikasi' ? 'animate-glow-blue' : ''}
-                                  style={{ 
-                                    fontSize: '0.68rem', 
-                                    padding: '3px 10px', 
-                                    borderRadius: '12px', 
-                                    fontWeight: 'bold', 
-                                    color: status.color, 
-                                    background: status.bg, 
-                                    border: `1px solid ${status.color}30`,
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px'
-                                  }}
-                                >
-                                  {status.label}
-                                  <Info size={11} style={{ opacity: 0.8, cursor: 'help' }} />
-                                </span>
-                                <span className="tooltip-text">
-                                  {status.info}
-                                </span>
-                              </div>
+                  if (filteredEvents.length === 0) {
+                    return (
+                      <div style={{ 
+                        padding: '48px 24px', 
+                        textAlign: 'center', 
+                        color: 'var(--text-muted)', 
+                        fontSize: '0.88rem',
+                        background: 'var(--bg-card)',
+                        borderRadius: '16px',
+                        border: '1px dashed var(--border-color)'
+                      }}>
+                        Tidak ada Campaign yang cocok dengan kata kunci atau filter pencarian Anda.
+                      </div>
+                    );
+                  }
 
-                              {evt.paymentStatus !== 'paid' && (
+                  return filteredEvents.map((evt, idx) => {
+                    const status = getEventStatus(evt);
+                    const isLocked = (currentUser?.role === 'panitia' || currentUser?.role === 'user') && status.label === 'Berjalan';
+                    const isPaid = evt.paymentStatus === 'paid';
+                    const isPendingVerification = evt.paymentStatus === 'pending_verification';
+
+                    return (
+                      <div 
+                        key={evt.id}
+                        id={idx === 0 ? "tour-manage-first-card" : undefined}
+                        onClick={() => { setSelectedManageEvent(evt); setInnerManageTab('participants'); }}
+                        style={{ 
+                          borderRadius: '16px', 
+                          padding: '20px 24px', 
+                          display: 'grid', 
+                          gridTemplateColumns: 'minmax(300px, 1.8fr) minmax(240px, 1.2fr) auto',
+                          alignItems: 'center', 
+                          gap: '24px',
+                          border: '1px solid var(--border-color)',
+                          background: 'var(--bg-card)',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          cursor: 'pointer',
+                          position: 'relative',
+                          transition: 'all 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.08)';
+                          e.currentTarget.style.borderColor = 'var(--text-muted)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)';
+                          e.currentTarget.style.borderColor = 'var(--border-color)';
+                        }}
+                      >
+                        {/* Left Section: Category, Badges, Title & Description */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left', minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            {(() => {
+                              const style = getCategoryBadgeStyle(evt.category);
+                              return (
                                 <span style={{ 
                                   fontSize: '0.68rem', 
-                                  background: 'rgba(239, 68, 68, 0.15)', 
-                                  color: '#f87171', 
+                                  background: style.bg, 
+                                  color: style.color, 
                                   padding: '3px 10px', 
-                                  borderRadius: '12px',
-                                  fontWeight: 'bold',
-                                  border: '1px solid rgba(239, 68, 68, 0.2)'
+                                  borderRadius: '8px',
+                                  fontWeight: '700',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.03em',
+                                  border: style.border
                                 }}>
-                                  Belum Bayar
+                                  {evt.category}
                                 </span>
-                              )}
+                              );
+                            })()}
 
-                              {evt.areaMode === 'regional' && evt.areaRegional && (
-                                <span style={{ 
-                                  fontSize: '0.68rem', 
-                                  background: 'rgba(239, 68, 68, 0.15)', 
-                                  color: '#f87171', 
+                            {/* Status Badge with Subtle Dot */}
+                            <div className="tooltip-container">
+                              <span 
+                                style={{ 
+                                  fontSize: '0.72rem', 
                                   padding: '3px 10px', 
-                                  borderRadius: '12px',
-                                  fontWeight: 'bold',
-                                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                                  borderRadius: '8px', 
+                                  fontWeight: '600', 
+                                  color: status.color, 
+                                  background: status.bg, 
+                                  border: `1px solid ${status.color}30`,
                                   display: 'inline-flex',
                                   alignItems: 'center',
-                                  gap: '3px'
-                                }}>
-                                  <MapPin size={10} />
-                                  {evt.areaRegional}
-                                </span>
-                              )}
-                            </div>
-
-                            <h3 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: '700', margin: 0 }}>{evt.title}</h3>
-                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', maxWidth: '500px' }}>
-                              {evt.description}
-                            </p>
-                          </div>
-
-                          {/* Middle Section: Budget & Deadline */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap', marginRight: '8px' }}>
-                            <div style={{ minWidth: '160px', textAlign: 'left' }}>
-                              {evt.eventType === 'regular' ? (
-                                <>
-                                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
-                                    Biaya Platform (Flat)
-                                  </div>
-                                  <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>
-                                    Rp {evt.adminFee ? evt.adminFee.toLocaleString('id-ID') : 'Rp 0'}
-                                  </strong>
-                                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>
-                                    Harga Tiket: <span style={{ color: evt.ticketPrice > 0 ? '#10b981' : 'var(--text-primary)', fontWeight: 'bold' }}>{evt.ticketPrice > 0 ? `Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}</span>
-                                  </div>
-                                </>
-                              ) : (
-                                <>
-                                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
-                                    {evt.budgetMode === 'views' ? 'Sisa / Total Budget' : 'Prize Pool'}
-                                  </div>
-                                  <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>
-                                    Rp {evt.campaignBudget ? evt.campaignBudget.toLocaleString('id-ID') : '0'}
-                                  </strong>
-                                  {evt.adminFee > 0 && (
-                                    <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                                      + Platform: Rp {evt.adminFee.toLocaleString('id-ID')}
-                                    </div>
-                                  )}
-                                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>
-                                    {evt.budgetMode === 'views' ? 'Pay-per-View' : 'Sistem Juara'}
-                                  </div>
-                                </>
-                              )}
-                            </div>
-
-                            <div style={{ minWidth: '180px', display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                <Calendar size={13} style={{ color: 'var(--text-secondary)' }} />
-                                <span>Batas Waktu</span>
-                              </div>
-                              <span style={{ 
-                                fontSize: '0.75rem', 
-                                color: 'var(--text-primary)', 
-                                background: 'var(--primary-glow)', 
-                                border: '1px solid var(--border-color)',
-                                padding: '3px 8px', 
-                                borderRadius: '4px', 
-                                display: 'inline-block',
-                                fontWeight: '600'
-                              }}>
-                                {evt.deadline ? formatIndonesianDate(evt.deadline) : 'Tanpa Batas Waktu'}
+                                  gap: '6px'
+                                }}
+                              >
+                                <span style={{
+                                  width: '6px',
+                                  height: '6px',
+                                  borderRadius: '50%',
+                                  backgroundColor: status.color,
+                                  display: 'inline-block'
+                                }} />
+                                {status.label}
+                                <Info size={11} style={{ opacity: 0.7, cursor: 'help' }} />
+                              </span>
+                              <span className="tooltip-text">
+                                {status.info}
                               </span>
                             </div>
-                          </div>
 
-                          {/* Right Section: Actions & Payment Buttons */}
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }} onClick={(e) => e.stopPropagation()}>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              <button 
-                                className="action-btn" 
-                                onClick={() => { setSelectedManageEvent(evt); setInnerManageTab('participants'); }} 
-                                style={{ color: 'var(--text-primary)', cursor: 'pointer', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                title="Kelola Event (Detail)"
-                              >
-                                <Eye size={15} />
-                              </button>
-                              <button 
-                                className="action-btn" 
-                                onClick={() => handleEditEvent(evt)} 
-                                disabled={isLocked}
-                                style={{ 
-                                  color: 'var(--text-primary)', 
-                                  cursor: isLocked ? 'not-allowed' : 'pointer', 
-                                  background: 'var(--primary-glow)', 
-                                  border: '1px solid var(--border-color)', 
-                                  padding: '8px', 
-                                  borderRadius: '8px', 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  justifyContent: 'center',
-                                  opacity: isLocked ? 0.3 : 1
-                                }}
-                                title={isLocked ? "Event berjalan dikunci (tidak bisa diedit)" : "Edit Event"}
-                              >
-                                <Edit size={15} />
-                              </button>
-                              <button 
-                                className="action-btn" 
-                                onClick={() => handleDeleteEvent(evt.id)} 
-                                disabled={isLocked}
-                                style={{ 
-                                  color: '#ef4444', 
-                                  cursor: isLocked ? 'not-allowed' : 'pointer', 
-                                  background: 'rgba(239, 68, 68, 0.08)', 
-                                  border: '1px solid rgba(239, 68, 68, 0.2)', 
-                                  padding: '8px', 
-                                  borderRadius: '8px', 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  justifyContent: 'center',
-                                  opacity: isLocked ? 0.3 : 1
-                                }}
-                                title={isLocked ? "Event berjalan dikunci (tidak bisa dihapus)" : "Hapus Event"}
-                              >
-                                <Trash2 size={15} />
-                              </button>
-                            </div>
+                            {!isPaid && (
+                              <span style={{ 
+                                fontSize: '0.68rem', 
+                                background: 'rgba(239, 68, 68, 0.1)', 
+                                color: '#ef4444', 
+                                padding: '3px 9px', 
+                                borderRadius: '8px',
+                                fontWeight: '700',
+                                border: '1px solid rgba(239, 68, 68, 0.25)'
+                              }}>
+                                Belum Bayar
+                              </span>
+                            )}
 
-                            {evt.paymentStatus !== 'paid' && (
-                              evt.paymentStatus === 'pending_verification' ? (
-                                currentUser?.role === 'superadmin' ? (
-                                  <button 
-                                    className="btn btn-sm" 
-                                    onClick={() => setAdminSubTab('confirmations')}
-                                    style={{ 
-                                      padding: '6px 12px', 
-                                      fontSize: '0.75rem', 
-                                      display: 'inline-flex', 
-                                      alignItems: 'center', 
-                                      gap: '4px', 
-                                      background: '#ffffff', 
-                                      border: '1px solid #ffffff', 
-                                      color: '#020202', 
-                                      fontWeight: 'bold',
-                                      borderRadius: '20px'
-                                    }}
-                                  >
-                                    Verifikasi Pembayaran
-                                  </button>
-                                ) : (
-                                  <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                                    Menunggu Verifikasi
-                                  </span>
-                                )
-                              ) : (
-                                <button 
-                                  className="btn btn-sm" 
-                                  onClick={() => handleOpenPayment(evt)}
-                                  style={{ 
-                                    padding: '6px 12px', 
-                                    fontSize: '0.75rem', 
-                                    display: 'inline-flex', 
-                                    alignItems: 'center', 
-                                    gap: '4px', 
-                                    background: '#ffffff', 
-                                    border: '1px solid #ffffff', 
-                                    color: '#020202', 
-                                    fontWeight: 'bold',
-                                    borderRadius: '20px'
-                                  }}
-                                >
-                                  Selesaikan Pembayaran
-                                </button>
-                              )
+                            {evt.areaMode === 'regional' && evt.areaRegional && (
+                              <span style={{ 
+                                fontSize: '0.68rem', 
+                                background: 'rgba(59, 130, 246, 0.08)', 
+                                color: '#3b82f6', 
+                                padding: '3px 9px', 
+                                borderRadius: '8px',
+                                fontWeight: '600',
+                                border: '1px solid rgba(59, 130, 246, 0.2)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}>
+                                <MapPin size={10} />
+                                {evt.areaRegional}
+                              </span>
                             )}
                           </div>
+
+                          <h3 style={{ 
+                            color: 'var(--text-primary)', 
+                            fontSize: '1.08rem', 
+                            fontWeight: '700', 
+                            margin: '2px 0 0',
+                            letterSpacing: '-0.01em',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}>
+                            {evt.title}
+                          </h3>
+
+                          <p style={{ 
+                            color: 'var(--text-secondary)', 
+                            fontSize: '0.82rem', 
+                            lineHeight: '1.45',
+                            margin: 0, 
+                            overflow: 'hidden', 
+                            textOverflow: 'ellipsis', 
+                            display: '-webkit-box', 
+                            WebkitLineClamp: 2, 
+                            WebkitBoxOrient: 'vertical'
+                          }}>
+                            {evt.description || 'Tidak ada deskripsi rinci.'}
+                          </p>
                         </div>
-                      );
-                    });
-                  })()
-                ) : (
-                  <div className="admin-empty-state" style={{ padding: '48px', borderRadius: '16px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                    <Calendar size={48} className="icon" />
-                    <h3>Belum ada Campaign</h3>
-                    <p>Mulai dengan membuat event kompetisi kreatif pertama Anda dengan tombol di atas.</p>
-                  </div>
-                )}
-              </div>        </div>
+
+                        {/* Middle Section: Budget Metric & Deadline */}
+                        <div style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          gap: '20px', 
+                          background: 'var(--primary-glow)',
+                          padding: '12px 18px',
+                          borderRadius: '12px',
+                          border: '1px solid var(--border-color)'
+                        }}>
+                          {/* Budget Box */}
+                          <div style={{ textAlign: 'left', minWidth: '110px' }}>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: '600', marginBottom: '2px' }}>
+                              {evt.eventType === 'regular' ? 'Biaya Platform' : (evt.budgetMode === 'views' ? 'Total Budget' : 'Prize Pool')}
+                            </div>
+                            <strong style={{ color: 'var(--text-primary)', fontSize: '0.98rem', fontWeight: '800', display: 'block', letterSpacing: '-0.01em' }}>
+                              Rp {(evt.eventType === 'regular' ? evt.adminFee : evt.campaignBudget || 0).toLocaleString('id-ID')}
+                            </strong>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                              {evt.eventType === 'regular' 
+                                ? (evt.ticketPrice > 0 ? `Tiket: Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Tiket: Gratis')
+                                : (evt.budgetMode === 'views' ? 'Pay-per-View' : 'Sistem Juara')}
+                            </div>
+                          </div>
+
+                          <div style={{ width: '1px', height: '36px', background: 'var(--border-color)' }} />
+
+                          {/* Deadline Box */}
+                          <div style={{ textAlign: 'left', minWidth: '110px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: '600', marginBottom: '3px' }}>
+                              <Calendar size={12} />
+                              <span>Batas Waktu</span>
+                            </div>
+                            <div style={{ 
+                              fontSize: '0.8rem', 
+                              color: 'var(--text-primary)', 
+                              fontWeight: '700'
+                            }}>
+                              {evt.deadline ? formatIndonesianDate(evt.deadline) : 'Tanpa Batas'}
+                            </div>
+                            <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                              {evt.deadline ? 'Jadwal Ditutup' : 'Fleksibel'}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right Section: Compact Action Buttons & CTA */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <button 
+                              className="action-btn" 
+                              onClick={() => { setSelectedManageEvent(evt); setInnerManageTab('participants'); }} 
+                              style={{ 
+                                color: 'var(--text-primary)', 
+                                cursor: 'pointer', 
+                                background: 'var(--bg-main)', 
+                                border: '1px solid var(--border-color)', 
+                                padding: '8px', 
+                                borderRadius: '10px', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                transition: 'all 0.2s'
+                              }}
+                              title="Lihat Detail & Kelola"
+                            >
+                              <Eye size={15} />
+                            </button>
+                            <button 
+                              className="action-btn" 
+                              onClick={() => handleEditEvent(evt)} 
+                              disabled={isLocked}
+                              style={{ 
+                                color: 'var(--text-primary)', 
+                                cursor: isLocked ? 'not-allowed' : 'pointer', 
+                                background: 'var(--bg-main)', 
+                                border: '1px solid var(--border-color)', 
+                                padding: '8px', 
+                                borderRadius: '10px', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                opacity: isLocked ? 0.35 : 1,
+                                transition: 'all 0.2s'
+                              }}
+                              title={isLocked ? "Campaign berjalan dikunci (tidak bisa diedit)" : "Edit Campaign"}
+                            >
+                              <Edit size={15} />
+                            </button>
+                            <button 
+                              className="action-btn" 
+                              onClick={() => handleDeleteEvent(evt.id)} 
+                              disabled={isLocked}
+                              style={{ 
+                                color: '#ef4444', 
+                                cursor: isLocked ? 'not-allowed' : 'pointer', 
+                                background: 'rgba(239, 68, 68, 0.08)', 
+                                border: '1px solid rgba(239, 68, 68, 0.2)', 
+                                padding: '8px', 
+                                borderRadius: '10px', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                opacity: isLocked ? 0.35 : 1,
+                                transition: 'all 0.2s'
+                              }}
+                              title={isLocked ? "Campaign berjalan dikunci (tidak bisa dihapus)" : "Hapus Campaign"}
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+
+                          {!isPaid && (
+                            isPendingVerification ? (
+                              currentUser?.role === 'superadmin' ? (
+                                <button 
+                                  className="btn btn-sm" 
+                                  onClick={() => setAdminSubTab('confirmations')}
+                                  style={{ 
+                                    padding: '6px 14px', 
+                                    fontSize: '0.74rem', 
+                                    display: 'inline-flex', 
+                                    alignItems: 'center', 
+                                    gap: '5px', 
+                                    background: '#ffffff', 
+                                    border: '1px solid #ffffff', 
+                                    color: '#000000', 
+                                    fontWeight: '700',
+                                    borderRadius: '10px',
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                                  }}
+                                >
+                                  Verifikasi Pembayaran
+                                </button>
+                              ) : (
+                                <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontStyle: 'italic', fontWeight: '500' }}>
+                                  Menunggu Verifikasi
+                                </span>
+                              )
+                            ) : (
+                              <button 
+                                className="btn btn-sm" 
+                                onClick={() => handleOpenPayment(evt)}
+                                style={{ 
+                                  padding: '7px 14px', 
+                                  fontSize: '0.75rem', 
+                                  display: 'inline-flex', 
+                                  alignItems: 'center', 
+                                  gap: '5px', 
+                                  background: '#ffffff', 
+                                  border: '1px solid #ffffff', 
+                                  color: '#000000', 
+                                  fontWeight: '700',
+                                  borderRadius: '10px',
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+                                }}
+                              >
+                                Selesaikan Pembayaran
+                              </button>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()
+              ) : (
+                <div className="admin-empty-state" style={{ padding: '48px', borderRadius: '16px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                  <Calendar size={48} className="icon" />
+                  <h3>Belum ada Campaign</h3>
+                  <p>Mulai dengan membuat event kompetisi kreatif pertama Anda dengan tombol di atas.</p>
+                </div>
+              )}
             </div>
           </div>
-        )
-      ) : adminSubTab === 'creator-marketplace' ? (
+        </div>
+      )
+    ) : adminSubTab === 'creator-marketplace' ? (
         <div className="creator-marketplace-section animate-fade-in" style={{ padding: '4px', textAlign: 'left' }}>
 
 
@@ -7925,7 +8037,7 @@ export default function AdminPanel({
                       { id: 'finance-report', label: 'Laporan Keuangan' },
                       { id: 'users', label: 'Kelola Pengguna' },
                       { id: 'event-dashboard', label: 'Dashboard Event' },
-                      { id: 'event-manage', label: 'Kelola Event' },
+                      { id: 'event-manage', label: 'Kelola Campaign' },
                       { id: 'event-payment', label: 'Payment Event' },
                       { id: 'creator-marketplace', label: 'Marketplace Creator' }
                     ].map((item) => {
