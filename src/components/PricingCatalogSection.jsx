@@ -61,7 +61,7 @@ export default function PricingCatalogSection({ onSelectPlan, onOpenLegal }) {
         'Kanal distribusi hadiah multi-bank/e-wallet',
         'Laporan performa & jangkauan kampanye'
       ],
-      ctaText: 'Buat Kampanye Sekarang',
+      ctaText: 'Buat Campaign Sekarang',
       isPopular: false
     }
   ];

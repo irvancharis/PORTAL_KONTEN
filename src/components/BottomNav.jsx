@@ -66,14 +66,14 @@ export default function BottomNav({
   if (!isCommunityUser) {
     navItems.push(
       { id: 'discover', label: 'Beranda', icon: Home, isEventCreator: false },
-      { id: 'events', label: 'Kampanye', icon: Trophy, isEventCreator: false },
+      { id: 'events', label: 'Campaign', icon: Trophy, isEventCreator: false },
       { id: 'communities', label: 'Komunitas', icon: Users, isEventCreator: false }
     );
   } else {
     // Community/Panitia Bottom Navigation
     navItems.push(
       { id: 'event-dashboard', label: 'Dashboard', icon: Home, isEventCreator: true },
-      { id: 'event-manage', label: 'Kelola Kampanye', icon: Trophy, isEventCreator: true },
+      { id: 'event-manage', label: 'Kelola Campaign', icon: Trophy, isEventCreator: true },
       { id: 'community-members', label: 'Anggota', icon: Users, isEventCreator: true },
       { id: 'community-agendas', label: 'Agenda', icon: Calendar, isEventCreator: true }
     );

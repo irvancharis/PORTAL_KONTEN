@@ -581,7 +581,7 @@ export default function EventsUserPortal({
     const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
     const profileCheck = checkUserProfileComplete(userProfile);
     if (!profileCheck.isComplete) {
-      alert('Lengkapi profil Anda untuk dapat mendaftar kampanye.');
+      alert('Lengkapi profil Anda untuk dapat mendaftar Campaign.');
       if (onEditProfileClick) onEditProfileClick();
       return;
     }
@@ -1185,7 +1185,7 @@ export default function EventsUserPortal({
       const activeUser = { ...matchedUser, ...currentUser };
       const profileCheck = checkUserProfileComplete(activeUser);
       if (!profileCheck.isComplete) {
-        alert(`Profil Belum Lengkap!\n\nUntuk membuat kampanye, lengkapi data profil Anda: ${profileCheck.missingFields.join(', ')}.`);
+        alert(`Profil Belum Lengkap!\n\nUntuk membuat Campaign, lengkapi data profil Anda: ${profileCheck.missingFields.join(', ')}.`);
         if (onEditProfileClick) onEditProfileClick();
         return;
       }
@@ -1261,7 +1261,7 @@ export default function EventsUserPortal({
               <div>
                 <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
                 <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.5' }}>
-                  Lengkapi data profil Anda ({pCheck.missingFields.join(', ')}) untuk membuat dan mengikuti kampanye.
+                  Lengkapi data profil Anda ({pCheck.missingFields.join(', ')}) untuk membuat dan mengikuti Campaign.
                 </p>
               </div>
             </div>
@@ -2043,7 +2043,7 @@ export default function EventsUserPortal({
                                   const activeUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || currentUser;
                                   const pCheck = checkUserProfileComplete(activeUser);
                                   if (!pCheck.isComplete) {
-                                    alert('Lengkapi profil Anda untuk mengikuti kampanye ini.');
+                                    alert('Lengkapi profil Anda untuk mengikuti Campaign ini.');
                                     if (onEditProfileClick) onEditProfileClick();
                                     return;
                                   }
@@ -2609,7 +2609,7 @@ export default function EventsUserPortal({
             marginBottom: '16px' 
           }}>
             <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
-              Kampanye & Kompetisi Kreatif
+              Campaign & Kompetisi Kreatif
             </h1>
           </div>
 
@@ -2632,7 +2632,7 @@ export default function EventsUserPortal({
                   whiteSpace: 'nowrap'
                 }}
               >
-                Semua Kampanye
+                Semua Campaign
               </button>
               <button
                 id="tour-tab-manage-events"
@@ -2654,7 +2654,7 @@ export default function EventsUserPortal({
                   whiteSpace: 'nowrap'
                 }}
               >
-                Kelola Kampanye Saya
+                Kelola Campaign Saya
               </button>
               <button
                 onClick={() => changePortalTab('offers')}
@@ -2927,7 +2927,7 @@ export default function EventsUserPortal({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari kampanye atau kompetisi..."
+                  placeholder="Cari Campaign atau kompetisi..."
                   style={{
                     width: '100%',
                     padding: '10px 12px 10px 38px',
@@ -3004,7 +3004,7 @@ export default function EventsUserPortal({
               }}
             >
               <Calendar size={16} />
-              <span>Buat Kampanye Baru</span>
+              <span>Buat Campaign Baru</span>
             </button>
           </div>
 

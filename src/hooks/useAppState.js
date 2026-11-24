@@ -2807,7 +2807,7 @@ export default function useAppState() {
         };
       } else {
         // General Events Page
-        document.title = 'Kampanye & Event Kreatif - ngonten.id';
+        document.title = 'Campaign & Event Kreatif - ngonten.id';
         if (metaDesc) {
           metaDesc.setAttribute('content', 'Ikuti berbagai kampanye kreatif, kompetisi video, UGC, dan temukan kolaborasi proyek bernilai tinggi dengan hadiah jutaan rupiah.');
         }

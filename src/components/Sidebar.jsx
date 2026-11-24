@@ -36,14 +36,14 @@ export default function Sidebar({
   const generalMenuItems = [
     ...(!isCommunityUser ? [
       { id: 'discover', label: 'Beranda', icon: Home },
-      { id: 'events', label: 'Kampanye', icon: Trophy },
+      { id: 'events', label: 'Campaign', icon: Trophy },
       { id: 'communities', label: 'Komunitas', icon: Users }
     ] : [])
   ];
 
   const eventMenuItems = [
-    { id: 'event-dashboard', label: 'Dashboard Kampanye', icon: LayoutDashboard },
-    { id: 'event-manage', label: 'Kelola Kampanye', icon: Calendar },
+    { id: 'event-dashboard', label: 'Dashboard Campaign', icon: LayoutDashboard },
+    { id: 'event-manage', label: 'Kelola Campaign', icon: Calendar },
     ...(!isCommunityUser ? [
       { id: 'event-payment', label: 'Verifikasi Pembayaran', icon: CreditCard },
       { id: 'creator-marketplace', label: 'Creator', icon: Users }

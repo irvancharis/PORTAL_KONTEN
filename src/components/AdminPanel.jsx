@@ -985,7 +985,7 @@ export default function AdminPanel({
     const activeUser = { ...matchedUser, ...currentUser };
     const pCheck = checkUserProfileComplete(activeUser);
     if (!pCheck.isComplete) {
-      alert(`Profil Belum Lengkap!\n\nUntuk membuat kampanye, lengkapi data profil Anda: ${pCheck.missingFields.join(', ')}.`);
+      alert(`Profil Belum Lengkap!\n\nUntuk membuat Campaign, lengkapi data profil Anda: ${pCheck.missingFields.join(', ')}.`);
       return;
     }
     if (eventAreaMode === 'regional' && !eventAreaRegional.trim()) {
@@ -3252,7 +3252,7 @@ export default function AdminPanel({
                 {/* Summary Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                   <div className="stat-card glass-panel" style={{ padding: '16px', borderRadius: '12px' }}>
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', display: 'block', marginBottom: '4px' }}>Budget Kampanye</span>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', display: 'block', marginBottom: '4px' }}>Budget Campaign</span>
                     <strong style={{ color: 'white', fontSize: '1.25rem' }}>Rp {selectedManageEvent.campaignBudget?.toLocaleString('id-ID') || 0}</strong>
                   </div>
                   <div className="stat-card glass-panel" style={{ padding: '16px', borderRadius: '12px' }}>
@@ -4747,7 +4747,7 @@ export default function AdminPanel({
                     const activeUser = { ...matchedUser, ...currentUser };
                     const pCheck = checkUserProfileComplete(activeUser);
                     if (!pCheck.isComplete) {
-                      alert(`Profil Belum Lengkap!\n\nUntuk membuat kampanye, lengkapi data profil Anda: ${pCheck.missingFields.join(', ')}.`);
+                      alert(`Profil Belum Lengkap!\n\nUntuk membuat Campaign, lengkapi data profil Anda: ${pCheck.missingFields.join(', ')}.`);
                       if (onEditProfileClick) onEditProfileClick();
                       return;
                     }
