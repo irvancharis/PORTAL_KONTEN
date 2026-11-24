@@ -943,21 +943,23 @@ select option {
   font-weight: 600;
 }
 
-/* Mobile Bottom Navigation */
+/* Mobile Bottom Navigation - Modern, Refined & Professional */
 .bottom-nav {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 56px;
-  background: var(--bg-navbar);
-  border-top: 1px solid var(--border-color);
+  height: 62px;
+  background: rgba(11, 15, 25, 0.94);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  z-index: 100;
-  display: none; /* Desktop hidden */
+  z-index: 1000;
+  display: none;
   justify-content: space-around;
   align-items: center;
+  padding: 0 8px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
 }
 
 .bottom-nav-item {
@@ -967,17 +969,45 @@ select option {
   justify-content: center;
   background: transparent;
   border: none;
-  color: var(--text-secondary);
-  font-size: 0.65rem;
-  gap: 3px;
+  color: #94a3b8;
+  font-size: 0.68rem;
+  gap: 4px;
   cursor: pointer;
   font-family: inherit;
   flex: 1;
+  height: 100%;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 6px 0 8px;
+}
+
+.bottom-nav-item svg {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s;
+}
+
+.bottom-nav-item:hover {
+  color: #ffffff;
 }
 
 .bottom-nav-item.active {
-  color: var(--text-primary);
+  color: #0284c7 !important;
   font-weight: 700;
+}
+
+.bottom-nav-item.active svg {
+  transform: translateY(-2px);
+  color: #0284c7 !important;
+}
+
+.bottom-nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 24px;
+  height: 3px;
+  background: #0284c7;
+  border-radius: 0 0 3px 3px;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.5);
 }
 
 /* Filter Panel & Toggler */
@@ -4375,11 +4405,12 @@ button[style*="background:#0f172a"] *,
   background: #ffffff !important;
   border-right: 1px solid #e5e7eb !important;
   border-top: 1px solid #e5e7eb !important;
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.05) !important;
 }
 
 .light-theme .sidebar-link,
 .light-theme .bottom-nav-item {
-  color: #4b5563 !important;
+  color: #64748b !important;
 }
 
 .light-theme .sidebar-link.active {
@@ -4389,7 +4420,15 @@ button[style*="background:#0f172a"] *,
 
 .light-theme .bottom-nav-item.active {
   background: transparent !important;
-  color: #111827 !important;
+  color: #0284c7 !important;
+}
+
+.light-theme .bottom-nav-item.active svg {
+  color: #0284c7 !important;
+}
+
+.light-theme .bottom-nav-item.active::before {
+  background: #0284c7 !important;
 }
 
 /* Section divider */

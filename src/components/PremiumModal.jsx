@@ -542,18 +542,18 @@ export default function PremiumModal({
           }}>
             <Crown size={24} color="#ffffff" />
           </div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: '800', margin: '0 0 6px 0', color: '#0f172a' }}>
+          <h2 style={{ fontSize: '1.35rem', fontWeight: '800', margin: '0 0 6px 0', color: '#0f172a' }}>
             {step === 'select_plan' && 'Paket User Premium'}
             {step === 'select_method' && 'Metode Pembayaran'}
             {step === 'pay_screen' && 'Selesaikan Pembayaran'}
-            {step === 'manual_pay' && 'Transfer Bank Mandiri'}
+            {step === 'manual_pay' && 'Transfer Bank Resmi'}
             {step === 'success' && 'Konfirmasi Terkirim!'}
           </h2>
           <p className="desc-text" style={{ fontSize: '0.84rem', margin: 0, color: '#64748b' }}>
             {step === 'select_plan' && 'Tingkatkan akun ke User Premium untuk akses penuh ekosistem ngonten.id.'}
             {step === 'select_method' && 'Pilih metode pembayaran instan dan terenkripsi.'}
             {step === 'pay_screen' && 'Scan QRIS atau transfer ke nomor VA di bawah untuk aktivasi instan.'}
-            {step === 'manual_pay' && 'Silakan transfer sesuai tagihan ke rekening Bank Mandiri resmi kami.'}
+            {step === 'manual_pay' && 'Silakan transfer sesuai total tagihan ke salah satu rekening resmi di bawah ini.'}
             {step === 'success' && 'Bukti transfer berhasil dikirim. Admin akan segera memverifikasi akun Anda.'}
           </p>
         </div>
@@ -1272,22 +1272,27 @@ export default function PremiumModal({
                             {isEwallet ? 'Nomor Akun / HP ' : 'Nomor Rekening '}{bank.bankName || ''}
                           </span>
                           
-                          <div style={{
+                          <div className="bank-account-copy-box" style={{
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             background: '#ffffff',
                             border: '1.5px dashed #cbd5e1',
                             borderRadius: '12px',
-                            padding: '12px 16px',
-                            marginBottom: '14px'
+                            padding: '12px 14px',
+                            marginBottom: '14px',
+                            gap: '10px',
+                            flexWrap: 'wrap'
                           }}>
                             <span style={{
-                              fontSize: '1.45rem',
+                              fontSize: 'clamp(1.1rem, 4vw, 1.35rem)',
                               fontWeight: '800',
                               color: '#0f172a',
-                              letterSpacing: '1.5px',
-                              fontFamily: 'monospace'
+                              letterSpacing: '1px',
+                              fontFamily: 'monospace',
+                              wordBreak: 'break-all',
+                              flex: '1 1 auto',
+                              minWidth: '150px'
                             }}>
                               {bank.accountNumberFormatted || bank.accountNumber}
                             </span>
@@ -1300,15 +1305,18 @@ export default function PremiumModal({
                                 backgroundColor: copied ? '#10b981' : '#0f172a',
                                 color: '#ffffff',
                                 border: 'none',
-                                padding: '8px 16px',
+                                padding: '8px 14px',
                                 borderRadius: '8px',
-                                fontSize: '0.82rem',
+                                fontSize: '0.8rem',
                                 fontWeight: '700',
                                 cursor: 'pointer',
-                                display: 'flex',
+                                display: 'inline-flex',
                                 alignItems: 'center',
+                                justifyContent: 'center',
                                 gap: '6px',
                                 transition: 'all 0.2s',
+                                flexShrink: 0,
+                                marginLeft: 'auto',
                                 boxShadow: copied ? '0 2px 8px rgba(16, 185, 129, 0.3)' : '0 2px 8px rgba(15, 23, 42, 0.25)'
                               }}
                             >
@@ -1349,7 +1357,7 @@ export default function PremiumModal({
             })()}
 
             {/* Form Input Detail Pengirim */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="vip-sender-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.78rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px', display: 'block' }}>
                   Nama Pemilik Rekening Pengirim
