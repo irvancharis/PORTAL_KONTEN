@@ -122,34 +122,68 @@ export default function ProfilePage({
             const expiryDateStr = new Date(currentUser.premiumExpiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', marginTop: '16px' }}>
-                <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 'bold', background: 'rgba(16, 185, 129, 0.1)', padding: '4px 14px', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                  ★ Premium Aktif s.d. {expiryDateStr}
+                <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 'bold', background: 'rgba(16, 185, 129, 0.1)', padding: '6px 16px', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.25)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <Sparkles size={14} color="#10b981" />
+                  ★ Member Premium Aktif s.d. {expiryDateStr}
                 </span>
               </div>
             );
           } else {
             return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', marginTop: '16px' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: '500' }}>
-                  Akun belum Premium
-                </span>
+              <div style={{ 
+                marginTop: '18px', 
+                width: '100%', 
+                maxWidth: '420px',
+                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(234, 88, 12, 0.04) 100%)',
+                border: '1px solid rgba(245, 158, 11, 0.25)',
+                borderRadius: '16px',
+                padding: '14px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                boxShadow: '0 4px 15px rgba(245, 158, 11, 0.05)'
+              }}>
+                <div style={{ textAlign: 'left', flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                    <Sparkles size={14} color="#f59e0b" />
+                    <span style={{ fontSize: '0.84rem', fontWeight: '800', color: 'var(--text-primary)', letterSpacing: '0.2px' }}>
+                      Akun Kreator Standar
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                    Buka akses benefit eksklusif & tiket prioritas
+                  </p>
+                </div>
                 <button
                   onClick={() => setShowPremiumModal(true)}
                   style={{
-                    background: 'var(--primary-glow)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.75rem',
-                    fontWeight: '700',
-                    padding: '6px 16px',
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    border: 'none',
+                    color: '#ffffff',
+                    fontSize: '0.8rem',
+                    fontWeight: '800',
+                    padding: '8px 16px',
                     borderRadius: '20px',
                     cursor: 'pointer',
-                    transition: 'all 0.2s'
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.35)',
+                    transition: 'all 0.2s ease'
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(245, 158, 11, 0.45)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.35)';
+                  }}
                 >
-                  Upgrade ke Premium
+                  <Sparkles size={13} />
+                  <span>Upgrade VIP</span>
                 </button>
               </div>
             );
@@ -159,31 +193,7 @@ export default function ProfilePage({
 
       {/* Profile Details Container */}
       <div className="profile-card-details glass-panel">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0, color: 'var(--text-primary)' }}>Detail Data Profil</h3>
-          <button
-            onClick={handleOpenEditProfile}
-            style={{
-              background: 'var(--primary-glow)',
-              border: '1px solid var(--border-color)',
-              color: 'var(--text-primary)',
-              fontSize: '0.78rem',
-              fontWeight: '700',
-              padding: '5px 12px',
-              borderRadius: '16px',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--text-primary)'; e.currentTarget.style.color = 'var(--bg-main)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--primary-glow)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-          >
-            <Edit size={13} />
-            <span>Ubah</span>
-          </button>
-        </div>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 8px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', color: 'var(--text-primary)' }}>Detail Data Profil</h3>
         
         {/* Email */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
@@ -235,33 +245,35 @@ export default function ProfilePage({
             } else {
               return (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Standar / Gratis</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Standar / Gratis</span>
                   <button
                     onClick={() => setShowPremiumModal(true)}
                     style={{
-                      background: 'var(--text-primary)',
-                      border: '1px solid var(--text-primary)',
-                      color: 'var(--bg-main)',
+                      background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                      border: 'none',
+                      color: '#ffffff',
                       fontSize: '0.75rem',
-                      fontWeight: '700',
-                      padding: '4px 12px',
+                      fontWeight: '800',
+                      padding: '4px 14px',
                       borderRadius: '20px',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '4px'
+                      gap: '4px',
+                      boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.opacity = '0.9';
-                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.45)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.opacity = '1';
-                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(245, 158, 11, 0.3)';
                     }}
                   >
-                    Upgrade
+                    <Sparkles size={12} />
+                    <span>Upgrade VIP</span>
                   </button>
                 </div>
               );
