@@ -956,9 +956,14 @@ export default function App() {
                       payoutAccountName: editProfilePayoutAccountName.trim()
                     };
 
-                    // Update locally
+                    // Update locally and sync to storage
                     setCurrentUser(updatedUser);
-                    setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
+                    localStorage.setItem('portal-current-user', JSON.stringify(updatedUser));
+                    if (handleSetUsers) {
+                      await handleSetUsers(prev => prev.map(u => (u.id === currentUser.id || u.username?.toLowerCase() === currentUser.username?.toLowerCase()) ? updatedUser : u));
+                    } else {
+                      setUsers(prev => prev.map(u => (u.id === currentUser.id || u.username?.toLowerCase() === currentUser.username?.toLowerCase()) ? updatedUser : u));
+                    }
                     
                     if (isComm) {
                       const existingComm = communities.find(c => c.username.toLowerCase() === currentUser.username.toLowerCase());
@@ -1521,7 +1526,12 @@ export default function App() {
                                               [`${platform.id}Verified`]: true
                                             };
                                             setCurrentUser(updatedUser);
-                                            setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
+                                            localStorage.setItem('portal-current-user', JSON.stringify(updatedUser));
+                                            if (handleSetUsers) {
+                                              await handleSetUsers(prev => prev.map(u => (u.id === currentUser.id || u.username?.toLowerCase() === currentUser.username?.toLowerCase()) ? updatedUser : u));
+                                            } else {
+                                              setUsers(prev => prev.map(u => (u.id === currentUser.id || u.username?.toLowerCase() === currentUser.username?.toLowerCase()) ? updatedUser : u));
+                                            }
                                             
                                             if (isFirebaseConfigured() && auth) {
                                               try {

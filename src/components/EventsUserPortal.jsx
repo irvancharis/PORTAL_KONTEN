@@ -1234,7 +1234,8 @@ export default function EventsUserPortal({
       {/* Profile Completion Suggestion Banner */}
       {(() => {
         if (!currentUser) return null;
-        const activeUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || currentUser;
+        const matchedUser = users.find(u => (u.id && currentUser.id && u.id === currentUser.id) || u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || {};
+        const activeUser = { ...matchedUser, ...currentUser };
         const pCheck = checkUserProfileComplete(activeUser);
         if (pCheck.isComplete) return null;
 
@@ -1259,7 +1260,7 @@ export default function EventsUserPortal({
               <div>
                 <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
                 <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.5' }}>
-                  Lengkapi profil Anda untuk membuat dan mengikuti kampanye.
+                  Lengkapi data profil Anda ({pCheck.missingFields.join(', ')}) untuk membuat dan mengikuti kampanye.
                 </p>
               </div>
             </div>

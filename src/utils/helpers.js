@@ -58,9 +58,9 @@ export const checkUserProfileComplete = (user) => {
   const isComm = user.role === 'panitia' || user.isCommunity;
   const missing = [];
 
-  const name = (user.organizerName || '').trim();
-  const phone = (user.organizerPhone || user.phone || '').trim();
-  const regional = (user.userRegional || '').trim();
+  const name = (user.organizerName || user.name || user.fullName || '').trim();
+  const phone = (user.organizerPhone || user.phone || user.whatsapp || '').trim();
+  const regional = (user.userRegional || user.regional || user.city || '').trim();
 
   if (!name) missing.push(isComm ? 'Nama Komunitas' : 'Nama Lengkap');
   if (!phone) missing.push('No. WhatsApp / HP');
