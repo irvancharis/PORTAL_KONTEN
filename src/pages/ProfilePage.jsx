@@ -165,13 +165,25 @@ export default function ProfilePage({
                     onClick={() => setShowPremiumModal(true)}
                     style={{
                       background: 'var(--text-primary)',
-                      border: '1px solid var(--border-color)',
+                      border: '1px solid var(--text-primary)',
                       color: 'var(--bg-main)',
-                      fontSize: '0.74rem',
-                      fontWeight: '800',
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      cursor: 'pointer'
+                      fontSize: '0.75rem',
+                      fontWeight: '700',
+                      padding: '4px 12px',
+                      borderRadius: '20px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = '0.9';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
                     Upgrade
@@ -259,14 +271,28 @@ export default function ProfilePage({
               <button
                 onClick={handleOpenEditProfile}
                 style={{
-                  background: 'none',
+                  background: 'var(--primary-glow)',
                   border: '1px solid var(--border-color)',
                   color: 'var(--text-primary)',
-                  fontSize: '0.72rem',
-                  fontWeight: '600',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
+                  fontSize: '0.75rem',
+                  fontWeight: '700',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'var(--text-primary)';
+                  e.currentTarget.style.color = 'var(--bg-main)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'var(--primary-glow)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 Atur
@@ -298,11 +324,71 @@ export default function ProfilePage({
               <span style={{ fontSize: '0.85rem' }}>Link Portofolio</span>
             </div>
             {currentUser?.userPortfolio ? (
-              <a href={currentUser.userPortfolio} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'underline' }}>
-                Buka Link Portofolio
+              <a 
+                href={currentUser.userPortfolio} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                style={{
+                  background: 'var(--primary-glow)',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.75rem',
+                  fontWeight: '700',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'var(--text-primary)';
+                  e.currentTarget.style.color = 'var(--bg-main)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'var(--primary-glow)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                Buka Portofolio ↗
               </a>
             ) : (
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Belum Diisi</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Belum Diisi</span>
+                <button
+                  onClick={handleOpenEditProfile}
+                  style={{
+                    background: 'var(--primary-glow)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.75rem',
+                    fontWeight: '700',
+                    padding: '4px 12px',
+                    borderRadius: '20px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--text-primary)';
+                    e.currentTarget.style.color = 'var(--bg-main)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'var(--primary-glow)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  Isi
+                </button>
+              </div>
             )}
           </div>
         )}
