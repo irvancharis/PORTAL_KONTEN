@@ -1938,7 +1938,7 @@ export default function useAppState() {
       const activeUser = users.find(u => u.username?.toLowerCase() === currentUser?.username?.toLowerCase()) || currentUser;
       const pCheck = checkUserProfileComplete(activeUser);
       if (!pCheck.isComplete) {
-        alert(`Profil Belum Lengkap!\n\nSilakan lengkapi profil Anda (${pCheck.missingFields.join(', ')}) terlebih dahulu agar dapat bergabung dengan komunitas.`);
+        alert('Lengkapi profil Anda untuk bergabung dengan komunitas.');
         handleOpenEditProfile();
         return;
       }

@@ -581,7 +581,7 @@ export default function EventsUserPortal({
     const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
     const profileCheck = checkUserProfileComplete(userProfile);
     if (!profileCheck.isComplete) {
-      alert(`Profil Belum Lengkap!\n\nUntuk dapat mendaftar event, lengkapi data berikut di profil Anda:\n- ${profileCheck.missingFields.join('\n- ')}`);
+      alert('Lengkapi profil Anda untuk dapat mendaftar kampanye.');
       if (onEditProfileClick) onEditProfileClick();
       return;
     }
@@ -1184,7 +1184,7 @@ export default function EventsUserPortal({
       const activeUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || currentUser;
       const profileCheck = checkUserProfileComplete(activeUser);
       if (!profileCheck.isComplete) {
-        alert(`Profil Belum Lengkap!\n\nUntuk membuat kampanye / event baru, Anda wajib melengkapi data profil terlebih dahulu:\n- ${profileCheck.missingFields.join('\n- ')}`);
+        alert('Lengkapi profil Anda untuk membuat kampanye baru.');
         if (onEditProfileClick) onEditProfileClick();
         return;
       }
@@ -1259,7 +1259,7 @@ export default function EventsUserPortal({
               <div>
                 <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
                 <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.5' }}>
-                  Lengkapi profil Anda ({pCheck.missingFields.join(', ')}) agar dapat membuat dan mengikuti kampanye/event.
+                  Lengkapi profil Anda untuk membuat dan mengikuti kampanye.
                 </p>
               </div>
             </div>
@@ -2041,7 +2041,7 @@ export default function EventsUserPortal({
                                   const activeUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || currentUser;
                                   const pCheck = checkUserProfileComplete(activeUser);
                                   if (!pCheck.isComplete) {
-                                    alert(`Profil Belum Lengkap!\n\nUntuk mendaftar / mengikuti kampanye ini, Anda wajib melengkapi data profil terlebih dahulu:\n- ${pCheck.missingFields.join('\n- ')}`);
+                                    alert('Lengkapi profil Anda untuk mengikuti kampanye ini.');
                                     if (onEditProfileClick) onEditProfileClick();
                                     return;
                                   }
@@ -2246,7 +2246,7 @@ export default function EventsUserPortal({
                                         const activeUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || currentUser;
                                         const pCheck = checkUserProfileComplete(activeUser);
                                         if (!pCheck.isComplete) {
-                                          alert(`Profil Belum Lengkap!\n\nUntuk mengirimkan karya / laporan, Anda wajib melengkapi data profil terlebih dahulu:\n- ${pCheck.missingFields.join('\n- ')}`);
+                                          alert('Lengkapi profil Anda untuk mengirimkan karya.');
                                           if (onEditProfileClick) onEditProfileClick();
                                           return;
                                         }
@@ -3461,7 +3461,7 @@ onMouseLeave={(e) => {
                               <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '6px', fontSize: '0.8rem', color: '#dc2626' }}>
                                 <p style={{ margin: '0 0 8px 0', fontWeight: '600' }}>⚠️ Data Profil Belum Lengkap!</p>
                                 <p style={{ margin: '0 0 12px 0', fontSize: '0.75rem', lineHeight: '1.4' }}>
-                                  Lengkapi data wajib profil Anda ({pCheck.missingFields.join(', ')}) untuk dapat membeli tiket / mendaftar.
+                                  Lengkapi data profil Anda untuk dapat membeli tiket / mendaftar.
                                 </p>
                                 <button
                                   type="button"
@@ -3658,7 +3658,7 @@ onMouseLeave={(e) => {
                           {hasIncompleteProfile && (
                             <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '6px', fontSize: '0.8rem', color: '#dc2626' }}>
                               <p style={{ margin: '0 0 6px 0', fontWeight: '600' }}>⚠️ Data Profil Belum Lengkap!</p>
-                              Lengkapi data wajib profil Anda ({pCheck.missingFields.join(', ')}) untuk dapat berpartisipasi.
+                              Lengkapi profil Anda untuk dapat berpartisipasi.
                             </div>
                           )}
 

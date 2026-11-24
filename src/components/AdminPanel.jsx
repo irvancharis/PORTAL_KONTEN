@@ -984,7 +984,7 @@ export default function AdminPanel({
     const activeUser = users.find(u => u.username?.toLowerCase() === currentUser?.username?.toLowerCase()) || currentUser;
     const pCheck = checkUserProfileComplete(activeUser);
     if (!pCheck.isComplete) {
-      alert(`Profil Belum Lengkap!\n\nUntuk membuat event / kampanye baru, Anda wajib melengkapi data profil terlebih dahulu:\n- ${pCheck.missingFields.join('\n- ')}`);
+      alert('Lengkapi profil Anda untuk membuat kampanye.');
       return;
     }
     if (eventAreaMode === 'regional' && !eventAreaRegional.trim()) {
@@ -4745,7 +4745,7 @@ export default function AdminPanel({
                     const activeUser = users.find(u => u.username?.toLowerCase() === currentUser?.username?.toLowerCase()) || currentUser;
                     const pCheck = checkUserProfileComplete(activeUser);
                     if (!pCheck.isComplete) {
-                      alert(`Profil Belum Lengkap!\n\nUntuk membuat event / kampanye baru, Anda wajib melengkapi data profil terlebih dahulu:\n- ${pCheck.missingFields.join('\n- ')}`);
+                      alert('Lengkapi profil Anda untuk membuat kampanye.');
                       return;
                     }
 
