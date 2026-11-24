@@ -330,48 +330,6 @@ export default function ProfilePage({
           </div>
         )}
 
-        {/* Link Portofolio (Hanya tampil jika sudah pernah diisi sebelumnya) */}
-        {!isCurrentUserCommunity && currentUser?.userPortfolio && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
-              <Globe size={16} />
-              <span style={{ fontSize: '0.85rem' }}>Link Portofolio</span>
-            </div>
-            <a 
-              href={currentUser.userPortfolio} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              style={{
-                background: 'var(--primary-glow)',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-primary)',
-                fontSize: '0.75rem',
-                fontWeight: '700',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                textDecoration: 'none',
-                transition: 'all 0.2s ease',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--text-primary)';
-                e.currentTarget.style.color = 'var(--bg-main)';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--primary-glow)';
-                e.currentTarget.style.color = 'var(--text-primary)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
-              Buka Portofolio ↗
-            </a>
-          </div>
-        )}
-
         {/* Connected Social Media */}
         {!isCurrentUserCommunity && (() => {
           const connectedPlatforms = [
@@ -504,13 +462,6 @@ export default function ProfilePage({
           );
         })()}
 
-        {/* Deskripsi */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Bio / Deskripsi Singkat</span>
-          <p style={{ fontSize: '0.9rem', margin: 0, lineHeight: '1.6', background: 'var(--bg-main)', padding: '12px', borderRadius: '12px', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
-            {currentUser?.organizerDescription || 'Belum ada deskripsi profil.'}
-          </p>
-        </div>
       </div>
 
       {/* Persetujuan Anggota Baru (Only for community owners) */}

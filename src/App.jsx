@@ -1187,27 +1187,6 @@ export default function App() {
                   </div>
                 )}
 
-                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Deskripsi Singkat / Bio (Opsional)</label>
-                  <textarea 
-                    value={editProfileDescription}
-                    onChange={(e) => setEditProfileDescription(e.target.value)}
-                    rows="2"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'rgba(255, 255, 255, 0.04)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: 'var(--radius-sm)',
-                      color: 'var(--text-primary)',
-                      outline: 'none',
-                      fontSize: '0.9rem',
-                      resize: 'none',
-                      fontFamily: 'inherit'
-                    }}
-                  />
-                </div>
-
                 {/* Pengaturan Rekening / Akun Pencairan Saldo (Default) */}
                 {/* Bagian Pengisian Rekening Bank (Utama: Mandiri) */}
                 <div style={{
