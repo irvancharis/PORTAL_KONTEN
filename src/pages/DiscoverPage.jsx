@@ -420,7 +420,7 @@ export default function DiscoverPage({
                 <div className="dashboard-hero-content animate-fade-in">
                   <h1 className="dashboard-hero-title">Satu Platform,<br />Solusi Industri Kreatif</h1>
                   <p className="dashboard-hero-subtitle">
-                    Bergabung sekarang dan temukan solusi kebutuhan kreatif Anda. Kreator dapat mengikuti kampanye untuk mendapat penghasilan, sedangkan brand dapat membuat kampanye untuk menemukan talenta terbaik secara cepat.
+                    Bergabung sekarang dan temukan solusi kebutuhan kreatif Anda. Kreator dapat mengikuti Campaign untuk mendapat penghasilan, sedangkan brand dapat membuat Campaign untuk menemukan talenta terbaik secara cepat.
                   </p>
                   <div className="dashboard-hero-ctas">
                     <button 

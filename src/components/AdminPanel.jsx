@@ -1460,7 +1460,7 @@ export default function AdminPanel({
           label: 'Selesai (Budget Habis)',
           color: '#ef4444',
           bg: 'rgba(239, 68, 68, 0.1)',
-          info: 'Event telah selesai karena budget kampanye telah habis dibagikan kepada peserta.'
+          info: 'Event telah selesai karena budget Campaign telah habis dibagikan kepada peserta.'
         };
       }
       if (isDeadlinePassed) {
@@ -1586,7 +1586,7 @@ export default function AdminPanel({
           toUsername: part.username,
           subject: `[ngonten.id] Pendaftaran Disetujui: ${evTitle}`,
           title: 'Pendaftaran Event Anda Disetujui! 🎉',
-          message: `Selamat! Pendaftaran Anda di event <strong>"${evTitle}"</strong> telah disetujui oleh Panitia. Anda kini dapat mulai mengirimkan karya atau menjalankan tugas kampanye sesuai petunjuk teknis.${hasTicket ? ' Pass E-Tiket resmi Anda juga telah aktif untuk akses masuk acara.' : ''}`,
+          message: `Selamat! Pendaftaran Anda di event <strong>"${evTitle}"</strong> telah disetujui oleh Panitia. Anda kini dapat mulai mengirimkan karya atau menjalankan tugas Campaign sesuai petunjuk teknis.${hasTicket ? ' Pass E-Tiket resmi Anda juga telah aktif untuk akses masuk acara.' : ''}`,
           type: 'approval',
           eventTitle: evTitle,
           actionUrl: evUrl,
@@ -3744,7 +3744,7 @@ export default function AdminPanel({
                           </strong>
                         </div>
                         <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: '1.4' }}>
-                          * Karena event ini bertipe Acara/Festival (tanpa budget kampanye/hadiah), Anda dikenakan biaya layanan aktivasi platform secara flat.
+                          * Karena event ini bertipe Acara/Festival (tanpa budget Campaign/hadiah), Anda dikenakan biaya layanan aktivasi platform secara flat.
                         </span>
                       </div>
                     )}
@@ -3912,7 +3912,7 @@ export default function AdminPanel({
                                   </div>
                                 </div>
                                 <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '10px', lineHeight: '1.45' }}>
-                                  * Dengan budget Rp {currentTargetBudget.toLocaleString('id-ID')}, kampanye Anda berpotensi menghasilkan hingga {estimatedTotalViews.toLocaleString('id-ID')} penayangan video organik dari kreator.
+                                  * Dengan budget Rp {currentTargetBudget.toLocaleString('id-ID')}, Campaign Anda berpotensi menghasilkan hingga {estimatedTotalViews.toLocaleString('id-ID')} penayangan video organik dari kreator.
                                 </span>
                               </div>
                             )}
@@ -3941,7 +3941,7 @@ export default function AdminPanel({
                             {/* Rincian Finansial Platform */}
                             <div style={{ padding: '14px 16px', background: 'var(--bg-secondary, rgba(0,0,0,0.02))', border: '1px solid var(--border-color, #e5e7eb)', borderRadius: '10px', fontSize: '0.84rem' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                <span style={{ color: 'var(--text-secondary)' }}>Total Budget Kampanye:</span>
+                                <span style={{ color: 'var(--text-secondary)' }}>Total Budget Campaign:</span>
                                 <strong style={{ color: 'var(--text-primary)' }}>
                                   Rp {currentTargetBudget.toLocaleString('id-ID')}
                                 </strong>
@@ -4217,7 +4217,7 @@ export default function AdminPanel({
                     <div style={{ borderTop: '1px dashed rgba(255,255,255,0.05)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem' }}>
                       {depositingEvent.eventType !== 'regular' && (
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Budget Kampanye:</span>
+                          <span style={{ color: 'var(--text-secondary)' }}>Budget Campaign:</span>
                           <strong style={{ color: 'white' }}>Rp {depositingEvent.campaignBudget?.toLocaleString('id-ID')}</strong>
                         </div>
                       )}

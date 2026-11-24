@@ -9,12 +9,12 @@ export default function PricingCatalogSection({ onSelectPlan, onOpenLegal }) {
       category: 'Kreator Pemula',
       price: 'Gratis',
       period: '/ Selamanya',
-      description: 'Akses pendaftaran kampanye publik dan submit karya video kreatif.',
+      description: 'Akses pendaftaran Campaign publik dan submit karya video kreatif.',
       badge: null,
       icon: Sparkles,
       iconColor: '#94a3b8',
       features: [
-        'Ikuti hingga 3 kampanye aktif',
+        'Ikuti hingga 3 Campaign aktif',
         'Submit karya video & shorts',
         'Pencairan reward standar',
         'Dukungan komunitas kreator'
@@ -33,7 +33,7 @@ export default function PricingCatalogSection({ onSelectPlan, onOpenLegal }) {
       icon: Crown,
       iconColor: '#f59e0b',
       features: [
-        'Ikuti SEMUA kampanye tanpa batas',
+        'Ikuti SEMUA Campaign tanpa batas',
         'Badge PRO di profil & leaderboard',
         'AI Video Insight & Trend Predictor',
         'Prioritas kurasi karya oleh Brand',
@@ -48,18 +48,18 @@ export default function PricingCatalogSection({ onSelectPlan, onOpenLegal }) {
       name: 'Brand Campaign Pass',
       category: 'Penyelenggara / Brand',
       price: 'Rp 250.000',
-      period: '/ kampanye',
+      period: '/ Campaign',
       description: 'Luncurkan kompetisi kreasi konten dengan sistem pengelolaan terstruktur.',
       badge: 'Untuk Bisnis & Brand',
       icon: Building2,
       iconColor: '#06b6d4',
       features: [
-        'Publikasi kampanye ke ribuan kreator',
+        'Publikasi Campaign ke ribuan kreator',
         'Sistem Alokasi Budget Hadiah Transparan',
         'Dashboard kurasi karya & analitik video',
         'Verifikasi karya otomatis & plagiarisme check',
         'Kanal distribusi hadiah multi-bank/e-wallet',
-        'Laporan performa & jangkauan kampanye'
+        'Laporan performa & jangkauan Campaign'
       ],
       ctaText: 'Buat Campaign Sekarang',
       isPopular: false

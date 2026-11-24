@@ -85,7 +85,7 @@ export default function CommunitiesPage({
               <div>
                 <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
                 <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.5' }}>
-                  Lengkapi profil Anda agar dapat bergabung dengan komunitas dan membuat/mendaftar kampanye event.
+                  Lengkapi profil Anda agar dapat bergabung dengan komunitas dan membuat/mendaftar Campaign event.
                 </p>
               </div>
             </div>
@@ -516,7 +516,7 @@ export default function CommunitiesPage({
                               </div>
                             </div>
                             <p className="membership-status-desc">
-                              Bergabunglah dengan komunitas ini untuk berkolaborasi dalam kampanye, project, dan terhubung dengan kreator lainnya.
+                              Bergabunglah dengan komunitas ini untuk berkolaborasi dalam Campaign, project, dan terhubung dengan kreator lainnya.
                             </p>
                             <button 
                               onClick={() => handleToggleJoinCommunity(comm.username)}

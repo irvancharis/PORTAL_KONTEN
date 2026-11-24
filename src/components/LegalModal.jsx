@@ -169,7 +169,7 @@ export default function LegalModal({ isOpen, onClose, initialTab = 'terms' }) {
                     1. Definisi & Ruang Lingkup
                   </h4>
                   <p style={{ margin: 0 }}>
-                    <strong>ngonten.id</strong> adalah platform ekosistem digital yang memfasilitasi publikasi kampanye konten kreatif, kompetisi video, dan kolaborasi antara Penyelenggara/Brand dengan Konten Kreator.
+                    <strong>ngonten.id</strong> adalah platform ekosistem digital yang memfasilitasi publikasi Campaign konten kreatif, kompetisi video, dan kolaborasi antara Penyelenggara/Brand dengan Konten Kreator.
                   </p>
                 </div>
 
@@ -178,7 +178,7 @@ export default function LegalModal({ isOpen, onClose, initialTab = 'terms' }) {
                     2. Akun & Keamanan Transaksi
                   </h4>
                   <p style={{ margin: 0 }}>
-                    Pengguna bertanggung jawab atas validitas data akun (email & nomor telepon). Setiap pembayaran layanan atau kampanye yang telah diverifikasi akan tercatat secara permanen pada invoice transaksi resmi.
+                    Pengguna bertanggung jawab atas validitas data akun (email & nomor telepon). Setiap pembayaran layanan atau Campaign yang telah diverifikasi akan tercatat secara permanen pada invoice transaksi resmi.
                   </p>
                 </div>
 
@@ -201,7 +201,7 @@ export default function LegalModal({ isOpen, onClose, initialTab = 'terms' }) {
                     4. Penyaluran Reward & Perlindungan Karya
                   </h4>
                   <p style={{ margin: 0 }}>
-                    Alokasi reward kampanye disalurkan ke akun pemenang setelah kurasi selesai sesuai ketentuan penyelenggara. Platform melarang konten plagiarisme, pornografi, maupun aktivitas ilegal.
+                    Alokasi reward Campaign disalurkan ke akun pemenang setelah kurasi selesai sesuai ketentuan penyelenggara. Platform melarang konten plagiarisme, pornografi, maupun aktivitas ilegal.
                   </p>
                 </div>
               </div>
@@ -255,8 +255,8 @@ export default function LegalModal({ isOpen, onClose, initialTab = 'terms' }) {
                   </h4>
                   <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                     <li>Terjadi kendala teknis gateway pembayaran atau tagihan ganda.</li>
-                    <li>Layanan langganan PRO atau aktivasi kampanye gagal aktif dalam 1x24 jam.</li>
-                    <li>Pembatalan kampanye oleh penyelenggara sebelum jadwal kampanye dimulai.</li>
+                    <li>Layanan langganan PRO atau aktivasi Campaign gagal aktif dalam 1x24 jam.</li>
+                    <li>Pembatalan Campaign oleh penyelenggara sebelum jadwal Campaign dimulai.</li>
                   </ul>
                 </div>
 

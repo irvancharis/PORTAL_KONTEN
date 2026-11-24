@@ -81,7 +81,7 @@ export default function AppTourModal({
     {
       title: "Pencarian Cerdas & Terpadu",
       subtitle: "Filter Event, Kompetisi, & Kreator",
-      desc: "Temukan kampanye aktif, festival video, kreator berbakat, atau komunitas daerah hanya dengan mengetik kata kunci pada kolom pencarian di bagian atas.",
+      desc: "Temukan Campaign aktif, festival video, kreator berbakat, atau komunitas daerah hanya dengan mengetik kata kunci pada kolom pencarian di bagian atas.",
       icon: Search,
       tag: "Langkah 2 • Navigasi Cepat",
       tip: "Ketik kata kunci dan tekan Enter untuk langsung melihat hasil yang relevan secara instan.",
@@ -90,12 +90,12 @@ export default function AppTourModal({
       tab: 'discover'
     },
     {
-      title: "Eksplorasi Kampanye & Kompetisi",
+      title: "Eksplorasi Campaign & Kompetisi",
       subtitle: "Raih Benefit Tunai, Hadiah, & E-Tiket",
-      desc: "Halaman Kampanye memuat daftar tantangan video, lomba film, dan event kreatif dengan prize pool jutaan rupiah. Anda dapat memfilter event berdasarkan regional dan kategori.",
+      desc: "Halaman Campaign memuat daftar tantangan video, lomba film, dan event kreatif dengan prize pool jutaan rupiah. Anda dapat memfilter event berdasarkan regional dan kategori.",
       icon: Trophy,
-      tag: "Langkah 3 • Fitur Kampanye",
-      tip: "Pilih menu Kampanye untuk melihat seluruh tantangan yang sedang aktif dibuka.",
+      tag: "Langkah 3 • Fitur Campaign",
+      tip: "Pilih menu Campaign untuk melihat seluruh tantangan yang sedang aktif dibuka.",
       tipIcon: Zap,
       targetId: "tour-sidebar-events",
       fallbackTargetId: "tour-bottomnav-events",
@@ -116,9 +116,9 @@ export default function AppTourModal({
       portalPath: '/events/semua'
     },
     {
-      title: "Menu Kelola Kampanye Saya",
+      title: "Menu Kelola Campaign Saya",
       subtitle: "Pusat Manajemen Event & Penyelenggara",
-      desc: "Melalui tab Kelola Kampanye Saya, Anda dapat memantau event yang Anda buat, mengecek jumlah peserta terdaftar, memvalidasi karya kiriman, dan mengatur alokasi prize pool.",
+      desc: "Melalui tab Kelola Campaign Saya, Anda dapat memantau event yang Anda buat, mengecek jumlah peserta terdaftar, memvalidasi karya kiriman, dan mengatur alokasi prize pool.",
       icon: Sliders,
       tag: "Langkah 5 • Kelola Event",
       tip: "Tab ini khusus bagi Anda yang ingin membuat atau memantau progres event yang Anda kelola.",
@@ -133,7 +133,7 @@ export default function AppTourModal({
       subtitle: "Pantau Status Berjalan, Pending, & Selesai",
       desc: "Setiap kartu event yang Anda kelola menampilkan total budget, status pembayaran platform, batas waktu, serta tombol aksi cepat untuk memeriksa peserta dan hasil penilaian juri.",
       icon: Eye,
-      tag: "Langkah 6 • Monitoring Kampanye",
+      tag: "Langkah 6 • Monitoring Campaign",
       tip: "Klik pada kartu event untuk membuka tab detail peserta, submisi karya video, dan penilaian.",
       tipIcon: Info,
       targetId: "tour-manage-first-card",
@@ -142,11 +142,11 @@ export default function AppTourModal({
       portalPath: '/events/kelola'
     },
     {
-      title: "Buat Kampanye & Acara Baru",
+      title: "Buat Campaign & Acara Baru",
       subtitle: "Luncurkan Kompetisi Resmi Anda Sendiri",
-      desc: "Klik tombol Buat Event Baru untuk merancang juknis kompetisi, menentukan sistem penilaian (Juara Ranking atau Pay-per-View), menetapkan batas waktu, dan mengundang kreator se-Indonesia.",
+      desc: "Klik tombol Buat Campaign Baru untuk merancang juknis kompetisi, menentukan sistem penilaian (Juara Ranking atau Pay-per-View), menetapkan batas waktu, dan mengundang kreator se-Indonesia.",
       icon: PlusCircle,
-      tag: "Langkah 7 • Buat Event Baru",
+      tag: "Langkah 7 • Buat Campaign Baru",
       tip: "Tentukan juknis Do & Don'ts yang jelas agar peserta menghasilkan karya yang sesuai target Anda.",
       tipIcon: Lightbulb,
       targetId: "tour-manage-create-event-btn",

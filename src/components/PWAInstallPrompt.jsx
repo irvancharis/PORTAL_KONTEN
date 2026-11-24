@@ -79,19 +79,19 @@ export default function PWAInstallPrompt() {
       return {
         type: 'ios',
         title: 'Instal Aplikasi iOS',
-        description: 'Instal untuk akses lebih cepat, buat & ikuti kampanye kreatif, serta temukan solusi industri kreatif Anda langsung dari homescreen iOS!',
+        description: 'Instal untuk akses lebih cepat, buat & ikuti Campaign kreatif, serta temukan solusi industri kreatif Anda langsung dari homescreen iOS!',
       };
     } else if (/Android/i.test(navigator.userAgent)) {
       return {
         type: 'android',
         title: 'Instal Aplikasi Android',
-        description: 'Instal untuk akses lebih cepat, buat & ikuti kampanye kreatif, serta temukan solusi industri kreatif Anda langsung dari homescreen Android!',
+        description: 'Instal untuk akses lebih cepat, buat & ikuti Campaign kreatif, serta temukan solusi industri kreatif Anda langsung dari homescreen Android!',
       };
     } else {
       return {
         type: 'pc',
         title: 'Instal Aplikasi PC',
-        description: 'Instal untuk akses lebih cepat, buat & ikuti kampanye kreatif, serta temukan solusi industri kreatif Anda langsung dari desktop PC!',
+        description: 'Instal untuk akses lebih cepat, buat & ikuti Campaign kreatif, serta temukan solusi industri kreatif Anda langsung dari desktop PC!',
       };
     }
   };
