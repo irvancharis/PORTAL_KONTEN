@@ -77,41 +77,10 @@ export default function ProfilePage({
           </div>
         </div>
 
-        <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 6px 0', color: 'var(--text-primary)' }}>{currentUser?.organizerName || currentUser?.username}</h2>
-        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>@{currentUser?.username}</span>
-
-        {/* Action Buttons: Edit Profil (Primary Prominent Button) */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '380px', marginTop: '4px' }}>
-          <button 
-            onClick={handleOpenEditProfile}
-            style={{ 
-              flex: 1,
-              minWidth: '160px',
-              background: 'var(--text-primary)', 
-              color: 'var(--bg-main)',
-              border: 'none', 
-              padding: '10px 20px', 
-              borderRadius: '24px', 
-              fontSize: '0.88rem', 
-              fontWeight: '700', 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              gap: '8px', 
-              cursor: 'pointer', 
-              transition: 'all 0.2s ease',
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)'
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.35)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.25)'; }}
-          >
-            <Edit size={16} />
-            <span>Edit Profil Saya</span>
-          </button>
-        </div>
+        <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 10px 0', color: 'var(--text-primary)' }}>{currentUser?.organizerName || currentUser?.username}</h2>
 
         {isCurrentUserCommunity ? (
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '16px' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px', marginBottom: '14px' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'var(--primary-glow)', padding: '4px 12px', borderRadius: '20px', border: '1px solid var(--border-color)', fontWeight: 'bold' }}>
               Komunitas / Instansi
             </span>
@@ -121,7 +90,7 @@ export default function ProfilePage({
           if (isPremium) {
             const expiryDateStr = new Date(currentUser.premiumExpiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
             return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', marginTop: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', marginTop: '4px', marginBottom: '14px' }}>
                 <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 'bold', background: 'rgba(16, 185, 129, 0.1)', padding: '6px 16px', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.25)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                   <Sparkles size={14} color="#10b981" />
                   ★ Member Premium Aktif s.d. {expiryDateStr}
@@ -131,7 +100,8 @@ export default function ProfilePage({
           } else {
             return (
               <div style={{ 
-                marginTop: '18px', 
+                marginTop: '4px',
+                marginBottom: '14px',
                 width: '100%', 
                 maxWidth: '420px',
                 background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(234, 88, 12, 0.04) 100%)',
@@ -189,6 +159,35 @@ export default function ProfilePage({
             );
           }
         })()}
+
+        {/* Action Buttons: Edit Profil (Diletakkan di bawah informasi Upgrade VIP) */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '420px' }}>
+          <button 
+            onClick={handleOpenEditProfile}
+            style={{ 
+              width: '100%',
+              background: 'var(--text-primary)', 
+              color: 'var(--bg-main)',
+              border: 'none', 
+              padding: '10px 20px', 
+              borderRadius: '24px', 
+              fontSize: '0.88rem', 
+              fontWeight: '700', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              gap: '8px', 
+              cursor: 'pointer', 
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.35)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.25)'; }}
+          >
+            <Edit size={16} />
+            <span>Edit Profil Saya</span>
+          </button>
+        </div>
       </div>
 
       {/* Profile Details Container */}
