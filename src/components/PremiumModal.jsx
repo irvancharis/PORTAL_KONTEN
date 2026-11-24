@@ -1505,7 +1505,7 @@ export default function PremiumModal({
             
             <p className="desc-text" style={{ fontSize: '0.85rem', lineHeight: '1.6', marginBottom: '22px', maxWidth: '380px', margin: '0 auto 22px auto' }}>
               {paymentGatewayMode === 'manual'
-                ? `Terima kasih! Bukti transfer paket ${currentPlan.duration} Anda telah masuk ke sistem. Admin akan memvalidasi pembayaran Anda dalam waktu 1-15 menit.`
+                ? `Terima kasih! Bukti transfer paket ${currentPlan.duration} Anda telah masuk ke sistem. Admin akan memvalidasi pembayaran Anda paling lambat 1x24 jam.`
                 : 'Pembayaran Anda telah berhasil diverifikasi secara otomatis. Akun Anda kini resmi memiliki status USER PREMIUM dengan potongan biaya penarikan dompet 2% dan akses penuh ekosistem ngonten.id.'}
             </p>
 
