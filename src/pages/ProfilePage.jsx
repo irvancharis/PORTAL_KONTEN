@@ -482,13 +482,25 @@ export default function ProfilePage({
                         {renderPlatformIcon(p.id, 20)}
                       </div>
                       <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>{p.label}</span>
-                      <a href={p.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.82rem', color: 'var(--primary)', textDecoration: 'underline' }}>
-                        @{p.handle}
-                      </a>
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '3px 10px', borderRadius: '12px', fontWeight: '600' }}>
-                      Terverifikasi
-                    </span>
+                    <a 
+                      href={p.link} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={{ 
+                        fontSize: '0.82rem', 
+                        color: 'var(--primary)', 
+                        textDecoration: 'none',
+                        fontWeight: '600',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
+                    >
+                      @{p.handle} ↗
+                    </a>
                   </div>
                 ))}
               </div>
