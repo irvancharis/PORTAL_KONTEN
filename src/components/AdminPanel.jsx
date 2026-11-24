@@ -4807,7 +4807,7 @@ export default function AdminPanel({
                   }}
                 >
                   <Plus size={18} />
-                  <span>Buat Event Baru</span>
+                  <span>Buat Campaign Baru</span>
                 </button>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                 {myEvents.length > 0 ? (
@@ -5127,7 +5127,7 @@ export default function AdminPanel({
                 ) : (
                   <div className="admin-empty-state" style={{ padding: '48px', borderRadius: '16px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
                     <Calendar size={48} className="icon" />
-                    <h3>Belum ada Event</h3>
+                    <h3>Belum ada Campaign</h3>
                     <p>Mulai dengan membuat event kompetisi kreatif pertama Anda dengan tombol di atas.</p>
                   </div>
                 )}

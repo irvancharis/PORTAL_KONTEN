@@ -506,7 +506,7 @@ export default function Navbar({
               {[
                 { id: 'discover', label: 'Beranda' },
                 ...(!(currentUser && (currentUser.isCommunity || currentUser.role === 'panitia')) ? [
-                  { id: 'events', label: 'Event' },
+                  { id: 'events', label: 'Campaign' },
                   { id: 'communities', label: 'Komunitas' }
                 ] : []),
                 { id: 'wallet', label: 'Dompet', requiresUser: true }
@@ -580,8 +580,8 @@ export default function Navbar({
                 const isCommunityUser = currentUser && (currentUser.isCommunity || currentUser.role === 'panitia');
                 const permissions = getAdminPermissions(currentUser.role);
                 const adminTabs = [
-                  { id: 'event-dashboard', label: 'Dashboard Event' },
-                  { id: 'event-manage', label: 'Kelola Event' },
+                  { id: 'event-dashboard', label: 'Dashboard Campaign' },
+                  { id: 'event-manage', label: 'Kelola Campaign' },
                   ...(!isCommunityUser ? [
                     { id: 'event-payment', label: 'Verifikasi Pembayaran' },
                     { id: 'creator-marketplace', label: 'Marketplace Creator' }
