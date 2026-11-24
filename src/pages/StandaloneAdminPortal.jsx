@@ -178,19 +178,19 @@ export default function StandaloneAdminPortal(props) {
           flexShrink: 0
         }}
       >
-        {/* Brand Header */}
+        {/* Brand Header - Simple & Clean */}
         <div style={{
-          padding: '20px 16px',
+          padding: isSidebarOpen ? '16px 14px' : '16px 8px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: isSidebarOpen ? 'space-between' : 'center',
-          borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.08))'
+          borderBottom: '1px solid rgba(255,255,255,0.06)'
         }}>
           {isSidebarOpen ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
               <div style={{
-                width: '34px',
-                height: '34px',
+                width: '30px',
+                height: '30px',
                 borderRadius: '8px',
                 background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
                 display: 'flex',
@@ -198,20 +198,19 @@ export default function StandaloneAdminPortal(props) {
                 justifyContent: 'center',
                 color: '#ffffff',
                 fontWeight: '900',
-                fontSize: '1rem',
+                fontSize: '0.9rem',
                 flexShrink: 0
               }}>
                 N
               </div>
-              <div>
-                <h1 style={{ fontSize: '0.98rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>Admin Center</h1>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>ngonten.id Control Panel</span>
-              </div>
+              <h1 style={{ fontSize: '0.9rem', fontWeight: '800', margin: 0, color: '#ffffff', letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
+                Admin Center
+              </h1>
             </div>
           ) : (
             <div style={{
-              width: '34px',
-              height: '34px',
+              width: '30px',
+              height: '30px',
               borderRadius: '8px',
               background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
               display: 'flex',
@@ -219,7 +218,7 @@ export default function StandaloneAdminPortal(props) {
               justifyContent: 'center',
               color: '#ffffff',
               fontWeight: '900',
-              fontSize: '1rem',
+              fontSize: '0.9rem',
               flexShrink: 0
             }}>
               N
@@ -231,16 +230,16 @@ export default function StandaloneAdminPortal(props) {
             style={{
               background: 'transparent',
               border: 'none',
-              color: 'var(--text-secondary)',
+              color: 'var(--text-secondary, #94a3b8)',
               cursor: 'pointer',
-              padding: '6px',
+              padding: '4px',
               borderRadius: '6px',
               display: isSidebarOpen ? 'flex' : 'none',
               alignItems: 'center',
               justifyContent: 'center'
             }}
           >
-            <Menu size={18} />
+            <Menu size={16} />
           </button>
         </div>
 
@@ -304,49 +303,18 @@ export default function StandaloneAdminPortal(props) {
           })}
         </div>
 
-        {/* User Card & Portal Switcher */}
+        {/* Simplified Bottom Section - User & Logout Only */}
         <div style={{
-          padding: '16px 12px',
-          borderTop: '1px solid var(--border-color, rgba(255,255,255,0.08))',
+          padding: isSidebarOpen ? '12px 14px' : '12px 8px',
+          borderTop: '1px solid rgba(255,255,255,0.06)',
           display: 'flex',
-          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: isSidebarOpen ? 'space-between' : 'center',
           gap: '8px'
         }}>
-          <button
-            onClick={() => {
-              window.history.pushState(null, '', '/');
-              handleTabChange('discover');
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: '8px',
-              background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-color, rgba(255,255,255,0.08))',
-              fontSize: '0.78rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              justifyContent: isSidebarOpen ? 'flex-start' : 'center'
-            }}
-            title="Buka Website Publik"
-          >
-            <ArrowLeft size={15} />
-            {isSidebarOpen && <span>Portal Publik</span>}
-          </button>
-
-          {isSidebarOpen && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '8px 4px',
-              marginTop: '4px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+          {isSidebarOpen ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
                 <div style={{
                   width: '28px',
                   height: '28px',
@@ -356,17 +324,17 @@ export default function StandaloneAdminPortal(props) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontWeight: 'bold',
+                  fontWeight: '700',
                   fontSize: '0.75rem',
                   flexShrink: 0
                 }}>
                   {currentUser.username?.charAt(0).toUpperCase()}
                 </div>
                 <div style={{ overflow: 'hidden' }}>
-                  <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: '700', color: '#ffffff', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                     {currentUser.username}
                   </div>
-                  <div style={{ fontSize: '0.68rem', color: '#0284c7', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: '0.65rem', color: '#38bdf8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
                     {currentUser.role}
                   </div>
                 </div>
@@ -378,15 +346,42 @@ export default function StandaloneAdminPortal(props) {
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: 'var(--text-secondary)',
+                  color: '#94a3b8',
                   cursor: 'pointer',
                   padding: '6px',
-                  borderRadius: '6px'
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  transition: 'color 0.2s'
                 }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; }}
               >
                 <LogOut size={16} />
               </button>
-            </div>
+            </>
+          ) : (
+            <button
+              onClick={handleLogout}
+              title="Keluar Sesi"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#94a3b8',
+                cursor: 'pointer',
+                padding: '6px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; }}
+            >
+              <LogOut size={16} />
+            </button>
           )}
         </div>
       </aside>
