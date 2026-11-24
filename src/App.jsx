@@ -937,7 +937,7 @@ export default function App() {
                       activeMembersCount: isComm ? editProfileActiveMembers.trim() : '',
                       isCommunity: isComm,
                       joinedMembers: currentUser.joinedMembers || [],
-                      userCategory: isComm ? 'Videografer' : editProfileCategory,
+                      userCategory: isComm ? 'Content Creator' : editProfileCategory,
                       userPortfolio: isComm ? '' : editProfilePortfolio.trim(),
                       activityImages: isComm ? editProfileActivityImages.split(',').map(s => s.trim()).filter(Boolean) : [],
                       
@@ -951,7 +951,7 @@ export default function App() {
                       youtubeVerified: editProfileYoutubeVerified,
                       userRegional: editProfileRegional.trim(),
                       payoutMethod: editProfilePayoutMethod || 'Bank Transfer',
-                      payoutBank: editProfilePayoutBank || 'MANDIRI',
+                      payoutBank: editProfilePayoutBank || 'BCA',
                       payoutAccount: editProfilePayoutAccount.trim(),
                       payoutAccountName: editProfilePayoutAccountName.trim()
                     };
@@ -1216,7 +1216,7 @@ export default function App() {
                   <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Bank</label>
                     <select
-                      value={editProfilePayoutBank || 'MANDIRI'}
+                      value={editProfilePayoutBank || 'BCA'}
                       onChange={(e) => {
                         setEditProfilePayoutBank(e.target.value);
                         setEditProfilePayoutMethod('Bank Transfer');
@@ -1232,8 +1232,8 @@ export default function App() {
                         outline: 'none'
                       }}
                     >
-                      <option value="MANDIRI">Bank Mandiri (Direkomendasikan)</option>
-                      <option value="BCA">Bank Central Asia (BCA)</option>
+                      <option value="BCA">Bank Central Asia (BCA) (Direkomendasikan)</option>
+                      <option value="MANDIRI">Bank Mandiri</option>
                       <option value="BRI">Bank Rakyat Indonesia (BRI)</option>
                       <option value="BNI">Bank Negara Indonesia (BNI)</option>
                       <option value="BSI">Bank Syariah Indonesia (BSI)</option>

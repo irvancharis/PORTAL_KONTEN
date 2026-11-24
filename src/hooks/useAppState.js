@@ -849,7 +849,7 @@ export default function useAppState() {
   const [organizerDescription, setOrganizerDescription] = useState('');
   const [organizerAvatar, setOrganizerAvatar] = useState('');
   const [activeMembersCount, setActiveMembersCount] = useState('');
-  const [userCategory, setUserCategory] = useState('Videografer');
+  const [userCategory, setUserCategory] = useState('Content Creator');
   const [userPortfolio, setUserPortfolio] = useState('');
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -906,7 +906,7 @@ export default function useAppState() {
   const [editProfilePhone, setEditProfilePhone] = useState('');
   const [editProfileDescription, setEditProfileDescription] = useState('');
   const [editProfileAvatar, setEditProfileAvatar] = useState('');
-  const [editProfileCategory, setEditProfileCategory] = useState('Videografer');
+  const [editProfileCategory, setEditProfileCategory] = useState('Content Creator');
   const [editProfilePortfolio, setEditProfilePortfolio] = useState('');
   const [editProfileActiveMembers, setEditProfileActiveMembers] = useState('');
   const [editProfileActivityImages, setEditProfileActivityImages] = useState('');
@@ -1050,13 +1050,13 @@ export default function useAppState() {
     setEditProfilePhone(currentUser.organizerPhone || '');
     setEditProfileDescription(currentUser.organizerDescription || '');
     setEditProfileAvatar(currentUser.organizerAvatar || '');
-    setEditProfileCategory(currentUser.userCategory || 'Videografer');
+    setEditProfileCategory(currentUser.userCategory || 'Content Creator');
     setEditProfilePortfolio(currentUser.userPortfolio || '');
     setEditProfileActiveMembers(currentUser.activeMembersCount || '');
     setEditProfileActivityImages(currentUser.activityImages ? currentUser.activityImages.join(', ') : '');
     setEditProfileRegional(currentUser.userRegional || '');
     setEditProfilePayoutMethod(currentUser.payoutMethod || 'Bank Transfer');
-    setEditProfilePayoutBank(currentUser.payoutBank || (currentUser.payoutMethod && currentUser.payoutMethod !== 'Bank Transfer' ? currentUser.payoutMethod : 'MANDIRI'));
+    setEditProfilePayoutBank(currentUser.payoutBank || (currentUser.payoutMethod && currentUser.payoutMethod !== 'Bank Transfer' ? currentUser.payoutMethod : 'BCA'));
     setEditProfilePayoutAccount(currentUser.payoutAccount || '');
     setEditProfilePayoutAccountName(currentUser.payoutAccountName || '');
     
@@ -1289,7 +1289,7 @@ export default function useAppState() {
           activeMembersCount: isComm ? activeMembersCount.trim() : '',
           isCommunity: isComm,
           joinedMembers: [],
-          userCategory: 'Videografer',
+          userCategory: 'Content Creator',
           userPortfolio: '',
           userRegional: registerRegional.trim()
         };
@@ -1325,7 +1325,7 @@ export default function useAppState() {
         setOrganizerDescription('');
         setOrganizerAvatar('');
         setActiveMembersCount('');
-        setUserCategory('Videografer');
+        setUserCategory('Content Creator');
         setUserPortfolio('');
         setLoginError('');
       } catch (err) {
@@ -1358,7 +1358,7 @@ export default function useAppState() {
         activeMembersCount: isComm ? activeMembersCount.trim() : '',
         isCommunity: isComm,
         joinedMembers: [],
-        userCategory: 'Videografer',
+        userCategory: 'Content Creator',
         userPortfolio: '',
         userRegional: registerRegional.trim()
       };
@@ -1387,7 +1387,7 @@ export default function useAppState() {
       setOrganizerDescription('');
       setOrganizerAvatar('');
       setActiveMembersCount('');
-      setUserCategory('Videografer');
+      setUserCategory('Content Creator');
       setUserPortfolio('');
       setLoginError('');
       setGlobalLoadingText(null);

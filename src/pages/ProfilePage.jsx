@@ -241,7 +241,7 @@ export default function ProfilePage({
                   borderRadius: '16px',
                   letterSpacing: '0.3px'
                 }}>
-                  Bank {currentUser.payoutBank || (currentUser.payoutMethod && currentUser.payoutMethod !== 'Bank Transfer' ? currentUser.payoutMethod : 'MANDIRI')}
+                  Bank {currentUser.payoutBank || (currentUser.payoutMethod && currentUser.payoutMethod !== 'Bank Transfer' ? currentUser.payoutMethod : 'BCA')}
                 </span>
                 <span style={{ fontSize: '0.92rem', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
                   {currentUser.payoutAccount}
