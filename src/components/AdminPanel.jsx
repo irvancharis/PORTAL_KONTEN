@@ -981,10 +981,11 @@ export default function AdminPanel({
   // Event action handlers
   const handleEventSubmit = (e) => {
     e.preventDefault();
-    const activeUser = users.find(u => u.username?.toLowerCase() === currentUser?.username?.toLowerCase()) || currentUser;
+    const matchedUser = users.find(u => (u.id && currentUser?.id && u.id === currentUser.id) || u.username?.toLowerCase() === currentUser?.username?.toLowerCase()) || {};
+    const activeUser = { ...matchedUser, ...currentUser };
     const pCheck = checkUserProfileComplete(activeUser);
     if (!pCheck.isComplete) {
-      alert('Lengkapi profil Anda untuk membuat kampanye.');
+      alert(`Profil Belum Lengkap!\n\nUntuk membuat kampanye, lengkapi data profil Anda: ${pCheck.missingFields.join(', ')}.`);
       return;
     }
     if (eventAreaMode === 'regional' && !eventAreaRegional.trim()) {
@@ -4742,10 +4743,12 @@ export default function AdminPanel({
                   id="tour-manage-create-event-btn"
                   className="btn btn-primary" 
                   onClick={() => {
-                    const activeUser = users.find(u => u.username?.toLowerCase() === currentUser?.username?.toLowerCase()) || currentUser;
+                    const matchedUser = users.find(u => (u.id && currentUser?.id && u.id === currentUser.id) || u.username?.toLowerCase() === currentUser?.username?.toLowerCase()) || {};
+                    const activeUser = { ...matchedUser, ...currentUser };
                     const pCheck = checkUserProfileComplete(activeUser);
                     if (!pCheck.isComplete) {
-                      alert('Lengkapi profil Anda untuk membuat kampanye.');
+                      alert(`Profil Belum Lengkap!\n\nUntuk membuat kampanye, lengkapi data profil Anda: ${pCheck.missingFields.join(', ')}.`);
+                      if (onEditProfileClick) onEditProfileClick();
                       return;
                     }
 

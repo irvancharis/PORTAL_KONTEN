@@ -1181,10 +1181,11 @@ export default function EventsUserPortal({
       currentUser.role === 'superadmin'
     ) {
       // Check profile completeness before creating event
-      const activeUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || currentUser;
+      const matchedUser = users.find(u => (u.id && currentUser?.id && u.id === currentUser.id) || u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || {};
+      const activeUser = { ...matchedUser, ...currentUser };
       const profileCheck = checkUserProfileComplete(activeUser);
       if (!profileCheck.isComplete) {
-        alert('Lengkapi profil Anda untuk membuat kampanye baru.');
+        alert(`Profil Belum Lengkap!\n\nUntuk membuat kampanye, lengkapi data profil Anda: ${profileCheck.missingFields.join(', ')}.`);
         if (onEditProfileClick) onEditProfileClick();
         return;
       }
