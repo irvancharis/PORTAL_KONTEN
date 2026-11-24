@@ -419,6 +419,49 @@ export default function ProfilePage({
 
         {/* Connected Social Media */}
         {!isCurrentUserCommunity && (() => {
+          const renderPlatformIcon = (id, size = 18) => {
+            if (id === 'tiktok') {
+              return (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.86 4.46 6.13 6.13 0 0 0 1.87-4.46V8.62a8.28 8.28 0 0 0 4.86 1.58V6.69h-.14Z"/>
+                </svg>
+              );
+            }
+            if (id === 'facebook') {
+              return (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="#1877f2">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              );
+            }
+            if (id === 'instagram') {
+              return (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+                  <defs>
+                    <linearGradient id="ig-grad-profile" x1="0%" y1="100%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#fdf497" />
+                      <stop offset="5%" stopColor="#fdf497" />
+                      <stop offset="45%" stopColor="#fd5949" />
+                      <stop offset="60%" stopColor="#d6249f" />
+                      <stop offset="90%" stopColor="#285AEB" />
+                    </linearGradient>
+                  </defs>
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="url(#ig-grad-profile)" strokeWidth="2" fill="none" />
+                  <circle cx="12" cy="12" r="4.5" stroke="url(#ig-grad-profile)" strokeWidth="2" fill="none" />
+                  <circle cx="18" cy="6" r="1.2" fill="url(#ig-grad-profile)" />
+                </svg>
+              );
+            }
+            if (id === 'youtube') {
+              return (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="#ff0000">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+              );
+            }
+            return null;
+          };
+
           const connectedPlatforms = [
             { id: 'facebook', label: 'Facebook', handle: currentUser?.facebookHandle, verified: currentUser?.facebookVerified, color: '#1877f2', link: `https://facebook.com/${currentUser?.facebookHandle}` },
             { id: 'tiktok', label: 'TikTok', handle: currentUser?.tiktokHandle, verified: currentUser?.tiktokVerified, color: '#00f2fe', link: `https://tiktok.com/@${currentUser?.tiktokHandle}` },
@@ -433,15 +476,17 @@ export default function ProfilePage({
               <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 'bold', letterSpacing: '0.5px' }}>Akun Sosial Media Terhubung</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {connectedPlatforms.map(p => (
-                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', padding: '8px 12px', borderRadius: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color }} />
-                      <span style={{ fontSize: '0.82rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>{p.label}</span>
-                      <a href={p.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem', color: 'var(--primary)', textDecoration: 'underline' }}>
+                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', padding: '10px 14px', borderRadius: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', flexShrink: 0 }}>
+                        {renderPlatformIcon(p.id, 20)}
+                      </div>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>{p.label}</span>
+                      <a href={p.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.82rem', color: 'var(--primary)', textDecoration: 'underline' }}>
                         @{p.handle}
                       </a>
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '2px 8px', borderRadius: '12px', fontWeight: '600' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '3px 10px', borderRadius: '12px', fontWeight: '600' }}>
                       Terverifikasi
                     </span>
                   </div>

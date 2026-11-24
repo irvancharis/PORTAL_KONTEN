@@ -1419,13 +1419,58 @@ export default function App() {
                         { id: 'youtube', label: 'YouTube', handle: editProfileYoutubeHandle, setHandle: setEditProfileYoutubeHandle, verified: editProfileYoutubeVerified, setVerified: setEditProfileYoutubeVerified, color: '#ff0000' }
                       ].map(platform => {
                         const isVerifying = verifyingPlatform === platform.id;
+                        const renderIcon = (id) => {
+                          if (id === 'tiktok') {
+                            return (
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.86 4.46 6.13 6.13 0 0 0 1.87-4.46V8.62a8.28 8.28 0 0 0 4.86 1.58V6.69h-.14Z"/>
+                              </svg>
+                            );
+                          }
+                          if (id === 'facebook') {
+                            return (
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877f2">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                              </svg>
+                            );
+                          }
+                          if (id === 'instagram') {
+                            return (
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                <defs>
+                                  <linearGradient id={`ig-grad-${id}`} x1="0%" y1="100%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="#fdf497" />
+                                    <stop offset="5%" stopColor="#fdf497" />
+                                    <stop offset="45%" stopColor="#fd5949" />
+                                    <stop offset="60%" stopColor="#d6249f" />
+                                    <stop offset="90%" stopColor="#285AEB" />
+                                  </linearGradient>
+                                </defs>
+                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke={`url(#ig-grad-${id})`} strokeWidth="2" fill="none" />
+                                <circle cx="12" cy="12" r="4.5" stroke={`url(#ig-grad-${id})`} strokeWidth="2" fill="none" />
+                                <circle cx="18" cy="6" r="1.2" fill={`url(#ig-grad-${id})`} />
+                              </svg>
+                            );
+                          }
+                          if (id === 'youtube') {
+                            return (
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="#ff0000">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                              </svg>
+                            );
+                          }
+                          return null;
+                        };
                         
                         return (
                           <div key={platform.id} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.04)', borderRadius: '8px', padding: '12px' }}>
                             {isVerifying ? (
                               /* Active verification box */
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: platform.color, textTransform: 'uppercase' }}>Verifikasi {platform.label}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  {renderIcon(platform.id)}
+                                  <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: platform.color, textTransform: 'uppercase' }}>Verifikasi {platform.label}</span>
+                                </div>
                                 
                                 {verificationStep === 'input' && (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1591,6 +1636,9 @@ export default function App() {
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', flexShrink: 0 }}>
+                                      {renderIcon(platform.id)}
+                                    </div>
                                     <span style={{ fontSize: '0.85rem', color: 'white', fontWeight: 'bold' }}>{platform.label}</span>
                                     {platform.verified ? (
                                       <>
