@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Trophy, Calendar, Users, User, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown, X, Maximize2, ExternalLink, MapPin, ClipboardList, Play } from 'lucide-react';
 import { sendEmailNotification } from '../services/emailNotificationService';
 import { generateSecureTicketUrl } from '../utils/security';
+import { checkUserProfileComplete } from '../utils/helpers';
 
 const slugify = (text) => {
   if (!text) return '';
@@ -578,14 +579,15 @@ export default function EventsUserPortal({
     if (e) e.preventDefault();
     
     const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
+    const profileCheck = checkUserProfileComplete(userProfile);
+    if (!profileCheck.isComplete) {
+      alert(`Profil Belum Lengkap!\n\nUntuk dapat mendaftar event, lengkapi data berikut di profil Anda:\n- ${profileCheck.missingFields.join('\n- ')}`);
+      if (onEditProfileClick) onEditProfileClick();
+      return;
+    }
     const finalName = userProfile.organizerName || userProfile.username;
     const finalPhone = userProfile.organizerPhone || userProfile.phone || '';
     const finalEmail = userProfile.email || `${userProfile.username}@gmail.com`;
-
-    if (!userProfile.organizerName || !userProfile.organizerPhone) {
-      alert('Silakan lengkapi Nama Lengkap dan No. WhatsApp di profil Anda terlebih dahulu!');
-      return;
-    }
 
     if (window.setGlobalLoading) window.setGlobalLoading('Sedang memproses tiket pendaftaran...');
 
@@ -1178,6 +1180,15 @@ export default function EventsUserPortal({
       currentUser.role === 'staf' ||
       currentUser.role === 'superadmin'
     ) {
+      // Check profile completeness before creating event
+      const activeUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || currentUser;
+      const profileCheck = checkUserProfileComplete(activeUser);
+      if (!profileCheck.isComplete) {
+        alert(`Profil Belum Lengkap!\n\nUntuk membuat kampanye / event baru, Anda wajib melengkapi data profil terlebih dahulu:\n- ${profileCheck.missingFields.join('\n- ')}`);
+        if (onEditProfileClick) onEditProfileClick();
+        return;
+      }
+
       changePortalTab('manage');
       setAutoOpenForm(true);
     } else {
@@ -1221,60 +1232,67 @@ export default function EventsUserPortal({
       width: '100%'
     }}>
       {/* Profile Completion Suggestion Banner */}
-      {currentUser && currentUser.role === 'user' && (!currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio) && (
-        <div style={{
-          background: 'rgba(245, 158, 11, 0.1)',
-          border: '1px solid rgba(245, 158, 11, 0.3)',
-          borderRadius: '12px',
-          padding: '16px 20px',
-          marginBottom: '24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '16px',
-          textAlign: 'left'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '280px' }}>
-            <div style={{ background: 'rgba(245, 158, 11, 0.15)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <AlertTriangle size={20} color="#f59e0b" />
+      {(() => {
+        if (!currentUser) return null;
+        const activeUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || currentUser;
+        const pCheck = checkUserProfileComplete(activeUser);
+        if (pCheck.isComplete) return null;
+
+        return (
+          <div style={{
+            background: 'rgba(245, 158, 11, 0.1)',
+            border: '1px solid rgba(245, 158, 11, 0.3)',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            marginBottom: '24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px',
+            textAlign: 'left'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '280px' }}>
+              <div style={{ background: 'rgba(245, 158, 11, 0.15)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AlertTriangle size={20} color="#f59e0b" />
+              </div>
+              <div>
+                <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.5' }}>
+                  Lengkapi profil Anda ({pCheck.missingFields.join(', ')}) agar dapat membuat dan mengikuti kampanye/event.
+                </p>
+              </div>
             </div>
-            <div>
-              <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
-              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.5' }}>
-                lengkapi profil Anda terlebih dahulu agar dapat mendaftar sebagai peserta event.
-              </p>
-            </div>
+            <button
+              onClick={onEditProfileClick}
+              style={{
+                padding: '8px 16px',
+                fontSize: '0.82rem',
+                borderRadius: '20px',
+                fontWeight: 'bold',
+                background: 'var(--bg-main)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-color)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--border-color)';
+                e.currentTarget.style.color = 'var(--bg-main)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-main)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+              }}
+            >
+              <User size={14} />
+              <span>Lengkapi Profil Sekarang</span>
+            </button>
           </div>
-          <button
-            onClick={onEditProfileClick}
-            style={{
-              padding: '8px 16px',
-              fontSize: '0.82rem',
-              borderRadius: '20px',
-              fontWeight: 'bold',
-              background: 'var(--bg-main)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-color)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--border-color)';
-              e.currentTarget.style.color = 'var(--bg-main)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--bg-main)';
-              e.currentTarget.style.color = 'var(--text-primary)';
-            }}
-          >
-            <User size={14} />
-            <span>Lengkapi Profil Sekarang</span>
-          </button>
-        </div>
-      )}
+        );
+      })()}
 
       {selectedEvent ? (
         // ================= DEDICATED DETAIL PAGE VIEW =================
@@ -2020,9 +2038,10 @@ export default function EventsUserPortal({
                                <button 
                                 className="btn btn-primary" 
                                 onClick={() => {
-                                  const isProfileIncomplete = !currentUser.organizerName || !currentUser.organizerPhone || !currentUser.userPortfolio;
-                                  if (currentUser.role === 'user' && isProfileIncomplete) {
-                                    alert('Profil & Portofolio Anda belum lengkap! Silakan lengkapi profil Anda terlebih dahulu untuk dapat mendaftar event.');
+                                  const activeUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || currentUser;
+                                  const pCheck = checkUserProfileComplete(activeUser);
+                                  if (!pCheck.isComplete) {
+                                    alert(`Profil Belum Lengkap!\n\nUntuk mendaftar / mengikuti kampanye ini, Anda wajib melengkapi data profil terlebih dahulu:\n- ${pCheck.missingFields.join('\n- ')}`);
                                     if (onEditProfileClick) onEditProfileClick();
                                     return;
                                   }
@@ -2223,7 +2242,16 @@ export default function EventsUserPortal({
                                     </p>
 
                                     <button
-                                      onClick={() => setSubmittingEvent(evt)}
+                                      onClick={() => {
+                                        const activeUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || currentUser;
+                                        const pCheck = checkUserProfileComplete(activeUser);
+                                        if (!pCheck.isComplete) {
+                                          alert(`Profil Belum Lengkap!\n\nUntuk mengirimkan karya / laporan, Anda wajib melengkapi data profil terlebih dahulu:\n- ${pCheck.missingFields.join('\n- ')}`);
+                                          if (onEditProfileClick) onEditProfileClick();
+                                          return;
+                                        }
+                                        setSubmittingEvent(evt);
+                                      }}
                                       style={{
                                         width: '100%',
                                         padding: '14px',
@@ -3391,7 +3419,8 @@ onMouseLeave={(e) => {
                     <form onSubmit={(e) => { e.preventDefault(); setShowTicketConfirm(true); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {(() => {
                         const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
-                        const hasIncompleteProfile = !userProfile.organizerName || !userProfile.organizerPhone;
+                        const pCheck = checkUserProfileComplete(userProfile);
+                        const hasIncompleteProfile = !pCheck.isComplete;
                         return (
                           <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '16px', borderRadius: '8px', marginBottom: '8px' }}>
                             <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
@@ -3432,7 +3461,7 @@ onMouseLeave={(e) => {
                               <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '6px', fontSize: '0.8rem', color: '#dc2626' }}>
                                 <p style={{ margin: '0 0 8px 0', fontWeight: '600' }}>⚠️ Data Profil Belum Lengkap!</p>
                                 <p style={{ margin: '0 0 12px 0', fontSize: '0.75rem', lineHeight: '1.4' }}>
-                                  Nama Lengkap dan No. WhatsApp wajib diisi di profil Anda untuk dapat membeli tiket / mendaftar.
+                                  Lengkapi data wajib profil Anda ({pCheck.missingFields.join(', ')}) untuk dapat membeli tiket / mendaftar.
                                 </p>
                                 <button
                                   type="button"
@@ -3527,7 +3556,8 @@ onMouseLeave={(e) => {
                         <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
                         {(() => {
                           const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
-                          const hasIncompleteProfile = !userProfile.organizerName || !userProfile.organizerPhone;
+                          const pCheck = checkUserProfileComplete(userProfile);
+                          const hasIncompleteProfile = !pCheck.isComplete;
                           return (
                             <button 
                               type="submit" 
@@ -3550,7 +3580,8 @@ onMouseLeave={(e) => {
                     if (isGoogleReview) {
                       const activeBal = userProfile.walletBalance || 0;
                       const isInsufficient = activeBal < registeringEvent.ticketPrice;
-                      const hasIncompleteProfile = !userProfile.organizerName || !userProfile.organizerPhone;
+                      const pCheck = checkUserProfileComplete(userProfile);
+                      const hasIncompleteProfile = !pCheck.isComplete;
                       const isDisabled = hasIncompleteProfile || isInsufficient;
                       
                       return (
@@ -3627,7 +3658,7 @@ onMouseLeave={(e) => {
                           {hasIncompleteProfile && (
                             <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '6px', fontSize: '0.8rem', color: '#dc2626' }}>
                               <p style={{ margin: '0 0 6px 0', fontWeight: '600' }}>⚠️ Data Profil Belum Lengkap!</p>
-                              Nama Lengkap dan No. WhatsApp wajib diisi di profil Anda untuk dapat berpartisipasi.
+                              Lengkapi data wajib profil Anda ({pCheck.missingFields.join(', ')}) untuk dapat berpartisipasi.
                             </div>
                           )}
 
@@ -3962,7 +3993,8 @@ onMouseLeave={(e) => {
                           <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
                           {(() => {
                             const activeBal = userProfile.walletBalance || 0;
-                            const hasIncompleteProfile = !userProfile.organizerName || !userProfile.organizerPhone;
+                            const pCheck = checkUserProfileComplete(userProfile);
+                            const hasIncompleteProfile = !pCheck.isComplete;
                             const isInsufficient = registeringEvent.ticketPrice > 0 && activeBal < registeringEvent.ticketPrice;
                             const isDisabled = hasIncompleteProfile || isInsufficient;
                             

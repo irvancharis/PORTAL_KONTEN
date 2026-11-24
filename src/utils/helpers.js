@@ -45,3 +45,38 @@ export const fetchJSONP = (url, params = {}) => {
     document.body.appendChild(script);
   });
 };
+
+/**
+ * Checks if a user's profile is complete for participating in or creating campaigns/events.
+ * Requirements:
+ * - Community/Panitia: organizerName, organizerPhone, activeMembersCount, userRegional.
+ * - Regular Creator/User: organizerName, organizerPhone, userPortfolio, userRegional.
+ */
+export const checkUserProfileComplete = (user) => {
+  if (!user) return { isComplete: false, missingFields: ['User tidak ditemukan'] };
+  
+  const isComm = user.role === 'panitia' || user.isCommunity;
+  const missing = [];
+
+  const name = (user.organizerName || '').trim();
+  const phone = (user.organizerPhone || user.phone || '').trim();
+  const regional = (user.userRegional || '').trim();
+
+  if (!name) missing.push(isComm ? 'Nama Komunitas' : 'Nama Lengkap');
+  if (!phone) missing.push('No. WhatsApp / HP');
+  if (!regional) missing.push('Lokasi Regional');
+
+  if (isComm) {
+    const members = (user.activeMembersCount || '').toString().trim();
+    if (!members) missing.push('Target Jumlah Member Aktif');
+  } else {
+    const portfolio = (user.userPortfolio || '').trim();
+    if (!portfolio) missing.push('Link Portofolio');
+  }
+
+  return {
+    isComplete: missing.length === 0,
+    missingFields: missing
+  };
+};
+

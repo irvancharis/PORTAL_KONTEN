@@ -14,6 +14,7 @@ import {
   Search 
 } from 'lucide-react';
 import SearchableSelect from '../components/SearchableSelect';
+import { checkUserProfileComplete } from '../utils/helpers';
 
 export default function CommunitiesPage({
   communities,
@@ -84,7 +85,7 @@ export default function CommunitiesPage({
               <div>
                 <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 'bold' }}>Profil Belum Lengkap!</h4>
                 <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.5' }}>
-                  lengkapi profil Anda terlebih dahulu agar dapat bergabung dengan komunitas dan mendaftar sebagai peserta event.
+                  Lengkapi profil Anda agar dapat bergabung dengan komunitas dan membuat/mendaftar kampanye event.
                 </p>
               </div>
             </div>

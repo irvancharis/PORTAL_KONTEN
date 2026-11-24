@@ -8,6 +8,7 @@ import { isFirebaseConfigured, db } from '../firebase';
 import { createPortal } from 'react-dom';
 import { sendEmailNotification } from '../services/emailNotificationService';
 import { generateSecureTicketUrl } from '../utils/security';
+import { checkUserProfileComplete } from '../utils/helpers';
 import { 
   Plus, 
   Edit, 
@@ -980,6 +981,12 @@ export default function AdminPanel({
   // Event action handlers
   const handleEventSubmit = (e) => {
     e.preventDefault();
+    const activeUser = users.find(u => u.username?.toLowerCase() === currentUser?.username?.toLowerCase()) || currentUser;
+    const pCheck = checkUserProfileComplete(activeUser);
+    if (!pCheck.isComplete) {
+      alert(`Profil Belum Lengkap!\n\nUntuk membuat event / kampanye baru, Anda wajib melengkapi data profil terlebih dahulu:\n- ${pCheck.missingFields.join('\n- ')}`);
+      return;
+    }
     if (eventAreaMode === 'regional' && !eventAreaRegional.trim()) {
       alert('Silakan pilih Kota / Regional khusus untuk event ini!');
       return;
@@ -4735,6 +4742,13 @@ export default function AdminPanel({
                   id="tour-manage-create-event-btn"
                   className="btn btn-primary" 
                   onClick={() => {
+                    const activeUser = users.find(u => u.username?.toLowerCase() === currentUser?.username?.toLowerCase()) || currentUser;
+                    const pCheck = checkUserProfileComplete(activeUser);
+                    if (!pCheck.isComplete) {
+                      alert(`Profil Belum Lengkap!\n\nUntuk membuat event / kampanye baru, Anda wajib melengkapi data profil terlebih dahulu:\n- ${pCheck.missingFields.join('\n- ')}`);
+                      return;
+                    }
+
                     const isCommunityUser = currentUser?.isCommunity || currentUser?.role === 'panitia';
                     if (isCommunityUser) {
                       const myComm = communities.find(c => c.username.toLowerCase() === currentUser.username.toLowerCase());
