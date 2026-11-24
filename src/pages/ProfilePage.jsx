@@ -37,30 +37,81 @@ export default function ProfilePage({
     <div className="profile-view-container animate-fade-in">
       {/* Profile Header Card */}
       <div className="profile-card-header glass-panel">
-        <div style={{ position: 'absolute', top: '24px', right: '24px' }}>
-          <button 
-            onClick={handleOpenEditProfile}
-            style={{ background: 'var(--primary-glow)', border: '1px solid var(--border-color)', padding: '8px 16px', borderRadius: '20px', color: 'var(--text-primary)', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--text-primary)'; e.currentTarget.style.color = 'var(--bg-card)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--primary-glow)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+        {/* Avatar with Click-to-edit badge */}
+        <div 
+          onClick={handleOpenEditProfile}
+          title="Klik untuk ubah foto atau edit profil"
+          style={{ 
+            position: 'relative',
+            cursor: 'pointer',
+            marginBottom: '16px',
+            display: 'inline-block'
+          }}
+        >
+          <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: 'var(--primary)', color: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 'bold', textTransform: 'uppercase', border: '4px solid var(--border-color)', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
+            {currentUser?.organizerAvatar ? (
+              <img src={currentUser.organizerAvatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+            ) : (
+              currentUser?.username?.charAt(0)
+            )}
+          </div>
+          <div 
+            style={{ 
+              position: 'absolute', 
+              bottom: '2px', 
+              right: '2px', 
+              background: 'var(--text-primary)', 
+              color: 'var(--bg-main)', 
+              borderRadius: '50%', 
+              width: '30px', 
+              height: '30px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              border: '2px solid var(--bg-card)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              transition: 'transform 0.2s'
+            }}
           >
             <Edit size={14} />
-            <span>Edit Profil</span>
+          </div>
+        </div>
+
+        <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 6px 0', color: 'var(--text-primary)' }}>{currentUser?.organizerName || currentUser?.username}</h2>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>@{currentUser?.username}</span>
+
+        {/* Action Buttons: Edit Profil (Primary Prominent Button) */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '380px', marginTop: '4px' }}>
+          <button 
+            onClick={handleOpenEditProfile}
+            style={{ 
+              flex: 1,
+              minWidth: '160px',
+              background: 'var(--text-primary)', 
+              color: 'var(--bg-main)',
+              border: 'none', 
+              padding: '10px 20px', 
+              borderRadius: '24px', 
+              fontSize: '0.88rem', 
+              fontWeight: '700', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              gap: '8px', 
+              cursor: 'pointer', 
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.35)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.25)'; }}
+          >
+            <Edit size={16} />
+            <span>Edit Profil Saya</span>
           </button>
         </div>
 
-        {/* Avatar */}
-        <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'var(--primary)', color: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '16px', border: '4px solid var(--border-color)' }}>
-          {currentUser?.organizerAvatar ? (
-            <img src={currentUser.organizerAvatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-          ) : (
-            currentUser?.username?.charAt(0)
-          )}
-        </div>
-
-        <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 8px 0', color: 'var(--text-primary)' }}>{currentUser?.organizerName || currentUser?.username}</h2>
         {isCurrentUserCommunity ? (
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '16px' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'var(--primary-glow)', padding: '4px 12px', borderRadius: '20px', border: '1px solid var(--border-color)', fontWeight: 'bold' }}>
               Komunitas / Instansi
             </span>
@@ -70,7 +121,7 @@ export default function ProfilePage({
           if (isPremium) {
             const expiryDateStr = new Date(currentUser.premiumExpiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
             return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', marginTop: '4px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', marginTop: '16px' }}>
                 <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 'bold', background: 'rgba(16, 185, 129, 0.1)', padding: '4px 14px', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
                   ★ Premium Aktif s.d. {expiryDateStr}
                 </span>
@@ -78,18 +129,18 @@ export default function ProfilePage({
             );
           } else {
             return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', marginTop: '16px' }}>
                 <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: '500' }}>
                   Akun belum Premium
                 </span>
                 <button
                   onClick={() => setShowPremiumModal(true)}
                   style={{
-                    background: 'var(--text-primary)',
+                    background: 'var(--primary-glow)',
                     border: '1px solid var(--border-color)',
-                    color: 'var(--bg-main)',
+                    color: 'var(--text-primary)',
                     fontSize: '0.75rem',
-                    fontWeight: '800',
+                    fontWeight: '700',
                     padding: '6px 16px',
                     borderRadius: '20px',
                     cursor: 'pointer',
@@ -108,7 +159,31 @@ export default function ProfilePage({
 
       {/* Profile Details Container */}
       <div className="profile-card-details glass-panel">
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 8px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', color: 'var(--text-primary)' }}>Detail Data Profil</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0, color: 'var(--text-primary)' }}>Detail Data Profil</h3>
+          <button
+            onClick={handleOpenEditProfile}
+            style={{
+              background: 'var(--primary-glow)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-primary)',
+              fontSize: '0.78rem',
+              fontWeight: '700',
+              padding: '5px 12px',
+              borderRadius: '16px',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--text-primary)'; e.currentTarget.style.color = 'var(--bg-main)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--primary-glow)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+          >
+            <Edit size={13} />
+            <span>Ubah</span>
+          </button>
+        </div>
         
         {/* Email */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
