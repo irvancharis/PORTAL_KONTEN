@@ -6135,6 +6135,186 @@ button:not(:disabled):active,
   color: #94a3b8 !important;
 }
 
+/* ==========================================================================
+   GLOBAL MOTION & DYNAMIC INTERACTION SYSTEM
+   ========================================================================== */
+
+/* Keyframe Animations */
+@keyframes motionScaleFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes motionFloatSoft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes motionSlideUpStagger {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes subtleShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Page & Section Dynamic Transitions */
+.main-content,
+.events-portal-container,
+.wallet-portal-container,
+.discover-container,
+.communities-page-container,
+.profile-view-container,
+.standalone-admin-portal {
+  animation: motionScaleFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Interactive Cards Motion & Elevated Depth */
+.movie-card,
+.event-card,
+.community-card,
+.creator-card,
+.glass-panel,
+.stat-card,
+.wallet-card,
+.profile-card-header,
+.profile-card-details,
+.admin-card {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.22s ease,
+              background-color 0.22s ease !important;
+  will-change: transform, box-shadow;
+}
+
+.movie-card:hover,
+.event-card:hover,
+.community-card:hover,
+.creator-card:hover {
+  transform: translateY(-5px) scale(1.008) !important;
+  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.35), 0 0 20px -4px rgba(59, 130, 246, 0.15) !important;
+}
+
+.light-theme .movie-card:hover,
+.light-theme .event-card:hover,
+.light-theme .community-card:hover,
+.light-theme .creator-card:hover {
+  transform: translateY(-5px) scale(1.008) !important;
+  box-shadow: 0 16px 36px -10px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Button Dynamic Reactions */
+button,
+.btn,
+.btn-primary,
+.btn-secondary {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              background-color 0.2s ease, 
+              color 0.2s ease !important;
+}
+
+button:hover:not(:disabled),
+.btn:hover:not(:disabled),
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px -4px rgba(0, 0, 0, 0.25);
+}
+
+button:active:not(:disabled),
+.btn:active:not(:disabled),
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.96) !important;
+  transition: transform 0.08s ease !important;
+}
+
+/* Sidebar & Navigation Items */
+.sidebar-link,
+.admin-sidebar .admin-nav-item,
+.navbar-icon-btn,
+.nav-tab-item {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.sidebar-link:hover,
+.admin-sidebar .admin-nav-item:hover {
+  transform: translateX(4px);
+}
+
+/* Inputs, Selects, and Search Focus Ripple */
+input[type="text"],
+input[type="search"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22) !important;
+}
+
+/* Modal and Dropdown Spring Animations */
+.modal-overlay > div,
+.modal-content,
+.dialog-content,
+.glass-panel[style*="position: absolute"] {
+  animation: motionScaleFadeIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Floating Badges & Icons */
+.floating-badge,
+.badge-pill-pulse {
+  animation: motionFloatSoft 3s ease-in-out infinite;
+}
+
+/* Stagger List Animation Helper */
+.motion-stagger-item {
+  animation: motionSlideUpStagger 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
 
 
 
