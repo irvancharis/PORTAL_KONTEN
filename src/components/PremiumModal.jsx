@@ -61,93 +61,16 @@ export default function PremiumModal({
       setReceiptFile('');
       setIsSubmittingManual(false);
 
-      // Cek apakah user memiliki transaksi pending aktif (misal dalam 15-30 menit terakhir)
-      const userPending = (confirmations || []).find(c => 
-        c.status === 'pending' && 
-        (c.userId === currentUser?.id || c.username?.toLowerCase() === currentUser?.username?.toLowerCase()) &&
-        (Date.now() - new Date(c.timestamp).getTime() < 30 * 60 * 1000)
-      );
+      // Bersihkan sesi QRIS otomatis agar langsung masuk alur transfer bank resmi
+      try {
+        localStorage.removeItem('portal-active-payment-session');
+      } catch (e) {}
 
-      const savedSessionStr = localStorage.getItem('portal-active-payment-session');
-      let savedSession = null;
-      if (savedSessionStr) {
-        try {
-          const parsed = JSON.parse(savedSessionStr);
-          if (parsed && (Date.now() - parsed.createdAt < 30 * 60 * 1000) && 
-              (parsed.userId === currentUser?.id || parsed.username === currentUser?.username)) {
-            savedSession = parsed;
-          }
-        } catch (e) {}
-      }
-
-      if (savedSession && savedSession.duitkuData?.qrString) {
-        setDuitkuData(savedSession.duitkuData);
-        setSelectedMethod(savedSession.selectedMethod || 'qris');
-        setBillingCycle(savedSession.billingCycle || 'monthly');
-        const elapsedSec = Math.floor((Date.now() - savedSession.createdAt) / 1000);
-        setTimeLeft(Math.max(60, 900 - elapsedSec));
-        setStep('pay_screen');
-      } else if (userPending && userPending.qrString) {
-        setBillingCycle(userPending.billingDuration?.includes('Tahun') ? 'yearly' : 'monthly');
-        setSelectedMethod('qris');
-        setDuitkuData({
-          merchantOrderId: userPending.orderId,
-          reference: userPending.reference || userPending.orderId,
-          qrString: userPending.qrString,
-          vaNumber: userPending.vaNumber || '',
-          paymentUrl: userPending.paymentUrl || '',
-          gateway: userPending.gateway || 'MAYAR',
-          createdAt: new Date(userPending.timestamp).getTime()
-        });
-        const elapsedSec = Math.floor((Date.now() - new Date(userPending.timestamp).getTime()) / 1000);
-        setTimeLeft(Math.max(60, 900 - elapsedSec));
-        setStep('pay_screen');
-      } else if (savedSession || userPending) {
-        // Jika sesi ada tapi belum punya URL gambar QRIS, buatkan QRIS langsung
-        const activeOrderId = savedSession?.duitkuData?.merchantOrderId || userPending?.orderId || `NGONTEN-${Date.now()}`;
-        const activePlan = planDetails[savedSession?.billingCycle || (userPending?.billingDuration?.includes('Tahun') ? 'yearly' : 'monthly')];
-        
-        setBillingCycle(savedSession?.billingCycle || (userPending?.billingDuration?.includes('Tahun') ? 'yearly' : 'monthly'));
-        setSelectedMethod('qris');
-        setStep('pay_screen');
-
-        createMayarInvoicePayment({
-          name: currentUser?.name || currentUser?.username || 'Kreator ngonten.id',
-          email: currentUser?.email || `${currentUser?.username || 'user'}@ngonten.id`,
-          mobile: currentUser?.phone || '081234567890',
-          amount: activePlan.numericPrice,
-          orderId: activeOrderId
-        }).then(res => {
-          if (res?.data?.qrCodeUrl) {
-            const freshData = {
-              merchantOrderId: activeOrderId,
-              reference: res.data.id || activeOrderId,
-              qrString: res.data.qrCodeUrl,
-              vaNumber: '',
-              paymentUrl: res.data.link || '',
-              gateway: 'MAYAR',
-              createdAt: Date.now()
-            };
-            setDuitkuData(freshData);
-            localStorage.setItem('portal-active-payment-session', JSON.stringify({
-              userId: currentUser?.id || currentUser?.username,
-              username: currentUser?.username,
-              duitkuData: freshData,
-              selectedMethod: 'qris',
-              billingCycle: savedSession?.billingCycle || 'monthly',
-              createdAt: Date.now()
-            }));
-          }
-        });
-      } else {
-        setStep('select_plan');
-        setBillingCycle('monthly');
-        setSelectedMethod('qris');
-        setDuitkuData(null);
-        setTimeLeft(900);
-      }
+      setStep('select_plan');
+      setBillingCycle('monthly');
+      setDuitkuData(null);
     }
-  }, [isOpen, currentUser, confirmations]);
+  }, [isOpen, currentUser]);
 
   useEffect(() => {
     let timer;
