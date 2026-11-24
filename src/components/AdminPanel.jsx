@@ -3515,7 +3515,7 @@ export default function AdminPanel({
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
                   <div>
-                    <h2 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: 'bold' }}>{editingEventId ? 'Edit Event Kompetisi' : 'Buat Event Kompetisi Baru'}</h2>
+                    <h2 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: 'bold' }}>{editingEventId ? 'Edit Campaign Kompetisi' : 'Buat Campaign Kompetisi Baru'}</h2>
                     <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>Isi parameter dan guideline kompetisi di bawah ini secara lengkap.</p>
                   </div>
                   <button 
@@ -3555,20 +3555,20 @@ export default function AdminPanel({
                 ) : (
                 <form onSubmit={handleEventSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div className="form-group">
-                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Judul Event</label>
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Judul Campaign</label>
                     <input type="text" required value={eventTitle} onChange={(e) => setEventTitle(e.target.value)} placeholder="Contoh: Short Film Competition 2026" style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }} />
                   </div>
                   
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
                     <div className="form-group">
-                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Tipe Event</label>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Tipe Campaign</label>
                       <select value={eventType} onChange={(e) => setEventType(e.target.value)} style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}>
                         <option value="competition">Kompetisi (Kirim Karya & Hadiah)</option>
                         <option value="regular">Acara / Festival / Seminar (E-Tiket & Check-In)</option>
                       </select>
                     </div>
                     <div className="form-group">
-                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Kategori Event</label>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Kategori Campaign</label>
                       <select value={eventCategory} onChange={(e) => setEventCategory(e.target.value)} style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}>
                         <option value="Short Film">Short Film</option>
                         <option value="Documentary">Documentary</option>
