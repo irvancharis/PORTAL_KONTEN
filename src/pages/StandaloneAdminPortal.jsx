@@ -138,7 +138,6 @@ export default function StandaloneAdminPortal(props) {
     { id: 'creator-marketplace', label: 'Katalog Kreator', icon: Users },
     { id: 'movies', label: 'Katalog Konten Film', icon: Film },
     { id: 'users', label: 'Manajemen Pengguna', icon: Users },
-    { id: 'roles', label: 'Pengaturan Role Akses', icon: ShieldCheck },
     { id: 'membership', label: 'Konfigurasi Sistem', icon: Settings },
   ];
 
@@ -148,7 +147,6 @@ export default function StandaloneAdminPortal(props) {
   const visibleMenuItems = adminMenuItems.filter(item => {
     if (currentUser.role === 'superadmin') return true;
     if (item.id === 'membership' && currentUser.role !== 'superadmin') return false;
-    if (item.id === 'roles' && currentUser.role !== 'superadmin') return false;
     if (item.id === 'users' && !['superadmin', 'staf'].includes(currentUser.role)) return false;
     return allowedPermissions ? allowedPermissions.includes(item.id) : true;
   });
@@ -165,7 +163,7 @@ export default function StandaloneAdminPortal(props) {
       <aside 
         className="admin-sidebar"
         style={{
-          width: isSidebarOpen ? '260px' : '72px',
+          width: isSidebarOpen ? '220px' : '64px',
           background: 'var(--bg-navbar, #0b0f19)',
           borderRight: '1px solid var(--border-color, rgba(255,255,255,0.08))',
           display: 'flex',

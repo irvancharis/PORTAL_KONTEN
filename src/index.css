@@ -6030,6 +6030,7 @@ button:not(:disabled):active,
 .light-theme .standalone-admin-portal .admin-sidebar {
   background: #000000 !important;
   border-right: none !important;
+  width: 220px !important;
 }
 
 .standalone-admin-portal .admin-header {
@@ -6041,33 +6042,37 @@ button:not(:disabled):active,
 .standalone-admin-portal.light-theme .admin-sidebar h1,
 .light-theme .standalone-admin-portal .admin-sidebar h1 {
   color: #ffffff !important;
+  font-size: 0.88rem !important;
 }
 
 .standalone-admin-portal .admin-sidebar span,
 .standalone-admin-portal.light-theme .admin-sidebar span,
 .light-theme .standalone-admin-portal .admin-sidebar span {
-  color: #94a3b8 !important;
+  color: #ffffff !important;
 }
 
-/* Default / Inactive nav items */
+/* Default / Inactive nav items - Clean White Text */
 .standalone-admin-portal .admin-sidebar .admin-nav-item,
 .standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item,
 .light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item {
-  color: #94a3b8 !important;
+  color: #ffffff !important;
   background: transparent !important;
-  border-radius: 12px;
+  border-radius: 10px;
+  font-size: 0.81rem !important;
+  padding: 9px 12px !important;
+  gap: 10px !important;
   transition: color 0.2s ease, background 0.2s ease;
 }
 
 .standalone-admin-portal .admin-sidebar .admin-nav-item .nav-icon,
 .standalone-admin-portal .admin-sidebar .admin-nav-item .nav-label {
-  color: #94a3b8 !important;
+  color: #ffffff !important;
 }
 
 .standalone-admin-portal .admin-sidebar .admin-nav-item:hover,
 .standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item:hover,
 .light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
   color: #ffffff !important;
 }
 
@@ -6081,8 +6086,8 @@ button:not(:disabled):active,
 .standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item.active,
 .light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item.active {
   background: var(--bg-main, #090d16) !important;
-  border-top-left-radius: 30px !important;
-  border-bottom-left-radius: 30px !important;
+  border-top-left-radius: 24px !important;
+  border-bottom-left-radius: 24px !important;
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
   position: relative !important;
@@ -6101,44 +6106,44 @@ button:not(:disabled):active,
   font-weight: 700 !important;
 }
 
-/* Top curved inverted corner (cut-out) */
+/* Top curved inverted corner (cut-out) - slightly smaller and sharper */
 .standalone-admin-portal .admin-sidebar .admin-nav-item.active::before {
   content: '';
   position: absolute;
-  top: -24px;
+  top: -18px;
   right: 0;
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   background: transparent;
-  border-bottom-right-radius: 24px;
-  box-shadow: 10px 10px 0 10px var(--bg-main, #090d16);
+  border-bottom-right-radius: 18px;
+  box-shadow: 8px 8px 0 8px var(--bg-main, #090d16);
   pointer-events: none;
   z-index: 10;
 }
 
 .standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item.active::before,
 .light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item.active::before {
-  box-shadow: 10px 10px 0 10px #f8fafc;
+  box-shadow: 8px 8px 0 8px #f8fafc;
 }
 
-/* Bottom curved inverted corner (cut-out) */
+/* Bottom curved inverted corner (cut-out) - slightly smaller and sharper */
 .standalone-admin-portal .admin-sidebar .admin-nav-item.active::after {
   content: '';
   position: absolute;
-  bottom: -24px;
+  bottom: -18px;
   right: 0;
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   background: transparent;
-  border-top-right-radius: 24px;
-  box-shadow: 10px -10px 0 10px var(--bg-main, #090d16);
+  border-top-right-radius: 18px;
+  box-shadow: 8px -8px 0 8px var(--bg-main, #090d16);
   pointer-events: none;
   z-index: 10;
 }
 
 .standalone-admin-portal.light-theme .admin-sidebar .admin-nav-item.active::after,
 .light-theme .standalone-admin-portal .admin-sidebar .admin-nav-item.active::after {
-  box-shadow: 10px -10px 0 10px #f8fafc;
+  box-shadow: 8px -8px 0 8px #f8fafc;
 }
 
 .standalone-admin-portal .admin-header h2 {

@@ -395,6 +395,7 @@ export default function AdminPanel({
 
   // Local state
   const [userViewMode, setUserViewMode] = useState('list'); // 'list' | 'add'
+  const [usersMainTab, setUsersMainTab] = useState('accounts'); // 'accounts' | 'roles'
   const [zoomedReceipt, setZoomedReceipt] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleActivitiesCount, setVisibleActivitiesCount] = useState(6);
@@ -7451,10 +7452,213 @@ export default function AdminPanel({
         </div>
       ) : adminSubTab === 'users' && currentUser && currentUser.role === 'superadmin' ? (
         <div className="users-manager-section animate-fade-in">
+          {/* Main Subtabs: Akun Pengguna vs Role & Hak Akses */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '20px',
+            borderBottom: '1px solid var(--border-color)',
+            paddingBottom: '12px'
+          }}>
+            <button
+              type="button"
+              onClick={() => setUsersMainTab('accounts')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: usersMainTab === 'accounts' ? 'var(--text-primary)' : 'var(--bg-card)',
+                color: usersMainTab === 'accounts' ? 'var(--bg-main, #000)' : 'var(--text-secondary)',
+                fontWeight: usersMainTab === 'accounts' ? '700' : '500',
+                fontSize: '0.84rem',
+                cursor: 'pointer',
+                transition: 'all 0.18s ease'
+              }}
+            >
+              <Users size={16} />
+              <span>Daftar Pengguna ({users.length})</span>
+            </button>
 
+            <button
+              type="button"
+              onClick={() => setUsersMainTab('roles')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: usersMainTab === 'roles' ? 'var(--text-primary)' : 'var(--bg-card)',
+                color: usersMainTab === 'roles' ? 'var(--bg-main, #000)' : 'var(--text-secondary)',
+                fontWeight: usersMainTab === 'roles' ? '700' : '500',
+                fontSize: '0.84rem',
+                cursor: 'pointer',
+                transition: 'all 0.18s ease'
+              }}
+            >
+              <ShieldCheck size={16} />
+              <span>Pengaturan Role & Hak Akses</span>
+            </button>
+          </div>
 
-          {/* LIST SCREEN/PAGE */}
-          <>
+          {usersMainTab === 'roles' ? (
+            <div className="roles-manager-section animate-fade-in">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+                {/* Form to Create Custom Role */}
+                <div className="add-affiliate-card glass-panel" style={{ padding: '20px', borderRadius: 'var(--radius-md)', margin: 0 }}>
+                  <h3 style={{ marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Award size={18} className="accent-text" style={{ color: editingRole ? '#38bdf8' : '#ec4899' }} />
+                    <span>{editingRole ? 'Edit Role Custom' : 'Buat Role Custom Baru'}</span>
+                  </h3>
+                  <form 
+                    key={editingRole ? editingRole.id : 'new'}
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const roleName = e.target.elements.roleName.value.trim();
+                      if (!roleName) return alert('Nama role tidak boleh kosong.');
+                      
+                      const selectedPerms = Array.from(e.target.elements.permissions)
+                        .filter(input => input.checked)
+                        .map(input => input.value);
+                      
+                      if (editingRole) {
+                        setCustomRoles(customRoles.map(r => r.id === editingRole.id ? { ...r, name: roleName, permissions: selectedPerms } : r));
+                        setEditingRole(null);
+                        alert(`Role "${roleName}" berhasil diperbarui.`);
+                      } else {
+                        const newRoleId = roleName.toLowerCase().replace(/\s+/g, '-');
+                        if (customRoles.some(r => r.id === newRoleId) || ['superadmin', 'user', 'premium'].includes(newRoleId)) {
+                          return alert('Role ID atau nama ini sudah ada.');
+                        }
+                        setCustomRoles([...customRoles, { id: newRoleId, name: roleName, permissions: selectedPerms }]);
+                        alert(`Role "${roleName}" berhasil dibuat.`);
+                        e.target.reset();
+                      }
+                    }}
+                  >
+                    <div className="form-group" style={{ marginBottom: '16px' }}>
+                      <label style={{ fontSize: '0.8rem', marginBottom: '6px', display: 'block', fontWeight: 'bold' }}>Nama Role</label>
+                      <input 
+                        type="text" 
+                        name="roleName" 
+                        defaultValue={editingRole ? editingRole.name : ''}
+                        placeholder="Contoh: Manajer Event, Verifikator" 
+                        required 
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                    
+                    <div className="form-group" style={{ marginBottom: '16px' }}>
+                      <label style={{ fontSize: '0.8rem', marginBottom: '8px', display: 'block', fontWeight: 'bold' }}>Hak Akses Tab Menu (Permissions):</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '8px' }}>
+                        {[
+                          { id: 'event-dashboard', label: 'Ringkasan & Metrik' },
+                          { id: 'event-manage', label: 'Kelola Campaign' },
+                          { id: 'confirmations', label: 'Verifikasi Pembayaran' },
+                          { id: 'withdrawals', label: 'Pencairan Dana' },
+                          { id: 'finance-report', label: 'Jurnal Kas Finansial' },
+                          { id: 'creator-marketplace', label: 'Katalog Kreator' },
+                          { id: 'movies', label: 'Katalog Konten Film' },
+                          { id: 'users', label: 'Manajemen Pengguna' },
+                          { id: 'membership', label: 'Konfigurasi Sistem' },
+                        ].map(perm => (
+                          <label key={perm.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', cursor: 'pointer', background: 'rgba(255,255,255,0.03)', padding: '6px 8px', borderRadius: '4px' }}>
+                            <input 
+                              type="checkbox" 
+                              name="permissions" 
+                              value={perm.id} 
+                              defaultChecked={editingRole ? editingRole.permissions.includes(perm.id) : false}
+                            />
+                            <span>{perm.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+                        <Check size={14} />
+                        <span>{editingRole ? 'Simpan Role' : 'Tambah Role'}</span>
+                      </button>
+                      {editingRole && (
+                        <button type="button" className="btn btn-secondary" onClick={() => setEditingRole(null)}>
+                          Batal
+                        </button>
+                      )}
+                    </div>
+                  </form>
+                </div>
+
+                {/* List of Custom Roles */}
+                <div className="add-affiliate-card glass-panel" style={{ padding: '20px', borderRadius: 'var(--radius-md)', margin: 0, display: 'flex', flexDirection: 'column' }}>
+                  <h3 style={{ marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Users size={18} className="accent-text" style={{ color: '#8b5cf6' }} />
+                    <span>Daftar Custom Role</span>
+                  </h3>
+                  
+                  <div style={{ flex: 1, overflowY: 'auto', maxHeight: '350px', paddingRight: '8px' }}>
+                    {customRoles.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {customRoles.map((role) => {
+                          const isBuiltIn = ['staf', 'panitia', 'moderator', 'editor'].includes(role.id);
+                          return (
+                            <div key={role.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <strong style={{ color: 'white', fontSize: '0.9rem' }}>{role.name}</strong>
+                                  <span style={{ fontSize: '0.62rem', background: isBuiltIn ? 'rgba(56, 189, 248, 0.1)' : 'rgba(236, 72, 153, 0.1)', color: isBuiltIn ? '#38bdf8' : '#ec4899', padding: '1px 5px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                    {isBuiltIn ? 'Bawaan' : 'Kustom'}
+                                  </span>
+                                </div>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                  Fitur ({role.permissions.length}): {role.permissions.join(', ')}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button 
+                                  className="btn btn-text" 
+                                  onClick={() => setEditingRole(role)}
+                                  style={{ color: 'var(--primary-color)', padding: '4px 8px', fontSize: '0.75rem', cursor: 'pointer' }}
+                                >
+                                  Edit
+                                </button>
+                                {!isBuiltIn && (
+                                  <button 
+                                    className="btn btn-text" 
+                                    onClick={() => {
+                                      if (confirm(`Apakah Anda yakin ingin menghapus role "${role.name}"? Pengguna dengan role ini akan dikembalikan hak akses defaultnya.`)) {
+                                        setCustomRoles(customRoles.filter(r => r.id !== role.id));
+                                        if (editingRole && editingRole.id === role.id) {
+                                          setEditingRole(null);
+                                        }
+                                      }
+                                    }}
+                                    style={{ color: '#ef4444', padding: '4px 8px', fontSize: '0.75rem', cursor: 'pointer' }}
+                                  >
+                                    Hapus
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', padding: '20px' }}>
+                        Belum ada role custom.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
               {/* Search & Filter Toolbar */}
               <div className="admin-toolbar glass-panel" style={{ 
                 marginBottom: '24px', 
@@ -7703,7 +7907,6 @@ export default function AdminPanel({
               </div>
             )}
           </div>
-          </>
 
           {/* Add User Modal Overlay */}
           {userViewMode === 'add' && createPortal(
@@ -7963,8 +8166,10 @@ export default function AdminPanel({
               </div>
             </div>
           )}
+          </>
+          )}
         </div>
-      ) : adminSubTab === 'roles' && currentUser && currentUser.role === 'superadmin' ? (
+      ) : (adminSubTab === 'roles' || (adminSubTab === 'users' && usersMainTab === 'roles')) && currentUser && currentUser.role === 'superadmin' ? (
         <div className="roles-manager-section animate-fade-in">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px', marginBottom: '24px' }}>
             {/* Form to Create Custom Role */}
