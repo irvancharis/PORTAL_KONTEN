@@ -1055,8 +1055,8 @@ export default function useAppState() {
     setEditProfileActiveMembers(currentUser.activeMembersCount || '');
     setEditProfileActivityImages(currentUser.activityImages ? currentUser.activityImages.join(', ') : '');
     setEditProfileRegional(currentUser.userRegional || '');
-    setEditProfilePayoutMethod(currentUser.payoutMethod || 'Dana');
-    setEditProfilePayoutBank(currentUser.payoutBank || 'BCA');
+    setEditProfilePayoutMethod(currentUser.payoutMethod || 'Bank Transfer');
+    setEditProfilePayoutBank(currentUser.payoutBank || (currentUser.payoutMethod && currentUser.payoutMethod !== 'Bank Transfer' ? currentUser.payoutMethod : 'MANDIRI'));
     setEditProfilePayoutAccount(currentUser.payoutAccount || '');
     setEditProfilePayoutAccountName(currentUser.payoutAccountName || '');
     

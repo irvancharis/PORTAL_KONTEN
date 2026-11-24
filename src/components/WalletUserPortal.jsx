@@ -335,7 +335,8 @@ export default function WalletUserPortal({
             setWdAmount(0);
             setWdAccount(currentUser?.payoutAccount || '');
             setWdName(currentUser?.payoutAccountName || currentUser?.organizerName || '');
-            setWdMethod(currentUser?.payoutMethod === 'Bank Transfer' ? `Bank ${currentUser?.payoutBank || 'BCA'}` : (currentUser?.payoutMethod || 'Dana'));
+            const bankName = currentUser?.payoutBank || (currentUser?.payoutMethod && currentUser?.payoutMethod !== 'Bank Transfer' ? currentUser?.payoutMethod : 'Mandiri');
+            setWdMethod(`Bank ${bankName}`);
             setWdPassword('');
             setIsWdModalOpen(true);
           }}
@@ -1207,7 +1208,7 @@ export default function WalletUserPortal({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <CheckCircle2 size={18} style={{ color: '#4ade80', flexShrink: 0 }} />
                       <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)' }}>
-                        Tujuan pencairan: <strong>{currentUser.payoutMethod === 'Bank Transfer' ? `Bank ${currentUser.payoutBank || 'BCA'}` : (currentUser.payoutMethod || 'Dana')} ({currentUser.payoutAccount})</strong> a.n <strong>{currentUser.payoutAccountName || currentUser.organizerName}</strong>
+                        Tujuan pencairan: <strong>Bank {currentUser.payoutBank || currentUser.payoutMethod || 'Mandiri'} ({currentUser.payoutAccount})</strong> a.n <strong>{currentUser.payoutAccountName || currentUser.organizerName}</strong>
                       </div>
                     </div>
                     {onEditProfileClick && (
@@ -1237,7 +1238,7 @@ export default function WalletUserPortal({
                     <input 
                       type="text" 
                       disabled 
-                      value={`${currentUser.payoutMethod === 'Bank Transfer' ? `Bank ${currentUser.payoutBank || 'BCA'}` : (currentUser.payoutMethod || 'Dana')} - ${currentUser.payoutAccount} (a.n ${currentUser.payoutAccountName || currentUser.organizerName})`} 
+                      value={`Bank ${currentUser.payoutBank || currentUser.payoutMethod || 'Mandiri'} - ${currentUser.payoutAccount} (a.n ${currentUser.payoutAccountName || currentUser.organizerName})`} 
                       style={{ width: '100%', padding: '10px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.88rem', outline: 'none', cursor: 'not-allowed' }} 
                     />
                   </div>

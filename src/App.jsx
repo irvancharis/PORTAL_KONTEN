@@ -950,8 +950,8 @@ export default function App() {
                       youtubeHandle: editProfileYoutubeHandle.trim(),
                       youtubeVerified: editProfileYoutubeVerified,
                       userRegional: editProfileRegional.trim(),
-                      payoutMethod: editProfilePayoutMethod,
-                      payoutBank: editProfilePayoutMethod === 'Bank Transfer' ? editProfilePayoutBank : '',
+                      payoutMethod: editProfilePayoutMethod || 'Bank Transfer',
+                      payoutBank: editProfilePayoutBank || 'MANDIRI',
                       payoutAccount: editProfilePayoutAccount.trim(),
                       payoutAccountName: editProfilePayoutAccountName.trim()
                     };

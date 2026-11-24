@@ -223,16 +223,28 @@ export default function ProfilePage({
         </div>
 
         {/* Rekening / Akun Pencairan Saldo (Default) */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', paddingTop: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', paddingTop: '12px', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
             <Wallet size={16} />
             <span style={{ fontSize: '0.85rem' }}>Rekening Terdaftar</span>
           </div>
           {currentUser?.payoutAccount ? (
-            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'monospace' }}>
-                  {currentUser.payoutMethod === 'Bank Transfer' ? `Bank ${currentUser.payoutBank || 'MANDIRI'}` : (currentUser.payoutMethod || 'Mandiri')} • {currentUser.payoutAccount}
+            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                <span style={{ 
+                  fontSize: '0.82rem', 
+                  fontWeight: '700', 
+                  color: 'var(--text-primary)',
+                  background: 'var(--primary-glow)',
+                  border: '1px solid var(--border-color)',
+                  padding: '3px 10px',
+                  borderRadius: '16px',
+                  letterSpacing: '0.3px'
+                }}>
+                  Bank {currentUser.payoutBank || (currentUser.payoutMethod && currentUser.payoutMethod !== 'Bank Transfer' ? currentUser.payoutMethod : 'MANDIRI')}
+                </span>
+                <span style={{ fontSize: '0.92rem', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
+                  {currentUser.payoutAccount}
                 </span>
                 <button
                   type="button"
@@ -243,16 +255,18 @@ export default function ProfilePage({
                   }}
                   title="Salin Nomor Rekening"
                   style={{
-                    background: copiedAccount ? '#10b981' : 'rgba(255, 255, 255, 0.08)',
-                    border: 'none',
-                    color: 'white',
-                    padding: '3px 7px',
-                    borderRadius: '4px',
+                    background: copiedAccount ? '#10b981' : 'var(--card-bg, rgba(255, 255, 255, 0.06))',
+                    border: '1px solid var(--border-color)',
+                    color: copiedAccount ? 'white' : 'var(--text-primary)',
+                    padding: '3px 8px',
+                    borderRadius: '14px',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '3px',
-                    fontSize: '0.68rem'
+                    gap: '4px',
+                    fontSize: '0.72rem',
+                    fontWeight: '600',
+                    transition: 'all 0.2s'
                   }}
                 >
                   {copiedAccount ? <CheckCircle2 size={12} /> : <Copy size={12} />}
@@ -260,7 +274,7 @@ export default function ProfilePage({
                 </button>
               </div>
               {currentUser.payoutAccountName && (
-                <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '500' }}>
                   a.n {currentUser.payoutAccountName}
                 </span>
               )}
