@@ -4928,13 +4928,14 @@ export default function AdminPanel({
                         key={evt.id}
                         id={idx === 0 ? "tour-manage-first-card" : undefined}
                         onClick={() => { setSelectedManageEvent(evt); setInnerManageTab('participants'); }}
+                        className="admin-campaign-card"
                         style={{ 
                           borderRadius: '16px', 
-                          padding: '20px 24px', 
+                          padding: '18px 20px', 
                           display: 'grid', 
-                          gridTemplateColumns: 'minmax(300px, 1.8fr) minmax(240px, 1.2fr) auto',
+                          gridTemplateColumns: 'minmax(260px, 1.8fr) minmax(210px, 1.2fr) auto',
                           alignItems: 'center', 
-                          gap: '24px',
+                          gap: '18px',
                           border: '1px solid var(--border-color)',
                           background: 'var(--bg-card)',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.03)',

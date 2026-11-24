@@ -6168,10 +6168,83 @@ button:not(:disabled):active,
   color: #64748b !important;
 }
 
-/* Force crisp contrast for dark cards and inputs inside Admin Panel */
-.standalone-admin-portal .glass-panel,
-.standalone-admin-portal .admin-card {
-  border-color: var(--border-color) !important;
+/* Responsive styles for Standalone Admin Portal & Small Displays (Laptops 1366x768, Tablets, Mobile) */
+@media screen and (max-width: 1200px) {
+  .standalone-admin-portal .admin-sidebar {
+    width: 220px !important;
+  }
+  .standalone-admin-portal .admin-sidebar .admin-nav-item {
+    font-size: 0.82rem !important;
+    padding: 10px 12px !important;
+  }
+  .standalone-admin-portal .admin-nav-item.active::before,
+  .standalone-admin-portal .admin-nav-item.active::after {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .standalone-admin-portal .admin-nav-item.active::before {
+    top: -18px !important;
+    border-bottom-right-radius: 18px !important;
+    box-shadow: 8px 8px 0 8px var(--bg-main, #090d16) !important;
+  }
+  .standalone-admin-portal.light-theme .admin-nav-item.active::before,
+  .light-theme .standalone-admin-portal .admin-nav-item.active::before {
+    box-shadow: 8px 8px 0 8px #f8fafc !important;
+  }
+  .standalone-admin-portal .admin-nav-item.active::after {
+    bottom: -18px !important;
+    border-top-right-radius: 18px !important;
+    box-shadow: 8px -8px 0 8px var(--bg-main, #090d16) !important;
+  }
+  .standalone-admin-portal.light-theme .admin-nav-item.active::after,
+  .light-theme .standalone-admin-portal .admin-nav-item.active::after {
+    box-shadow: 8px -8px 0 8px #f8fafc !important;
+  }
+  
+  .standalone-admin-portal main {
+    padding: 18px !important;
+  }
+  
+  .standalone-admin-portal .admin-campaign-card {
+    grid-template-columns: 1fr auto !important;
+    gap: 16px !important;
+  }
+}
+
+@media screen and (max-width: 900px) {
+  .standalone-admin-portal .admin-sidebar {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    z-index: 1000 !important;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .standalone-admin-portal .admin-campaign-card {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+}
+
+@media screen and (max-width: 1366px) {
+  /* Optimize font sizes and density for standard 1366x768 screens */
+  .standalone-admin-portal {
+    font-size: 13.5px;
+  }
+  .standalone-admin-portal h2 {
+    font-size: 1.15rem !important;
+  }
+  .standalone-admin-portal h3 {
+    font-size: 1rem !important;
+  }
+  .standalone-admin-portal .admin-sidebar {
+    width: 230px !important;
+  }
+  .standalone-admin-portal .admin-nav-item {
+    font-size: 0.82rem !important;
+    gap: 10px !important;
+  }
 }
 
 .light-theme .standalone-admin-portal input:not([type="submit"]):not([type="button"]),
