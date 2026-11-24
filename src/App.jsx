@@ -914,8 +914,8 @@ export default function App() {
                       return;
                     }
                   } else {
-                    if (!editProfileName.trim() || !editProfilePhone.trim() || !editProfilePortfolio.trim()) {
-                      alert('Nama Lengkap, No. WhatsApp, dan Link Portofolio wajib diisi!');
+                    if (!editProfileName.trim() || !editProfilePhone.trim()) {
+                      alert('Nama Lengkap dan No. WhatsApp wajib diisi!');
                       return;
                     }
                   }
@@ -1163,26 +1163,7 @@ export default function App() {
                       })()}
                     </div>
 
-                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Link Portofolio Utama</label>
-                      <input 
-                        type="url"
-                        value={editProfilePortfolio}
-                        onChange={(e) => setEditProfilePortfolio(e.target.value)}
-                        placeholder="Contoh: https://youtube.com/@channelAnda"
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          background: 'rgba(255, 255, 255, 0.04)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: 'var(--radius-sm)',
-                          color: 'var(--text-primary)',
-                          outline: 'none',
-                          fontSize: '0.9rem'
-                        }}
-                        required
-                      />
-                    </div>
+                    {/* Link Portofolio disembunyikan sementara agar form profil lebih simpel */}
                   </>
                 ) : (
                   <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

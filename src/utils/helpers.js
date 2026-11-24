@@ -69,9 +69,6 @@ export const checkUserProfileComplete = (user) => {
   if (isComm) {
     const members = (user.activeMembersCount || '').toString().trim();
     if (!members) missing.push('Target Jumlah Member Aktif');
-  } else {
-    const portfolio = (user.userPortfolio || '').trim();
-    if (!portfolio) missing.push('Link Portofolio');
   }
 
   return {

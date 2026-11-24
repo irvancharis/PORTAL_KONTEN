@@ -316,80 +316,45 @@ export default function ProfilePage({
           </div>
         )}
 
-        {/* Link Portofolio */}
-        {!isCurrentUserCommunity && (
+        {/* Link Portofolio (Hanya tampil jika sudah pernah diisi sebelumnya) */}
+        {!isCurrentUserCommunity && currentUser?.userPortfolio && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
               <Globe size={16} />
               <span style={{ fontSize: '0.85rem' }}>Link Portofolio</span>
             </div>
-            {currentUser?.userPortfolio ? (
-              <a 
-                href={currentUser.userPortfolio} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                style={{
-                  background: 'var(--primary-glow)',
-                  border: '1px solid var(--border-color)',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.75rem',
-                  fontWeight: '700',
-                  padding: '4px 12px',
-                  borderRadius: '20px',
-                  cursor: 'pointer',
-                  textDecoration: 'none',
-                  transition: 'all 0.2s ease',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--text-primary)';
-                  e.currentTarget.style.color = 'var(--bg-main)';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'var(--primary-glow)';
-                  e.currentTarget.style.color = 'var(--text-primary)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                Buka Portofolio ↗
-              </a>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Belum Diisi</span>
-                <button
-                  onClick={handleOpenEditProfile}
-                  style={{
-                    background: 'var(--primary-glow)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.75rem',
-                    fontWeight: '700',
-                    padding: '4px 12px',
-                    borderRadius: '20px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--text-primary)';
-                    e.currentTarget.style.color = 'var(--bg-main)';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--primary-glow)';
-                    e.currentTarget.style.color = 'var(--text-primary)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  Isi
-                </button>
-              </div>
-            )}
+            <a 
+              href={currentUser.userPortfolio} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              style={{
+                background: 'var(--primary-glow)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-primary)',
+                fontSize: '0.75rem',
+                fontWeight: '700',
+                padding: '4px 12px',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--text-primary)';
+                e.currentTarget.style.color = 'var(--bg-main)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--primary-glow)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              Buka Portofolio ↗
+            </a>
           </div>
         )}
 
