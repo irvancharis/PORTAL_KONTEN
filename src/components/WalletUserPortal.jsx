@@ -416,52 +416,66 @@ export default function WalletUserPortal({
       {activeWalletTab === 'transactions' && (
         <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', margin: 0 }}>Riwayat Mutasi Saldo</h3>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-primary)', margin: 0 }}>Riwayat Mutasi Saldo</h3>
           
           {/* Filters & Export */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            {/* Filter Rentang Tanggal */}
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '4px 10px',
-              background: 'var(--bg-secondary, rgba(255,255,255,0.03))',
-              border: '1px solid var(--border-color)',
-              borderRadius: '8px',
-              fontSize: '0.8rem',
-              color: 'var(--text-secondary)'
-            }}>
-              <Calendar size={14} style={{ color: 'var(--text-secondary)' }} />
+            {/* Filter Rentang Tanggal Modern */}
+            <div 
+              className="wallet-date-filter-box"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '5px 12px',
+                background: 'var(--card-bg, rgba(255, 255, 255, 0.04))',
+                border: '1px solid var(--border-color)',
+                borderRadius: '24px',
+                fontSize: '0.82rem',
+                color: 'var(--text-primary)',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)' }}>
+                <Calendar size={14} style={{ flexShrink: 0, color: 'var(--primary, #3b82f6)' }} />
+                <span style={{ fontSize: '0.72rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>Periode:</span>
+              </div>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 title="Tanggal Mulai"
+                aria-label="Tanggal Mulai"
                 style={{
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
                   color: 'var(--text-primary)',
-                  fontSize: '0.78rem',
+                  fontSize: '0.8rem',
+                  fontWeight: '600',
                   fontFamily: 'inherit',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  padding: '2px 0'
                 }}
               />
-              <span style={{ color: 'var(--text-muted)' }}>—</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: '500' }}>s/d</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 title="Tanggal Akhir"
+                aria-label="Tanggal Akhir"
                 style={{
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
                   color: 'var(--text-primary)',
-                  fontSize: '0.78rem',
+                  fontSize: '0.8rem',
+                  fontWeight: '600',
                   fontFamily: 'inherit',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  padding: '2px 0'
                 }}
               />
               {(startDate || endDate) && (
@@ -469,16 +483,30 @@ export default function WalletUserPortal({
                   onClick={() => { setStartDate(''); setEndDate(''); }}
                   title="Reset Filter Tanggal"
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: '2px',
+                    background: 'var(--primary-glow, rgba(255,255,255,0.08))',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '50%',
+                    width: '18px',
+                    height: '18px',
+                    padding: 0,
                     cursor: 'pointer',
                     color: 'var(--text-secondary)',
                     display: 'flex',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginLeft: '2px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                    e.currentTarget.style.background = 'var(--primary-glow, rgba(255,255,255,0.08))';
                   }}
                 >
-                  <X size={13} />
+                  <X size={11} />
                 </button>
               )}
             </div>
@@ -490,12 +518,12 @@ export default function WalletUserPortal({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '7px 14px',
+                padding: '6px 14px',
                 fontSize: '0.8rem',
                 fontWeight: '600',
-                background: 'rgba(255, 255, 255, 0.05)',
+                background: 'var(--card-bg, rgba(255, 255, 255, 0.04))',
                 border: '1px solid var(--border-color)',
-                borderRadius: '8px',
+                borderRadius: '24px',
                 color: 'var(--text-primary)',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
@@ -505,7 +533,7 @@ export default function WalletUserPortal({
                 e.currentTarget.style.color = 'var(--bg-main)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                e.currentTarget.style.background = 'var(--card-bg, rgba(255, 255, 255, 0.04))';
                 e.currentTarget.style.color = 'var(--text-primary)';
               }}
             >
@@ -513,17 +541,17 @@ export default function WalletUserPortal({
               <span>Ekspor CSV</span>
             </button>
 
-            <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', gap: '4px', background: 'var(--card-bg, rgba(255,255,255,0.04))', padding: '3px', borderRadius: '24px', border: '1px solid var(--border-color)' }}>
               <button 
                 onClick={() => setTxFilter('all')} 
                 style={{ 
-                  padding: '6px 12px', 
+                  padding: '5px 12px', 
                   fontSize: '0.8rem', 
                   border: 'none', 
                   background: txFilter === 'all' ? 'var(--text-primary)' : 'transparent', 
                   color: txFilter === 'all' ? 'var(--bg-main)' : 'var(--text-secondary)', 
                   cursor: 'pointer', 
-                  borderRadius: '6px', 
+                  borderRadius: '18px', 
                   fontWeight: '600',
                   transition: 'all 0.2s'
                 }}
@@ -532,13 +560,33 @@ export default function WalletUserPortal({
               </button>
               <button 
                 onClick={() => setTxFilter('credit')} 
-                style={{ padding: '6px 12px', fontSize: '0.8rem', border: 'none', background: txFilter === 'credit' ? 'rgba(74, 222, 128, 0.1)' : 'transparent', color: txFilter === 'credit' ? '#4ade80' : 'var(--text-secondary)', cursor: 'pointer', borderRadius: '6px', fontWeight: '500' }}
+                style={{ 
+                  padding: '5px 12px', 
+                  fontSize: '0.8rem', 
+                  border: 'none', 
+                  background: txFilter === 'credit' ? 'rgba(74, 222, 128, 0.15)' : 'transparent', 
+                  color: txFilter === 'credit' ? '#16a34a' : 'var(--text-secondary)', 
+                  cursor: 'pointer', 
+                  borderRadius: '18px', 
+                  fontWeight: '600',
+                  transition: 'all 0.2s'
+                }}
               >
                 Pemasukan
               </button>
               <button 
                 onClick={() => setTxFilter('debit')} 
-                style={{ padding: '6px 12px', fontSize: '0.8rem', border: 'none', background: txFilter === 'debit' ? 'rgba(239, 68, 68, 0.1)' : 'transparent', color: txFilter === 'debit' ? '#f87171' : 'var(--text-secondary)', cursor: 'pointer', borderRadius: '6px', fontWeight: '500' }}
+                style={{ 
+                  padding: '5px 12px', 
+                  fontSize: '0.8rem', 
+                  border: 'none', 
+                  background: txFilter === 'debit' ? 'rgba(239, 68, 68, 0.15)' : 'transparent', 
+                  color: txFilter === 'debit' ? '#dc2626' : 'var(--text-secondary)', 
+                  cursor: 'pointer', 
+                  borderRadius: '18px', 
+                  fontWeight: '600',
+                  transition: 'all 0.2s'
+                }}
               >
                 Penarikan
               </button>

@@ -5117,6 +5117,30 @@ button[style*="background:#0f172a"] *,
   }
 }
 
+/* Wallet Date Filter Box Styling */
+.wallet-date-filter-box input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+  filter: invert(0.8);
+  transition: opacity 0.2s;
+}
+
+.light-theme .wallet-date-filter-box input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.7;
+}
+
+.wallet-date-filter-box input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .wallet-date-filter-box {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+}
+
 /* Agenda Responsive Layouts */
 .agenda-desktop-table {
   display: block;
