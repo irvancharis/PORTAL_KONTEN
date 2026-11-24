@@ -4169,8 +4169,8 @@ export default function AdminPanel({
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
                   <div>
-                    <h2 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: 'bold' }}>Pembayaran Biaya Event</h2>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>Selesaikan pembayaran biaya platform dan budget event Anda.</p>
+                    <h2 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: 'bold' }}>Pembayaran Biaya Campaign</h2>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>Selesaikan pembayaran biaya platform dan budget campaign Anda.</p>
                   </div>
                   <button 
                     onClick={() => setDepositingEvent(null)} 
@@ -4192,22 +4192,22 @@ export default function AdminPanel({
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {/* Event Summary Card */}
-                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', padding: '20px', borderRadius: '12px' }}>
+                  {/* Campaign Summary Card */}
+                  <div style={{ background: '#0a0d14', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.9rem', marginBottom: '16px' }}>
                       <div>
-                        <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Event</span>
-                        <strong style={{ color: 'white' }}>{depositingEvent.title}</strong>
+                        <span style={{ color: '#94a3b8', display: 'block', marginBottom: '4px', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Campaign</span>
+                        <strong style={{ color: 'white', fontSize: '1.05rem' }}>{depositingEvent.title}</strong>
                       </div>
                       <div>
                         {depositingEvent.eventType === 'regular' ? (
                           <>
-                            <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Tipe Event</span>
+                            <span style={{ color: '#94a3b8', display: 'block', marginBottom: '4px', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tipe Campaign</span>
                             <strong style={{ color: 'white' }}>Acara / Seminar (Non-Kompetisi)</strong>
                           </>
                         ) : (
                           <>
-                            <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Skema Pembagian</span>
+                            <span style={{ color: '#94a3b8', display: 'block', marginBottom: '4px', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Skema Pembagian</span>
                             <strong style={{ color: 'white' }}>
                               {depositingEvent.budgetMode === 'views' ? 'Berdasarkan Jumlah Views' : 'Kompetisi Juara 1, 2, 3'}
                             </strong>
@@ -4216,120 +4216,221 @@ export default function AdminPanel({
                       </div>
                     </div>
                     
-                    <div style={{ borderTop: '1px dashed rgba(255,255,255,0.05)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem' }}>
+                    <div style={{ borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem' }}>
                       {depositingEvent.eventType !== 'regular' && (
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Budget Campaign:</span>
+                          <span style={{ color: '#94a3b8' }}>Budget Campaign:</span>
                           <strong style={{ color: 'white' }}>Rp {depositingEvent.campaignBudget?.toLocaleString('id-ID')}</strong>
                         </div>
                       )}
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--text-secondary)' }}>
+                        <span style={{ color: '#94a3b8' }}>
                           Biaya Layanan Platform{depositingEvent.eventType === 'regular' && ' (Flat)'}:
                         </span>
                         <strong style={{ color: 'white' }}>
                           Rp {(depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : (depositingEvent.eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100))).toLocaleString('id-ID')}
                         </strong>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px', marginTop: '4px' }}>
-                        <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>Total Pembayaran:</span>
-                        <strong style={{ color: '#fbbf24', fontSize: '1.2rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1e293b', paddingTop: '12px', marginTop: '4px' }}>
+                        <span style={{ color: '#38bdf8', fontWeight: 'bold' }}>Total Pembayaran:</span>
+                        <strong style={{ color: '#38bdf8', fontSize: '1.25rem' }}>
                           Rp {((depositingEvent.eventType === 'regular' ? 0 : (depositingEvent.campaignBudget || 0)) + (depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : (depositingEvent.eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100)))).toLocaleString('id-ID')}
                         </strong>
                       </div>
                     </div>
                   </div>
 
-                  {/* Rekening Tujuan Platform Box dengan Tombol Salin */}
+                  {/* Rekening Tujuan Platform Card Modern High-Contrast */}
                   {(() => {
-                    const banksToShow = (platformBankAccounts && platformBankAccounts.length > 0)
+                    let savedStorageBanks = [];
+                    try {
+                      const raw = localStorage.getItem('portal-platform-bank-accounts');
+                      if (raw) savedStorageBanks = JSON.parse(raw);
+                    } catch (e) {}
+
+                    const candidateBanks = (platformBankAccounts && platformBankAccounts.length > 0)
                       ? platformBankAccounts
-                      : [
-                          {
-                            id: 'default_mandiri',
-                            bankName: 'Bank Mandiri',
-                            accountNumber: '127000999888',
-                            accountNumberFormatted: '127-000-999-888',
-                            accountHolder: 'PT Ngonten Media Indonesia',
-                            branch: 'KC Jakarta Thamrin',
-                            isPrimary: true
-                          }
-                        ];
+                      : (savedStorageBanks && savedStorageBanks.length > 0)
+                        ? savedStorageBanks
+                        : [
+                            {
+                              id: 'bank_bca_main',
+                              bankName: 'Bank BCA',
+                              accountNumber: '1730134912',
+                              accountNumberFormatted: '1730134912',
+                              accountHolder: 'MOCHAMAD IRVAN CHARIS',
+                              branch: 'KCU Malang',
+                              isPrimary: true
+                            }
+                          ];
+
+                    // Sort so primary bank is on top
+                    const banksToShow = [...candidateBanks].sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0));
 
                     return (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {banksToShow.map((b, bIdx) => (
-                          <div 
-                            key={b.id || bIdx}
-                            style={{ 
-                              background: 'linear-gradient(135deg, rgba(30, 58, 138, 0.15) 0%, rgba(15, 23, 42, 0.6) 100%)', 
-                              border: '1px solid rgba(59, 130, 246, 0.25)', 
-                              padding: '18px 20px', 
-                              borderRadius: '14px',
-                              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)'
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#60a5fa' }}>
-                                  <Landmark size={20} />
-                                </div>
-                                <div>
-                                  <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#93c5fd', fontWeight: 'bold' }}>
-                                    {b.isPrimary ? 'Rekening Utama Platform' : 'Rekening Pembayaran Platform'}
-                                  </span>
-                                  <h4 style={{ margin: 0, color: 'white', fontSize: '0.98rem', fontWeight: '700' }}>{b.bankName || 'Bank Mandiri'}</h4>
-                                </div>
-                              </div>
-                              <span style={{ fontSize: '0.72rem', background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', padding: '4px 10px', borderRadius: '20px', border: '1px solid rgba(59, 130, 246, 0.3)', fontWeight: '600' }}>
-                                Transfer Manual
-                              </span>
-                            </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        {banksToShow.map((b, bIdx) => {
+                          const isEwallet = b.accountType === 'ewallet' || ['dana', 'gopay', 'ovo', 'shopeepay', 'linkaja'].some(ew => (b.bankName || '').toLowerCase().includes(ew));
+                          const cleanAcc = (b.accountNumber || '').replace(/\D/g, '');
 
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', background: 'rgba(0, 0, 0, 0.3)', padding: '14px 16px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                              <div>
-                                <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Nomor Rekening {b.bankName || 'Bank'}:</span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <span style={{ color: '#ffffff', fontSize: '1.2rem', fontWeight: '800', letterSpacing: '1px', fontFamily: 'monospace' }}>
+                          return (
+                            <div 
+                              key={b.id || bIdx}
+                              style={{ 
+                                background: '#ffffff', 
+                                border: '1px solid #e2e8f0', 
+                                borderRadius: '16px',
+                                overflow: 'hidden',
+                                boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.08)'
+                              }}
+                            >
+                              {/* Card Header Brand - Modern Deep Dark Monokrom */}
+                              <div style={{
+                                backgroundColor: '#0f172a',
+                                padding: '16px 18px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                borderBottom: '1px solid #1e293b'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                  <div style={{
+                                    width: '38px',
+                                    height: '38px',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#ffffff',
+                                    color: '#0f172a',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                  }}>
+                                    {isEwallet ? <Smartphone size={20} strokeWidth={2.5} color="#0f172a" /> : <Landmark size={20} strokeWidth={2.5} color="#0f172a" />}
+                                  </div>
+                                  <div>
+                                    <h4 style={{ 
+                                      margin: 0, 
+                                      fontSize: '1.05rem', 
+                                      fontWeight: '900', 
+                                      color: '#ffffff', 
+                                      letterSpacing: '0.5px' 
+                                    }}>
+                                      {(b.bankName || 'BANK BCA').toUpperCase()}
+                                    </h4>
+                                    <span style={{ 
+                                      fontSize: '0.74rem', 
+                                      color: '#cbd5e1', 
+                                      fontWeight: '500', 
+                                      display: 'block', 
+                                      marginTop: '2px' 
+                                    }}>
+                                      {b.branch ? `Rekening Resmi (${b.branch})` : (isEwallet ? 'Akun E-Wallet Penerima Resmi' : 'Rekening Penerima Pembayaran Resmi')}
+                                    </span>
+                                  </div>
+                                </div>
+                                {b.isPrimary && (
+                                  <span style={{
+                                    fontSize: '0.7rem',
+                                    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                                    color: '#38bdf8',
+                                    border: '1px solid rgba(56, 189, 248, 0.3)',
+                                    padding: '4px 10px',
+                                    borderRadius: '20px',
+                                    fontWeight: '700',
+                                    letterSpacing: '0.3px',
+                                    textTransform: 'uppercase'
+                                  }}>
+                                    Rekening Utama
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Card Body dengan Nomor Rekening & Nama Rata Kiri */}
+                              <div style={{ padding: '18px 20px', background: '#fafbfc' }}>
+                                <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: '700', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                  {isEwallet ? 'Nomor Akun / HP ' : 'Nomor Rekening '}{b.bankName || ''}
+                                </span>
+
+                                <div style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  background: '#ffffff',
+                                  border: '1.5px dashed #cbd5e1',
+                                  borderRadius: '12px',
+                                  padding: '12px 14px',
+                                  marginBottom: '14px',
+                                  gap: '10px',
+                                  flexWrap: 'wrap'
+                                }}>
+                                  <span style={{
+                                    fontSize: 'clamp(1.1rem, 4vw, 1.35rem)',
+                                    fontWeight: '800',
+                                    color: '#0f172a',
+                                    letterSpacing: '1px',
+                                    fontFamily: 'monospace',
+                                    wordBreak: 'break-all',
+                                    flex: '1 1 auto',
+                                    minWidth: '150px'
+                                  }}>
                                     {b.accountNumberFormatted || b.accountNumber}
                                   </span>
+
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      navigator.clipboard.writeText(b.accountNumber ? b.accountNumber.replace(/\D/g, '') : '');
+                                      navigator.clipboard.writeText(cleanAcc);
                                       setIsCopiedMandiri(true);
                                       setTimeout(() => setIsCopiedMandiri(false), 2000);
                                     }}
                                     title="Salin Nomor Rekening"
                                     style={{
-                                      background: isCopiedMandiri ? '#10b981' : 'rgba(255, 255, 255, 0.08)',
-                                      border: isCopiedMandiri ? '1px solid #10b981' : '1px solid rgba(255, 255, 255, 0.15)',
-                                      color: 'white',
-                                      borderRadius: '6px',
-                                      padding: '5px 10px',
-                                      fontSize: '0.72rem',
-                                      fontWeight: '600',
+                                      backgroundColor: isCopiedMandiri ? '#10b981' : '#0f172a',
+                                      color: '#ffffff',
+                                      border: 'none',
+                                      padding: '8px 14px',
+                                      borderRadius: '8px',
+                                      fontSize: '0.8rem',
+                                      fontWeight: '700',
                                       cursor: 'pointer',
                                       display: 'inline-flex',
                                       alignItems: 'center',
-                                      gap: '4px',
-                                      transition: 'all 0.2s'
+                                      justifyContent: 'center',
+                                      gap: '6px',
+                                      transition: 'all 0.2s',
+                                      flexShrink: 0,
+                                      marginLeft: 'auto',
+                                      boxShadow: isCopiedMandiri ? '0 2px 8px rgba(16, 185, 129, 0.3)' : '0 2px 8px rgba(15, 23, 42, 0.25)'
                                     }}
                                   >
-                                    {isCopiedMandiri ? <CheckCircle2 size={13} /> : <Copy size={13} />}
-                                    <span>{isCopiedMandiri ? 'Tersalin!' : 'Salin'}</span>
+                                    {isCopiedMandiri ? <CheckCircle2 size={14} color="#ffffff" strokeWidth={2.5} /> : <Copy size={14} color="#ffffff" />}
+                                    <span style={{ color: '#ffffff', fontWeight: '700' }}>{isCopiedMandiri ? 'Tersalin!' : (isEwallet ? 'Salin No. HP' : 'Salin Nomor')}</span>
                                   </button>
                                 </div>
-                              </div>
 
-                              <div>
-                                <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Atas Nama Pemilik:</span>
-                                <strong style={{ color: '#ffffff', fontSize: '0.98rem', display: 'block' }}>{b.accountHolder || 'PT Ngonten Media Indonesia'}</strong>
-                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{b.branch || 'Pusat Operasional'}</span>
+                                <div style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '2px',
+                                  borderTop: '1px solid #e2e8f0',
+                                  paddingTop: '10px'
+                                }}>
+                                  <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                    Atas Nama:
+                                  </span>
+                                  <span style={{
+                                    fontSize: '0.98rem',
+                                    fontWeight: '800',
+                                    color: '#0f172a',
+                                    letterSpacing: '0.2px'
+                                  }}>
+                                    {b.accountHolder || 'MOCHAMAD IRVAN CHARIS'}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     );
                   })()}
@@ -6913,9 +7014,9 @@ export default function AdminPanel({
                   accountType: 'bank',
                   bankName: 'Bank Mandiri',
                   accountNumber: '127000999888',
-                  accountNumberFormatted: '127-000-999-888',
-                  accountHolder: 'PT Ngonten Media Indonesia',
-                  branch: 'KC Jakarta Thamrin',
+                  accountNumberFormatted: '127000999888',
+                  accountHolder: 'MOCHAMAD IRVAN CHARIS',
+                  branch: 'KCU Malang',
                   isPrimary: true
                 }
               ]).map((bank, index) => {

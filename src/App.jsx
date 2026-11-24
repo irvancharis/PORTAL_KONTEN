@@ -709,6 +709,8 @@ export default function App() {
                   setPremiumPrice={setPremiumPrice}
                   paymentInstructions={paymentInstructions}
                   setPaymentInstructions={setPaymentInstructions}
+                  platformBankAccounts={platformBankAccounts}
+                  setPlatformBankAccounts={setPlatformBankAccounts}
                   users={users}
                   setUsers={handleSetUsers}
                   currentUser={currentUser}

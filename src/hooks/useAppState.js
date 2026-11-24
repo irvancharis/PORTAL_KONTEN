@@ -1485,12 +1485,12 @@ export default function useAppState() {
               paymentInstructions: dbSettings?.paymentInstructions || '- Bank BCA: 1234567890 a.n. ngonten.id\n- DANA: 081234567890 a.n. Admin\n- OVO: 081234567890',
               platformBankAccounts: dbSettings?.platformBankAccounts || [
                 {
-                  id: 'bank_mandiri_main',
-                  bankName: 'Bank Mandiri',
-                  accountNumber: '127000999888',
-                  accountNumberFormatted: '127-000-999-888',
-                  accountHolder: 'PT Ngonten Media Indonesia',
-                  branch: 'KC Jakarta Thamrin',
+                  id: 'bank_bca_main',
+                  bankName: 'Bank BCA',
+                  accountNumber: '1730134912',
+                  accountNumberFormatted: '1730134912',
+                  accountHolder: 'MOCHAMAD IRVAN CHARIS',
+                  branch: 'KCU Malang',
                   isPrimary: true
                 }
               ],
@@ -2384,12 +2384,12 @@ export default function useAppState() {
     } catch (e) {}
     return [
       {
-        id: 'bank_mandiri_main',
-        bankName: 'Bank Mandiri',
-        accountNumber: '127000999888',
-        accountNumberFormatted: '127-000-999-888',
-        accountHolder: 'PT Ngonten Media Indonesia',
-        branch: 'KC Jakarta Thamrin',
+        id: 'bank_bca_main',
+        bankName: 'Bank BCA',
+        accountNumber: '1730134912',
+        accountNumberFormatted: '1730134912',
+        accountHolder: 'MOCHAMAD IRVAN CHARIS',
+        branch: 'KCU Malang',
         isPrimary: true
       }
     ];

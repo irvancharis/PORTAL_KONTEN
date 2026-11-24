@@ -1113,12 +1113,12 @@ export default function PremiumModal({
                 ? platformBankAccounts
                 : [
                     {
-                      id: 'default_mandiri',
-                      bankName: 'Bank Mandiri',
-                      accountNumber: '127000999888',
-                      accountNumberFormatted: '127-000-999-888',
-                      accountHolder: 'PT Ngonten Media Indonesia',
-                      branch: 'KC Jakarta Thamrin',
+                      id: 'bank_bca_main',
+                      bankName: 'Bank BCA',
+                      accountNumber: '1730134912',
+                      accountNumberFormatted: '1730134912',
+                      accountHolder: 'MOCHAMAD IRVAN CHARIS',
+                      branch: 'KCU Malang',
                       isPrimary: true
                     }
                   ];
