@@ -4155,60 +4155,77 @@ export default function AdminPanel({
               left: 0,
               width: '100vw',
               height: '100vh',
-              background: '#020202',
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
               zIndex: 11000,
               overflowY: 'auto',
               padding: '24px 16px 120px 16px',
               boxSizing: 'border-box',
-              color: 'var(--text-primary)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center'
             }} className="animate-fade-in">
-              <div style={{ width: '100%', maxWidth: '600px' }}>
-                {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+              <div style={{ 
+                width: '100%', 
+                maxWidth: '580px',
+                background: '#ffffff',
+                borderRadius: '24px',
+                padding: '28px 24px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(226, 232, 240, 0.8)',
+                color: '#0f172a',
+                boxSizing: 'border-box'
+              }}>
+                {/* Header Modal */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
                   <div>
-                    <h2 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: 'bold' }}>Pembayaran Biaya Campaign</h2>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>Selesaikan pembayaran biaya platform dan budget campaign Anda.</p>
+                    <h2 style={{ margin: 0, color: '#0f172a', fontSize: '1.45rem', fontWeight: '800', letterSpacing: '-0.3px' }}>Pembayaran Biaya Campaign</h2>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#64748b' }}>Selesaikan pembayaran biaya platform dan budget campaign Anda.</p>
                   </div>
                   <button 
                     onClick={() => setDepositingEvent(null)} 
                     style={{ 
-                      background: 'rgba(255,255,255,0.03)', 
-                      border: '1px solid var(--border-color)', 
-                      color: 'var(--text-secondary)', 
+                      background: '#f1f5f9', 
+                      border: 'none', 
+                      color: '#475569', 
                       cursor: 'pointer',
-                      width: '40px',
-                      height: '40px',
+                      width: '36px',
+                      height: '36px',
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      transition: 'all 0.2s',
+                      flexShrink: 0
                     }}
                   >
-                    <X size={20} style={{ color: 'var(--text-secondary)' }} />
+                    <X size={18} />
                   </button>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {/* Campaign Summary Card */}
-                  <div style={{ background: '#0a0d14', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.9rem', marginBottom: '16px' }}>
+                  {/* Campaign Summary Card - Bersih, Kontras Tinggi & Terang */}
+                  <div style={{ 
+                    background: '#f8fafc', 
+                    border: '1px solid #e2e8f0', 
+                    padding: '18px 20px', 
+                    borderRadius: '16px' 
+                  }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.88rem', marginBottom: '14px' }}>
                       <div>
-                        <span style={{ color: '#94a3b8', display: 'block', marginBottom: '4px', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Campaign</span>
-                        <strong style={{ color: 'white', fontSize: '1.05rem' }}>{depositingEvent.title}</strong>
+                        <span style={{ color: '#64748b', display: 'block', marginBottom: '4px', fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '700' }}>Campaign</span>
+                        <strong style={{ color: '#0f172a', fontSize: '1.02rem', fontWeight: '800' }}>{depositingEvent.title}</strong>
                       </div>
                       <div>
                         {depositingEvent.eventType === 'regular' ? (
                           <>
-                            <span style={{ color: '#94a3b8', display: 'block', marginBottom: '4px', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tipe Campaign</span>
-                            <strong style={{ color: 'white' }}>Acara / Seminar (Non-Kompetisi)</strong>
+                            <span style={{ color: '#64748b', display: 'block', marginBottom: '4px', fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '700' }}>Tipe Campaign</span>
+                            <strong style={{ color: '#0f172a', fontSize: '0.94rem', fontWeight: '700' }}>Acara / Seminar (Non-Kompetisi)</strong>
                           </>
                         ) : (
                           <>
-                            <span style={{ color: '#94a3b8', display: 'block', marginBottom: '4px', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Skema Pembagian</span>
-                            <strong style={{ color: 'white' }}>
+                            <span style={{ color: '#64748b', display: 'block', marginBottom: '4px', fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '700' }}>Skema Pembagian</span>
+                            <strong style={{ color: '#0f172a', fontSize: '0.94rem', fontWeight: '700' }}>
                               {depositingEvent.budgetMode === 'views' ? 'Berdasarkan Jumlah Views' : 'Kompetisi Juara 1, 2, 3'}
                             </strong>
                           </>
@@ -4216,24 +4233,24 @@ export default function AdminPanel({
                       </div>
                     </div>
                     
-                    <div style={{ borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem' }}>
+                    <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.88rem' }}>
                       {depositingEvent.eventType !== 'regular' && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: '#94a3b8' }}>Budget Campaign:</span>
-                          <strong style={{ color: 'white' }}>Rp {depositingEvent.campaignBudget?.toLocaleString('id-ID')}</strong>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: '#64748b', fontWeight: '500' }}>Budget Campaign:</span>
+                          <strong style={{ color: '#0f172a', fontWeight: '700' }}>Rp {depositingEvent.campaignBudget?.toLocaleString('id-ID')}</strong>
                         </div>
                       )}
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#94a3b8' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#64748b', fontWeight: '500' }}>
                           Biaya Layanan Platform{depositingEvent.eventType === 'regular' && ' (Flat)'}:
                         </span>
-                        <strong style={{ color: 'white' }}>
+                        <strong style={{ color: '#0f172a', fontWeight: '700' }}>
                           Rp {(depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : (depositingEvent.eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100))).toLocaleString('id-ID')}
                         </strong>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1e293b', paddingTop: '12px', marginTop: '4px' }}>
-                        <span style={{ color: '#38bdf8', fontWeight: 'bold' }}>Total Pembayaran:</span>
-                        <strong style={{ color: '#38bdf8', fontSize: '1.25rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1.5px solid #e2e8f0', paddingTop: '10px', marginTop: '4px' }}>
+                        <span style={{ color: '#0f172a', fontWeight: '800', fontSize: '0.95rem' }}>Total Pembayaran:</span>
+                        <strong style={{ color: '#0f172a', fontSize: '1.35rem', fontWeight: '900', letterSpacing: '-0.3px' }}>
                           Rp {((depositingEvent.eventType === 'regular' ? 0 : (depositingEvent.campaignBudget || 0)) + (depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : (depositingEvent.eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100)))).toLocaleString('id-ID')}
                         </strong>
                       </div>
@@ -4281,7 +4298,7 @@ export default function AdminPanel({
                                 border: '1px solid #e2e8f0', 
                                 borderRadius: '16px',
                                 overflow: 'hidden',
-                                boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.08)'
+                                boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.08)'
                               }}
                             >
                               {/* Card Header Brand - Modern Deep Dark Monokrom */}
@@ -4364,7 +4381,7 @@ export default function AdminPanel({
                                   flexWrap: 'wrap'
                                 }}>
                                   <span style={{
-                                    fontSize: 'clamp(1.1rem, 4vw, 1.35rem)',
+                                    fontSize: 'clamp(1.15rem, 4vw, 1.35rem)',
                                     fontWeight: '800',
                                     color: '#0f172a',
                                     letterSpacing: '1px',
@@ -4388,7 +4405,7 @@ export default function AdminPanel({
                                       backgroundColor: isCopiedMandiri ? '#10b981' : '#0f172a',
                                       color: '#ffffff',
                                       border: 'none',
-                                      padding: '8px 14px',
+                                      padding: '9px 15px',
                                       borderRadius: '8px',
                                       fontSize: '0.8rem',
                                       fontWeight: '700',
@@ -4435,7 +4452,7 @@ export default function AdminPanel({
                     );
                   })()}
 
-                  {/* Payment Confirmation Form */}
+                  {/* Payment Confirmation Form - Desain Bersih & Elegan */}
                   <form onSubmit={(e) => {
                     e.preventDefault();
                     if (!senderName.trim()) {
@@ -4458,33 +4475,53 @@ export default function AdminPanel({
                     alert('Bukti pembayaran Anda berhasil dikirim! Mohon tunggu verifikasi oleh admin platform.');
                   }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div className="form-group">
-                      <label style={{ display: 'block', marginBottom: '8px', color: 'white', fontSize: '0.9rem', fontWeight: 'bold' }}>Nama Pengirim Rekening</label>
+                      <label style={{ display: 'block', marginBottom: '6px', color: '#0f172a', fontSize: '0.85rem', fontWeight: '700' }}>Nama Pengirim Rekening</label>
                       <input 
                         type="text" 
                         required 
                         value={senderName} 
                         onChange={(e) => setSenderName(e.target.value)} 
                         placeholder="Contoh: Rudi Wijaya" 
-                        style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem' }} 
+                        style={{ 
+                          width: '100%', 
+                          padding: '11px 14px', 
+                          background: '#ffffff', 
+                          border: '1.5px solid #cbd5e1', 
+                          borderRadius: '10px', 
+                          color: '#0f172a', 
+                          fontSize: '0.9rem',
+                          outline: 'none',
+                          boxSizing: 'border-box'
+                        }} 
                       />
                     </div>
                     <div className="form-group">
-                      <label style={{ display: 'block', marginBottom: '8px', color: 'white', fontSize: '0.9rem', fontWeight: 'bold' }}>Bank Pengirim</label>
+                      <label style={{ display: 'block', marginBottom: '6px', color: '#0f172a', fontSize: '0.85rem', fontWeight: '700' }}>Bank Pengirim</label>
                       <select 
                         value={senderBank} 
                         onChange={(e) => setSenderBank(e.target.value)} 
-                        style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem' }}
+                        style={{ 
+                          width: '100%', 
+                          padding: '11px 14px', 
+                          background: '#ffffff', 
+                          border: '1.5px solid #cbd5e1', 
+                          borderRadius: '10px', 
+                          color: '#0f172a', 
+                          fontSize: '0.9rem',
+                          outline: 'none',
+                          boxSizing: 'border-box'
+                        }}
                       >
-                        <option value="BCA" style={{ background: '#020202' }}>Bank BCA</option>
-                        <option value="Mandiri" style={{ background: '#020202' }}>Bank Mandiri</option>
-                        <option value="BNI" style={{ background: '#020202' }}>Bank BNI</option>
-                        <option value="BRI" style={{ background: '#020202' }}>Bank BRI</option>
-                        <option value="CIMB" style={{ background: '#020202' }}>CIMB Niaga</option>
-                        <option value="Lainnya" style={{ background: '#020202' }}>Bank Lainnya</option>
+                        <option value="BCA">Bank BCA</option>
+                        <option value="Mandiri">Bank Mandiri</option>
+                        <option value="BNI">Bank BNI</option>
+                        <option value="BRI">Bank BRI</option>
+                        <option value="CIMB">CIMB Niaga</option>
+                        <option value="Lainnya">Bank Lainnya</option>
                       </select>
                     </div>
                     <div className="form-group">
-                      <label style={{ display: 'block', marginBottom: '8px', color: 'white', fontSize: '0.9rem', fontWeight: 'bold' }}>Unggah Bukti Transfer</label>
+                      <label style={{ display: 'block', marginBottom: '6px', color: '#0f172a', fontSize: '0.85rem', fontWeight: '700' }}>Unggah Bukti Transfer</label>
                       <input 
                         type="file" 
                         required 
@@ -4499,19 +4536,59 @@ export default function AdminPanel({
                             reader.readAsDataURL(file);
                           }
                         }} 
-                        style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.04)', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: '8px', color: 'var(--text-secondary)', fontSize: '0.85rem' }} 
+                        style={{ 
+                          width: '100%', 
+                          padding: '12px 14px', 
+                          background: '#f8fafc', 
+                          border: '1.5px dashed #cbd5e1', 
+                          borderRadius: '10px', 
+                          color: '#475569', 
+                          fontSize: '0.85rem',
+                          cursor: 'pointer',
+                          boxSizing: 'border-box'
+                        }} 
                       />
                       {receiptFile && (
                         <div style={{ marginTop: '12px', textAlign: 'center' }}>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Pratinjau Bukti Bayar:</span>
-                          <img src={receiptFile} alt="Receipt Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', border: '1px solid var(--border-color)' }} />
+                          <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '6px', fontWeight: '600' }}>Pratinjau Bukti Bayar:</span>
+                          <img src={receiptFile} alt="Receipt Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '10px', border: '1px solid #e2e8f0' }} />
                         </div>
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', gap: '16px', justifyContent: 'flex-end', marginTop: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
-                      <button type="button" className="btn btn-secondary" onClick={() => setDepositingEvent(null)} style={{ padding: '12px 24px', borderRadius: '30px', fontSize: '0.9rem' }}>Batal</button>
-                      <button type="submit" className="btn btn-primary" style={{ padding: '12px 28px', borderRadius: '30px', fontSize: '0.9rem', fontWeight: 'bold' }}>Kirim Bukti Pembayaran</button>
+                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '10px', borderTop: '1px solid #f1f5f9', paddingTop: '18px' }}>
+                      <button 
+                        type="button" 
+                        onClick={() => setDepositingEvent(null)} 
+                        style={{ 
+                          padding: '11px 22px', 
+                          borderRadius: '10px', 
+                          fontSize: '0.88rem', 
+                          fontWeight: '600',
+                          background: '#f1f5f9',
+                          border: 'none',
+                          color: '#475569',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Batal
+                      </button>
+                      <button 
+                        type="submit" 
+                        style={{ 
+                          padding: '11px 26px', 
+                          borderRadius: '10px', 
+                          fontSize: '0.88rem', 
+                          fontWeight: '700', 
+                          background: '#0f172a',
+                          border: 'none',
+                          color: '#ffffff',
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(15, 23, 42, 0.25)'
+                        }}
+                      >
+                        Kirim Bukti Pembayaran
+                      </button>
                     </div>
                   </form>
                 </div>
