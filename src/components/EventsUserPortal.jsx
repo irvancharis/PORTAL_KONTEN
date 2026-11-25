@@ -1383,18 +1383,20 @@ export default function EventsUserPortal({
                     {/* Flyer / Poster Campaign */}
                     {evt.posterUrl && (
                       <div style={{
-                        marginBottom: '20px',
-                        borderRadius: '16px',
+                        marginBottom: '22px',
+                        borderRadius: '18px',
                         overflow: 'hidden',
-                        border: '1px solid var(--border-color)',
-                        background: 'rgba(15, 23, 42, 0.4)',
+                        border: '1px solid #e2e8f0',
+                        background: '#0f172a',
                         display: 'flex',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)'
                       }}>
                         <img
                           src={evt.posterUrl}
                           alt={`Poster ${evt.title}`}
-                          style={{ width: '100%', maxHeight: '420px', objectFit: 'cover', display: 'block' }}
+                          style={{ width: '100%', maxHeight: '440px', objectFit: 'contain', display: 'block' }}
                         />
                       </div>
                     )}
@@ -2069,7 +2071,46 @@ export default function EventsUserPortal({
                             }
                             
                             return (
-                               <button 
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                {/* Kartu Ringkasan Informasi Campaign */}
+                                <div style={{
+                                  background: '#f8fafc',
+                                  border: '1px solid #e2e8f0',
+                                  borderRadius: '16px',
+                                  padding: '18px 20px',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '12px',
+                                  textAlign: 'left'
+                                }}>
+                                  <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
+                                    Ringkasan {evt.eventType === 'regular' ? 'Acara' : 'Campaign'}
+                                  </div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.88rem' }}>
+                                    <span style={{ color: '#64748b', fontWeight: '500' }}>
+                                      {evt.eventType === 'regular' ? 'Harga Tiket' : 'Total Budget'}
+                                    </span>
+                                    <strong style={{ color: '#0f172a', fontSize: '1.05rem', fontWeight: '800' }}>
+                                      {evt.eventType === 'regular'
+                                        ? (evt.ticketPrice > 0 ? `Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Gratis')
+                                        : `Rp ${(evt.campaignBudget || 0).toLocaleString('id-ID')}`}
+                                    </strong>
+                                  </div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.88rem' }}>
+                                    <span style={{ color: '#64748b', fontWeight: '500' }}>Kuota Peserta</span>
+                                    <strong style={{ color: '#0f172a', fontWeight: '700' }}>
+                                      {evt.maxParticipants > 0 ? `${approvedCount} / ${evt.maxParticipants} Peserta` : `${approvedCount} Terdaftar`}
+                                    </strong>
+                                  </div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.88rem' }}>
+                                    <span style={{ color: '#64748b', fontWeight: '500' }}>Penyelenggara</span>
+                                    <strong style={{ color: '#0f172a', fontWeight: '700' }}>
+                                      {evt.organizerName || evt.creator || 'Panitia Portal'}
+                                    </strong>
+                                  </div>
+                                </div>
+
+                                <button 
                                 className="btn btn-primary" 
                                 onClick={() => {
                                   const activeUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || currentUser;
@@ -2085,28 +2126,20 @@ export default function EventsUserPortal({
                                 style={{ 
                                   width: '100%', 
                                   justifyContent: 'center',
-                                  background: '#ffffff',
+                                  background: '#0f172a',
+                                  color: '#ffffff',
                                   border: 'none',
                                   padding: '14px 28px',
-                                  borderRadius: '30px',
-                                  fontSize: '0.92rem',
-                                  fontWeight: 'bold',
-                                  color: '#000000',
-                                  boxShadow: '0 8px 24px rgba(255, 255, 255, 0.1)',
-                                  transition: 'all 0.3s ease',
-                                  cursor: 'pointer'
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.transform = 'translateY(-2px)';
-                                  e.currentTarget.style.boxShadow = '0 12px 30px rgba(255, 255, 255, 0.2)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.transform = 'translateY(0)';
-                                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(255, 255, 255, 0.1)';
+                                  borderRadius: '14px',
+                                  fontWeight: '700',
+                                  fontSize: '0.95rem',
+                                  cursor: 'pointer',
+                                  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)'
                                 }}
                               >
                                 <span>{evt.eventType === 'regular' ? (evt.ticketPrice > 0 ? 'Beli Tiket' : 'Daftar Acara') : 'Daftar Kompetisi'}</span>
                               </button>
+                              </div>
                             );
                           })()
                         ) : (
