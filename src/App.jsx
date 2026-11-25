@@ -2413,9 +2413,9 @@ export default function App() {
             left: 0,
             width: '100vw',
             height: '100vh',
-            background: 'rgba(0, 0, 0, 0.65)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -2425,35 +2425,47 @@ export default function App() {
           }}
         >
           <div style={{
-            background: 'var(--card-bg, #0b0f19)',
-            border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
-            boxShadow: '0 24px 60px rgba(0, 0, 0, 0.5)',
-            borderRadius: '20px',
-            padding: '28px 36px',
+            background: '#0f172a',
+            border: '1.5px solid rgba(255, 255, 255, 0.15)',
+            boxShadow: '0 25px 60px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+            borderRadius: '24px',
+            padding: '32px 42px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '16px',
-            maxWidth: '90vw',
+            gap: '18px',
+            maxWidth: '380px',
+            width: '90%',
             animation: 'modalPopupSpring 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
           }}>
             <div style={{
-              width: '44px',
-              height: '44px',
-              border: '3.5px solid var(--border-color, rgba(255, 255, 255, 0.15))',
-              borderTop: '3.5px solid var(--text-primary, #ffffff)',
+              width: '46px',
+              height: '46px',
+              border: '3.5px solid rgba(255, 255, 255, 0.15)',
+              borderTop: '3.5px solid #ffffff',
               borderRadius: '50%',
               animation: 'spin 0.85s linear infinite'
             }} />
-            <span style={{ 
-              color: 'var(--text-primary)', 
-              fontSize: '0.96rem', 
-              fontWeight: '600', 
-              letterSpacing: '0.3px',
-              textAlign: 'center'
-            }}>
-              {globalLoadingText}
-            </span>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', textAlign: 'center' }}>
+              <span style={{ 
+                color: '#ffffff', 
+                fontSize: '1rem', 
+                fontWeight: '700', 
+                letterSpacing: '0.2px',
+                textAlign: 'center',
+                lineHeight: '1.4'
+              }}>
+                {globalLoadingText}
+              </span>
+              <span style={{
+                color: '#94a3b8',
+                fontSize: '0.78rem',
+                fontWeight: '500',
+                letterSpacing: '0.2px'
+              }}>
+                Mohon tunggu beberapa saat...
+              </span>
+            </div>
           </div>
         </div>
       )}
