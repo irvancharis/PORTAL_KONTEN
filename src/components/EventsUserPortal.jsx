@@ -2350,7 +2350,8 @@ export default function EventsUserPortal({
 
                                     <button
                                       onClick={() => {
-                                        const activeUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || currentUser;
+                                        const matchedUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase());
+                                        const activeUser = matchedUser ? { ...matchedUser, ...currentUser } : currentUser;
                                         const pCheck = checkUserProfileComplete(activeUser);
                                         if (!pCheck.isComplete) {
                                           alert('Lengkapi profil Anda untuk mengirimkan karya.');
