@@ -1496,6 +1496,7 @@ export default function useAppState() {
               ],
               minWithdrawalAmount: dbSettings?.minWithdrawalAmount || 50000,
               eventAdminFee: dbSettings?.eventAdminFee || 0,
+              eventFlatFee: dbSettings?.eventFlatFee !== undefined ? dbSettings.eventFlatFee : 150000,
               withdrawalFeePercent: dbSettings?.withdrawalFeePercent !== undefined ? dbSettings.withdrawalFeePercent : 5,
               withdrawalFeePercentPremium: dbSettings?.withdrawalFeePercentPremium !== undefined ? dbSettings.withdrawalFeePercentPremium : 2
             };
@@ -1533,6 +1534,9 @@ export default function useAppState() {
             }
             if (dbSettings.eventAdminFee !== undefined) {
               setEventAdminFee(dbSettings.eventAdminFee);
+            }
+            if (dbSettings.eventFlatFee !== undefined) {
+              setEventFlatFee(dbSettings.eventFlatFee);
             }
             if (dbSettings.withdrawalFeePercent !== undefined) {
               setWithdrawalFeePercent(dbSettings.withdrawalFeePercent);
@@ -2326,6 +2330,7 @@ export default function useAppState() {
         paymentGatewayMode,
         minWithdrawalAmount,
         eventAdminFee,
+        eventFlatFee,
         withdrawalFeePercent,
         withdrawalFeePercentPremium,
         dbInitialized: true

@@ -3953,14 +3953,14 @@ export default function AdminPanel({
                                   Rp {currentTargetBudget.toLocaleString('id-ID')}
                                 </strong>
                               </div>
-                              {eventAdminFee > 0 && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                  <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform ({eventAdminFee}%):</span>
-                                  <strong style={{ color: 'var(--text-primary)' }}>
-                                    + Rp {currentAdminFeeVal.toLocaleString('id-ID')}
-                                  </strong>
-                                </div>
-                              )}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <span style={{ color: 'var(--text-secondary)' }}>
+                                  Biaya Layanan Platform ({eventAdminFee}%):
+                                </span>
+                                <strong style={{ color: eventAdminFee > 0 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                  {eventAdminFee > 0 ? `+ Rp ${currentAdminFeeVal.toLocaleString('id-ID')}` : 'Rp 0 (Gratis)'}
+                                </strong>
+                              </div>
                               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid var(--border-color, #e5e7eb)', paddingTop: '10px', marginTop: '8px' }}>
                                 <span style={{ color: 'var(--text-primary)' }}>Total Pembayaran:</span>
                                 <strong style={{ color: 'var(--text-primary)', fontSize: '0.98rem' }}>
