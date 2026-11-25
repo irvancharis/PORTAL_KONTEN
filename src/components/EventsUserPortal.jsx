@@ -2099,7 +2099,10 @@ export default function EventsUserPortal({
                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.88rem' }}>
                                     <span style={{ color: '#64748b', fontWeight: '500' }}>Kuota Peserta</span>
                                     <strong style={{ color: '#0f172a', fontWeight: '700' }}>
-                                      {evt.maxParticipants > 0 ? `${approvedCount} / ${evt.maxParticipants} Peserta` : `${approvedCount} Terdaftar`}
+                                      {(() => {
+                                        const registeredCount = (eventParticipants || []).filter(p => p.eventId === evt.id && p.status === 'approved').length;
+                                        return evt.maxParticipants > 0 ? `${registeredCount} / ${evt.maxParticipants} Peserta` : `${registeredCount} Terdaftar`;
+                                      })()}
                                     </strong>
                                   </div>
                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.88rem' }}>
