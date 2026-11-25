@@ -11,6 +11,7 @@ import { generateSecureTicketUrl } from '../utils/security';
 import { checkUserProfileComplete } from '../utils/helpers';
 import { 
   Plus, 
+  Upload,
   Edit, 
   Trash2, 
   Film, 
