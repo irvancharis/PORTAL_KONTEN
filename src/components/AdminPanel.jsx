@@ -337,6 +337,8 @@ export default function AdminPanel({
   setEventAdminFee,
   eventFlatFee = 150000,
   setEventFlatFee,
+  eventTicketFeePercent = 5,
+  setEventTicketFeePercent,
   withdrawalFeePercent = 0,
   setWithdrawalFeePercent,
   withdrawalFeePercentPremium = 5,
@@ -1051,7 +1053,7 @@ export default function AdminPanel({
                 prize2: (isComp && isRanking) ? (parseInt(eventPrize2) || 0) : 0,
                 prize3: (isComp && isRanking) ? (parseInt(eventPrize3) || 0) : 0,
                 paymentStatus: evt.paymentStatus || 'pending',
-                adminFee: evt.paymentStatus === 'paid' ? (evt.adminFee !== undefined ? evt.adminFee : 0) : (eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((computedBudget * (eventAdminFee || 0)) / 100))
+                adminFee: evt.paymentStatus === 'paid' ? (evt.adminFee !== undefined ? evt.adminFee : 0) : (eventType === 'regular' ? ((parseInt(eventTicketPrice) || 0) > 0 ? 0 : (eventFlatFee || 150000)) : Math.round((computedBudget * (eventAdminFee || 0)) / 100))
               };
             }
             return evt;
@@ -1099,8 +1101,8 @@ export default function AdminPanel({
             prize1: isRanking ? (parseInt(eventPrize1) || 0) : 0,
             prize2: isRanking ? (parseInt(eventPrize2) || 0) : 0,
             prize3: isRanking ? (parseInt(eventPrize3) || 0) : 0,
-            paymentStatus: 'pending',
-            adminFee: eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((computedBudget * (eventAdminFee || 0)) / 100),
+            paymentStatus: (eventType === 'regular' && (parseInt(eventTicketPrice) || 0) > 0) ? 'paid' : 'pending',
+            adminFee: eventType === 'regular' ? ((parseInt(eventTicketPrice) || 0) > 0 ? 0 : (eventFlatFee || 150000)) : Math.round((computedBudget * (eventAdminFee || 0)) / 100),
             organizerName: currentUser?.organizerName || currentUser?.username || 'Panitia Portal',
             organizerPhone: currentUser?.organizerPhone || '',
             organizerDescription: currentUser?.organizerDescription || '',
@@ -3741,18 +3743,40 @@ export default function AdminPanel({
                       </span>
                     </div>
 
-                    {/* Platform Fee info box for Regular Event */}
-                    {eventType === 'regular' && eventFlatFee > 0 && (
-                      <div style={{ marginTop: '16px', padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', fontSize: '0.82rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform (Flat):</span>
-                          <strong style={{ color: 'white', fontSize: '0.92rem', borderBottom: '1px dashed white', paddingBottom: '2px' }}>
-                            Rp {eventFlatFee.toLocaleString('id-ID')}
-                          </strong>
-                        </div>
-                        <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: '1.4' }}>
-                          * Karena event ini bertipe Acara/Festival (tanpa budget Campaign/hadiah), Anda dikenakan biaya layanan aktivasi platform secara flat.
-                        </span>
+                    {/* Platform Fee info box for Regular Event (Skema Hybrid) */}
+                    {eventType === 'regular' && (
+                      <div style={{ marginTop: '16px', padding: '14px 16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', fontSize: '0.84rem' }}>
+                        {eventTicketPrice > 0 ? (
+                          <>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 'bold' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>Biaya Pembuatan di Muka:</span>
+                              <strong style={{ color: '#10b981', fontSize: '0.98rem' }}>
+                                Rp 0 (Gratis Aktivasi)
+                              </strong>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>Bagi Hasil Tiket Terjual ({eventTicketFeePercent}%):</span>
+                              <strong style={{ color: '#38bdf8', fontSize: '0.9rem' }}>
+                                Rp {Math.round((eventTicketPrice * eventTicketFeePercent) / 100).toLocaleString('id-ID')} / tiket
+                              </strong>
+                            </div>
+                            <span style={{ display: 'block', fontSize: '0.74rem', color: '#94a3b8', marginTop: '8px', lineHeight: '1.4' }}>
+                              💡 <strong>Skema Hybrid Aktif:</strong> Anda tidak perlu membayar biaya aktivasi di awal. Platform hanya memotong komisi {eventTicketFeePercent}% setiap kali peserta membeli tiket. Anda menerima bersih <strong>Rp {(eventTicketPrice - Math.round((eventTicketPrice * eventTicketFeePercent) / 100)).toLocaleString('id-ID')}</strong> per tiket terjual.
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 'bold' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>Biaya Layanan Platform (Flat Event Gratis):</span>
+                              <strong style={{ color: 'white', fontSize: '0.94rem' }}>
+                                Rp {eventFlatFee.toLocaleString('id-ID')}
+                              </strong>
+                            </div>
+                            <span style={{ display: 'block', fontSize: '0.74rem', color: '#94a3b8', marginTop: '6px', lineHeight: '1.4' }}>
+                              * Karena tiket event digratiskan (Rp 0), berlaku biaya layanan aktivasi platform secara flat untuk pengelolaan sistem &amp; kuota peserta.
+                            </span>
+                          </>
+                        )}
                       </div>
                     )}
 
@@ -4250,13 +4274,13 @@ export default function AdminPanel({
                           Biaya Layanan Platform{depositingEvent.eventType === 'regular' && ' (Flat)'}:
                         </span>
                         <strong style={{ color: '#0f172a', fontWeight: '700' }}>
-                          Rp {(depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : (depositingEvent.eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100))).toLocaleString('id-ID')}
+                          Rp {(depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : (depositingEvent.eventType === 'regular' ? ((depositingEvent.ticketPrice || 0) > 0 ? 0 : (eventFlatFee || 150000)) : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100))).toLocaleString('id-ID')}
                         </strong>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1.5px solid #e2e8f0', paddingTop: '10px', marginTop: '4px' }}>
                         <span style={{ color: '#0f172a', fontWeight: '800', fontSize: '0.95rem' }}>Total Pembayaran:</span>
                         <strong style={{ color: '#0f172a', fontSize: '1.35rem', fontWeight: '900', letterSpacing: '-0.3px' }}>
-                          Rp {((depositingEvent.eventType === 'regular' ? 0 : (depositingEvent.campaignBudget || 0)) + (depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : (depositingEvent.eventType === 'regular' ? (eventFlatFee || 150000) : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100)))).toLocaleString('id-ID')}
+                          Rp {((depositingEvent.eventType === 'regular' ? 0 : (depositingEvent.campaignBudget || 0)) + (depositingEvent.adminFee !== undefined ? depositingEvent.adminFee : (depositingEvent.eventType === 'regular' ? ((depositingEvent.ticketPrice || 0) > 0 ? 0 : (eventFlatFee || 150000)) : Math.round((depositingEvent.campaignBudget || 0) * (eventAdminFee || 0) / 100)))).toLocaleString('id-ID')}
                         </strong>
                       </div>
                     </div>
@@ -7479,7 +7503,35 @@ export default function AdminPanel({
                     }}
                   />
                   <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                    Biaya flat platform untuk mengaktifkan event bertipe Acara / Festival / Seminar (non-kompetisi).
+                    Biaya flat platform jika tiket event gratis (Rp 0).
+                  </span>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                  <label style={{ fontSize: '0.85rem', marginBottom: '6px', display: 'block', color: 'white', fontWeight: 'bold' }}>Bagi Hasil Komisi Tiket Event Non-Kompetisi (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder="Contoh: 5"
+                    value={eventTicketFeePercent !== undefined ? eventTicketFeePercent : 5}
+                    onChange={(e) => {
+                      const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                      if (setEventTicketFeePercent) setEventTicketFeePercent(val);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(167, 139, 250, 0.3)',
+                      borderRadius: 'var(--radius-sm)',
+                      color: 'white',
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: '0.9rem'
+                    }}
+                  />
+                  <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    Skema Hybrid: Jika event berbayar (tiket &gt; Rp 0), biaya aktivasi di muka menjadi GRATIS (Rp 0), dan platform otomatis memotong komisi persentase ini saat tiket dibeli oleh peserta.
                   </span>
                 </div>
 

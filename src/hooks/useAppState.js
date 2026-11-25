@@ -1497,6 +1497,7 @@ export default function useAppState() {
               minWithdrawalAmount: dbSettings?.minWithdrawalAmount || 50000,
               eventAdminFee: dbSettings?.eventAdminFee || 0,
               eventFlatFee: dbSettings?.eventFlatFee !== undefined ? dbSettings.eventFlatFee : 150000,
+              eventTicketFeePercent: dbSettings?.eventTicketFeePercent !== undefined ? dbSettings.eventTicketFeePercent : 5,
               withdrawalFeePercent: dbSettings?.withdrawalFeePercent !== undefined ? dbSettings.withdrawalFeePercent : 5,
               withdrawalFeePercentPremium: dbSettings?.withdrawalFeePercentPremium !== undefined ? dbSettings.withdrawalFeePercentPremium : 2
             };
@@ -1537,6 +1538,9 @@ export default function useAppState() {
             }
             if (dbSettings.eventFlatFee !== undefined) {
               setEventFlatFee(dbSettings.eventFlatFee);
+            }
+            if (dbSettings.eventTicketFeePercent !== undefined) {
+              setEventTicketFeePercent(dbSettings.eventTicketFeePercent);
             }
             if (dbSettings.withdrawalFeePercent !== undefined) {
               setWithdrawalFeePercent(dbSettings.withdrawalFeePercent);
@@ -2331,6 +2335,7 @@ export default function useAppState() {
         minWithdrawalAmount,
         eventAdminFee,
         eventFlatFee,
+        eventTicketFeePercent,
         withdrawalFeePercent,
         withdrawalFeePercentPremium,
         dbInitialized: true
@@ -2450,6 +2455,11 @@ export default function useAppState() {
     return saved ? parseInt(saved) : 150000;
   });
 
+  const [eventTicketFeePercent, setEventTicketFeePercent] = useState(() => {
+    const saved = localStorage.getItem('portal-event-ticket-fee-percent');
+    return saved !== null ? parseInt(saved) : 5;
+  });
+
   const [withdrawalFeePercent, setWithdrawalFeePercent] = useState(() => {
     const saved = localStorage.getItem('portal-withdrawal-fee-percent');
     return saved ? parseInt(saved) : 5;
@@ -2492,6 +2502,10 @@ export default function useAppState() {
   useEffect(() => {
     localStorage.setItem('portal-event-flat-fee', eventFlatFee.toString());
   }, [eventFlatFee]);
+
+  useEffect(() => {
+    localStorage.setItem('portal-event-ticket-fee-percent', eventTicketFeePercent.toString());
+  }, [eventTicketFeePercent]);
 
   useEffect(() => {
     localStorage.setItem('portal-withdrawal-fee-percent', withdrawalFeePercent.toString());
@@ -3303,6 +3317,8 @@ export default function useAppState() {
     setEventAdminFee,
     eventFlatFee,
     setEventFlatFee,
+    eventTicketFeePercent,
+    setEventTicketFeePercent,
     isFilterOpen,
     setIsFilterOpen,
     filterYear,

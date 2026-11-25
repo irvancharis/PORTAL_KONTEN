@@ -405,7 +405,8 @@ export default function EventsUserPortal({
   setOffers,
   communities = [],
   renderEventManagement,
-  handleAwardEventGift
+  handleAwardEventGift,
+  eventTicketFeePercent = 5
 }) {
   const [registeringEvent, setRegisteringEvent] = useState(null); // Event model open for register
   const [generatedTicketCode, setGeneratedTicketCode] = useState('');
@@ -609,13 +610,17 @@ export default function EventsUserPortal({
             return;
           }
 
-          // Deduct balance
+          // Deduct balance with Hybrid Platform Fee
+          const ticketCutPercent = registeringEvent.eventType === 'regular' ? (eventTicketFeePercent !== undefined ? eventTicketFeePercent : 5) : 0;
+          const platformCut = Math.round((ticketPrice * ticketCutPercent) / 100);
+          const creatorNetTicket = ticketPrice - platformCut;
+
           setUsers(prevUsers => prevUsers.map(u => {
             if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
               return { ...u, walletBalance: Math.max(0, (u.walletBalance || 0) - ticketPrice) };
             }
             if (u.username.toLowerCase() === (registeringEvent.creator || '').toLowerCase()) {
-              return { ...u, walletBalance: (u.walletBalance || 0) + ticketPrice };
+              return { ...u, walletBalance: (u.walletBalance || 0) + creatorNetTicket };
             }
             return u;
           }));
@@ -826,12 +831,16 @@ export default function EventsUserPortal({
         setGeneratedTicketCode(tktCode);
 
         if (ticketPrice > 0) {
+          const ticketCutPercent = registeringEvent.eventType === 'regular' ? (eventTicketFeePercent !== undefined ? eventTicketFeePercent : 5) : 0;
+          const platformCut = Math.round((ticketPrice * ticketCutPercent) / 100);
+          const creatorNetTicket = ticketPrice - platformCut;
+
           setUsers(prevUsers => prevUsers.map(u => {
             if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
               return { ...u, walletBalance: Math.max(0, (u.walletBalance || 0) - ticketPrice) };
             }
             if (u.username.toLowerCase() === (registeringEvent.creator || '').toLowerCase()) {
-              return { ...u, walletBalance: (u.walletBalance || 0) + ticketPrice };
+              return { ...u, walletBalance: (u.walletBalance || 0) + creatorNetTicket };
             }
             return u;
           }));
@@ -975,12 +984,16 @@ export default function EventsUserPortal({
           setGeneratedTicketCode(tktCode);
 
           if (ticketPrice > 0) {
+            const ticketCutPercent = registeringEvent.eventType === 'regular' ? (eventTicketFeePercent !== undefined ? eventTicketFeePercent : 5) : 0;
+            const platformCut = Math.round((ticketPrice * ticketCutPercent) / 100);
+            const creatorNetTicket = ticketPrice - platformCut;
+
             setUsers(prevUsers => prevUsers.map(u => {
               if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
                 return { ...u, walletBalance: Math.max(0, (u.walletBalance || 0) - ticketPrice) };
               }
               if (u.username.toLowerCase() === (registeringEvent.creator || '').toLowerCase()) {
-                return { ...u, walletBalance: (u.walletBalance || 0) + ticketPrice };
+                return { ...u, walletBalance: (u.walletBalance || 0) + creatorNetTicket };
               }
               return u;
             }));

@@ -263,6 +263,8 @@ export default function App() {
     setEventAdminFee,
     eventFlatFee,
     setEventFlatFee,
+    eventTicketFeePercent,
+    setEventTicketFeePercent,
     isFilterOpen,
     setIsFilterOpen,
     filterYear,
@@ -433,6 +435,8 @@ export default function App() {
           setEventAdminFee={setEventAdminFee}
           eventFlatFee={eventFlatFee}
           setEventFlatFee={setEventFlatFee}
+          eventTicketFeePercent={eventTicketFeePercent}
+          setEventTicketFeePercent={setEventTicketFeePercent}
           withdrawalFeePercent={withdrawalFeePercent}
           setWithdrawalFeePercent={setWithdrawalFeePercent}
           withdrawalFeePercentPremium={withdrawalFeePercentPremium}
@@ -591,6 +595,7 @@ export default function App() {
               setEventParticipants={handleSetEventParticipants}
               eventSubmissions={eventSubmissions}
               setEventSubmissions={handleSetEventSubmissions}
+              eventTicketFeePercent={eventTicketFeePercent}
               withdrawals={withdrawals}
               setWithdrawals={handleSetWithdrawals}
               offers={offers}
@@ -602,6 +607,8 @@ export default function App() {
               setEventAdminFee={setEventAdminFee}
               eventFlatFee={eventFlatFee}
               setEventFlatFee={setEventFlatFee}
+              eventTicketFeePercent={eventTicketFeePercent}
+              setEventTicketFeePercent={setEventTicketFeePercent}
               withdrawalFeePercent={withdrawalFeePercent}
               setWithdrawalFeePercent={setWithdrawalFeePercent}
               withdrawalFeePercentPremium={withdrawalFeePercentPremium}
@@ -688,6 +695,7 @@ export default function App() {
               setEventParticipants={handleSetEventParticipants}
               eventSubmissions={eventSubmissions}
               setEventSubmissions={handleSetEventSubmissions}
+              eventTicketFeePercent={eventTicketFeePercent}
               users={users}
               setUsers={handleSetUsers}
               offers={offers}
@@ -735,6 +743,8 @@ export default function App() {
                   setEventAdminFee={setEventAdminFee}
                   eventFlatFee={eventFlatFee}
                   setEventFlatFee={setEventFlatFee}
+                  eventTicketFeePercent={eventTicketFeePercent}
+                  setEventTicketFeePercent={setEventTicketFeePercent}
                   withdrawalFeePercent={withdrawalFeePercent}
                   setWithdrawalFeePercent={setWithdrawalFeePercent}
                   withdrawalFeePercentPremium={withdrawalFeePercentPremium}
