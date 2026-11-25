@@ -4453,7 +4453,9 @@ onMouseLeave={(e) => {
                 <h3 style={{ color: '#0f172a', marginBottom: '10px', fontSize: '1.3rem', fontWeight: '800' }}>
                   {isPaidRegularPending
                     ? 'Bukti Pembayaran Terkirim!'
-                    : (registeringEvent.eventType === 'regular' ? 'Pendaftaran Berhasil!' : 'Pendaftaran & Pembayaran Sukses!')}
+                    : (registeringEvent.eventType === 'regular'
+                        ? 'Pendaftaran Berhasil!'
+                        : (registeringEvent.ticketPrice > 0 ? 'Pendaftaran & Pembayaran Sukses!' : 'Pendaftaran Kompetisi Berhasil!'))}
                 </h3>
                 <p style={{ color: '#475569', fontSize: '0.88rem', lineHeight: '1.6', margin: '0 0 20px 0' }}>
                   {isPaidRegularPending ? (
