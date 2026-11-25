@@ -509,6 +509,7 @@ export default function DiscoverPage({
                   </div>
                   <div className="split-list" style={{ marginTop: '12px' }}>
                     {events.filter(e => {
+                      if (e.paymentStatus !== 'paid') return false;
                       const isRegular = e.eventType === 'regular' || !e.eventType;
                       if (!isRegular) return false;
                       if (e.deadline) {
@@ -521,6 +522,7 @@ export default function DiscoverPage({
                     }).length > 0 ? (
                       events
                         .filter(e => {
+                          if (e.paymentStatus !== 'paid') return false;
                           const isRegular = e.eventType === 'regular' || !e.eventType;
                           if (!isRegular) return false;
                           if (e.deadline) {
@@ -610,6 +612,7 @@ export default function DiscoverPage({
                   </div>
                   <div className="split-list" style={{ marginTop: '12px' }}>
                     {events.filter(e => {
+                      if (e.paymentStatus !== 'paid') return false;
                       const isComp = e.eventType === 'competition';
                       if (!isComp) return false;
                       if (e.deadline) {
@@ -635,6 +638,7 @@ export default function DiscoverPage({
                     }).length > 0 ? (
                       events
                         .filter(e => {
+                          if (e.paymentStatus !== 'paid') return false;
                           const isComp = e.eventType === 'competition';
                           if (!isComp) return false;
                           if (e.deadline) {
