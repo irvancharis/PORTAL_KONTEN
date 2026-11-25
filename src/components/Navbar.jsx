@@ -327,18 +327,30 @@ export default function Navbar({
       .forEach(p => {
         const evt = events.find(e => e.id === p.eventId);
         const displayEventTitle = evt ? evt.title : (p.eventTitle || 'Event');
+        const isRegularEvent = evt?.eventType === 'regular';
         
         let title = '';
         let msg = '';
         if (p.status === 'approved') {
-          title = 'Pendaftaran Disetujui';
-          msg = `Selamat! Pendaftaran Anda di event "${displayEventTitle}" telah disetujui. Anda dapat mengirimkan karya sekarang.`;
+          if (isRegularEvent) {
+            title = p.ticketPrice > 0 ? 'Tiket & Pendaftaran Disetujui' : 'Pendaftaran Acara Disetujui';
+            msg = p.ticketPrice > 0
+              ? `Pembayaran tiket Anda untuk acara "${displayEventTitle}" telah disetujui! E-Tiket digital Anda sudah aktif dan siap digunakan.`
+              : `Pendaftaran Anda untuk acara "${displayEventTitle}" telah disetujui! E-Tiket digital Anda sudah aktif.`;
+          } else {
+            title = 'Pendaftaran Disetujui';
+            msg = `Selamat! Pendaftaran Anda di campaign "${displayEventTitle}" telah disetujui. Anda dapat mengirimkan karya sekarang.`;
+          }
         } else if (p.status === 'rejected') {
-          title = 'Pendaftaran Ditolak';
-          msg = `Maaf, pendaftaran Anda di event "${displayEventTitle}" ditolak. Silakan hubungi panitia.`;
+          title = isRegularEvent && p.ticketPrice > 0 ? 'Pembayaran Tiket Ditolak' : 'Pendaftaran Ditolak';
+          msg = isRegularEvent && p.ticketPrice > 0
+            ? `Maaf, bukti pembayaran tiket Anda untuk acara "${displayEventTitle}" ditolak. Silakan hubungi admin.`
+            : `Maaf, pendaftaran Anda di event "${displayEventTitle}" ditolak. Silakan hubungi panitia.`;
         } else {
-          title = 'Pendaftaran Diproses';
-          msg = `Pendaftaran Anda di event "${displayEventTitle}" sedang dalam proses verifikasi oleh panitia.`;
+          title = isRegularEvent && p.ticketPrice > 0 ? 'Verifikasi Pembayaran Tiket' : 'Pendaftaran Diproses';
+          msg = isRegularEvent && p.ticketPrice > 0
+            ? `Bukti pembayaran tiket Anda untuk acara "${displayEventTitle}" sedang dalam proses verifikasi oleh admin (maks. 1x24 jam).`
+            : `Pendaftaran Anda di event "${displayEventTitle}" sedang dalam proses verifikasi oleh panitia.`;
         }
         list.push({
           id: `user_part_${p.id}`,
@@ -375,7 +387,7 @@ export default function Navbar({
         const submitted = eventSubmissions.some(s => s.eventId === p.eventId && s.username.toLowerCase() === userLower);
         if (!submitted) {
           const evt = events.find(e => e.id === p.eventId);
-          if (evt) {
+          if (evt && evt.eventType !== 'regular') {
             const isDeadlinePassed = evt.deadline ? (
               evt.deadline.includes('T')
                 ? new Date().getTime() > new Date(evt.deadline).getTime()
