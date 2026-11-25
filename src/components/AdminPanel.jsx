@@ -4514,59 +4514,58 @@ export default function AdminPanel({
                                 boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.08)'
                               }}
                             >
-                              {/* Card Header Brand - Modern Deep Dark Monokrom */}
+                              {/* Card Header Brand - Bersih & Kontras Tinggi */}
                               <div style={{
-                                backgroundColor: '#0f172a',
+                                backgroundColor: '#f8fafc',
                                 padding: '16px 18px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
-                                borderBottom: '1px solid #1e293b'
+                                borderBottom: '1px solid #e2e8f0'
                               }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                   <div style={{
-                                    width: '38px',
-                                    height: '38px',
+                                    width: '40px',
+                                    height: '40px',
                                     borderRadius: '10px',
-                                    backgroundColor: '#ffffff',
-                                    color: '#0f172a',
+                                    backgroundColor: '#0f172a',
+                                    color: '#ffffff',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     flexShrink: 0
                                   }}>
-                                    {isEwallet ? <Smartphone size={20} strokeWidth={2.5} color="#0f172a" /> : <Landmark size={20} strokeWidth={2.5} color="#0f172a" />}
+                                    {isEwallet ? <Smartphone size={20} strokeWidth={2.5} color="#ffffff" /> : <Landmark size={20} strokeWidth={2.5} color="#ffffff" />}
                                   </div>
                                   <div>
-                                    <h4 style={{ 
+                                    <div style={{ 
                                       margin: 0, 
                                       fontSize: '1.05rem', 
                                       fontWeight: '900', 
-                                      color: '#ffffff', 
-                                      letterSpacing: '0.5px' 
+                                      color: '#0f172a', 
+                                      letterSpacing: '0.4px' 
                                     }}>
                                       {(b.bankName || 'BANK BCA').toUpperCase()}
-                                    </h4>
-                                    <span style={{ 
-                                      fontSize: '0.74rem', 
-                                      color: '#cbd5e1', 
+                                    </div>
+                                    <div style={{ 
+                                      fontSize: '0.75rem', 
+                                      color: '#64748b', 
                                       fontWeight: '500', 
-                                      display: 'block', 
                                       marginTop: '2px' 
                                     }}>
                                       {b.branch ? `Rekening Resmi (${b.branch})` : (isEwallet ? 'Akun E-Wallet Penerima Resmi' : 'Rekening Penerima Pembayaran Resmi')}
-                                    </span>
+                                    </div>
                                   </div>
                                 </div>
                                 {b.isPrimary && (
                                   <span style={{
                                     fontSize: '0.7rem',
-                                    backgroundColor: 'rgba(56, 189, 248, 0.15)',
-                                    color: '#38bdf8',
-                                    border: '1px solid rgba(56, 189, 248, 0.3)',
+                                    backgroundColor: '#e0f2fe',
+                                    color: '#0284c7',
+                                    border: '1px solid #bae6fd',
                                     padding: '4px 10px',
                                     borderRadius: '20px',
-                                    fontWeight: '700',
+                                    fontWeight: '800',
                                     letterSpacing: '0.3px',
                                     textTransform: 'uppercase'
                                   }}>
@@ -4615,10 +4614,10 @@ export default function AdminPanel({
                                     }}
                                     title="Salin Nomor Rekening"
                                     style={{
-                                      backgroundColor: isCopiedMandiri ? '#10b981' : '#0f172a',
-                                      color: '#ffffff',
-                                      border: 'none',
-                                      padding: '9px 15px',
+                                      backgroundColor: isCopiedMandiri ? '#ecfdf5' : '#ffffff',
+                                      color: isCopiedMandiri ? '#059669' : '#0f172a',
+                                      border: isCopiedMandiri ? '1.5px solid #10b981' : '1.5px solid #cbd5e1',
+                                      padding: '8px 14px',
                                       borderRadius: '8px',
                                       fontSize: '0.8rem',
                                       fontWeight: '700',
@@ -4630,11 +4629,11 @@ export default function AdminPanel({
                                       transition: 'all 0.2s',
                                       flexShrink: 0,
                                       marginLeft: 'auto',
-                                      boxShadow: isCopiedMandiri ? '0 2px 8px rgba(16, 185, 129, 0.3)' : '0 2px 8px rgba(15, 23, 42, 0.25)'
+                                      boxShadow: '0 1px 3px rgba(15, 23, 42, 0.08)'
                                     }}
                                   >
-                                    {isCopiedMandiri ? <CheckCircle2 size={14} color="#ffffff" strokeWidth={2.5} /> : <Copy size={14} color="#ffffff" />}
-                                    <span style={{ color: '#ffffff', fontWeight: '700' }}>{isCopiedMandiri ? 'Tersalin!' : (isEwallet ? 'Salin No. HP' : 'Salin Nomor')}</span>
+                                    {isCopiedMandiri ? <CheckCircle2 size={14} color="#059669" strokeWidth={2.5} /> : <Copy size={14} color="#0f172a" />}
+                                    <span style={{ color: isCopiedMandiri ? '#059669' : '#0f172a', fontWeight: '700' }}>{isCopiedMandiri ? 'Tersalin!' : (isEwallet ? 'Salin No. HP' : 'Salin Nomor')}</span>
                                   </button>
                                 </div>
 
