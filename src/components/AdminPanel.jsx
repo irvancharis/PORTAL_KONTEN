@@ -4053,30 +4053,31 @@ export default function AdminPanel({
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '8px',
-                        padding: '24px 16px',
-                        background: 'rgba(255, 255, 255, 0.02)',
-                        border: '1.5px dashed rgba(255, 255, 255, 0.2)',
-                        borderRadius: '12px',
+                        padding: '28px 16px',
+                        background: '#f8fafc',
+                        border: '1.5px dashed #cbd5e1',
+                        borderRadius: '14px',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
                         textAlign: 'center'
                       }}>
                         <div style={{
-                          width: '42px',
-                          height: '42px',
-                          borderRadius: '10px',
-                          background: 'rgba(255, 255, 255, 0.06)',
+                          width: '44px',
+                          height: '44px',
+                          borderRadius: '12px',
+                          background: '#0f172a',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: 'var(--text-primary)'
+                          color: '#ffffff',
+                          boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)'
                         }}>
-                          <Upload size={20} />
+                          <Upload size={20} color="#ffffff" />
                         </div>
-                        <span style={{ fontSize: '0.88rem', fontWeight: '600', color: 'var(--text-primary)' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#0f172a' }}>
                           Klik untuk unggah Flyer / Poster
                         </span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                        <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
                           Format JPG, PNG, atau WebP • Maksimal 5 MB (otomatis dikompresi)
                         </span>
                         <input
@@ -4089,32 +4090,50 @@ export default function AdminPanel({
                     ) : (
                       <div style={{
                         position: 'relative',
-                        borderRadius: '12px',
+                        borderRadius: '14px',
                         overflow: 'hidden',
-                        border: '1px solid var(--border-color)',
-                        background: '#0a0d14',
-                        padding: '12px',
+                        border: '1px solid #e2e8f0',
+                        background: '#f8fafc',
+                        padding: '18px',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        gap: '12px'
+                        gap: '14px',
+                        boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)'
                       }}>
-                        <img
-                          src={eventPosterUrl}
-                          alt="Preview Poster Campaign"
-                          style={{ maxWidth: '100%', maxHeight: '280px', borderRadius: '8px', objectFit: 'contain' }}
-                        />
-                        <div style={{ display: 'flex', gap: '10px' }}>
+                        <div style={{
+                          width: '100%',
+                          maxWidth: '340px',
+                          borderRadius: '10px',
+                          overflow: 'hidden',
+                          border: '1px solid #e2e8f0',
+                          background: '#ffffff',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          boxShadow: '0 4px 16px rgba(15, 23, 42, 0.06)'
+                        }}>
+                          <img
+                            src={eventPosterUrl}
+                            alt="Preview Poster Campaign"
+                            style={{ width: '100%', maxHeight: '260px', objectFit: 'contain', display: 'block' }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                           <label style={{
-                            padding: '7px 14px',
+                            padding: '8px 16px',
                             borderRadius: '8px',
-                            background: 'rgba(255, 255, 255, 0.08)',
-                            color: 'white',
-                            fontSize: '0.8rem',
-                            fontWeight: '600',
-                            cursor: 'pointer'
+                            background: '#0f172a',
+                            color: '#ffffff',
+                            fontSize: '0.82rem',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            boxShadow: '0 2px 6px rgba(15, 23, 42, 0.2)'
                           }}>
-                            Ganti Gambar
+                            <Upload size={14} color="#ffffff" />
+                            <span style={{ color: '#ffffff' }}>Ganti Gambar</span>
                             <input
                               type="file"
                               accept="image/jpeg,image/png,image/webp"
@@ -4129,23 +4148,27 @@ export default function AdminPanel({
                               setPosterUploadError('');
                             }}
                             style={{
-                              padding: '7px 14px',
+                              padding: '8px 16px',
                               borderRadius: '8px',
-                              background: 'rgba(239, 68, 68, 0.15)',
-                              border: '1px solid rgba(239, 68, 68, 0.3)',
-                              color: '#ef4444',
-                              fontSize: '0.8rem',
-                              fontWeight: '600',
-                              cursor: 'pointer'
+                              background: '#fef2f2',
+                              border: '1px solid #fecaca',
+                              color: '#dc2626',
+                              fontSize: '0.82rem',
+                              fontWeight: '700',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px'
                             }}
                           >
-                            Hapus
+                            <Trash2 size={14} color="#dc2626" />
+                            <span>Hapus</span>
                           </button>
                         </div>
                       </div>
                     )}
                     {posterUploadError && (
-                      <span style={{ display: 'block', marginTop: '6px', fontSize: '0.78rem', color: '#ef4444', fontWeight: '600' }}>
+                      <span style={{ display: 'block', marginTop: '6px', fontSize: '0.78rem', color: '#dc2626', fontWeight: '600' }}>
                         {posterUploadError}
                       </span>
                     )}
