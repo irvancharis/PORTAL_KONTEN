@@ -9526,6 +9526,24 @@ export default function AdminPanel({
               status: evt.paymentStatus === 'paid' ? 'approved' : evt.paymentStatus === 'pending_verification' ? 'pending' : 'rejected',
               targetId: evt.id,
               eventTitle: evt.title
+            })),
+          ...(eventParticipants || [])
+            .filter(p => p.ticketPrice > 0 && p.proofReceipt)
+            .map(p => ({
+              id: `tkt_pay_${p.id}`,
+              isTicketPayment: true,
+              typeName: 'Pembelian Tiket',
+              username: p.name || p.username,
+              userId: p.username,
+              planName: `Tiket: ${p.eventTitle}`,
+              senderName: p.proofName || p.name || p.username,
+              bankName: p.proofBank || '-',
+              amount: `Rp ${(p.ticketPrice || 0).toLocaleString('id-ID')}`,
+              receiptImg: p.proofReceipt,
+              timestamp: p.registeredAt || Date.now(),
+              status: p.status === 'approved' ? 'approved' : p.status === 'rejected' ? 'rejected' : 'pending',
+              targetId: p.id,
+              eventTitle: p.eventTitle
             }))
         ];
 
@@ -9819,7 +9837,12 @@ export default function AdminPanel({
                                   <button 
                                     className="btn btn-secondary btn-sm"
                                     onClick={() => {
-                                      if (conf.isEventPayment) {
+                                      if (conf.isTicketPayment) {
+                                        if (confirm(`Setujui pembayaran tiket dari "${conf.username}" untuk acara "${conf.eventTitle}"? E-Tiket digital akan langsung diaktifkan.`)) {
+                                          handleApproveParticipant(conf.targetId);
+                                          alert(`Pembayaran tiket "${conf.username}" disetujui! E-Tiket digital kini aktif dan notifikasi telah dikirim.`);
+                                        }
+                                      } else if (conf.isEventPayment) {
                                         if (confirm(`Setujui pembayaran dari panitia "${conf.username}" untuk event "${conf.eventTitle}"?`)) {
                                           const updatedConfs = confirmations.map(c => c.id === conf.id ? { ...c, status: 'approved' } : c);
                                           setConfirmations(updatedConfs);
@@ -9850,7 +9873,12 @@ export default function AdminPanel({
                                   <button 
                                     className="btn btn-secondary btn-sm"
                                     onClick={() => {
-                                      if (conf.isEventPayment) {
+                                      if (conf.isTicketPayment) {
+                                        if (confirm(`Setujui pembayaran tiket dari "${conf.username}" untuk acara "${conf.eventTitle}"? E-Tiket digital akan langsung diaktifkan.`)) {
+                                          handleApproveParticipant(conf.targetId);
+                                          alert(`Pembayaran tiket "${conf.username}" disetujui! E-Tiket digital kini aktif dan notifikasi telah dikirim.`);
+                                        }
+                                      } else if (conf.isEventPayment) {
                                         if (confirm(`Tolak bukti pembayaran dari panitia "${conf.username}" untuk event "${conf.eventTitle}"?`)) {
                                           setEvents(events.map(evt => {
                                             if (evt.id === conf.targetId) {
