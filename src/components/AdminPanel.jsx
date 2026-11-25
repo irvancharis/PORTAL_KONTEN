@@ -215,27 +215,32 @@ const InfoTooltip = ({ text }) => {
         verticalAlign: 'middle'
       }}
     >
-      <Info size={13} style={{ color: hovered ? 'white' : 'rgba(255, 255, 255, 0.4)', transition: 'color 0.2s' }} />
+      <Info size={14} style={{ color: hovered ? '#0f172a' : '#64748b', transition: 'color 0.2s' }} />
       {hovered && (
-        <span style={{
-          position: 'absolute',
-          bottom: '125%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '220px',
-          backgroundColor: '#1f2937',
-          color: '#fff',
-          textAlign: 'left',
-          borderRadius: '8px',
-          padding: '10px 14px',
-          zIndex: 10000,
-          fontSize: '0.75rem',
-          lineHeight: '1.4',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
-          whiteSpace: 'normal',
-          pointerEvents: 'none'
-        }}>
+        <span 
+          className="info-tooltip-bubble"
+          style={{
+            position: 'absolute',
+            bottom: '135%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '230px',
+            backgroundColor: '#0f172a',
+            color: '#ffffff',
+            textAlign: 'left',
+            borderRadius: '10px',
+            padding: '10px 14px',
+            zIndex: 10000,
+            fontSize: '0.78rem',
+            lineHeight: '1.45',
+            fontWeight: '600',
+            letterSpacing: '0.1px',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.25)',
+            whiteSpace: 'normal',
+            pointerEvents: 'none'
+          }}
+        >
           {text}
         </span>
       )}
