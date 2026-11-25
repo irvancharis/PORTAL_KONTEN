@@ -583,15 +583,16 @@ export default function EventsUserPortal({
   const handleRegularRegister = (e) => {
     if (e) e.preventDefault();
     
-    const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
+    const matchedUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase());
+    const userProfile = matchedUser ? { ...matchedUser, ...currentUser } : currentUser;
     const profileCheck = checkUserProfileComplete(userProfile);
     if (!profileCheck.isComplete) {
-      alert('Lengkapi profil Anda untuk dapat mendaftar Campaign.');
+      alert(`Lengkapi profil Anda (${profileCheck.missingFields.join(', ')}) untuk dapat mendaftar Campaign.`);
       if (onEditProfileClick) onEditProfileClick();
       return;
     }
-    const finalName = userProfile.organizerName || userProfile.username;
-    const finalPhone = userProfile.organizerPhone || userProfile.phone || '';
+    const finalName = userProfile.organizerName || userProfile.name || userProfile.fullName || userProfile.username;
+    const finalPhone = userProfile.organizerPhone || userProfile.phone || userProfile.whatsapp || '';
     const finalEmail = userProfile.email || `${userProfile.username}@gmail.com`;
 
     if (window.setGlobalLoading) window.setGlobalLoading('Sedang memproses tiket pendaftaran...');
@@ -3446,55 +3447,67 @@ onMouseLeave={(e) => {
                       <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '20px', borderRadius: '12px' }}>
                         <h4 style={{ margin: '0 0 16px 0', color: 'white', fontSize: '1.1rem', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>Konfirmasi Pembelian Tiket</h4>
                         
-                        <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                          Mohon periksa kembali data Anda sebelum melanjutkan pendaftaran. Transaksi ini akan memotong saldo dompet Anda secara langsung.
+                        <p style={{ margin: '0 0 16px 0', fontSize: '0.84rem', color: '#475569', lineHeight: '1.5' }}>
+                          {registeringEvent.ticketPrice > 0
+                            ? 'Mohon periksa kembali data Anda sebelum mengirim bukti pembayaran. Admin akan memverifikasi transfer Anda maksimal 1x24 jam sebelum E-Tiket diterbitkan.'
+                            : 'Mohon periksa kembali data Anda sebelum mengonfirmasi pendaftaran acara ini.'}
                         </p>
 
                         {(() => {
-                          const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
+                          const matchedUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase());
+                          const userProfile = matchedUser ? { ...matchedUser, ...currentUser } : currentUser;
+                          const displayName = userProfile.organizerName || userProfile.name || userProfile.fullName || userProfile.username;
+                          const displayPhone = userProfile.organizerPhone || userProfile.phone || userProfile.whatsapp || '-';
+                          const displayEmail = userProfile.email || `${userProfile.username}@gmail.com`;
                           return (
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                              <tbody>
-                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                                  <td style={{ padding: '8px 0', width: '140px' }}>Nama Pengunjung:</td>
-                                  <td style={{ padding: '8px 0', color: 'white', fontWeight: '600' }}>{userProfile.organizerName || userProfile.username}</td>
-                                </tr>
-                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                                  <td style={{ padding: '8px 0' }}>No. WhatsApp:</td>
-                                  <td style={{ padding: '8px 0', color: 'white', fontWeight: '600' }}>{userProfile.organizerPhone}</td>
-                                </tr>
-                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                                  <td style={{ padding: '8px 0' }}>Email:</td>
-                                  <td style={{ padding: '8px 0', color: 'white', fontWeight: '600' }}>{userProfile.email || `${userProfile.username}@gmail.com`}</td>
-                                </tr>
-                                <tr>
-                                  <td style={{ padding: '8px 0', color: '#fbbf24', fontWeight: 'bold' }}>Harga Tiket:</td>
-                                  <td style={{ padding: '8px 0', color: '#4ade80', fontWeight: 'bold', fontSize: '1rem' }}>
-                                    {registeringEvent.ticketPrice > 0 ? `Rp ${registeringEvent.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
+                            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px 16px' }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.86rem', color: '#475569' }}>
+                                <tbody>
+                                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                    <td style={{ padding: '9px 0', width: '140px', fontWeight: '500' }}>Nama Pengunjung:</td>
+                                    <td style={{ padding: '9px 0', color: '#0f172a', fontWeight: '700' }}>{displayName}</td>
+                                  </tr>
+                                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                    <td style={{ padding: '9px 0', fontWeight: '500' }}>No. WhatsApp:</td>
+                                    <td style={{ padding: '9px 0', color: '#0f172a', fontWeight: '700' }}>{displayPhone}</td>
+                                  </tr>
+                                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                    <td style={{ padding: '9px 0', fontWeight: '500' }}>Email:</td>
+                                    <td style={{ padding: '9px 0', color: '#0f172a', fontWeight: '700' }}>{displayEmail}</td>
+                                  </tr>
+                                  {registeringEvent.ticketPrice > 0 && (
+                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                      <td style={{ padding: '9px 0', fontWeight: '500' }}>Pengirim Transfer:</td>
+                                      <td style={{ padding: '9px 0', color: '#0f172a', fontWeight: '700' }}>{ticketSenderName} ({ticketSenderBank})</td>
+                                    </tr>
+                                  )}
+                                  <tr>
+                                    <td style={{ padding: '10px 0 4px 0', color: '#0f172a', fontWeight: '700' }}>Harga Tiket:</td>
+                                    <td style={{ padding: '10px 0 4px 0', color: '#059669', fontWeight: '800', fontSize: '1.05rem' }}>
+                                      {registeringEvent.ticketPrice > 0 ? `Rp ${registeringEvent.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
                           );
                         })()}
                       </div>
 
-                      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '14px' }}>
                         <button 
                           type="button" 
-                          className="btn btn-secondary" 
-                          style={{ padding: '10px 20px' }} 
+                          style={{ padding: '10px 20px', borderRadius: '10px', background: '#f1f5f9', border: 'none', color: '#475569', fontWeight: '600', fontSize: '0.88rem', cursor: 'pointer' }} 
                           onClick={() => setShowTicketConfirm(false)}
                         >
                           Batal / Ubah Data
                         </button>
                         <button 
                           type="button" 
-                          className="btn btn-primary" 
-                          style={{ padding: '10px 24px', fontWeight: 'bold', background: 'white', color: 'black', border: '1px solid white' }} 
+                          style={{ padding: '10px 24px', borderRadius: '10px', fontWeight: '700', fontSize: '0.88rem', background: '#0f172a', color: '#ffffff', border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px rgba(15, 23, 42, 0.2)' }} 
                           onClick={handleRegularRegister}
                         >
-                          Ya, Konfirmasi & Bayar
+                          {registeringEvent.ticketPrice > 0 ? 'Ya, Kirim Bukti & Daftar' : 'Ya, Konfirmasi Pendaftaran'}
                         </button>
                       </div>
                     </div>
