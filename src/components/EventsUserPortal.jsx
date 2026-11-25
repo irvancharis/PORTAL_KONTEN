@@ -4387,20 +4387,38 @@ onMouseLeave={(e) => {
               </div>
             )}
 
-            {verificationStep === 'success' && (
-              <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.06)', border: '2px solid #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#ffffff' }}>
-                  <CheckCircle2 size={32} />
+            {verificationStep === 'success' && (() => {
+              const isPaidRegularPending = registeringEvent.eventType === 'regular' && registeringEvent.ticketPrice > 0;
+              const matchedUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase());
+              const userProfile = matchedUser ? { ...matchedUser, ...currentUser } : currentUser;
+              const displayName = userProfile.organizerName || userProfile.name || userProfile.fullName || userProfile.username;
+
+              return (
+              <div style={{ textAlign: 'center', padding: '28px 16px' }}>
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  background: isPaidRegularPending ? '#fef3c7' : '#ecfdf5',
+                  border: isPaidRegularPending ? '2px solid #f59e0b' : '2px solid #10b981',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 18px auto',
+                  color: isPaidRegularPending ? '#d97706' : '#059669'
+                }}>
+                  {isPaidRegularPending ? <Clock size={30} /> : <CheckCircle2 size={30} />}
                 </div>
-                <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '1.3rem', fontWeight: 'bold' }}>
-                  {registeringEvent.eventType === 'regular' ? 'Pembelian Tiket Sukses!' : 'Pendaftaran & Pembayaran Sukses!'}
+                <h3 style={{ color: '#0f172a', marginBottom: '10px', fontSize: '1.3rem', fontWeight: '800' }}>
+                  {isPaidRegularPending
+                    ? 'Bukti Pembayaran Terkirim!'
+                    : (registeringEvent.eventType === 'regular' ? 'Pendaftaran Berhasil!' : 'Pendaftaran & Pembayaran Sukses!')}
                 </h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: '0 0 20px 0' }}>
-                  {registeringEvent.eventType === 'regular' ? (
-                    (() => {
-                      const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
-                      return <>Pendaftaran atas nama <strong>{userProfile.organizerName || userProfile.username}</strong> berhasil disetujui. E-Tiket Anda telah aktif.</>;
-                    })()
+                <p style={{ color: '#475569', fontSize: '0.88rem', lineHeight: '1.6', margin: '0 0 20px 0' }}>
+                  {isPaidRegularPending ? (
+                    <>Pembayaran tiket atas nama <strong>{displayName}</strong> sedang dalam proses verifikasi oleh admin (maksimal <strong>1x24 jam</strong>). Anda akan mendapat notifikasi dan E-Tiket digital aktif setelah disetujui.</>
+                  ) : registeringEvent.eventType === 'regular' ? (
+                    <>Pendaftaran atas nama <strong>{displayName}</strong> berhasil disetujui. E-Tiket Anda telah aktif.</>
                   ) : registeringEvent.juknisPlatforms?.GoogleReview ? (
                     <>Pendaftaran Anda berhasil disetujui. Silakan langsung membuat ulasan di Google Maps dan mengirimkan bukti ulasan pada menu kirim karya.</>
                   ) : (
@@ -4408,44 +4426,46 @@ onMouseLeave={(e) => {
                   )}
                 </p>
                 
-                {/* E-Tiket Success Box */}
+                {/* E-Tiket / Referensi Box */}
                 <div style={{ 
-                  background: 'rgba(255, 255, 255, 0.02)', 
-                  border: '1px solid rgba(255, 255, 255, 0.08)', 
-                  padding: '20px', 
-                  borderRadius: '12px', 
-                  marginBottom: '24px',
+                  background: '#f8fafc', 
+                  border: '1px solid #e2e8f0', 
+                  padding: '18px 20px', 
+                  borderRadius: '14px', 
+                  marginBottom: '22px',
                   textAlign: 'left'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(255,255,255,0.15)', paddingBottom: '10px', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1.5px' }}>E-Tiket Resmi</span>
-                    <span style={{ fontSize: '0.68rem', color: '#ffffff', fontWeight: 'bold', letterSpacing: '1px' }}>NGONTEN.ID TICKET</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+                      {isPaidRegularPending ? 'Referensi Pendaftaran' : 'E-Tiket Resmi'}
+                    </span>
+                    <span style={{ fontSize: '0.7rem', color: '#0f172a', fontWeight: '800', letterSpacing: '0.8px' }}>NGONTEN.ID TICKET</span>
                   </div>
-                  <h4 style={{ margin: '0 0 8px 0', color: 'white', fontSize: '1.05rem', fontWeight: 'bold' }}>{registeringEvent.title}</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    <span>Peserta: <strong>{currentUser.username}</strong></span>
-                    <span>Kode Tiket: <strong style={{ color: 'white', fontFamily: 'monospace' }}>{generatedTicketCode}</strong></span>
+                  <h4 style={{ margin: '0 0 8px 0', color: '#0f172a', fontSize: '1.05rem', fontWeight: '800' }}>{registeringEvent.title}</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.82rem', color: '#475569' }}>
+                    <span>Peserta: <strong style={{ color: '#0f172a' }}>{displayName}</strong></span>
+                    <span>Kode Tiket: <strong style={{ color: '#0f172a', fontFamily: 'monospace' }}>{generatedTicketCode}</strong></span>
                   </div>
-                  {registeringEvent.ticketPrice > 0 && (
-                    <div style={{ fontSize: '0.78rem', color: '#4ade80', marginTop: '10px', fontWeight: '600' }}>
-                      ✓ Pembayaran Lunas (Rp {registeringEvent.ticketPrice.toLocaleString('id-ID')})
+                  {isPaidRegularPending && (
+                    <div style={{ fontSize: '0.78rem', color: '#d97706', marginTop: '10px', fontWeight: '700' }}>
+                      ⏳ Menunggu Verifikasi Pembayaran Admin (Rp {registeringEvent.ticketPrice.toLocaleString('id-ID')})
                     </div>
                   )}
                 </div>
 
                 <button 
                   type="button" 
-                  className="btn btn-primary" 
                   onClick={() => {
                     setRegisteringEvent(null);
                     resetVerificationForm();
                   }}
-                  style={{ width: '100%', fontWeight: 'bold', padding: '12px' }}
+                  style={{ width: '100%', fontWeight: '700', padding: '12px', borderRadius: '10px', background: '#0f172a', color: '#ffffff', border: 'none', cursor: 'pointer', fontSize: '0.92rem' }}
                 >
-                  {registeringEvent.eventType === 'regular' ? 'Selesai' : 'Mulai Kompetisi'}
+                  {isPaidRegularPending ? 'Mengerti, Tutup' : (registeringEvent.eventType === 'regular' ? 'Selesai' : 'Mulai Kompetisi')}
                 </button>
               </div>
-            )}
+              );
+            })()}
 
             {verificationStep === 'failed' && (
               <div style={{ textAlign: 'center', padding: '32px 16px' }}>
