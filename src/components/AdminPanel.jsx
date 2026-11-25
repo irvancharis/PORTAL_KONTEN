@@ -667,6 +667,44 @@ export default function AdminPanel({
   const [depositingEvent, setDepositingEvent] = useState(null);
   const [verifyingEvent, setVerifyingEvent] = useState(null);
   const [eventTicketPrice, setEventTicketPrice] = useState(0);
+  const [eventPosterUrl, setEventPosterUrl] = useState('');
+  const [posterUploadError, setPosterUploadError] = useState('');
+
+  const handlePosterUpload = (e) => {
+    const file = e.target.files?.[0];
+    setPosterUploadError('');
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setPosterUploadError('Format file tidak didukung. Gunakan JPG, PNG, atau WebP.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPosterUploadError('Ukuran file maksimal 5 MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 1080;
+        const scale = img.width > maxW ? maxW / img.width : 1;
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const compressed = canvas.toDataURL('image/webp', 0.82);
+        setEventPosterUrl(compressed);
+      };
+      img.onerror = () => setPosterUploadError('Gagal memproses gambar. Pastikan file gambar valid.');
+      img.src = ev.target.result;
+    };
+    reader.onerror = () => setPosterUploadError('Gagal membaca file gambar.');
+    reader.readAsDataURL(file);
+  };
   const [eventJuknisPlatforms, setEventJuknisPlatforms] = useState({ TikTok: false, Instagram: false, YouTube: false, Facebook: false, GoogleReview: false });
   const [eventJuknisDuration, setEventJuknisDuration] = useState('');
   const [eventJuknisSourceName1, setEventJuknisSourceName1] = useState('');
@@ -1046,6 +1084,7 @@ export default function AdminPanel({
                 campaignBudget: computedBudget,
                 remainingBudget: computedBudget,
                 ticketPrice: parseInt(eventTicketPrice) || 0,
+                posterUrl: eventPosterUrl || '',
                 benefitAmount: (!isComp || isRanking) ? 0 : (parseInt(eventBenefitAmount) || 0),
                 benefitViewsStep: (!isComp || isRanking || isSubmitMode) ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
                 minEarningViews: (!isComp || isRanking || isSubmitMode) ? 0 : (parseInt(eventMinEarningViews) || 0),
@@ -1093,6 +1132,7 @@ export default function AdminPanel({
             campaignBudget: computedBudget,
             remainingBudget: computedBudget,
             ticketPrice: parseInt(eventTicketPrice) || 0,
+            posterUrl: eventPosterUrl || '',
             // views mode
             benefitAmount: isRanking ? 0 : (parseInt(eventBenefitAmount) || 0),
             benefitViewsStep: (isRanking || isSubmitMode) ? 0 : (parseInt(eventBenefitViewsStep) || 1000),
@@ -1541,6 +1581,8 @@ export default function AdminPanel({
     setEventAreaRegional(evt.areaRegional || '');
     setEventBudget(evt.campaignBudget || 5000000);
     setEventTicketPrice(evt.ticketPrice || 0);
+    setEventPosterUrl(evt.posterUrl || '');
+    setPosterUploadError('');
     setEventBenefitAmount(evt.benefitAmount || 10000);
     setEventBenefitViewsStep(evt.benefitViewsStep || 1000);
     setEventMinEarningViews(evt.minEarningViews || 0);
@@ -3998,6 +4040,116 @@ export default function AdminPanel({
                     </div>
                   )}
 
+                  {/* Upload Flyer / Poster Campaign */}
+                  <div className="form-group">
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>
+                      Flyer / Poster Campaign (Opsional)
+                    </label>
+                    {!eventPosterUrl ? (
+                      <label style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        padding: '24px 16px',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1.5px dashed rgba(255, 255, 255, 0.2)',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        textAlign: 'center'
+                      }}>
+                        <div style={{
+                          width: '42px',
+                          height: '42px',
+                          borderRadius: '10px',
+                          background: 'rgba(255, 255, 255, 0.06)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'var(--text-primary)'
+                        }}>
+                          <Upload size={20} />
+                        </div>
+                        <span style={{ fontSize: '0.88rem', fontWeight: '600', color: 'var(--text-primary)' }}>
+                          Klik untuk unggah Flyer / Poster
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          Format JPG, PNG, atau WebP • Maksimal 5 MB (otomatis dikompresi)
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={handlePosterUpload}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                    ) : (
+                      <div style={{
+                        position: 'relative',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        border: '1px solid var(--border-color)',
+                        background: '#0a0d14',
+                        padding: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '12px'
+                      }}>
+                        <img
+                          src={eventPosterUrl}
+                          alt="Preview Poster Campaign"
+                          style={{ maxWidth: '100%', maxHeight: '280px', borderRadius: '8px', objectFit: 'contain' }}
+                        />
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <label style={{
+                            padding: '7px 14px',
+                            borderRadius: '8px',
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            color: 'white',
+                            fontSize: '0.8rem',
+                            fontWeight: '600',
+                            cursor: 'pointer'
+                          }}>
+                            Ganti Gambar
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              onChange={handlePosterUpload}
+                              style={{ display: 'none' }}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEventPosterUrl('');
+                              setPosterUploadError('');
+                            }}
+                            style={{
+                              padding: '7px 14px',
+                              borderRadius: '8px',
+                              background: 'rgba(239, 68, 68, 0.15)',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              color: '#ef4444',
+                              fontSize: '0.8rem',
+                              fontWeight: '600',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Hapus
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {posterUploadError && (
+                      <span style={{ display: 'block', marginTop: '6px', fontSize: '0.78rem', color: '#ef4444', fontWeight: '600' }}>
+                        {posterUploadError}
+                      </span>
+                    )}
+                  </div>
+
                   <div className="form-group">
                     <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Deskripsi Event & Ketentuan Singkat</label>
                     <textarea rows="3" required value={eventDescription} onChange={(e) => setEventDescription(e.target.value)} placeholder="Tuliskan ketentuan pendaftaran, kriteria penilaian, dan hadiah..." style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontFamily: 'inherit', fontSize: '0.9rem', outline: 'none' }}></textarea>
@@ -5049,6 +5201,8 @@ export default function AdminPanel({
                   setEventAreaMode('all');
                   setEventAreaRegional('');
                   setEventTicketPrice(0);
+                  setEventPosterUrl('');
+                  setPosterUploadError('');
                   setEventType('competition');
                   setIsEventFormLoading(true);
                   setShowEventForm(true);

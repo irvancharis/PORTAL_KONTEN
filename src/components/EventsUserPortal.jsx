@@ -1380,6 +1380,25 @@ export default function EventsUserPortal({
                 {/* Left Column: Info & Juknis */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   <div style={{ textAlign: 'left' }}>
+                    {/* Flyer / Poster Campaign */}
+                    {evt.posterUrl && (
+                      <div style={{
+                        marginBottom: '20px',
+                        borderRadius: '16px',
+                        overflow: 'hidden',
+                        border: '1px solid var(--border-color)',
+                        background: 'rgba(15, 23, 42, 0.4)',
+                        display: 'flex',
+                        justifyContent: 'center'
+                      }}>
+                        <img
+                          src={evt.posterUrl}
+                          alt={`Poster ${evt.title}`}
+                          style={{ width: '100%', maxHeight: '420px', objectFit: 'cover', display: 'block' }}
+                        />
+                      </div>
+                    )}
+
                     <h2 style={{ 
                       color: 'var(--text-primary)', 
                       fontSize: '2.2rem', 
@@ -3106,6 +3125,24 @@ onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
+                    {/* Thumbnail Poster if available */}
+                    {evt.posterUrl && (
+                      <div style={{
+                        width: '110px',
+                        height: '80px',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        flexShrink: 0,
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                      }}>
+                        <img
+                          src={evt.posterUrl}
+                          alt={evt.title}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        />
+                      </div>
+                    )}
+
                     {/* Left Section: Title, Desc, and Organizer Info with Tags */}
                     <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left' }}>
                       <h3 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: '700', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
