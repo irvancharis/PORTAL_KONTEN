@@ -3812,7 +3812,8 @@ onMouseLeave={(e) => {
                   )
                 ) : (
                   (() => {
-                    const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
+                    const matchedUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase());
+                    const userProfile = matchedUser ? { ...matchedUser, ...currentUser } : currentUser;
                     
                     const isGoogleReview = registeringEvent?.juknisPlatforms?.GoogleReview === true;
                     if (isGoogleReview) {
