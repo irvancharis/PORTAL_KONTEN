@@ -2116,10 +2116,11 @@ export default function EventsUserPortal({
                                 <button 
                                 className="btn btn-primary" 
                                 onClick={() => {
-                                  const activeUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase()) || currentUser;
+                                  const matchedUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase());
+                                  const activeUser = matchedUser ? { ...matchedUser, ...currentUser } : currentUser;
                                   const pCheck = checkUserProfileComplete(activeUser);
                                   if (!pCheck.isComplete) {
-                                    alert('Lengkapi profil Anda untuk mengikuti Campaign ini.');
+                                    alert(`Lengkapi profil Anda (${pCheck.missingFields.join(', ')}) untuk mengikuti Campaign ini.`);
                                     if (onEditProfileClick) onEditProfileClick();
                                     return;
                                   }
