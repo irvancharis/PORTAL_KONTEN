@@ -4871,19 +4871,29 @@ onMouseLeave={(e) => {
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
                         <div className="form-group">
                           <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Platform Publikasi</label>
-                          <select 
-                            value={workPlatform} 
-                            onChange={(e) => setWorkPlatform(e.target.value)} 
-                            style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
-                          >
-                            <option value="YouTube">YouTube</option>
-                            <option value="TikTok">TikTok</option>
-                            <option value="Instagram">Instagram</option>
-                            <option value="Facebook">Facebook</option>
-                            <option value="Twitter / X">Twitter / X</option>
-                            <option value="Threads">Threads</option>
-                            <option value="Lainnya">Lainnya</option>
-                          </select>
+                          {(() => {
+                            const allowedPlatforms = submittingEvent?.juknisPlatforms
+                              ? Object.entries(submittingEvent.juknisPlatforms)
+                                  .filter(([, isAllowed]) => Boolean(isAllowed))
+                                  .map(([name]) => name === 'GoogleReview' ? 'Google Review' : name)
+                              : [];
+                            const platformOptions = allowedPlatforms.length > 0
+                              ? allowedPlatforms
+                              : ['YouTube', 'TikTok', 'Instagram', 'Facebook', 'Twitter / X', 'Threads', 'Lainnya'];
+                            const effectivePlatform = platformOptions.includes(workPlatform) ? workPlatform : platformOptions[0];
+
+                            return (
+                              <select 
+                                value={effectivePlatform} 
+                                onChange={(e) => setWorkPlatform(e.target.value)} 
+                                style={{ width: '100%', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                              >
+                                {platformOptions.map(plat => (
+                                  <option key={plat} value={plat}>{plat}</option>
+                                ))}
+                              </select>
+                            );
+                          })()}
                         </div>
                         <div className="form-group">
                           <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Tautan Karya (URL)</label>
