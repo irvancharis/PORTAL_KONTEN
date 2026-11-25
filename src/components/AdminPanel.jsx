@@ -4119,28 +4119,34 @@ export default function AdminPanel({
                           />
                         </div>
                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                          <label style={{
-                            padding: '8px 16px',
-                            borderRadius: '8px',
-                            background: '#0f172a',
-                            color: '#ffffff',
-                            fontSize: '0.82rem',
-                            fontWeight: '700',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            boxShadow: '0 2px 6px rgba(15, 23, 42, 0.2)'
-                          }}>
-                            <Upload size={14} color="#ffffff" />
-                            <span style={{ color: '#ffffff' }}>Ganti Gambar</span>
-                            <input
-                              type="file"
-                              accept="image/jpeg,image/png,image/webp"
-                              onChange={handlePosterUpload}
-                              style={{ display: 'none' }}
-                            />
-                          </label>
+                          <input
+                            id="poster-upload-replace-input"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={handlePosterUpload}
+                            style={{ display: 'none' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => document.getElementById('poster-upload-replace-input')?.click()}
+                            style={{
+                              padding: '8px 16px',
+                              borderRadius: '8px',
+                              background: '#ffffff',
+                              border: '1px solid #cbd5e1',
+                              color: '#0f172a',
+                              fontSize: '0.82rem',
+                              fontWeight: '700',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              boxShadow: '0 1px 3px rgba(15, 23, 42, 0.08)'
+                            }}
+                          >
+                            <Upload size={14} color="#0f172a" />
+                            <span>Ganti Gambar</span>
+                          </button>
                           <button
                             type="button"
                             onClick={() => {
