@@ -3507,50 +3507,54 @@ onMouseLeave={(e) => {
                     /* REGULAR EVENT TICKET REGISTRATION FORM */
                     <form onSubmit={(e) => { e.preventDefault(); setShowTicketConfirm(true); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {(() => {
-                        const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
+                        const matchedUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase());
+                        const userProfile = matchedUser ? { ...matchedUser, ...currentUser } : currentUser;
                         const pCheck = checkUserProfileComplete(userProfile);
                         const hasIncompleteProfile = !pCheck.isComplete;
+                        const displayName = userProfile.organizerName || userProfile.name || userProfile.fullName || userProfile.username;
+                        const displayPhone = userProfile.organizerPhone || userProfile.phone || userProfile.whatsapp || '-';
+                        const displayEmail = userProfile.email || `${userProfile.username}@gmail.com`;
                         return (
-                          <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '16px', borderRadius: '8px', marginBottom: '8px' }}>
-                            <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                              Data pengunjung diambil langsung dari profil Anda untuk memastikan kevalidan data tiket:
+                          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '18px', borderRadius: '14px', marginBottom: '6px' }}>
+                            <p style={{ margin: '0 0 14px 0', fontSize: '0.84rem', color: '#475569', lineHeight: '1.45', fontWeight: '500' }}>
+                              Data pengunjung diambil langsung dari profil Anda untuk memastikan kevalidan data E-Tiket:
                             </p>
                             
-                            <div className="form-group" style={{ marginBottom: '14px' }}>
-                              <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Nama Lengkap Pengunjung</label>
+                            <div className="form-group" style={{ marginBottom: '12px' }}>
+                              <label style={{ display: 'block', marginBottom: '5px', color: '#64748b', fontSize: '0.76rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Nama Lengkap Pengunjung</label>
                               <input
                                 type="text"
                                 disabled
-                                value={userProfile.organizerName || userProfile.username}
-                                style={{ width: '100%', padding: '10px 12px', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '0.9rem', cursor: 'not-allowed' }}
+                                value={displayName}
+                                style={{ width: '100%', padding: '10px 12px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#0f172a', fontSize: '0.9rem', fontWeight: '600', cursor: 'not-allowed', boxSizing: 'border-box' }}
                               />
                             </div>
 
-                            <div className="form-group" style={{ marginBottom: '14px' }}>
-                              <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>No. WhatsApp</label>
+                            <div className="form-group" style={{ marginBottom: '12px' }}>
+                              <label style={{ display: 'block', marginBottom: '5px', color: '#64748b', fontSize: '0.76rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>No. WhatsApp</label>
                               <input
                                 type="text"
                                 disabled
-                                value={userProfile.organizerPhone || '-'}
-                                style={{ width: '100%', padding: '10px 12px', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '0.9rem', cursor: 'not-allowed' }}
+                                value={displayPhone}
+                                style={{ width: '100%', padding: '10px 12px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#0f172a', fontSize: '0.9rem', fontWeight: '600', cursor: 'not-allowed', boxSizing: 'border-box' }}
                               />
                             </div>
 
-                            <div className="form-group" style={{ marginBottom: '14px' }}>
-                              <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Email</label>
+                            <div className="form-group" style={{ marginBottom: '12px' }}>
+                              <label style={{ display: 'block', marginBottom: '5px', color: '#64748b', fontSize: '0.76rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Email</label>
                               <input
                                 type="text"
                                 disabled
-                                value={userProfile.email || `${userProfile.username}@gmail.com`}
-                                style={{ width: '100%', padding: '10px 12px', background: 'var(--primary-glow)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '0.9rem', cursor: 'not-allowed' }}
+                                value={displayEmail}
+                                style={{ width: '100%', padding: '10px 12px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#0f172a', fontSize: '0.9rem', fontWeight: '600', cursor: 'not-allowed', boxSizing: 'border-box' }}
                               />
                             </div>
 
                             {hasIncompleteProfile ? (
-                              <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '6px', fontSize: '0.8rem', color: '#dc2626' }}>
-                                <p style={{ margin: '0 0 8px 0', fontWeight: '600' }}>⚠️ Data Profil Belum Lengkap!</p>
-                                <p style={{ margin: '0 0 12px 0', fontSize: '0.75rem', lineHeight: '1.4' }}>
-                                  Lengkapi data profil Anda untuk dapat membeli tiket / mendaftar.
+                              <div style={{ marginTop: '12px', padding: '14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', fontSize: '0.82rem', color: '#dc2626' }}>
+                                <p style={{ margin: '0 0 6px 0', fontWeight: '700' }}>⚠️ Data Profil Belum Lengkap!</p>
+                                <p style={{ margin: '0 0 12px 0', fontSize: '0.76rem', lineHeight: '1.4' }}>
+                                  Lengkapi data profil Anda ({pCheck.missingFields.join(', ')}) untuk dapat membeli tiket / mendaftar.
                                 </p>
                                 <button
                                   type="button"
@@ -3558,14 +3562,13 @@ onMouseLeave={(e) => {
                                     setRegisteringEvent(null);
                                     if (onEditProfileClick) onEditProfileClick();
                                   }}
-                                  className="btn btn-secondary"
-                                  style={{ padding: '6px 12px', fontSize: '0.75rem', fontWeight: 'bold' }}
+                                  style={{ padding: '7px 14px', fontSize: '0.78rem', fontWeight: '700', background: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
                                 >
                                   Lengkapi Profil Sekarang
                                 </button>
                               </div>
                             ) : (
-                              <div style={{ marginTop: '12px', padding: '10px 12px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '6px', fontSize: '0.75rem', color: '#16a34a', lineHeight: '1.4' }}>
+                              <div style={{ marginTop: '12px', padding: '11px 14px', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', fontSize: '0.78rem', color: '#047857', fontWeight: '600', lineHeight: '1.45' }}>
                                 ✓ Data profil Anda valid. E-Tiket Anda akan diterbitkan secara otomatis setelah pendaftaran dikonfirmasi.
                               </div>
                             )}
