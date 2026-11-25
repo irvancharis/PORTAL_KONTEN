@@ -1597,10 +1597,25 @@ export default function AdminPanel({
     const part = eventParticipants.find(p => p.id === id);
     setEventParticipants(prev => prev.map(p => {
       if (p.id === id) {
-        return { ...p, status: 'approved' };
+        return { ...p, status: 'approved', isPaid: p.ticketPrice > 0 ? true : p.isPaid, verifiedAt: new Date().toISOString() };
       }
       return p;
     }));
+
+    if (part && part.status !== 'approved' && part.ticketPrice > 0) {
+      const evt = events.find(e => e.id === part.eventId);
+      const cutPercent = evt?.eventType === 'regular' ? (eventTicketFeePercent !== undefined ? eventTicketFeePercent : 5) : 0;
+      const platformCut = Math.round((part.ticketPrice * cutPercent) / 100);
+      const creatorNet = part.ticketPrice - platformCut;
+      if (evt?.creator && setUsers) {
+        setUsers(prevUsers => prevUsers.map(u => {
+          if (u.username?.toLowerCase() === evt.creator.toLowerCase()) {
+            return { ...u, walletBalance: (u.walletBalance || 0) + creatorNet };
+          }
+          return u;
+        }));
+      }
+    }
 
     if (part) {
       const evt = events.find(e => e.id === part.eventId);

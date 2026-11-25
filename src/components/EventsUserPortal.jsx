@@ -424,6 +424,10 @@ export default function EventsUserPortal({
     return 'events';
   });
   const [autoOpenForm, setAutoOpenForm] = useState(false);
+  const [ticketSenderName, setTicketSenderName] = useState('');
+  const [ticketSenderBank, setTicketSenderBank] = useState('BCA');
+  const [ticketReceiptFile, setTicketReceiptFile] = useState('');
+  const [isCopiedTicketBank, setIsCopiedTicketBank] = useState(false);
 
   const changePortalTab = (tab) => {
     setUserPortalTab(tab);
@@ -604,26 +608,14 @@ export default function EventsUserPortal({
 
         const ticketPrice = registeringEvent.ticketPrice || 0;
         if (ticketPrice > 0) {
-          const currentBal = userProfile.walletBalance || 0;
-          if (currentBal < ticketPrice) {
-            alert('Saldo Anda tidak mencukupi untuk membeli tiket event ini!');
+          if (!ticketSenderName.trim()) {
+            alert('Nama pengirim rekening wajib diisi!');
             return;
           }
-
-          // Deduct balance with Hybrid Platform Fee
-          const ticketCutPercent = registeringEvent.eventType === 'regular' ? (eventTicketFeePercent !== undefined ? eventTicketFeePercent : 5) : 0;
-          const platformCut = Math.round((ticketPrice * ticketCutPercent) / 100);
-          const creatorNetTicket = ticketPrice - platformCut;
-
-          setUsers(prevUsers => prevUsers.map(u => {
-            if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
-              return { ...u, walletBalance: Math.max(0, (u.walletBalance || 0) - ticketPrice) };
-            }
-            if (u.username.toLowerCase() === (registeringEvent.creator || '').toLowerCase()) {
-              return { ...u, walletBalance: (u.walletBalance || 0) + creatorNetTicket };
-            }
-            return u;
-          }));
+          if (!ticketReceiptFile) {
+            alert('Silakan unggah bukti transfer pembayaran tiket terlebih dahulu!');
+            return;
+          }
         }
 
         const tktCode = `TKT-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -639,14 +631,17 @@ export default function EventsUserPortal({
           contact: finalPhone,
           socialPlatform: 'ticket',
           socialLink: '',
-          status: 'approved',
-          verifiedAt: new Date().toISOString(),
+          status: ticketPrice > 0 ? 'pending' : 'approved',
+          verifiedAt: ticketPrice > 0 ? null : new Date().toISOString(),
           registeredAt: new Date().toISOString(),
           ticketCode: tktCode,
           isCheckedIn: false,
           checkedInAt: null,
           ticketPrice: ticketPrice,
-          isPaid: ticketPrice > 0
+          isPaid: false,
+          proofName: ticketPrice > 0 ? ticketSenderName.trim() : '',
+          proofBank: ticketPrice > 0 ? ticketSenderBank : '',
+          proofReceipt: ticketPrice > 0 ? ticketReceiptFile : ''
         };
 
         setEventParticipants([...eventParticipants, newPart]);
@@ -3576,70 +3571,165 @@ onMouseLeave={(e) => {
                         );
                       })()}
 
-                      {/* ticket price and payment */}
+                      {/* ticket price and direct bank transfer payment */}
                       {registeringEvent.ticketPrice > 0 && (() => {
-                        const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
-                        const activeBal = userProfile ? (userProfile.walletBalance || 0) : (currentUser.walletBalance || 0);
-                        const isInsufficient = activeBal < registeringEvent.ticketPrice;
+                        let savedBanks = [];
+                        try {
+                          const raw = localStorage.getItem('portal-platform-bank-accounts');
+                          if (raw) savedBanks = JSON.parse(raw);
+                        } catch (e) {}
+                        const primaryBank = (savedBanks && savedBanks.length > 0)
+                          ? (savedBanks.find(b => b.isPrimary) || savedBanks[0])
+                          : {
+                              bankName: 'Bank BCA',
+                              accountNumber: '1730134912',
+                              accountNumberFormatted: '1730134912',
+                              accountHolder: 'MOCHAMAD IRVAN CHARIS',
+                              branch: 'KCU Malang'
+                            };
+                        const cleanAcc = (primaryBank.accountNumber || '').replace(/\D/g, '');
+
                         return (
-                          <div style={{
-                            background: 'rgba(255, 255, 255, 0.02)',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            padding: '16px',
-                            borderRadius: '8px'
-                          }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Harga Tiket Masuk:</span>
-                              <strong style={{ color: '#4ade80', fontSize: '1.05rem' }}>Rp {registeringEvent.ticketPrice.toLocaleString('id-ID')}</strong>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                            {/* Total Tagihan */}
+                            <div style={{
+                              background: '#f8fafc',
+                              border: '1px solid #e2e8f0',
+                              padding: '14px 16px',
+                              borderRadius: '12px',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center'
+                            }}>
+                              <span style={{ fontSize: '0.86rem', color: '#475569', fontWeight: '600' }}>Total Pembayaran Tiket:</span>
+                              <strong style={{ color: '#0f172a', fontSize: '1.2rem', fontWeight: '800' }}>
+                                Rp {registeringEvent.ticketPrice.toLocaleString('id-ID')}
+                              </strong>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Saldo Dompet Anda:</span>
-                              <strong style={{ color: 'white', fontSize: '1.05rem' }}>Rp {activeBal.toLocaleString('id-ID')}</strong>
+
+                            {/* Kartu Rekening Tujuan Platform */}
+                            <div style={{
+                              background: '#ffffff',
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '14px',
+                              overflow: 'hidden',
+                              boxShadow: '0 2px 10px rgba(15, 23, 42, 0.05)'
+                            }}>
+                              <div style={{
+                                background: '#f8fafc',
+                                padding: '12px 16px',
+                                borderBottom: '1px solid #e2e8f0',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                              }}>
+                                <div>
+                                  <div style={{ fontSize: '0.92rem', fontWeight: '800', color: '#0f172a' }}>
+                                    {(primaryBank.bankName || 'BANK BCA').toUpperCase()}
+                                  </div>
+                                  <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                                    Rekening Resmi Platform
+                                  </div>
+                                </div>
+                                <span style={{ fontSize: '0.68rem', background: '#e0f2fe', color: '#0284c7', padding: '3px 9px', borderRadius: '20px', fontWeight: '700' }}>
+                                  TRANSFER MANUAL
+                                </span>
+                              </div>
+
+                              <div style={{ padding: '14px 16px' }}>
+                                <div style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  background: '#f8fafc',
+                                  border: '1.5px dashed #cbd5e1',
+                                  borderRadius: '10px',
+                                  padding: '10px 12px',
+                                  marginBottom: '10px',
+                                  gap: '8px',
+                                  flexWrap: 'wrap'
+                                }}>
+                                  <span style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', fontFamily: 'monospace', letterSpacing: '1px' }}>
+                                    {primaryBank.accountNumberFormatted || primaryBank.accountNumber}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(cleanAcc);
+                                      setIsCopiedTicketBank(true);
+                                      setTimeout(() => setIsCopiedTicketBank(false), 2000);
+                                    }}
+                                    style={{
+                                      background: isCopiedTicketBank ? '#ecfdf5' : '#ffffff',
+                                      color: isCopiedTicketBank ? '#059669' : '#0f172a',
+                                      border: isCopiedTicketBank ? '1.5px solid #10b981' : '1.5px solid #cbd5e1',
+                                      padding: '6px 12px',
+                                      borderRadius: '8px',
+                                      fontSize: '0.76rem',
+                                      fontWeight: '700',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    {isCopiedTicketBank ? '✓ Tersalin' : 'Salin Nomor'}
+                                  </button>
+                                </div>
+                                <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: '600' }}>
+                                  Atas Nama: <strong style={{ color: '#0f172a' }}>{primaryBank.accountHolder || 'MOCHAMAD IRVAN CHARIS'}</strong>
+                                </div>
+                              </div>
                             </div>
-                            
-                            {isInsufficient ? (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '12px' }}>
-                                <p style={{ margin: 0, fontSize: '0.78rem', color: '#f87171', lineHeight: '1.4' }}>
-                                  * Saldo Anda kurang sebesar <strong>Rp {(registeringEvent.ticketPrice - activeBal).toLocaleString('id-ID')}</strong>.
-                                </p>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const deficit = registeringEvent.ticketPrice - activeBal;
-                                    setUsers(prevUsers => prevUsers.map(u => {
-                                      if (u.username.toLowerCase() === currentUser.username.toLowerCase()) {
-                                        return { ...u, walletBalance: (u.walletBalance || 0) + deficit };
-                                      }
-                                      return u;
-                                    }));
-                                    alert(`Top Up Sukses! Dana sebesar Rp ${deficit.toLocaleString('id-ID')} ditambahkan ke dompet Anda.`);
-                                  }}
-                                  className="btn"
-                                  style={{
-                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '8px 16px',
-                                    borderRadius: '20px',
-                                    fontWeight: 'bold',
-                                    fontSize: '0.8rem',
-                                    cursor: 'pointer',
-                                    textAlign: 'center',
-                                    display: 'inline-flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    gap: '6px'
-                                  }}
+
+                            {/* Form Bukti Transfer */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: '#f8fafc', padding: '14px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                              <div>
+                                <label style={{ display: 'block', marginBottom: '5px', color: '#0f172a', fontSize: '0.8rem', fontWeight: '700' }}>Nama Pengirim Rekening</label>
+                                <input
+                                  type="text"
+                                  required
+                                  value={ticketSenderName}
+                                  onChange={(e) => setTicketSenderName(e.target.value)}
+                                  placeholder="Contoh: Wira Saja"
+                                  style={{ width: '100%', padding: '10px 12px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#0f172a', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ display: 'block', marginBottom: '5px', color: '#0f172a', fontSize: '0.8rem', fontWeight: '700' }}>Bank Pengirim</label>
+                                <select
+                                  value={ticketSenderBank}
+                                  onChange={(e) => setTicketSenderBank(e.target.value)}
+                                  style={{ width: '100%', padding: '10px 12px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#0f172a', fontSize: '0.88rem', boxSizing: 'border-box' }}
                                 >
-                                  <Wallet size={14} />
-                                  <span>Top Up Instan & Beli Tiket</span>
-                                </button>
+                                  <option value="BCA">Bank BCA</option>
+                                  <option value="Mandiri">Bank Mandiri</option>
+                                  <option value="BNI">Bank BNI</option>
+                                  <option value="BRI">Bank BRI</option>
+                                  <option value="CIMB">CIMB Niaga</option>
+                                  <option value="Lainnya">Bank Lainnya / E-Wallet</option>
+                                </select>
                               </div>
-                            ) : (
-                              <div style={{ fontSize: '0.78rem', color: '#4ade80', marginTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '8px' }}>
-                                ✓ Saldo Anda mencukupi. Saldo akan otomatis dipotong untuk pembelian tiket.
+                              <div>
+                                <label style={{ display: 'block', marginBottom: '5px', color: '#0f172a', fontSize: '0.8rem', fontWeight: '700' }}>Unggah Bukti Transfer</label>
+                                <input
+                                  type="file"
+                                  required
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const reader = new FileReader();
+                                      reader.onloadend = () => setTicketReceiptFile(reader.result);
+                                      reader.readAsDataURL(file);
+                                    }
+                                  }}
+                                  style={{ width: '100%', padding: '9px 10px', background: '#ffffff', border: '1.5px dashed #cbd5e1', borderRadius: '8px', color: '#475569', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                                />
+                                {ticketReceiptFile && (
+                                  <div style={{ marginTop: '8px', textAlign: 'center' }}>
+                                    <img src={ticketReceiptFile} alt="Bukti Transfer" style={{ maxWidth: '100%', maxHeight: '160px', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                                  </div>
+                                )}
                               </div>
-                            )}
+                            </div>
                           </div>
                         );
                       })()}
@@ -3647,17 +3737,20 @@ onMouseLeave={(e) => {
                       <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
                         <button type="button" className="btn btn-secondary" style={{ padding: '10px 20px' }} onClick={() => { setRegisteringEvent(null); resetVerificationForm(); }}>Batal</button>
                         {(() => {
-                          const userProfile = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase()) || currentUser;
+                          const matchedUser = users.find(u => u.username?.toLowerCase() === currentUser.username?.toLowerCase());
+                          const userProfile = matchedUser ? { ...matchedUser, ...currentUser } : currentUser;
                           const pCheck = checkUserProfileComplete(userProfile);
                           const hasIncompleteProfile = !pCheck.isComplete;
+                          const needsProof = registeringEvent.ticketPrice > 0 && (!ticketSenderName.trim() || !ticketReceiptFile);
+                          const isDisabled = hasIncompleteProfile || needsProof;
                           return (
                             <button 
                               type="submit" 
-                              disabled={hasIncompleteProfile} 
+                              disabled={isDisabled} 
                               className="btn btn-primary" 
-                              style={{ padding: '10px 20px', fontWeight: 'bold', opacity: hasIncompleteProfile ? 0.5 : 1, cursor: hasIncompleteProfile ? 'not-allowed' : 'pointer' }}
+                              style={{ padding: '10px 22px', fontWeight: 'bold', background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '10px', opacity: isDisabled ? 0.5 : 1, cursor: isDisabled ? 'not-allowed' : 'pointer' }}
                             >
-                              {registeringEvent.ticketPrice > 0 ? 'Beli Tiket & Daftar' : 'Konfirmasi Pendaftaran'}
+                              {registeringEvent.ticketPrice > 0 ? 'Kirim Bukti Pembayaran & Daftar' : 'Konfirmasi Pendaftaran'}
                             </button>
                           );
                         })()}
