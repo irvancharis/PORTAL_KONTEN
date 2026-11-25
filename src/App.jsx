@@ -551,7 +551,7 @@ export default function App() {
         )}
 
         {/* Main Content Area */}
-        <main className="main-content">
+        <main className="main-content" style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 64px)' }}>
 
           {isPageLoading && (
             <div style={{ padding: '16px 0', width: '100%' }}>
@@ -817,10 +817,12 @@ export default function App() {
           ))}
 
           {/* Public Compliance & Business Footer */}
-          <SiteFooter 
-            onOpenLegal={handleOpenLegal}
-            onScrollToPricing={() => setShowPremiumModal(true)}
-          />
+          <div style={{ marginTop: 'auto', width: '100%' }}>
+            <SiteFooter 
+              onOpenLegal={handleOpenLegal}
+              onScrollToPricing={() => setShowPremiumModal(true)}
+            />
+          </div>
         </main>
       </div>
 
