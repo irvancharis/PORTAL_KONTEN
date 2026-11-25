@@ -1445,7 +1445,7 @@ export default function EventsUserPortal({
                         <Calendar size={16} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
                         {evt.deadline ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <span>Batas Waktu Pendaftaran: <strong style={{ color: 'var(--text-primary)' }}>{formatIndonesianDate(evt.deadline)}</strong></span>
+                            <span>{evt.eventType === 'regular' ? 'Tanggal Acara Dimulai:' : 'Batas Waktu Pendaftaran:'} <strong style={{ color: 'var(--text-primary)' }}>{formatIndonesianDate(evt.deadline)}</strong></span>
                             <CardCountdown deadline={evt.deadline} />
                           </div>
                         ) : (
@@ -3284,7 +3284,7 @@ onMouseLeave={(e) => {
                       <div style={{ minWidth: '180px', display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                           <Calendar size={13} style={{ color: 'var(--text-secondary)' }} />
-                          <span>Batas Waktu</span>
+                          <span>{evt.eventType === 'regular' ? 'Tanggal Acara' : 'Batas Waktu'}</span>
                         </div>
                         {evt.deadline ? (
                           <CardCountdown deadline={evt.deadline} />

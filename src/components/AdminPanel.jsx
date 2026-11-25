@@ -1059,7 +1059,7 @@ export default function AdminPanel({
                 title: eventTitle.trim(),
                 category: eventCategory,
                 eventType: eventType,
-                deadline: (!isComp || (eventBudgetMode === 'views' && !eventHasDeadline)) ? '' : eventDeadline,
+                deadline: (isComp && eventBudgetMode === 'views' && !eventHasDeadline) ? '' : eventDeadline,
                 maxParticipants: eventHasMaxParticipants ? (parseInt(eventMaxParticipants) || 0) : 0,
                 description: eventDescription.trim(),
                 juknis: eventJuknis.trim(),
@@ -1107,7 +1107,7 @@ export default function AdminPanel({
             title: eventTitle.trim(),
             category: eventCategory,
             eventType: eventType,
-            deadline: (!isComp || (eventBudgetMode === 'views' && !eventHasDeadline)) ? '' : eventDeadline,
+            deadline: (isComp && eventBudgetMode === 'views' && !eventHasDeadline) ? '' : eventDeadline,
             maxParticipants: eventHasMaxParticipants ? (parseInt(eventMaxParticipants) || 0) : 0,
             description: eventDescription.trim(),
             juknis: eventJuknis.trim(),
@@ -3669,26 +3669,28 @@ export default function AdminPanel({
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
                     <div className="form-group">
-                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Batas Pengiriman (Deadline)</label>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>
+                        {eventType === 'regular' ? 'Tanggal Acara Dimulai' : 'Batas Pengiriman (Deadline)'}
+                      </label>
                       <input 
                         type="datetime-local" 
-                        required={eventBudgetMode === 'ranking' || (eventBudgetMode === 'views' && eventHasDeadline)} 
-                        disabled={eventBudgetMode === 'views' && !eventHasDeadline}
-                        value={eventBudgetMode === 'views' && !eventHasDeadline ? '' : getDatetimeInputValue(eventDeadline)} 
+                        required={eventType === 'regular' || eventBudgetMode === 'ranking' || (eventBudgetMode === 'views' && eventHasDeadline)} 
+                        disabled={eventType !== 'regular' && eventBudgetMode === 'views' && !eventHasDeadline}
+                        value={(eventType !== 'regular' && eventBudgetMode === 'views' && !eventHasDeadline) ? '' : getDatetimeInputValue(eventDeadline)} 
                         onChange={(e) => setEventDeadline(e.target.value)} 
                         style={{ 
                           width: '100%', 
                           padding: '12px 14px', 
-                          background: (eventBudgetMode === 'views' && !eventHasDeadline) ? 'rgba(255,255,255,0.02)' : '#111827', 
+                          background: (eventType !== 'regular' && eventBudgetMode === 'views' && !eventHasDeadline) ? 'rgba(255,255,255,0.02)' : '#111827', 
                           border: '1px solid var(--border-color)', 
                           borderRadius: '8px', 
-                          color: (eventBudgetMode === 'views' && !eventHasDeadline) ? 'var(--text-muted)' : 'white', 
+                          color: (eventType !== 'regular' && eventBudgetMode === 'views' && !eventHasDeadline) ? 'var(--text-muted)' : 'white', 
                           fontSize: '0.9rem', 
                           outline: 'none',
-                          cursor: (eventBudgetMode === 'views' && !eventHasDeadline) ? 'not-allowed' : 'text'
+                          cursor: (eventType !== 'regular' && eventBudgetMode === 'views' && !eventHasDeadline) ? 'not-allowed' : 'text'
                         }} 
                       />
-                      {eventBudgetMode === 'views' && (
+                      {eventType !== 'regular' && eventBudgetMode === 'views' && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
                           <input 
                             type="checkbox" 
