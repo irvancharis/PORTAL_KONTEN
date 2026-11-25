@@ -2145,8 +2145,48 @@ export default function EventsUserPortal({
                         ) : (
                           // Logged In & Registered
                           <div style={{ textAlign: 'left' }}>
-                            {/* E-Tiket Card (Hanya jika ada penjualan tiket) */}
-                            {evt.ticketPrice > 0 && (
+                            {/* Status Menunggu Verifikasi Pembayaran (Jika belum di-approve admin) */}
+                            {evt.ticketPrice > 0 && userReg.status !== 'approved' && (
+                              <div style={{
+                                background: '#fffbeb',
+                                border: '1px solid #fde68a',
+                                borderRadius: '16px',
+                                padding: '18px 20px',
+                                marginBottom: '20px',
+                                textAlign: 'left'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#d97706', fontWeight: '800', fontSize: '0.92rem', marginBottom: '6px' }}>
+                                  <Clock size={16} />
+                                  <span>Menunggu Verifikasi Pembayaran</span>
+                                </div>
+                                <p style={{ margin: '0 0 12px 0', fontSize: '0.8rem', color: '#78350f', lineHeight: '1.45' }}>
+                                  Bukti transfer Anda (<strong>Rp {evt.ticketPrice.toLocaleString('id-ID')}</strong>) sedang diperiksa oleh admin (maks. 1x24 jam). E-Tiket digital akan aktif setelah disetujui.
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (window.confirm('Batalkan pendaftaran ini agar Anda dapat mengulangi pembelian tiket?')) {
+                                      setEventParticipants(prev => prev.filter(p => p.id !== userReg.id));
+                                    }
+                                  }}
+                                  style={{
+                                    padding: '7px 14px',
+                                    borderRadius: '8px',
+                                    background: '#ffffff',
+                                    border: '1px solid #fcd34d',
+                                    color: '#b45309',
+                                    fontSize: '0.78rem',
+                                    fontWeight: '700',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  Batalkan &amp; Ulangi Pembelian
+                                </button>
+                              </div>
+                            )}
+
+                            {/* E-Tiket Card (Hanya jika sudah disetujui / lunas) */}
+                            {evt.ticketPrice > 0 && userReg.status === 'approved' && (
                               <div 
                                 onClick={() => setEnlargedTicketReg(userReg)}
                                 title="Klik untuk memperbesar tiket"
