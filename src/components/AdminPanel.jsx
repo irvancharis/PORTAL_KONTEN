@@ -1,4 +1,4 @@
-﻿import React, {
+import React, {
   useState,
   useEffect,
   useRef,
@@ -3227,29 +3227,40 @@ export default function AdminPanel({
                         </tbody>
                       </table>
                       {disqualifyModalPart && (
-                        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-                          <div className="glass-panel" style={{ width: '100%', maxWidth: '460px', padding: '24px', borderRadius: '16px', background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
-                            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.15rem', fontWeight: '700', color: 'var(--text-primary)' }}>Ajukan Diskualifikasi Peserta</h3>
-                            <p style={{ margin: '0 0 16px 0', fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
-                              Peserta: <strong>{disqualifyModalPart.name || disqualifyModalPart.username}</strong>. Pengajuan akan diverifikasi oleh Admin sebelum peserta masuk daftar Blacklist.
-                            </p>
-                            <form onSubmit={handleRequestDisqualification} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(4px)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+                          <div style={{ width: '100%', maxWidth: '460px', padding: '24px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 20px 50px rgba(15, 23, 42, 0.2)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+                              <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fef2f2', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#dc2626', flexShrink: 0 }}>
+                                <AlertTriangle size={20} />
+                              </div>
                               <div>
-                                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px' }}>Alasan Diskualifikasi *</label>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Ajukan Diskualifikasi Peserta</h3>
+                                <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: '#64748b' }}>Akan diverifikasi Admin sebelum masuk daftar Blacklist.</p>
+                              </div>
+                            </div>
+
+                            <div style={{ padding: '10px 14px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: '600' }}>Peserta</span>
+                              <span style={{ fontSize: '0.86rem', color: '#0f172a', fontWeight: '700' }}>{disqualifyModalPart.name || disqualifyModalPart.username}</span>
+                            </div>
+
+                            <form onSubmit={handleRequestDisqualification} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                              <div>
+                                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>Alasan Diskualifikasi *</label>
                                 <textarea
                                   required
                                   rows={3}
                                   value={disqualifyReason}
                                   onChange={(e) => setDisqualifyReason(e.target.value)}
                                   placeholder="Tuliskan alasan diskualifikasi secara jelas..."
-                                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-primary)', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                                  style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#0f172a', fontSize: '0.88rem', boxSizing: 'border-box', outline: 'none', resize: 'vertical' }}
                                 />
                               </div>
                               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                                <button type="button" onClick={() => setDisqualifyModalPart(null)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: '600' }}>
+                                <button type="button" onClick={() => setDisqualifyModalPart(null)} style={{ padding: '10px 18px', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' }}>
                                   Batal
                                 </button>
-                                <button type="submit" style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#ef4444', color: 'white', cursor: 'pointer', fontWeight: '700' }}>
+                                <button type="submit" style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: '#dc2626', color: '#ffffff', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)' }}>
                                   Kirim Pengajuan
                                 </button>
                               </div>
