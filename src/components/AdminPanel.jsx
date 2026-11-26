@@ -4332,7 +4332,7 @@ export default function AdminPanel({
                             <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
                               {eventGiftType === 'cash' ? 'Nominal Saldo Hadiah (Rupiah)' : 'Nilai Nominal Voucher (Rupiah)'}
                             </label>
-                            <input type="number" required={eventHasGift && (eventGiftType === 'cash' || eventGiftType === 'voucher')} value={eventGiftValue} onChange={(e) => setEventGiftValue(e.target.value)} placeholder="Contoh: 25000" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
+                            <input type="text" required={eventHasGift && (eventGiftType === 'cash' || eventGiftType === 'voucher')} value={formatInputCurrency(eventGiftValue)} onChange={(e) => { const parsed = e.target.value.replace(/\D/g, ''); setEventGiftValue(parsed ? parseInt(parsed) : 0); }} placeholder="Contoh: 25.000" style={{ width: '100%', padding: '10px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'white', fontSize: '0.85rem' }} />
                           </div>
                         )}
 
@@ -7665,13 +7665,12 @@ export default function AdminPanel({
                 <div className="form-group" style={{ marginBottom: '16px' }}>
                   <label style={{ fontSize: '0.85rem', marginBottom: '6px', display: 'block', color: 'white', fontWeight: 'bold' }}>Biaya Flat Pembuatan Event Non-Kompetisi (IDR)</label>
                   <input
-                    type="number"
-                    min="0"
-                    placeholder="Contoh: 150000"
-                    value={eventFlatFee || ''}
+                    type="text"
+                    placeholder="Contoh: 150.000"
+                    value={formatInputCurrency(eventFlatFee)}
                     onChange={(e) => {
-                      const val = Math.max(0, parseInt(e.target.value) || 0);
-                      setEventFlatFee(val);
+                      const parsed = e.target.value.replace(/\D/g, '');
+                      setEventFlatFee(parsed ? parseInt(parsed) : 0);
                     }}
                     style={{
                       width: '100%',
