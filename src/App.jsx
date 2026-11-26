@@ -1800,9 +1800,29 @@ export default function App() {
 
             <form onSubmit={loginModalMode === 'login' ? handleLoginSubmit : handleRegisterSubmit} className="modal-form" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {loginError && (
-                <div className="form-error-banner" style={{ margin: '0 0 12px 0' }}>
-                  <AlertTriangle size={16} />
-                  <span>{loginError}</span>
+                <div
+                  className="form-error-banner animate-fade-in"
+                  style={{
+                    position: 'fixed',
+                    top: '24px',
+                    right: '24px',
+                    zIndex: 99999,
+                    maxWidth: '380px',
+                    margin: 0,
+                    boxShadow: '0 12px 32px rgba(0, 0, 0, 0.28)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setLoginError('')}
+                  title="Klik untuk menutup"
+                >
+                  <AlertTriangle size={18} style={{ flexShrink: 0 }} />
+                  <span style={{ flex: 1, fontSize: '0.88rem', lineHeight: '1.4' }}>{loginError}</span>
+                  <X size={16} style={{ flexShrink: 0, opacity: 0.7 }} />
                 </div>
               )}
 
