@@ -5402,7 +5402,7 @@ export default function AdminPanel({
                               </span>
                             </div>
 
-                            {!isPaid && (
+                            {!isPaid && evt.paymentStatus !== 'pending_verification' && (
                               <span style={{ 
                                 fontSize: '0.68rem', 
                                 background: 'rgba(239, 68, 68, 0.1)', 
