@@ -866,6 +866,12 @@ export default function useAppState() {
   const [globalLoadingText, setGlobalLoadingText] = useState(null);
   const [zoomImage, setZoomImage] = useState(null);
   const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (loginError) {
+      setToast({ type: 'error', message: loginError });
+    }
+  }, [loginError]);
   const [activeTicketParam, setActiveTicketParam] = useState(() => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname;

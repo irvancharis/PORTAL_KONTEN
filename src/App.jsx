@@ -2679,35 +2679,6 @@ export default function App() {
         onNavigateTab={(tabId) => handleTabChange(tabId)}
         onOpenPremium={() => setShowPremiumModal(true)}
       />
-      {/* Floating Login/Register Error Toast */}
-      {loginError && (
-        <div
-          className="animate-fade-in"
-          style={{
-            position: 'fixed',
-            top: '24px',
-            right: '24px',
-            zIndex: 99999,
-            maxWidth: '380px',
-            background: '#fef2f2',
-            color: '#991b1b',
-            border: '1px solid #fecaca',
-            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.22)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            padding: '12px 16px',
-            borderRadius: '12px',
-            cursor: 'pointer'
-          }}
-          onClick={() => setLoginError('')}
-          title="Klik untuk menutup"
-        >
-          <AlertTriangle size={18} style={{ flexShrink: 0, color: '#dc2626' }} />
-          <span style={{ flex: 1, fontSize: '0.88rem', fontWeight: '600', lineHeight: '1.4' }}>{loginError}</span>
-          <X size={16} style={{ flexShrink: 0, opacity: 0.7 }} />
-        </div>
-      )}
     </div>
   );
 }
