@@ -552,21 +552,6 @@ export default function DiscoverPage({
                               }}
                             >
                               <div className="split-card-info">
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '6px' }}>
-                                  <span style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    padding: '2px 8px',
-                                    borderRadius: '12px',
-                                    fontSize: '0.7rem',
-                                    fontWeight: 'bold',
-                                    background: 'var(--primary-glow)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--border-color)'
-                                  }}>
-                                    {evt.category || 'Event'}
-                                  </span>
-                                </div>
                                 <span className="split-card-name">{evt.title}</span>
                                 <span className="split-card-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px', marginTop: '8px' }}>
                                   {evt.campaignBudget > 0 && (
@@ -681,21 +666,6 @@ export default function DiscoverPage({
                               }}
                             >
                               <div className="split-card-info">
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '6px' }}>
-                                  <span style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    padding: '2px 8px',
-                                    borderRadius: '12px',
-                                    fontSize: '0.7rem',
-                                    fontWeight: 'bold',
-                                    background: 'var(--primary-glow)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--border-color)'
-                                  }}>
-                                    {evt.juknisPlatforms?.GoogleReview ? 'Google Review' : evt.category || 'Kompetisi'}
-                                  </span>
-                                </div>
                                 <span className="split-card-name">{evt.title}</span>
                                 <span className="split-card-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px', marginTop: '8px' }}>
                                   <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: '800', fontSize: '1.05rem' }}>
@@ -708,7 +678,7 @@ export default function DiscoverPage({
                                   </span>
                                 </span>
                               </div>
-                              <span className="split-card-link-text">Ikuti Lomba →</span>
+                              <span className="split-card-link-text">Lebih Detail →</span>
                             </div>
                           );
                         })
