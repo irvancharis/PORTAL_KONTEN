@@ -5996,6 +5996,25 @@ export default function AdminPanel({
                             >
                               <Eye size={15} />
                             </button>
+                            <button
+                              className="action-btn"
+                              onClick={() => setPreviewingEvent(evt)}
+                              style={{
+                                color: 'var(--text-primary)',
+                                cursor: 'pointer',
+                                background: 'var(--bg-main)',
+                                border: '1px solid var(--border-color)',
+                                padding: '8px',
+                                borderRadius: '10px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.2s'
+                              }}
+                              title="Preview Detail Campaign"
+                            >
+                              <Search size={15} />
+                            </button>
                             <button 
                               className="action-btn" 
                               onClick={() => handleEditEvent(evt)} 
@@ -6062,41 +6081,8 @@ export default function AdminPanel({
                                 >
                                   Verifikasi Pembayaran
                                 </button>
-                              ) : (
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                  <button
-                                    onClick={() => setPreviewingEvent(evt)}
-                                    style={{ padding: '7px 12px', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: '700', borderRadius: '10px', cursor: 'pointer' }}
-                                  >
-                                    <Eye size={13} color="#0f172a" />
-                                    <span>Preview</span>
-                                  </button>
-                                  <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontStyle: 'italic', fontWeight: '500' }}>
-                                    Menunggu Verifikasi
-                                  </span>
-                                </div>
-                              )
+                              ) : null
                             ) : (
-                              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                              <button 
-                                onClick={() => setPreviewingEvent(evt)}
-                                style={{ 
-                                  padding: '9px 14px', 
-                                  fontSize: '0.8rem', 
-                                  display: 'inline-flex', 
-                                  alignItems: 'center', 
-                                  gap: '5px', 
-                                  background: '#f1f5f9', 
-                                  border: '1px solid #cbd5e1', 
-                                  color: '#0f172a', 
-                                  fontWeight: '700',
-                                  borderRadius: '10px',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                <Eye size={14} color="#0f172a" />
-                                <span>Preview</span>
-                              </button>
                               <button 
                                 onClick={() => handleOpenPayment(evt)}
                                 style={{ 
@@ -6117,7 +6103,6 @@ export default function AdminPanel({
                                 <Wallet size={14} color="#ffffff" />
                                 <span>Selesaikan Pembayaran →</span>
                               </button>
-                              </div>
                             )
                           )}
                         </div>
