@@ -3631,7 +3631,7 @@ export default function AdminPanel({
                     <div className="form-group">
                       <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Tipe Campaign</label>
                       <select value={eventType} onChange={(e) => setEventType(e.target.value)} style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}>
-                        <option value="competition">Kompetisi (Kirim Karya & Hadiah)</option>
+                        <option value="competition">Kompetisi (Kirim Karya)</option>
                         <option value="regular">Acara / Festival / Seminar (E-Tiket & Check-In)</option>
                       </select>
                     </div>
