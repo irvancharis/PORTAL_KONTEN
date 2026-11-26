@@ -157,14 +157,14 @@ export default function DiscoverPage({
     return (
       /* UNIFIED SEARCH RESULTS VIEW */
       <div className="search-results-wrapper">
-        <div className="search-results-header">
-          <h2>Hasil Pencarian: "{searchQuery}"</h2>
+        <div className="search-results-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '1040px', margin: '0 auto 20px auto', paddingBottom: '14px', borderBottom: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '12px' }}>
+          <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: '800', color: 'var(--text-primary)' }}>Hasil Pencarian: &ldquo;{searchQuery}&rdquo;</h2>
           <button 
             className="btn btn-outline" 
             onClick={() => setSearchQuery('')}
-            style={{ borderRadius: '20px', padding: '6px 16px', fontSize: '0.8rem' }}
+            style={{ borderRadius: '10px', padding: '7px 14px', fontSize: '0.82rem', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <X size={14} style={{ marginRight: '4px' }} />
+            <X size={14} />
             <span>Bersihkan Pencarian</span>
           </button>
         </div>
@@ -197,8 +197,10 @@ export default function DiscoverPage({
         {/* Category 2: Event & Kompetisi */}
         {(() => {
           const results = events.filter(e => 
-            e.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-            (e.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+            e.paymentStatus === 'paid' && (
+              e.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+              (e.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+            )
           );
           if (results.length === 0) return null;
           return (
@@ -386,7 +388,7 @@ export default function DiscoverPage({
         {/* Empty Search State */}
         {(() => {
           const mResults = movies.filter(m => m.title.toLowerCase().includes(searchQuery.toLowerCase()));
-          const eResults = events.filter(e => e.title.toLowerCase().includes(searchQuery.toLowerCase()));
+          const eResults = events.filter(e => e.paymentStatus === 'paid' && e.title.toLowerCase().includes(searchQuery.toLowerCase()));
           const cResults = communities.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
           const kResults = users.filter(u => u.role !== 'superadmin' && u.role !== 'staf' && !u.isCommunity && u.username.toLowerCase().includes(searchQuery.toLowerCase()));
           if (mResults.length === 0 && eResults.length === 0 && cResults.length === 0 && kResults.length === 0) {
