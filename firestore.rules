@@ -26,8 +26,11 @@ service cloud.firestore {
       allow get: if true;
       allow list: if isAuthenticated();
       
-      // User hanya boleh mengupdate profilnya sendiri, namun tidak boleh memodifikasi role dan walletBalance sembarangan
-      allow update: if isOwner(userId) || isAdmin();
+      // User hanya boleh mengupdate profilnya sendiri, namun tidak boleh memodifikasi role, walletBalance, atau status blacklist
+      allow update: if isAdmin() || (
+        isOwner(userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'walletBalance', 'isBlacklisted', 'blacklistReason', 'blacklistedAt'])
+      );
       
       // Registrasi user baru
       allow create: if isAuthenticated() || request.resource.data.id == userId;
@@ -51,18 +54,21 @@ service cloud.firestore {
     // 4. Events / Kampanye
     match /events/{eventId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin();
     }
 
     // 5. Event Participants & Submissions
     match /eventParticipants/{participantId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin();
     }
 
     match /eventSubmissions/{submissionId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin();
     }
 
     // 6. Transaksi Pembayaran & Konfirmasi (Financial)

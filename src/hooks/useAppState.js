@@ -1291,7 +1291,6 @@ export default function useAppState() {
           phone: registerWhatsapp.trim(),
           whatsapp: registerWhatsapp.trim(),
           email: email.toLowerCase(),
-          password,
           role: registerRole, // 'user' (Kreator) or 'panitia' (Komunitas)
           walletBalance: 0,
           organizerName: isComm ? organizerName.trim() : '',
