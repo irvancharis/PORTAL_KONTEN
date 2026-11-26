@@ -3226,7 +3226,7 @@ export default function AdminPanel({
                           ))}
                         </tbody>
                       </table>
-                      {disqualifyModalPart && (
+                      {disqualifyModalPart && createPortal(
                         <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(4px)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
                           <div style={{ width: '100%', maxWidth: '460px', padding: '24px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 20px 50px rgba(15, 23, 42, 0.2)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
@@ -3266,7 +3266,8 @@ export default function AdminPanel({
                               </div>
                             </form>
                           </div>
-                        </div>
+                        </div>,
+                        document.body
                       )}
                       </>
                     );
