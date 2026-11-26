@@ -7980,7 +7980,6 @@ export default function AdminPanel({
                           { id: 'withdrawals', label: 'Pencairan Dana' },
                           { id: 'finance-report', label: 'Jurnal Kas Finansial' },
                           { id: 'creator-marketplace', label: 'Katalog Kreator' },
-                          { id: 'movies', label: 'Katalog Konten Film' },
                           { id: 'users', label: 'Manajemen Pengguna' },
                           { id: 'membership', label: 'Konfigurasi Sistem' },
                         ].map(perm => (
