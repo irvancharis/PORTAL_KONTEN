@@ -665,18 +665,52 @@ export default function DiscoverPage({
                                 window.dispatchEvent(new PopStateEvent('popstate'));
                               }}
                             >
-                              <div className="split-card-info">
-                                <span className="split-card-name">{evt.title}</span>
-                                <span className="split-card-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px', marginTop: '8px' }}>
-                                  <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: '800', fontSize: '1.05rem' }}>
-                                    <DollarSign size={15} style={{ marginRight: '2px', opacity: 0.9 }} />
-                                    <span>Rp {(evt.campaignBudget || 0).toLocaleString('id-ID')}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, minWidth: 0 }}>
+                                {evt.posterUrl || evt.poster || evt.imageUrl ? (
+                                  <img
+                                    src={evt.posterUrl || evt.poster || evt.imageUrl}
+                                    alt={evt.title}
+                                    style={{
+                                      width: '72px',
+                                      height: '92px',
+                                      objectFit: 'cover',
+                                      borderRadius: '10px',
+                                      flexShrink: 0,
+                                      border: '1px solid var(--border-color)',
+                                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                    }}
+                                  />
+                                ) : (
+                                  <div
+                                    style={{
+                                      width: '72px',
+                                      height: '92px',
+                                      borderRadius: '10px',
+                                      flexShrink: 0,
+                                      background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15))',
+                                      border: '1px solid var(--border-color)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: 'var(--text-secondary)'
+                                    }}
+                                  >
+                                    <Film size={24} style={{ opacity: 0.6 }} />
+                                  </div>
+                                )}
+                                <div className="split-card-info" style={{ minWidth: 0 }}>
+                                  <span className="split-card-name">{evt.title}</span>
+                                  <span className="split-card-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px', marginTop: '8px' }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: '800', fontSize: '1.05rem' }}>
+                                      <DollarSign size={15} style={{ marginRight: '2px', opacity: 0.9 }} />
+                                      <span>Rp {(evt.campaignBudget || 0).toLocaleString('id-ID')}</span>
+                                    </span>
+                                    <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-primary)', fontWeight: '700' }}>
+                                      <Clock size={13} style={{ marginRight: '5px', opacity: 0.9, color: 'var(--text-primary)' }} />
+                                      <span>Batas Pendaftaran: {evt.deadline ? new Date(evt.deadline).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Tidak ada batas waktu'}</span>
+                                    </span>
                                   </span>
-                                  <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-primary)', fontWeight: '700' }}>
-                                    <Clock size={13} style={{ marginRight: '5px', opacity: 0.9, color: 'var(--text-primary)' }} />
-                                    <span>Batas Pendaftaran: {evt.deadline ? new Date(evt.deadline).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Tidak ada batas waktu'}</span>
-                                  </span>
-                                </span>
+                                </div>
                               </div>
                               <span className="split-card-link-text">Lebih Detail →</span>
                             </div>
