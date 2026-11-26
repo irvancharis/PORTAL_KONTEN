@@ -4667,9 +4667,12 @@ export default function AdminPanel({
                     }));
                     setDepositingEvent(null);
                     alert('Bukti pembayaran Anda berhasil dikirim! Mohon tunggu verifikasi oleh admin platform.');
-                  }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  }} style={{ display: 'flex', flexDirection: 'column', gap: '14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '18px 20px' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
+                      Konfirmasi Transfer Pembayaran
+                    </div>
                     <div className="form-group">
-                      <label style={{ display: 'block', marginBottom: '6px', color: '#0f172a', fontSize: '0.85rem', fontWeight: '700' }}>Nama Pengirim Rekening</label>
+                      <label style={{ display: 'block', marginBottom: '6px', color: '#0f172a', fontSize: '0.84rem', fontWeight: '700' }}>Nama Pengirim Rekening</label>
                       <input 
                         type="text" 
                         required 
@@ -4690,7 +4693,7 @@ export default function AdminPanel({
                       />
                     </div>
                     <div className="form-group">
-                      <label style={{ display: 'block', marginBottom: '6px', color: '#0f172a', fontSize: '0.85rem', fontWeight: '700' }}>Bank Pengirim</label>
+                      <label style={{ display: 'block', marginBottom: '6px', color: '#0f172a', fontSize: '0.84rem', fontWeight: '700' }}>Bank Pengirim</label>
                       <select 
                         value={senderBank} 
                         onChange={(e) => setSenderBank(e.target.value)} 
@@ -4715,13 +4718,13 @@ export default function AdminPanel({
                       </select>
                     </div>
                     <div className="form-group">
-                      <label style={{ display: 'block', marginBottom: '6px', color: '#0f172a', fontSize: '0.85rem', fontWeight: '700' }}>Unggah Bukti Transfer</label>
+                      <label style={{ display: 'block', marginBottom: '6px', color: '#0f172a', fontSize: '0.84rem', fontWeight: '700' }}>Unggah Bukti Transfer</label>
                       <input 
+                        id="campaign-payment-receipt-input"
                         type="file" 
-                        required 
                         accept="image/*" 
                         onChange={(e) => {
-                          const file = e.target.files[0];
+                          const file = e.target.files?.[0];
                           if (file) {
                             const reader = new FileReader();
                             reader.onloadend = () => {
@@ -4730,22 +4733,37 @@ export default function AdminPanel({
                             reader.readAsDataURL(file);
                           }
                         }} 
-                        style={{ 
-                          width: '100%', 
-                          padding: '12px 14px', 
-                          background: '#f8fafc', 
-                          border: '1.5px dashed #cbd5e1', 
-                          borderRadius: '10px', 
-                          color: '#475569', 
-                          fontSize: '0.85rem',
-                          cursor: 'pointer',
-                          boxSizing: 'border-box'
-                        }} 
+                        style={{ display: 'none' }} 
                       />
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('campaign-payment-receipt-input')?.click()}
+                        style={{
+                          width: '100%',
+                          padding: '16px 14px',
+                          background: '#ffffff',
+                          border: '1.5px dashed #cbd5e1',
+                          borderRadius: '10px',
+                          color: '#475569',
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <Upload size={18} color="#0f172a" />
+                        <span style={{ color: '#0f172a', fontWeight: '700' }}>
+                          {receiptFile ? 'Ganti Foto Bukti Transfer' : 'Klik untuk Unggah Bukti Transfer'}
+                        </span>
+                        <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Format JPG, PNG, atau Screenshot m-Banking</span>
+                      </button>
                       {receiptFile && (
-                        <div style={{ marginTop: '12px', textAlign: 'center' }}>
-                          <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '6px', fontWeight: '600' }}>Pratinjau Bukti Bayar:</span>
-                          <img src={receiptFile} alt="Receipt Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '10px', border: '1px solid #e2e8f0' }} />
+                        <div style={{ marginTop: '12px', textAlign: 'center', background: '#ffffff', padding: '10px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                          <span style={{ fontSize: '0.76rem', color: '#64748b', display: 'block', marginBottom: '6px', fontWeight: '600' }}>Pratinjau Bukti Bayar:</span>
+                          <img src={receiptFile} alt="Receipt Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px' }} />
                         </div>
                       )}
                     </div>

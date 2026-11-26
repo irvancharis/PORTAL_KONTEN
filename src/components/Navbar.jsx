@@ -376,7 +376,8 @@ export default function Navbar({
           timestamp: evt.createdAt || new Date().toISOString(),
           tab: 'user-events-manage',
           eventId: evt.id,
-          eventTitle: evt.title
+          eventTitle: evt.title,
+          persistent: true
         });
       });
 
@@ -885,12 +886,14 @@ export default function Navbar({
                                 <div 
                                   onClick={() => {
                                     setIsNotificationOpen(false);
-                                    // Mark notification as dismissed/read
-                                    setDismissedNotifs(prev => {
-                                      const updated = [...prev, notif.id];
-                                      localStorage.setItem('portal-dismissed-notifications', JSON.stringify(updated));
-                                      return updated;
-                                    });
+                                    // Mark notification as dismissed/read (unless persistent task)
+                                    if (!notif.persistent) {
+                                      setDismissedNotifs(prev => {
+                                        const updated = [...prev, notif.id];
+                                        localStorage.setItem('portal-dismissed-notifications', JSON.stringify(updated));
+                                        return updated;
+                                      });
+                                    }
                                     if (notif.tab === 'profile-approvals') {
                                       setActiveTab('profile');
                                       window.history.pushState(null, '', '/profile');
