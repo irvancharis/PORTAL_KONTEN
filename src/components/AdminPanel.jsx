@@ -1,4 +1,4 @@
-import React, {
+﻿import React, {
   useState,
   useEffect,
   useRef,
@@ -96,7 +96,7 @@ const SearchableSelect = ({ value, onChange, placeholder, options }) => {
         }}
       >
         <span>{value || placeholder}</span>
-        <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>▼</span>
+        <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>â–¼</span>
       </div>
 
       {isOpen && (
@@ -156,37 +156,6 @@ const SearchableSelect = ({ value, onChange, placeholder, options }) => {
                 Tidak ditemukan
               </div>
             )}
-          </div>
-        </div>
-      )}
-      {disqualifyModalPart && (
-        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <div className="glass-panel" style={{ width: '100%', maxWidth: '460px', padding: '24px', borderRadius: '16px', background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.15rem', fontWeight: '700', color: 'var(--text-primary)' }}>Ajukan Diskualifikasi Peserta</h3>
-            <p style={{ margin: '0 0 16px 0', fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
-              Peserta: <strong>{disqualifyModalPart.name || disqualifyModalPart.username}</strong>. Pengajuan akan diverifikasi oleh Admin sebelum peserta masuk daftar Blacklist.
-            </p>
-            <form onSubmit={handleRequestDisqualification} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px' }}>Alasan Diskualifikasi *</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={disqualifyReason}
-                  onChange={(e) => setDisqualifyReason(e.target.value)}
-                  placeholder="Tuliskan alasan diskualifikasi secara jelas..."
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-primary)', fontSize: '0.88rem', boxSizing: 'border-box' }}
-                />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button type="button" onClick={() => setDisqualifyModalPart(null)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: '600' }}>
-                  Batal
-                </button>
-                <button type="submit" style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#ef4444', color: 'white', cursor: 'pointer', fontWeight: '700' }}>
-                  Kirim Pengajuan
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
@@ -1665,7 +1634,7 @@ export default function AdminPanel({
         sendEmailNotification({
           toUsername: part.username,
           subject: `[ngonten.id] E-Tiket & Pendaftaran Disetujui: ${evTitle}`,
-          title: 'E-Tiket & Pendaftaran Event Disetujui! 🎟️',
+          title: 'E-Tiket & Pendaftaran Event Disetujui! ðŸŽŸï¸',
           message: `Selamat! Pendaftaran dan pemesanan tiket Anda untuk event <strong>"${evTitle}"</strong> telah resmi disetujui oleh panitia. Pass E-Tiket Anda telah aktif. Silakan klik tombol di bawah untuk membuka tiket resmi dan QR Code Anda.`,
           type: 'ticket',
           eventTitle: evTitle,
@@ -1684,7 +1653,7 @@ export default function AdminPanel({
         sendEmailNotification({
           toUsername: part.username,
           subject: `[ngonten.id] Pendaftaran Disetujui: ${evTitle}`,
-          title: 'Pendaftaran Event Anda Disetujui! 🎉',
+          title: 'Pendaftaran Event Anda Disetujui! ðŸŽ‰',
           message: `Selamat! Pendaftaran Anda di event <strong>"${evTitle}"</strong> telah disetujui oleh Panitia. Anda kini dapat mulai mengirimkan karya atau menjalankan tugas Campaign sesuai petunjuk teknis.${hasTicket ? ' Pass E-Tiket resmi Anda juga telah aktif untuk akses masuk acara.' : ''}`,
           type: 'approval',
           eventTitle: evTitle,
@@ -1972,7 +1941,7 @@ export default function AdminPanel({
         sendEmailNotification({
           toUsername: wd.username,
           subject: `[ngonten.id] Penarikan Saldo Berhasil: Rp ${(wd.netAmount || wd.amount).toLocaleString('id-ID')}`,
-          title: 'Dana Penarikan Saldo Berhasil Ditransfer! 💸',
+          title: 'Dana Penarikan Saldo Berhasil Ditransfer! ðŸ’¸',
           message: `Permintaan penarikan saldo dompet Anda sebesar <strong>Rp ${wd.amount.toLocaleString('id-ID')}</strong> telah berhasil disetujui dan ditransfer ke rekening / e-wallet tujuan Anda.`,
           type: 'payment',
           actionUrl: 'https://ngonten.id/wallet',
@@ -2091,7 +2060,7 @@ export default function AdminPanel({
       sendEmailNotification({
         toUsername: sub.username,
         subject: `[ngonten.id] Ulasan Disetujui: Rp ${(evt.benefitAmount || 0).toLocaleString('id-ID')} Telah Masuk ke Dompet!`,
-        title: 'Ulasan Google Review Anda Disetujui! 🌟',
+        title: 'Ulasan Google Review Anda Disetujui! ðŸŒŸ',
         message: `Selamat! Ulasan Google Review yang Anda kirimkan untuk event <strong>"${evt.title}"</strong> telah diverifikasi dan disetujui oleh pemilik usaha. Saldo reward sebesar <strong>Rp ${(evt.benefitAmount || 0).toLocaleString('id-ID')}</strong> telah langsung ditambahkan ke dompet akun Anda.`,
         type: 'review',
         eventTitle: evt.title,
@@ -2217,7 +2186,7 @@ export default function AdminPanel({
       sendEmailNotification({
         toUsername: judgedSub.username,
         subject: `[ngonten.id] Karya Anda Telah Dinilai: Skor ${scoreVal}/100`,
-        title: 'Penilaian Karya Selesai 🎬',
+        title: 'Penilaian Karya Selesai ðŸŽ¬',
         message: `Karya Anda <strong>"${judgedSub.title || 'Karya Konten'}"</strong> pada event <strong>"${evt ? evt.title : (judgedSub.eventTitle || 'Event')}"</strong> telah selesai dievaluasi oleh Tim Juri dengan perolehan skor <strong>${scoreVal}/100</strong>.${judgingFeedback.trim() ? `<br><br>Catatan Juri: <em>"${judgingFeedback.trim()}"</em>` : ''}`,
         type: 'info',
         eventTitle: evt ? evt.title : judgedSub.eventTitle,
@@ -2687,7 +2656,7 @@ export default function AdminPanel({
                 badge: s.platform || 'Karya',
                 badgeColor: '#ffffff',
                 badgeBg: 'rgba(255, 255, 255, 0.08)',
-                meta: `Views: ${(s.views || 0).toLocaleString('id-ID')} • Event: ${evt.title}`
+                meta: `Views: ${(s.views || 0).toLocaleString('id-ID')} â€¢ Event: ${evt.title}`
               });
             });
 
@@ -2703,7 +2672,7 @@ export default function AdminPanel({
                   badge: c.status === 'approved' ? 'Disetujui' : c.status === 'rejected' ? 'Ditolak' : 'Pending',
                   badgeColor: '#ffffff',
                   badgeBg: 'rgba(255, 255, 255, 0.08)',
-                  meta: `Jumlah: ${c.amount || 'Rp 0'} • Pengirim: ${c.senderName || '-'}`
+                  meta: `Jumlah: ${c.amount || 'Rp 0'} â€¢ Pengirim: ${c.senderName || '-'}`
                 });
               });
 
@@ -2735,7 +2704,7 @@ export default function AdminPanel({
                   badge: wd.status === 'approved' ? 'Diselesaikan' : wd.status === 'rejected' ? 'Ditolak' : 'Pending',
                   badgeColor: '#ffffff',
                   badgeBg: 'rgba(255, 255, 255, 0.08)',
-                  meta: `Metode: ${wd.method} • Rek/Akun: ${wd.account}`
+                  meta: `Metode: ${wd.method} â€¢ Rek/Akun: ${wd.account}`
                 });
               });
             }
@@ -2817,7 +2786,7 @@ export default function AdminPanel({
                                 <p style={{ margin: '4px 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{act.desc}</p>
                                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', gap: '12px' }}>
                                   <span>{formatIndonesianDate(act.timestamp)}</span>
-                                  <span>•</span>
+                                  <span>â€¢</span>
                                   <span>{act.meta}</span>
                                 </div>
                               </div>
@@ -3094,6 +3063,7 @@ export default function AdminPanel({
                     }
 
                     return (
+                      <>
                       <table className="admin-table">
                         <thead>
                           <tr>
@@ -3219,14 +3189,15 @@ export default function AdminPanel({
                                       <button
                                         onClick={() => { setDisqualifyModalPart(part); setDisqualifyReason(''); }}
                                         style={{
-                                          background: 'rgba(239, 68, 68, 0.1)',
-                                          border: '1px solid rgba(239, 68, 68, 0.3)',
-                                          color: '#ef4444',
-                                          fontSize: '0.75rem',
-                                          fontWeight: '600',
-                                          padding: '4px 10px',
-                                          borderRadius: '8px',
-                                          cursor: 'pointer'
+                                          background: '#fef2f2',
+                                          border: '1px solid #fecaca',
+                                          color: '#dc2626',
+                                          fontSize: '0.74rem',
+                                          fontWeight: '700',
+                                          padding: '5px 12px',
+                                          borderRadius: '999px',
+                                          cursor: 'pointer',
+                                          whiteSpace: 'nowrap'
                                         }}
                                       >
                                         Diskualifikasi
@@ -3235,14 +3206,15 @@ export default function AdminPanel({
                                     <button 
                                       onClick={() => handleResetParticipantStatus(part.id)}
                                       style={{ 
-                                        background: 'transparent', 
-                                        border: 'none', 
-                                        color: '#f87171', 
-                                        textDecoration: 'underline', 
+                                        background: '#f1f5f9', 
+                                        border: '1px solid #cbd5e1', 
+                                        color: '#475569',
                                         cursor: 'pointer', 
-                                        fontSize: '0.75rem',
-                                        padding: '4px 8px',
-                                        fontWeight: '600'
+                                        fontSize: '0.74rem',
+                                        padding: '5px 12px',
+                                        borderRadius: '999px',
+                                        fontWeight: '600',
+                                        whiteSpace: 'nowrap'
                                       }}
                                     >
                                       Batalkan
@@ -3254,6 +3226,38 @@ export default function AdminPanel({
                           ))}
                         </tbody>
                       </table>
+                      {disqualifyModalPart && (
+                        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+                          <div className="glass-panel" style={{ width: '100%', maxWidth: '460px', padding: '24px', borderRadius: '16px', background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
+                            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.15rem', fontWeight: '700', color: 'var(--text-primary)' }}>Ajukan Diskualifikasi Peserta</h3>
+                            <p style={{ margin: '0 0 16px 0', fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
+                              Peserta: <strong>{disqualifyModalPart.name || disqualifyModalPart.username}</strong>. Pengajuan akan diverifikasi oleh Admin sebelum peserta masuk daftar Blacklist.
+                            </p>
+                            <form onSubmit={handleRequestDisqualification} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                              <div>
+                                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px' }}>Alasan Diskualifikasi *</label>
+                                <textarea
+                                  required
+                                  rows={3}
+                                  value={disqualifyReason}
+                                  onChange={(e) => setDisqualifyReason(e.target.value)}
+                                  placeholder="Tuliskan alasan diskualifikasi secara jelas..."
+                                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-primary)', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                                />
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                                <button type="button" onClick={() => setDisqualifyModalPart(null)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: '600' }}>
+                                  Batal
+                                </button>
+                                <button type="submit" style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#ef4444', color: 'white', cursor: 'pointer', fontWeight: '700' }}>
+                                  Kirim Pengajuan
+                                </button>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                      )}
+                      </>
                     );
                   })()}
                 </div>
@@ -3339,7 +3343,7 @@ export default function AdminPanel({
                                 <a href={sub.videoUrl} target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'underline', fontSize: '0.8rem' }}>{sub.platform?.toLowerCase() === 'googlereview' ? 'Buka Maps' : 'Buka Video'}</a>
                               </td>
                               {selectedManageEvent.budgetMode !== 'submit' && <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'white' }}>{sub.views?.toLocaleString('id-ID') || 0}</td>}
-                              {selectedManageEvent.budgetMode !== 'submit' && <td style={{ textAlign: 'right', color: '#f43f5e' }}>❤️ {sub.likes?.toLocaleString('id-ID') || 0}</td>}
+                              {selectedManageEvent.budgetMode !== 'submit' && <td style={{ textAlign: 'right', color: '#f43f5e' }}>â¤ï¸ {sub.likes?.toLocaleString('id-ID') || 0}</td>}
                               {selectedManageEvent.budgetMode !== 'views' && (
                                 <td style={{ textAlign: 'center' }}>
                                   {selectedManageEvent.budgetMode === 'submit' ? (
@@ -3349,8 +3353,8 @@ export default function AdminPanel({
                                         sub.status === 'approved' ? '#4ade80' : 
                                         sub.status === 'rejected' ? '#ef4444' : '#fbbf24' 
                                     }}>
-                                      {sub.status === 'approved' ? '✓ Disetujui' : 
-                                       sub.status === 'rejected' ? '✗ Ditolak (Perlu Perbaikan)' : 'Pending'}
+                                      {sub.status === 'approved' ? 'âœ“ Disetujui' : 
+                                       sub.status === 'rejected' ? 'âœ— Ditolak (Perlu Perbaikan)' : 'Pending'}
                                     </span>
                                   ) : (
                                     <span style={{ fontWeight: 'bold', color: sub.score !== null ? '#4ade80' : '#fbbf24' }}>{sub.score !== null ? `${sub.score}/100` : 'Belum Dinilai'}</span>
@@ -3942,7 +3946,7 @@ export default function AdminPanel({
                               </strong>
                             </div>
                             <span style={{ display: 'block', fontSize: '0.74rem', color: '#94a3b8', marginTop: '8px', lineHeight: '1.4' }}>
-                              💡 <strong>Skema Hybrid Aktif:</strong> Anda tidak perlu membayar biaya aktivasi di awal. Platform hanya memotong komisi {eventTicketFeePercent}% setiap kali peserta membeli tiket. Anda menerima bersih <strong>Rp {(eventTicketPrice - Math.round((eventTicketPrice * eventTicketFeePercent) / 100)).toLocaleString('id-ID')}</strong> per tiket terjual.
+                              ðŸ’¡ <strong>Skema Hybrid Aktif:</strong> Anda tidak perlu membayar biaya aktivasi di awal. Platform hanya memotong komisi {eventTicketFeePercent}% setiap kali peserta membeli tiket. Anda menerima bersih <strong>Rp {(eventTicketPrice - Math.round((eventTicketPrice * eventTicketFeePercent) / 100)).toLocaleString('id-ID')}</strong> per tiket terjual.
                             </span>
                           </>
                         ) : (
@@ -4216,7 +4220,7 @@ export default function AdminPanel({
                           Klik untuk unggah Flyer / Poster
                         </span>
                         <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                          Format JPG, PNG, atau WebP • Maksimal 5 MB (otomatis dikompresi)
+                          Format JPG, PNG, atau WebP â€¢ Maksimal 5 MB (otomatis dikompresi)
                         </span>
                         <input
                           type="file"
@@ -4341,7 +4345,7 @@ export default function AdminPanel({
                           <div className="form-group" style={{ marginBottom: 0 }}>
                             <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>Platform Upload</label>
                             <div style={{ padding: '10px 14px', background: 'rgba(74, 222, 128, 0.08)', border: '1px solid rgba(74, 222, 128, 0.2)', borderRadius: '8px', color: '#4ade80', fontSize: '0.85rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                              <span>✓ Google Review (Terkunci & Otomatis)</span>
+                              <span>âœ“ Google Review (Terkunci & Otomatis)</span>
                             </div>
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
@@ -4602,7 +4606,7 @@ export default function AdminPanel({
                   <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
                     {previewingEvent.juknisDos && (
                       <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>âœ“ Do&apos;s (Yang Harus Dilakukan)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDos}
                         </p>
@@ -4610,7 +4614,7 @@ export default function AdminPanel({
                     )}
                     {previewingEvent.juknisDonts && (
                       <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>âœ• Don&apos;ts (Yang Dilarang)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDonts}
                         </p>
@@ -5193,7 +5197,7 @@ export default function AdminPanel({
                   <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
                     {previewingEvent.juknisDos && (
                       <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>âœ“ Do&apos;s (Yang Harus Dilakukan)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDos}
                         </p>
@@ -5201,7 +5205,7 @@ export default function AdminPanel({
                     )}
                     {previewingEvent.juknisDonts && (
                       <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>âœ• Don&apos;ts (Yang Dilarang)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDonts}
                         </p>
@@ -5518,7 +5522,7 @@ export default function AdminPanel({
                   <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
                     {previewingEvent.juknisDos && (
                       <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>âœ“ Do&apos;s (Yang Harus Dilakukan)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDos}
                         </p>
@@ -5526,7 +5530,7 @@ export default function AdminPanel({
                     )}
                     {previewingEvent.juknisDonts && (
                       <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>âœ• Don&apos;ts (Yang Dilarang)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDonts}
                         </p>
@@ -5799,7 +5803,7 @@ export default function AdminPanel({
                   <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
                     {previewingEvent.juknisDos && (
                       <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>âœ“ Do&apos;s (Yang Harus Dilakukan)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDos}
                         </p>
@@ -5807,7 +5811,7 @@ export default function AdminPanel({
                     )}
                     {previewingEvent.juknisDonts && (
                       <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>âœ• Don&apos;ts (Yang Dilarang)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDonts}
                         </p>
@@ -5880,7 +5884,7 @@ export default function AdminPanel({
                         fontSize: '0.85rem'
                       }}
                     >
-                      ✕
+                      âœ•
                     </button>
                   )}
                 </div>
@@ -6369,7 +6373,7 @@ export default function AdminPanel({
                                 }}
                               >
                                 <Wallet size={14} color="#ffffff" />
-                                <span>Selesaikan Pembayaran →</span>
+                                <span>Selesaikan Pembayaran â†’</span>
                               </button>
                             )
                           )}
@@ -6432,11 +6436,11 @@ export default function AdminPanel({
                   }}
                 >
                   <option value="All" style={{ background: '#0b0f19' }}>Semua Reputasi</option>
-                  <option value="5" style={{ background: '#0b0f19' }}>⭐⭐⭐⭐⭐ (5 Bintang)</option>
-                  <option value="4" style={{ background: '#0b0f19' }}>⭐⭐⭐⭐ (4 Bintang)</option>
-                  <option value="3" style={{ background: '#0b0f19' }}>⭐⭐⭐ (3 Bintang)</option>
-                  <option value="2" style={{ background: '#0b0f19' }}>⭐⭐ (2 Bintang)</option>
-                  <option value="1" style={{ background: '#0b0f19' }}>⭐ (1 Bintang)</option>
+                  <option value="5" style={{ background: '#0b0f19' }}>â­â­â­â­â­ (5 Bintang)</option>
+                  <option value="4" style={{ background: '#0b0f19' }}>â­â­â­â­ (4 Bintang)</option>
+                  <option value="3" style={{ background: '#0b0f19' }}>â­â­â­ (3 Bintang)</option>
+                  <option value="2" style={{ background: '#0b0f19' }}>â­â­ (2 Bintang)</option>
+                  <option value="1" style={{ background: '#0b0f19' }}>â­ (1 Bintang)</option>
                 </select>
               </div>
 
@@ -6590,7 +6594,7 @@ export default function AdminPanel({
                                 return;
                               }
                               if (!isUserPremium) {
-                                alert('⭐ Fitur Eksklusif: Buka detail profil & portofolio creator hanya tersedia untuk Akun Premium.');
+                                alert('â­ Fitur Eksklusif: Buka detail profil & portofolio creator hanya tersedia untuk Akun Premium.');
                                 if (setShowPremiumModal) setShowPremiumModal(true);
                                 return;
                               }
@@ -7306,7 +7310,7 @@ export default function AdminPanel({
                             sendEmailNotification({
                               toUsername: selectedMarketplaceCreator,
                               subject: `[ngonten.id] Tawaran Kolaborasi Baru dari @${currentUser.username}`,
-                              title: 'Anda Mendapatkan Tawaran Kolaborasi Event! 🤝',
+                              title: 'Anda Mendapatkan Tawaran Kolaborasi Event! ðŸ¤',
                               message: `Penyelenggara <strong>@${currentUser.username}</strong> mengundang Anda untuk berkolaborasi dalam event <strong>"${selectedEvt?.title || 'Event Pilihan'}"</strong>.<br><br>Pesan Penyelenggara: <em>"${offerMessage || 'Mari berkolaborasi dan berkarya bersama di event kami!'}"</em>`,
                               type: 'offer',
                               eventTitle: selectedEvt?.title,
@@ -7442,7 +7446,7 @@ export default function AdminPanel({
                   <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
                     {previewingEvent.juknisDos && (
                       <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>âœ“ Do&apos;s (Yang Harus Dilakukan)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDos}
                         </p>
@@ -7450,7 +7454,7 @@ export default function AdminPanel({
                     )}
                     {previewingEvent.juknisDonts && (
                       <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>âœ• Don&apos;ts (Yang Dilarang)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDonts}
                         </p>
@@ -7673,7 +7677,7 @@ export default function AdminPanel({
                                 sendEmailNotification({
                                   toUsername: uname,
                                   subject: `[ngonten.id] Undangan Kolaborasi Event: ${selectedEvt?.title || 'Event Pilihan'}`,
-                                  title: 'Undangan Kolaborasi Kreator Masuk! 🚀',
+                                  title: 'Undangan Kolaborasi Kreator Masuk! ðŸš€',
                                   message: `Penyelenggara <strong>@${currentUser.username}</strong> mengundang Anda untuk bergabung dalam event <strong>"${selectedEvt?.title || 'Event Pilihan'}"</strong>.<br><br>Pesan: <em>"${bulkOfferMessage || 'Mari berpartisipasi dan raih hadiahnya!'}"</em>`,
                                   type: 'offer',
                                   eventTitle: selectedEvt?.title,
@@ -7809,7 +7813,7 @@ export default function AdminPanel({
                   <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
                     {previewingEvent.juknisDos && (
                       <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>âœ“ Do&apos;s (Yang Harus Dilakukan)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDos}
                         </p>
@@ -7817,7 +7821,7 @@ export default function AdminPanel({
                     )}
                     {previewingEvent.juknisDonts && (
                       <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>âœ• Don&apos;ts (Yang Dilarang)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDonts}
                         </p>
@@ -8012,7 +8016,7 @@ export default function AdminPanel({
                     fontSize: '0.9rem'
                   }}
                 >
-                  ✕
+                  âœ•
                 </button>
               )}
             </div>
@@ -8476,7 +8480,7 @@ export default function AdminPanel({
                         border: '1px solid rgba(255, 255, 255, 0.3)',
                         letterSpacing: '0.3px'
                       }}>
-                        {bank.isPrimary ? '★ UTAMA' : 'OPSI TRANSFER'}
+                        {bank.isPrimary ? 'â˜… UTAMA' : 'OPSI TRANSFER'}
                       </span>
                     </div>
 
@@ -8887,7 +8891,7 @@ export default function AdminPanel({
               />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                 <span style={{ fontSize: '0.75rem', color: localStorage.getItem('portal-firebase-config') ? '#22c55e' : '#f59e0b', fontWeight: '600' }}>
-                  Status: {localStorage.getItem('portal-firebase-config') ? '✓ Terhubung ke Cloud Firestore' : '⚠️ Offline Mode (Database Lokal)'}
+                  Status: {localStorage.getItem('portal-firebase-config') ? 'âœ“ Terhubung ke Cloud Firestore' : 'âš ï¸ Offline Mode (Database Lokal)'}
                 </span>
                 <button type="submit" className="btn btn-primary">
                   <Check size={16} />
@@ -8924,7 +8928,7 @@ export default function AdminPanel({
                       <div style={{ flex: 1, minWidth: '240px' }}>
                         <div style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '0.95rem' }}>{part.name || part.username}</div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                          Campaign: <strong>{evt?.title || part.eventId}</strong> • Diajukan oleh: {part.disqualificationRequestedBy || '-'}
+                          Campaign: <strong>{evt?.title || part.eventId}</strong> â€¢ Diajukan oleh: {part.disqualificationRequestedBy || '-'}
                         </div>
                         <div style={{ marginTop: '8px', padding: '8px 12px', borderRadius: '8px', background: 'rgba(239,68,68,0.08)', color: '#ef4444', fontSize: '0.82rem' }}>
                           <strong>Alasan:</strong> {part.disqualificationReason}
@@ -9674,7 +9678,7 @@ export default function AdminPanel({
                   <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
                     {previewingEvent.juknisDos && (
                       <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>âœ“ Do&apos;s (Yang Harus Dilakukan)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDos}
                         </p>
@@ -9682,7 +9686,7 @@ export default function AdminPanel({
                     )}
                     {previewingEvent.juknisDonts && (
                       <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>âœ• Don&apos;ts (Yang Dilarang)</div>
                         <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                           {previewingEvent.juknisDonts}
                         </p>
@@ -10389,7 +10393,7 @@ export default function AdminPanel({
                       onClick={() => setShowAgendaModal(false)}
                       style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.2rem' }}
                     >
-                      ×
+                      Ã—
                     </button>
                   </div>
                   <form onSubmit={handleAddAgendaSubmit} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -10543,7 +10547,7 @@ export default function AdminPanel({
                       fontSize: '0.9rem'
                     }}
                   >
-                    ✕
+                    âœ•
                   </button>
                 )}
               </div>
@@ -10859,7 +10863,7 @@ export default function AdminPanel({
                       fontSize: '0.9rem'
                     }}
                   >
-                    ✕
+                    âœ•
                   </button>
                 )}
               </div>
@@ -11106,7 +11110,7 @@ export default function AdminPanel({
                                     }}
                                     style={{ background: '#10b981', color: '#ffffff', border: 'none', padding: '7px 14px', fontSize: '0.78rem', fontWeight: '700', borderRadius: '8px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(16, 185, 129, 0.25)' }}
                                   >
-                                    ✓ Setujui
+                                    âœ“ Setujui
                                   </button>
                                   <button 
                                     className="btn btn-secondary btn-sm"
@@ -11179,7 +11183,7 @@ export default function AdminPanel({
 
         const renderSortHeader = (label, field, alignRight = false) => {
           const isActive = financeSortField === field;
-          const arrow = isActive ? (financeSortDirection === 'asc' ? ' ↑' : ' ↓') : ' ↕';
+          const arrow = isActive ? (financeSortDirection === 'asc' ? ' â†‘' : ' â†“') : ' â†•';
           return (
             <th 
               onClick={() => handleSort(field)} 
@@ -11880,9 +11884,9 @@ export default function AdminPanel({
                           <span className="mob-id-code">ID: {movie.id}</span>
                           <div className="mob-stats-row">
                             <span>{movie.year}</span>
-                            <span>•</span>
+                            <span>â€¢</span>
                             <span>{movie.quality}</span>
-                            <span>•</span>
+                            <span>â€¢</span>
                             <span className="mob-rating-flex">
                               <Star fill="#f59e0b" color="#f59e0b" size={12} style={{ display: 'inline', marginRight: '2px' }} />
                               {movie.rating}
@@ -12705,13 +12709,13 @@ export default function AdminPanel({
                           onClick={() => handleVerifyGoogleReview(previewSubmission.id, 'approved', judgingFeedback)}
                           style={{ background: '#10b981', color: 'white', padding: '10px 20px', borderRadius: '30px', fontSize: '0.85rem', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}
                         >
-                          ✓ Setujui & Bayar Ulasan
+                          âœ“ Setujui & Bayar Ulasan
                         </button>
                       </div>
                     </div>
                   ) : previewSubmission.status === 'approved' ? (
                     <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '12px 16px', borderRadius: '8px', color: '#10b981', fontSize: '0.85rem' }}>
-                      <strong>✓ Ulasan Telah Disetujui</strong>
+                      <strong>âœ“ Ulasan Telah Disetujui</strong>
                       <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)' }}>
                         Pekerjaan selesai dan reward sebesar Rp {(selectedManageEvent.benefitAmount || 0).toLocaleString('id-ID')} telah dikirim langsung ke dompet peserta.
                       </p>
@@ -12723,7 +12727,7 @@ export default function AdminPanel({
                     </div>
                   ) : (
                     <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '12px 16px', borderRadius: '8px', color: '#ef4444', fontSize: '0.85rem' }}>
-                      <strong>✗ Ulasan Ditolak (Perlu Perbaikan)</strong>
+                      <strong>âœ— Ulasan Ditolak (Perlu Perbaikan)</strong>
                       <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)' }}>
                         Peserta dipersilakan mengedit ulasan/mengirim ulang sesuai catatan perbaikan.
                       </p>
