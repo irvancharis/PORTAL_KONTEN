@@ -3928,29 +3928,22 @@ onMouseLeave={(e) => {
                     if (registeringEvent?.juknisPlatforms?.YouTube) requiredPlatforms.push({ id: 'youtube', label: 'YouTube Shorts' });
                     if (registeringEvent?.juknisPlatforms?.Facebook) requiredPlatforms.push({ id: 'facebook', label: 'Facebook' });
 
-                    const missingPlatforms = requiredPlatforms.filter(req => {
-                      if (req.id === 'tiktok') return !(userProfile.tiktokVerified && userProfile.tiktokHandle);
-                      if (req.id === 'instagram') return !(userProfile.instagramVerified && userProfile.instagramHandle);
-                      if (req.id === 'youtube') return !(userProfile.youtubeVerified && userProfile.youtubeHandle);
-                      if (req.id === 'facebook') return !(userProfile.facebookVerified && userProfile.facebookHandle);
+                    const hasAtLeastOneRequired = requiredPlatforms.some(req => {
+                      if (req.id === 'tiktok') return Boolean(userProfile.tiktokVerified && userProfile.tiktokHandle);
+                      if (req.id === 'instagram') return Boolean(userProfile.instagramVerified && userProfile.instagramHandle);
+                      if (req.id === 'youtube') return Boolean(userProfile.youtubeVerified && userProfile.youtubeHandle);
+                      if (req.id === 'facebook') return Boolean(userProfile.facebookVerified && userProfile.facebookHandle);
                       return false;
                     });
 
-                    if (missingPlatforms.length > 0) {
+                    if (requiredPlatforms.length > 0 && !hasAtLeastOneRequired) {
                       return (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '8px 0' }}>
                           <div style={{ padding: '16px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#f87171', fontSize: '0.85rem', lineHeight: '1.6' }}>
-                            <strong style={{ display: 'block', marginBottom: '8px', fontSize: '0.92rem' }}>⚠️ Koneksi Sosial Media Belum Lengkap!</strong>
-                            Event ini mewajibkan Anda untuk mengunggah konten pada platform: <strong>{requiredPlatforms.map(p => p.label).join(', ')}</strong>.
+                            <strong style={{ display: 'block', marginBottom: '8px', fontSize: '0.92rem' }}>⚠️ Hubungkan Minimal 1 Akun Sosial Media</strong>
+                            Campaign ini mendukung platform: <strong>{requiredPlatforms.map(p => p.label).join(', ')}</strong>.
                             <br /><br />
-                            Namun, Anda belum menghubungkan atau memverifikasi akun berikut di profil Anda:
-                            <ul style={{ margin: '8px 0 0 20px', padding: 0 }}>
-                              {missingPlatforms.map(p => (
-                                <li key={p.id} style={{ fontWeight: 'bold' }}>{p.label}</li>
-                              ))}
-                            </ul>
-                            <br />
-                            Silakan hubungkan dan verifikasi akun sosial media yang diperlukan terlebih dahulu untuk dapat berpartisipasi dalam event ini.
+                            Anda cukup menghubungkan dan memverifikasi <strong>minimal salah satu</strong> akun sosial media di atas pada profil Anda untuk dapat mengikuti campaign ini.
                           </div>
                           
                           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '12px' }}>
