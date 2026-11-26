@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { checkUserProfileComplete } from '../utils/helpers';
 import { onSnapshot, collection } from 'firebase/firestore';
 import { 
@@ -1551,89 +1551,7 @@ export default function useAppState() {
           }
 
           // Fetch all other collections once to populate state initially (heavy optimization)
-          // Hanya fetch data sensitif/admin jika user sudah login dan memiliki wewenang
-          console.log("Fetching one-time Firestore snapshot for collections...");
-          const isUserAdmin = currentUser && ['admin', 'superadmin', 'staf', 'moderator'].includes(currentUser.role?.toLowerCase());
-
-          const [
-            dbMovies,
-            dbConfirmations,
-            dbEvents,
-            dbParticipants,
-            dbSubmissions,
-            dbWithdrawals,
-            dbOffers,
-            dbUsers,
-            dbFinancialJournals,
-            dbCommunities,
-            dbRegions,
-            dbGifts
-          ] = await Promise.all([
-            getFirestoreMovies(),
-            currentUser ? getFirestoreConfirmations() : Promise.resolve([]),
-            getFirestoreEvents(),
-            getFirestoreEventParticipants(),
-            getFirestoreEventSubmissions(),
-            currentUser ? getFirestoreWithdrawals() : Promise.resolve([]),
-            currentUser ? getFirestoreOffers() : Promise.resolve([]),
-            currentUser ? getFirestoreUsers() : Promise.resolve([]),
-            isUserAdmin ? getFirestoreFinancialJournals() : Promise.resolve([]),
-            getFirestoreCommunities(),
-            getFirestoreRegions(),
-            getFirestoreGifts()
-          ]);
- 
-          if (dbMovies) setMovies(dbMovies);
-          
-          if (currentUser) {
-            const updatedMe = await getFirestoreUser(currentUser.id);
-            if (updatedMe) {
-              setCurrentUser(prev => {
-                if (prev && JSON.stringify(prev) !== JSON.stringify(updatedMe)) {
-                  return updatedMe;
-                }
-                return prev;
-              });
-            }
-          }
-          if (dbConfirmations) setConfirmations(dbConfirmations);
-          if (dbEvents) setEvents(dbEvents);
-          if (dbParticipants) setEventParticipants(dbParticipants);
-          if (dbSubmissions) setEventSubmissions(dbSubmissions);
-          if (dbWithdrawals) setWithdrawals(dbWithdrawals);
-          if (dbOffers) setOffers(dbOffers);
-          if (dbUsers) setUsers(dbUsers);
-          if (dbFinancialJournals) setFinancialJournals(dbFinancialJournals);
-          if (dbGifts) setGifts(dbGifts);
-          
-          if (dbCommunities) {
-            if (dbCommunities.length === 0) {
-              const defaultComm = {
-                id: 'panitia',
-                username: 'panitia',
-                name: 'Panitia Portal',
-                phone: '081234567890',
-                description: 'Komunitas resmi penyelenggara kompetisi kreatif ngonten.id.',
-                avatar: '',
-                activeMembersCount: '5',
-                joinedMembers: []
-              };
-              await saveFirestoreCommunity(defaultComm);
-              setCommunities([defaultComm]);
-            } else {
-              setCommunities(dbCommunities);
-            }
-          }
-
-          if (dbRegions) {
-            if (dbRegions.length === 0) {
-              await seedFirestoreRegions(INDONESIAN_REGIONS);
-              setRegions(INDONESIAN_REGIONS);
-            } else {
-              const loadedRegionsList = dbRegions.map(r => r.name).sort();
-              setRegions(loadedRegionsList);
-            }
-          }
+          await refreshFirestoreData(true);
 
         } catch (err) {
           console.error("Firestore initialization failed:", err);
@@ -1647,6 +1565,118 @@ export default function useAppState() {
 
     initFirestore();
   }, [currentUser]);
+
+  const lastFirestoreFetchRef = useRef(0);
+
+  const refreshFirestoreData = useCallback(async (force = false) => {
+    if (!isFirebaseConfigured()) return;
+    const now = Date.now();
+    if (!force && now - lastFirestoreFetchRef.current < 3000) return;
+    lastFirestoreFetchRef.current = now;
+
+    try {
+      const isUserAdmin = currentUser && ['admin', 'superadmin', 'staf', 'moderator'].includes(currentUser.role?.toLowerCase());
+
+      const [
+        dbMovies,
+        dbConfirmations,
+        dbEvents,
+        dbParticipants,
+        dbSubmissions,
+        dbWithdrawals,
+        dbOffers,
+        dbUsers,
+        dbFinancialJournals,
+        dbCommunities,
+        dbRegions,
+        dbGifts
+      ] = await Promise.all([
+        getFirestoreMovies(),
+        currentUser ? getFirestoreConfirmations() : Promise.resolve([]),
+        getFirestoreEvents(),
+        getFirestoreEventParticipants(),
+        getFirestoreEventSubmissions(),
+        currentUser ? getFirestoreWithdrawals() : Promise.resolve([]),
+        currentUser ? getFirestoreOffers() : Promise.resolve([]),
+        currentUser ? getFirestoreUsers() : Promise.resolve([]),
+        isUserAdmin ? getFirestoreFinancialJournals() : Promise.resolve([]),
+        getFirestoreCommunities(),
+        getFirestoreRegions(),
+        getFirestoreGifts()
+      ]);
+
+      if (dbMovies) setMovies(dbMovies);
+
+      if (currentUser) {
+        const updatedMe = await getFirestoreUser(currentUser.id);
+        if (updatedMe) {
+          setCurrentUser(prev => {
+            if (prev && JSON.stringify(prev) !== JSON.stringify(updatedMe)) {
+              return updatedMe;
+            }
+            return prev;
+          });
+        }
+      }
+      if (dbConfirmations) setConfirmations(dbConfirmations);
+      if (dbEvents) setEvents(dbEvents);
+      if (dbParticipants) setEventParticipants(dbParticipants);
+      if (dbSubmissions) setEventSubmissions(dbSubmissions);
+      if (dbWithdrawals) setWithdrawals(dbWithdrawals);
+      if (dbOffers) setOffers(dbOffers);
+      if (dbUsers) setUsers(dbUsers);
+      if (dbFinancialJournals) setFinancialJournals(dbFinancialJournals);
+      if (dbGifts) setGifts(dbGifts);
+
+      if (dbCommunities) {
+        if (dbCommunities.length === 0) {
+          const defaultComm = {
+            id: 'panitia',
+            username: 'panitia',
+            name: 'Panitia Portal',
+            phone: '081234567890',
+            description: 'Komunitas resmi penyelenggara kompetisi kreatif ngonten.id.',
+            avatar: '',
+            activeMembersCount: '5',
+            joinedMembers: []
+          };
+          await saveFirestoreCommunity(defaultComm);
+          setCommunities([defaultComm]);
+        } else {
+          setCommunities(dbCommunities);
+        }
+      }
+
+      if (dbRegions) {
+        if (dbRegions.length === 0) {
+          await seedFirestoreRegions(INDONESIAN_REGIONS);
+          setRegions(INDONESIAN_REGIONS);
+        } else {
+          const loadedRegionsList = dbRegions.map(r => r.name).sort();
+          setRegions(loadedRegionsList);
+        }
+      }
+    } catch (err) {
+      console.error("Firestore refresh failed:", err);
+    }
+  }, [currentUser]);
+
+  // Refresh data otomatis saat pindah tab / halaman atau saat kembali ke tab browser
+  useEffect(() => {
+    if (!isLoadingDB) {
+      refreshFirestoreData();
+    }
+  }, [activeTab, adminSubTab, isLoadingDB, refreshFirestoreData]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshFirestoreData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [refreshFirestoreData]);
 
   // General Ledger sync and auto-migration trigger (Hanya dijalankan jika user login sebagai Admin)
   useEffect(() => {
