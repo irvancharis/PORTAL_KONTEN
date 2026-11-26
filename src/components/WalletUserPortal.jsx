@@ -172,18 +172,24 @@ export default function WalletUserPortal({
     status: 'approved'
   }));
 
-  // 6. Credits from ticket sales (penjualan tiket)
+  // 6. Credits from ticket sales (penjualan tiket, dipotong biaya admin)
   const creditTicketSales = eventParticipants.filter(part => {
     const evt = events.find(e => e.id === part.eventId);
-    return evt && evt.creator?.toLowerCase() === currentUser.username.toLowerCase() && part.ticketPrice > 0;
-  }).map(part => ({
-    id: `tkt_sale_${part.id}`,
-    date: part.registeredAt || new Date().toISOString(),
-    description: `Penjualan Tiket Event: ${part.eventTitle || 'Event'} (oleh @${part.username})`,
-    type: 'credit',
-    amount: part.ticketPrice,
-    status: 'approved'
-  }));
+    return evt && evt.creator?.toLowerCase() === currentUser.username.toLowerCase() && part.ticketPrice > 0 && part.status === 'approved';
+  }).map(part => {
+    const feePercent = typeof eventTicketFeePercent === 'number' ? eventTicketFeePercent : 5;
+    const gross = part.ticketPrice;
+    const fee = Math.round(gross * (feePercent / 100));
+    const net = gross - fee;
+    return {
+      id: `tkt_sale_${part.id}`,
+      date: part.registeredAt || new Date().toISOString(),
+      description: `Penjualan Tiket Event: ${part.eventTitle || 'Event'} (oleh @${part.username}) — Harga Rp ${gross.toLocaleString('id-ID')}, Potongan ${feePercent}% (-Rp ${fee.toLocaleString('id-ID')})`,
+      type: 'credit',
+      amount: net,
+      status: 'approved'
+    };
+  });
 
   // Combine & Sort Transactions
   const allTransactions = [...creditSubs, ...creditPrizes, ...debitWithdrawals, ...debitEventPayments, ...debitTicketPurchases, ...creditTicketSales].sort((a, b) => 
