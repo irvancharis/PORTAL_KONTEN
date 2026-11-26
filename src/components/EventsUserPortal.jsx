@@ -1419,23 +1419,6 @@ export default function EventsUserPortal({
                       }}>
                         {evt.eventType === 'regular' ? 'Event' : 'Kompetisi'}
                       </span>
-                      {(() => {
-                        const style = getCategoryBadgeStyle(evt.category);
-                        return (
-                          <span style={{ 
-                            fontSize: '0.65rem', 
-                            background: style.bg, 
-                            color: style.color, 
-                            padding: '2px 8px', 
-                            borderRadius: '12px',
-                            fontWeight: 'bold',
-                            textTransform: 'uppercase',
-                            border: style.border
-                          }}>
-                            {evt.category}
-                          </span>
-                        );
-                      })()}
                     </div>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
@@ -3269,23 +3252,6 @@ onMouseLeave={(e) => {
 
                         {/* Tags Row */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                          {(() => {
-                            const style = getCategoryBadgeStyle(evt.category);
-                            return (
-                              <span style={{ 
-                                fontSize: '0.65rem', 
-                                background: style.bg, 
-                                color: style.color, 
-                                padding: '2px 8px', 
-                                borderRadius: '12px',
-                                fontWeight: 'bold',
-                                textTransform: 'uppercase',
-                                border: style.border
-                              }}>
-                                {evt.category}
-                              </span>
-                            );
-                          })()}
                           
                           <span style={{ 
                               fontSize: '0.65rem', 

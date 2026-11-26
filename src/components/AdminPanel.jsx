@@ -5968,24 +5968,6 @@ export default function AdminPanel({
                         {/* Left Section: Category, Badges, Title & Description */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left', minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            {(() => {
-                              const style = getCategoryBadgeStyle(evt.category);
-                              return (
-                                <span style={{ 
-                                  fontSize: '0.68rem', 
-                                  background: style.bg, 
-                                  color: style.color, 
-                                  padding: '3px 10px', 
-                                  borderRadius: '8px',
-                                  fontWeight: '700',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.03em',
-                                  border: style.border
-                                }}>
-                                  {evt.category}
-                                </span>
-                              );
-                            })()}
 
                             {/* Status Badge with Subtle Dot */}
                             <div className="tooltip-container">
