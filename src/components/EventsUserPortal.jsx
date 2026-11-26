@@ -3532,61 +3532,48 @@ onMouseLeave={(e) => {
                         const displayPhone = userProfile.organizerPhone || userProfile.phone || userProfile.whatsapp || '-';
                         const displayEmail = userProfile.email || `${userProfile.username}@gmail.com`;
                         return (
-                          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '18px', borderRadius: '14px', marginBottom: '6px' }}>
-                            <p style={{ margin: '0 0 14px 0', fontSize: '0.84rem', color: '#475569', lineHeight: '1.45', fontWeight: '500' }}>
-                              Data pengunjung diambil langsung dari profil Anda untuk memastikan kevalidan data E-Tiket:
-                            </p>
-                            
-                            <div className="form-group" style={{ marginBottom: '12px' }}>
-                              <label style={{ display: 'block', marginBottom: '5px', color: '#64748b', fontSize: '0.76rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Nama Lengkap Pengunjung</label>
-                              <input
-                                type="text"
-                                disabled
-                                value={displayName}
-                                style={{ width: '100%', padding: '10px 12px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#0f172a', fontSize: '0.9rem', fontWeight: '600', cursor: 'not-allowed', boxSizing: 'border-box' }}
-                              />
+                          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '16px 18px', borderRadius: '14px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px dashed #cbd5e1' }}>
+                              <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                                Data Pemesan E-Tiket
+                              </span>
+                              {!hasIncompleteProfile && (
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 10px', borderRadius: '999px', background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', fontSize: '0.72rem', fontWeight: '700' }}>
+                                  ✓ Profil Valid
+                                </span>
+                              )}
                             </div>
 
-                            <div className="form-group" style={{ marginBottom: '12px' }}>
-                              <label style={{ display: 'block', marginBottom: '5px', color: '#64748b', fontSize: '0.76rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>No. WhatsApp</label>
-                              <input
-                                type="text"
-                                disabled
-                                value={displayPhone}
-                                style={{ width: '100%', padding: '10px 12px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#0f172a', fontSize: '0.9rem', fontWeight: '600', cursor: 'not-allowed', boxSizing: 'border-box' }}
-                              />
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
+                              <div>
+                                <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', marginBottom: '2px' }}>Nama Lengkap</div>
+                                <div style={{ fontSize: '0.88rem', color: '#0f172a', fontWeight: '700' }}>{displayName}</div>
+                              </div>
+                              <div>
+                                <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', marginBottom: '2px' }}>No. WhatsApp</div>
+                                <div style={{ fontSize: '0.88rem', color: '#0f172a', fontWeight: '700' }}>{displayPhone}</div>
+                              </div>
+                              <div>
+                                <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', marginBottom: '2px' }}>Email</div>
+                                <div style={{ fontSize: '0.88rem', color: '#0f172a', fontWeight: '600', wordBreak: 'break-all' }}>{displayEmail}</div>
+                              </div>
                             </div>
 
-                            <div className="form-group" style={{ marginBottom: '12px' }}>
-                              <label style={{ display: 'block', marginBottom: '5px', color: '#64748b', fontSize: '0.76rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Email</label>
-                              <input
-                                type="text"
-                                disabled
-                                value={displayEmail}
-                                style={{ width: '100%', padding: '10px 12px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#0f172a', fontSize: '0.9rem', fontWeight: '600', cursor: 'not-allowed', boxSizing: 'border-box' }}
-                              />
-                            </div>
-
-                            {hasIncompleteProfile ? (
-                              <div style={{ marginTop: '12px', padding: '14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', fontSize: '0.82rem', color: '#dc2626' }}>
-                                <p style={{ margin: '0 0 6px 0', fontWeight: '700' }}>⚠️ Data Profil Belum Lengkap!</p>
-                                <p style={{ margin: '0 0 12px 0', fontSize: '0.76rem', lineHeight: '1.4' }}>
-                                  Lengkapi data profil Anda ({pCheck.missingFields.join(', ')}) untuk dapat membeli tiket / mendaftar.
-                                </p>
+                            {hasIncompleteProfile && (
+                              <div style={{ marginTop: '14px', padding: '12px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', fontSize: '0.8rem', color: '#dc2626', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                                <div>
+                                  <div style={{ fontWeight: '700' }}>⚠️ Data Profil Belum Lengkap ({pCheck.missingFields.join(', ')})</div>
+                                </div>
                                 <button
                                   type="button"
                                   onClick={() => {
                                     setRegisteringEvent(null);
                                     if (onEditProfileClick) onEditProfileClick();
                                   }}
-                                  style={{ padding: '7px 14px', fontSize: '0.78rem', fontWeight: '700', background: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                                  style={{ padding: '6px 12px', fontSize: '0.76rem', fontWeight: '700', background: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
                                 >
-                                  Lengkapi Profil Sekarang
+                                  Lengkapi Profil
                                 </button>
-                              </div>
-                            ) : (
-                              <div style={{ marginTop: '12px', padding: '11px 14px', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', fontSize: '0.78rem', color: '#047857', fontWeight: '600', lineHeight: '1.45' }}>
-                                ✓ Data profil Anda valid. E-Tiket Anda akan diterbitkan secara otomatis setelah pendaftaran dikonfirmasi.
                               </div>
                             )}
                           </div>
