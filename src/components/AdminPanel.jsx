@@ -4554,21 +4554,6 @@ export default function AdminPanel({
                                     </div>
                                   </div>
                                 </div>
-                                {b.isPrimary && (
-                                  <span style={{
-                                    fontSize: '0.7rem',
-                                    backgroundColor: '#e0f2fe',
-                                    color: '#0284c7',
-                                    border: '1px solid #bae6fd',
-                                    padding: '4px 10px',
-                                    borderRadius: '20px',
-                                    fontWeight: '800',
-                                    letterSpacing: '0.3px',
-                                    textTransform: 'uppercase'
-                                  }}>
-                                    Rekening Utama
-                                  </span>
-                                )}
                               </div>
 
                               {/* Card Body dengan Nomor Rekening & Nama Rata Kiri */}
