@@ -233,7 +233,6 @@ export default function PremiumModal({
   if (!isOpen) return null;
 
   const premiumFeatures = [
-    'Akses Penuh Seluruh Karya, Film & Konten Eksklusif Bebas Iklan',
     'Unlock Portofolio Lengkap & Kontak Langsung Kreator / Brand',
     'Akses Prioritas Tiket & Undangan Event Eksklusif ngonten.id',
     'Biaya Penarikan Dompet Hemat 60% (Hanya 2%)',
