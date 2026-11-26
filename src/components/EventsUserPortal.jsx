@@ -2395,11 +2395,29 @@ export default function EventsUserPortal({
                                       border: '1px solid var(--border-color)', 
                                       borderRadius: '10px',
                                       fontSize: '0.78rem',
-                                      color: 'var(--text-secondary)'
+                                      color: 'var(--text-secondary)',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: '10px'
                                     }}>
-                                      <strong style={{ color: 'white', display: 'block', marginBottom: '4px' }}>Laporan Terkirim:</strong>
-                                      <div style={{ wordBreak: 'break-all' }}>{userSub.title}</div>
-                                      <div style={{ marginTop: '6px', color: 'var(--text-muted)' }}>Dikirim pada: {new Date(userSub.submittedAt).toLocaleDateString('id-ID')}</div>
+                                      <strong style={{ color: 'white', display: 'block' }}>
+                                        Laporan Terkirim ({eventSubmissions.filter(s => s.eventId === evt.id && s.username?.toLowerCase() === currentUser.username?.toLowerCase()).length}):
+                                      </strong>
+                                      {eventSubmissions
+                                        .filter(s => s.eventId === evt.id && s.username?.toLowerCase() === currentUser.username?.toLowerCase())
+                                        .map((sub, idx) => (
+                                          <div key={sub.id || idx} style={{ paddingTop: idx > 0 ? '8px' : 0, borderTop: idx > 0 ? '1px dashed var(--border-color)' : 'none' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                                              <span style={{ wordBreak: 'break-all', fontWeight: '600', color: 'var(--text-primary)' }}>{sub.title}</span>
+                                              <span style={{ fontSize: '0.68rem', padding: '2px 7px', borderRadius: '8px', background: sub.status === 'approved' ? 'rgba(34,197,94,0.12)' : sub.status === 'rejected' ? 'rgba(239,68,68,0.12)' : 'rgba(234,179,8,0.12)', color: sub.status === 'approved' ? '#16a34a' : sub.status === 'rejected' ? '#dc2626' : '#ca8a04', fontWeight: '700', flexShrink: 0 }}>
+                                                {sub.status === 'approved' ? 'Disetujui' : sub.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
+                                              </span>
+                                            </div>
+                                            <div style={{ marginTop: '3px', color: 'var(--text-muted)', fontSize: '0.72rem' }}>
+                                              {sub.platform ? `${sub.platform} • ` : ''}Dikirim pada: {new Date(sub.submittedAt).toLocaleDateString('id-ID')}
+                                            </div>
+                                          </div>
+                                        ))}
                                     </div>
                                   </div>
                                 )}
