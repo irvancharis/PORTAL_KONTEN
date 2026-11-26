@@ -2186,8 +2186,54 @@ export default function App() {
                     </div>
                   </div>
                 ) : (
-                  // SINGLE COLUMN FOR USER / KREATOR REGISTER (EMAIL & PASSWORD ONLY)
+                  // SINGLE COLUMN FOR USER / KREATOR REGISTER
                   <>
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label htmlFor="registerFullName" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Nama Lengkap</label>
+                      <input
+                        id="registerFullName"
+                        type="text"
+                        placeholder="Masukkan nama lengkap..."
+                        value={registerFullName}
+                        onChange={(e) => setRegisterFullName(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
+                          fontFamily: 'var(--font-sans)',
+                          fontSize: '0.9rem',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label htmlFor="registerWhatsapp" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>WhatsApp / No. HP</label>
+                      <input
+                        id="registerWhatsapp"
+                        type="tel"
+                        placeholder="Contoh: 081234567890"
+                        value={registerWhatsapp}
+                        onChange={(e) => setRegisterWhatsapp(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
+                          fontFamily: 'var(--font-sans)',
+                          fontSize: '0.9rem',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+
                     <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <label htmlFor="loginUsername" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Alamat Email</label>
                       <input 
@@ -2293,52 +2339,6 @@ export default function App() {
                           {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
                       </div>
-                    </div>
-
-                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <label htmlFor="registerFullName" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Nama Lengkap</label>
-                      <input
-                        id="registerFullName"
-                        type="text"
-                        placeholder="Masukkan nama lengkap..."
-                        value={registerFullName}
-                        onChange={(e) => setRegisterFullName(e.target.value)}
-                        required
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          background: 'rgba(255, 255, 255, 0.04)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: 'var(--radius-sm)',
-                          color: 'var(--text-primary)',
-                          fontFamily: 'var(--font-sans)',
-                          fontSize: '0.9rem',
-                          outline: 'none'
-                        }}
-                      />
-                    </div>
-
-                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <label htmlFor="registerWhatsapp" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>WhatsApp / No. HP</label>
-                      <input
-                        id="registerWhatsapp"
-                        type="tel"
-                        placeholder="Contoh: 081234567890"
-                        value={registerWhatsapp}
-                        onChange={(e) => setRegisterWhatsapp(e.target.value)}
-                        required
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          background: 'rgba(255, 255, 255, 0.04)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: 'var(--radius-sm)',
-                          color: 'var(--text-primary)',
-                          fontFamily: 'var(--font-sans)',
-                          fontSize: '0.9rem',
-                          outline: 'none'
-                        }}
-                      />
                     </div>
 
                     <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
