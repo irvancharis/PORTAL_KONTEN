@@ -4439,11 +4439,49 @@ export default function AdminPanel({
                 </div>
 
                 {previewingEvent.juknis && (
-                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
                     <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
                     <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                       {previewingEvent.juknis}
                     </p>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisPlatforms || previewingEvent.juknisDuration) && (
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.84rem' }}>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Platform Publikasi</span>
+                      <strong style={{ color: '#0f172a' }}>
+                        {previewingEvent.juknisPlatforms
+                          ? (Object.entries(previewingEvent.juknisPlatforms).filter(([, v]) => v).map(([k]) => k === 'GoogleReview' ? 'Google Review' : k).join(', ') || '-')
+                          : '-'}
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Target Durasi</span>
+                      <strong style={{ color: '#0f172a' }}>{previewingEvent.juknisDuration || '-'}</strong>
+                    </div>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisDos || previewingEvent.juknisDonts) && (
+                  <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                    {previewingEvent.juknisDos && (
+                      <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDos}
+                        </p>
+                      </div>
+                    )}
+                    {previewingEvent.juknisDonts && (
+                      <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDonts}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -4992,11 +5030,49 @@ export default function AdminPanel({
                 </div>
 
                 {previewingEvent.juknis && (
-                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
                     <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
                     <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                       {previewingEvent.juknis}
                     </p>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisPlatforms || previewingEvent.juknisDuration) && (
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.84rem' }}>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Platform Publikasi</span>
+                      <strong style={{ color: '#0f172a' }}>
+                        {previewingEvent.juknisPlatforms
+                          ? (Object.entries(previewingEvent.juknisPlatforms).filter(([, v]) => v).map(([k]) => k === 'GoogleReview' ? 'Google Review' : k).join(', ') || '-')
+                          : '-'}
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Target Durasi</span>
+                      <strong style={{ color: '#0f172a' }}>{previewingEvent.juknisDuration || '-'}</strong>
+                    </div>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisDos || previewingEvent.juknisDonts) && (
+                  <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                    {previewingEvent.juknisDos && (
+                      <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDos}
+                        </p>
+                      </div>
+                    )}
+                    {previewingEvent.juknisDonts && (
+                      <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDonts}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -5279,11 +5355,49 @@ export default function AdminPanel({
                 </div>
 
                 {previewingEvent.juknis && (
-                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
                     <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
                     <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                       {previewingEvent.juknis}
                     </p>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisPlatforms || previewingEvent.juknisDuration) && (
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.84rem' }}>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Platform Publikasi</span>
+                      <strong style={{ color: '#0f172a' }}>
+                        {previewingEvent.juknisPlatforms
+                          ? (Object.entries(previewingEvent.juknisPlatforms).filter(([, v]) => v).map(([k]) => k === 'GoogleReview' ? 'Google Review' : k).join(', ') || '-')
+                          : '-'}
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Target Durasi</span>
+                      <strong style={{ color: '#0f172a' }}>{previewingEvent.juknisDuration || '-'}</strong>
+                    </div>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisDos || previewingEvent.juknisDonts) && (
+                  <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                    {previewingEvent.juknisDos && (
+                      <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDos}
+                        </p>
+                      </div>
+                    )}
+                    {previewingEvent.juknisDonts && (
+                      <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDonts}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -5522,11 +5636,49 @@ export default function AdminPanel({
                 </div>
 
                 {previewingEvent.juknis && (
-                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
                     <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
                     <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                       {previewingEvent.juknis}
                     </p>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisPlatforms || previewingEvent.juknisDuration) && (
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.84rem' }}>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Platform Publikasi</span>
+                      <strong style={{ color: '#0f172a' }}>
+                        {previewingEvent.juknisPlatforms
+                          ? (Object.entries(previewingEvent.juknisPlatforms).filter(([, v]) => v).map(([k]) => k === 'GoogleReview' ? 'Google Review' : k).join(', ') || '-')
+                          : '-'}
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Target Durasi</span>
+                      <strong style={{ color: '#0f172a' }}>{previewingEvent.juknisDuration || '-'}</strong>
+                    </div>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisDos || previewingEvent.juknisDonts) && (
+                  <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                    {previewingEvent.juknisDos && (
+                      <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDos}
+                        </p>
+                      </div>
+                    )}
+                    {previewingEvent.juknisDonts && (
+                      <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDonts}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -7145,11 +7297,49 @@ export default function AdminPanel({
                 </div>
 
                 {previewingEvent.juknis && (
-                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
                     <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
                     <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                       {previewingEvent.juknis}
                     </p>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisPlatforms || previewingEvent.juknisDuration) && (
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.84rem' }}>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Platform Publikasi</span>
+                      <strong style={{ color: '#0f172a' }}>
+                        {previewingEvent.juknisPlatforms
+                          ? (Object.entries(previewingEvent.juknisPlatforms).filter(([, v]) => v).map(([k]) => k === 'GoogleReview' ? 'Google Review' : k).join(', ') || '-')
+                          : '-'}
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Target Durasi</span>
+                      <strong style={{ color: '#0f172a' }}>{previewingEvent.juknisDuration || '-'}</strong>
+                    </div>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisDos || previewingEvent.juknisDonts) && (
+                  <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                    {previewingEvent.juknisDos && (
+                      <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDos}
+                        </p>
+                      </div>
+                    )}
+                    {previewingEvent.juknisDonts && (
+                      <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDonts}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -7474,11 +7664,49 @@ export default function AdminPanel({
                 </div>
 
                 {previewingEvent.juknis && (
-                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
                     <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
                     <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                       {previewingEvent.juknis}
                     </p>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisPlatforms || previewingEvent.juknisDuration) && (
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.84rem' }}>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Platform Publikasi</span>
+                      <strong style={{ color: '#0f172a' }}>
+                        {previewingEvent.juknisPlatforms
+                          ? (Object.entries(previewingEvent.juknisPlatforms).filter(([, v]) => v).map(([k]) => k === 'GoogleReview' ? 'Google Review' : k).join(', ') || '-')
+                          : '-'}
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Target Durasi</span>
+                      <strong style={{ color: '#0f172a' }}>{previewingEvent.juknisDuration || '-'}</strong>
+                    </div>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisDos || previewingEvent.juknisDonts) && (
+                  <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                    {previewingEvent.juknisDos && (
+                      <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDos}
+                        </p>
+                      </div>
+                    )}
+                    {previewingEvent.juknisDonts && (
+                      <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDonts}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -9214,11 +9442,49 @@ export default function AdminPanel({
                 </div>
 
                 {previewingEvent.juknis && (
-                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
                     <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
                     <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
                       {previewingEvent.juknis}
                     </p>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisPlatforms || previewingEvent.juknisDuration) && (
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.84rem' }}>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Platform Publikasi</span>
+                      <strong style={{ color: '#0f172a' }}>
+                        {previewingEvent.juknisPlatforms
+                          ? (Object.entries(previewingEvent.juknisPlatforms).filter(([, v]) => v).map(([k]) => k === 'GoogleReview' ? 'Google Review' : k).join(', ') || '-')
+                          : '-'}
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Target Durasi</span>
+                      <strong style={{ color: '#0f172a' }}>{previewingEvent.juknisDuration || '-'}</strong>
+                    </div>
+                  </div>
+                )}
+
+                {(previewingEvent.juknisDos || previewingEvent.juknisDonts) && (
+                  <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                    {previewingEvent.juknisDos && (
+                      <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#047857', textTransform: 'uppercase', marginBottom: '6px' }}>✓ Do&apos;s (Yang Harus Dilakukan)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#065f46', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDos}
+                        </p>
+                      </div>
+                    )}
+                    {previewingEvent.juknisDonts && (
+                      <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: '800', color: '#b91c1c', textTransform: 'uppercase', marginBottom: '6px' }}>✕ Don&apos;ts (Yang Dilarang)</div>
+                        <p style={{ margin: 0, fontSize: '0.84rem', color: '#991b1b', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                          {previewingEvent.juknisDonts}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
