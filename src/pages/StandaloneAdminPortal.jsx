@@ -136,7 +136,6 @@ export default function StandaloneAdminPortal(props) {
     { id: 'withdrawals', label: 'Pencairan Dana (Withdrawal)', icon: TrendingUp, badge: pendingWithdrawalsCount },
     { id: 'finance-report', label: 'Jurnal Kas Finansial', icon: CreditCard },
     { id: 'creator-marketplace', label: 'Katalog Kreator', icon: Users },
-    { id: 'users', label: 'Manajemen Pengguna', icon: Users },
     { id: 'blacklist', label: 'Peserta Blacklist', icon: Users },
     { id: 'users', label: 'Manajemen Pengguna', icon: Users },
     { id: 'membership', label: 'Konfigurasi Sistem', icon: Settings },
