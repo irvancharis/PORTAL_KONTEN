@@ -11120,9 +11120,10 @@ export default function AdminPanel({
                                         }
                                       }
                                     }}
-                                    style={{ background: '#10b981', color: '#ffffff', border: 'none', padding: '7px 14px', fontSize: '0.78rem', fontWeight: '700', borderRadius: '8px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(16, 185, 129, 0.25)' }}
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#10b981', color: '#ffffff', border: 'none', padding: '7px 14px', fontSize: '0.78rem', fontWeight: '700', borderRadius: '999px', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 6px rgba(16, 185, 129, 0.25)' }}
                                   >
-                                    âœ“ Setujui
+                                    <CheckCircle2 size={14} />
+                                    <span>Setujui</span>
                                   </button>
                                   <button 
                                     className="btn btn-secondary btn-sm"
@@ -11149,7 +11150,7 @@ export default function AdminPanel({
                                         }
                                       }
                                     }}
-                                    style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', padding: '7px 14px', fontSize: '0.78rem', fontWeight: '700', borderRadius: '8px', cursor: 'pointer' }}
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', padding: '7px 14px', fontSize: '0.78rem', fontWeight: '700', borderRadius: '999px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                                   >
                                     Tolak
                                   </button>
