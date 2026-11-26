@@ -667,6 +667,7 @@ export default function AdminPanel({
   const [editingEventId, setEditingEventId] = useState(null);
   const [depositingEvent, setDepositingEvent] = useState(null);
   const [verifyingEvent, setVerifyingEvent] = useState(null);
+  const [previewingEvent, setPreviewingEvent] = useState(null);
   const [eventTicketPrice, setEventTicketPrice] = useState(0);
   const [eventPosterUrl, setEventPosterUrl] = useState('');
   const [posterUploadError, setPosterUploadError] = useState('');
@@ -4358,6 +4359,108 @@ export default function AdminPanel({
             document.body
           )}
 
+          {previewingEvent && createPortal(
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              zIndex: 11500,
+              overflowY: 'auto',
+              padding: '24px 16px 80px 16px',
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }} className="animate-fade-in">
+              <div style={{
+                width: '100%',
+                maxWidth: '640px',
+                background: '#ffffff',
+                borderRadius: '24px',
+                padding: '26px 24px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                color: '#0f172a',
+                boxSizing: 'border-box'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #f1f5f9', paddingBottom: '14px' }}>
+                  <div>
+                    <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Preview Detail Campaign</span>
+                    <h2 style={{ margin: '4px 0 0 0', color: '#0f172a', fontSize: '1.35rem', fontWeight: '800' }}>{previewingEvent.title}</h2>
+                  </div>
+                  <button
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {previewingEvent.posterUrl && (
+                  <div style={{ marginBottom: '18px', borderRadius: '14px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#0f172a', display: 'flex', justifyContent: 'center' }}>
+                    <img src={previewingEvent.posterUrl} alt={previewingEvent.title} style={{ width: '100%', maxHeight: '320px', objectFit: 'contain', display: 'block' }} />
+                  </div>
+                )}
+
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.86rem' }}>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Tipe Campaign</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.eventType === 'regular' ? 'Acara / Seminar' : 'Kompetisi'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>
+                      {previewingEvent.eventType === 'regular' ? 'Harga Tiket' : 'Total Budget'}
+                    </span>
+                    <strong style={{ color: '#0f172a' }}>
+                      {previewingEvent.eventType === 'regular'
+                        ? (previewingEvent.ticketPrice > 0 ? `Rp ${previewingEvent.ticketPrice.toLocaleString('id-ID')}` : 'Gratis')
+                        : `Rp ${(previewingEvent.campaignBudget || 0).toLocaleString('id-ID')}`}
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Target Area</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.areaMode === 'regional' ? `Regional (${previewingEvent.areaRegional})` : 'Nasional (Semua Area)'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Penyelenggara</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.organizerName || previewingEvent.creator || '-'}</strong>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Deskripsi &amp; Ketentuan</div>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#334155', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                    {previewingEvent.description || '-'}
+                  </p>
+                </div>
+
+                {previewingEvent.juknis && (
+                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                      {previewingEvent.juknis}
+                    </p>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '14px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ padding: '10px 24px', borderRadius: '10px', background: '#0f172a', color: '#ffffff', border: 'none', fontWeight: '700', fontSize: '0.88rem', cursor: 'pointer' }}
+                  >
+                    Tutup Preview
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+
           {depositingEvent && createPortal(
             <div style={{
               position: 'fixed',
@@ -4809,6 +4912,108 @@ export default function AdminPanel({
             document.body
           )}
 
+          {previewingEvent && createPortal(
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              zIndex: 11500,
+              overflowY: 'auto',
+              padding: '24px 16px 80px 16px',
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }} className="animate-fade-in">
+              <div style={{
+                width: '100%',
+                maxWidth: '640px',
+                background: '#ffffff',
+                borderRadius: '24px',
+                padding: '26px 24px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                color: '#0f172a',
+                boxSizing: 'border-box'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #f1f5f9', paddingBottom: '14px' }}>
+                  <div>
+                    <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Preview Detail Campaign</span>
+                    <h2 style={{ margin: '4px 0 0 0', color: '#0f172a', fontSize: '1.35rem', fontWeight: '800' }}>{previewingEvent.title}</h2>
+                  </div>
+                  <button
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {previewingEvent.posterUrl && (
+                  <div style={{ marginBottom: '18px', borderRadius: '14px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#0f172a', display: 'flex', justifyContent: 'center' }}>
+                    <img src={previewingEvent.posterUrl} alt={previewingEvent.title} style={{ width: '100%', maxHeight: '320px', objectFit: 'contain', display: 'block' }} />
+                  </div>
+                )}
+
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.86rem' }}>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Tipe Campaign</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.eventType === 'regular' ? 'Acara / Seminar' : 'Kompetisi'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>
+                      {previewingEvent.eventType === 'regular' ? 'Harga Tiket' : 'Total Budget'}
+                    </span>
+                    <strong style={{ color: '#0f172a' }}>
+                      {previewingEvent.eventType === 'regular'
+                        ? (previewingEvent.ticketPrice > 0 ? `Rp ${previewingEvent.ticketPrice.toLocaleString('id-ID')}` : 'Gratis')
+                        : `Rp ${(previewingEvent.campaignBudget || 0).toLocaleString('id-ID')}`}
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Target Area</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.areaMode === 'regional' ? `Regional (${previewingEvent.areaRegional})` : 'Nasional (Semua Area)'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Penyelenggara</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.organizerName || previewingEvent.creator || '-'}</strong>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Deskripsi &amp; Ketentuan</div>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#334155', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                    {previewingEvent.description || '-'}
+                  </p>
+                </div>
+
+                {previewingEvent.juknis && (
+                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                      {previewingEvent.juknis}
+                    </p>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '14px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ padding: '10px 24px', borderRadius: '10px', background: '#0f172a', color: '#ffffff', border: 'none', fontWeight: '700', fontSize: '0.88rem', cursor: 'pointer' }}
+                  >
+                    Tutup Preview
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+
           {verifyingEvent && createPortal(
             <div style={{
               position: 'fixed',
@@ -4855,7 +5060,17 @@ export default function AdminPanel({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   {/* Event & Proof Info */}
                   <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', padding: '20px', borderRadius: '12px' }}>
-                    <h4 style={{ margin: '0 0 16px 0', color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>Rincian Event & Pengirim</h4>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+                      <h4 style={{ margin: 0, color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>Rincian Event &amp; Pengirim</h4>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewingEvent(verifyingEvent)}
+                        style={{ padding: '6px 12px', borderRadius: '8px', background: '#38bdf8', color: '#0f172a', border: 'none', fontSize: '0.78rem', fontWeight: '700', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                      >
+                        <Eye size={14} />
+                        <span>Preview Detail Campaign</span>
+                      </button>
+                    </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '0.9rem' }}>
                       <div>
                         <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Judul Event:</span>
@@ -4877,6 +5092,51 @@ export default function AdminPanel({
                       </div>
                     </div>
                   </div>
+
+                  {/* Profil Pembuat Campaign (Untuk Konfirmasi Admin) */}
+                  {(() => {
+                    const creatorUser = (users || []).find(u => u.username?.toLowerCase() === verifyingEvent.creator?.toLowerCase());
+                    const cName = creatorUser?.organizerName || creatorUser?.name || verifyingEvent.organizerName || verifyingEvent.creator || '-';
+                    const cPhone = creatorUser?.organizerPhone || creatorUser?.phone || verifyingEvent.organizerPhone || '';
+                    const cEmail = creatorUser?.email || (verifyingEvent.creator ? `${verifyingEvent.creator}@gmail.com` : '-');
+                    const cRegional = creatorUser?.userRegional || '-';
+                    const waNum = cPhone.replace(/\D/g, '').replace(/^0/, '62');
+                    return (
+                      <div style={{ background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.2)', padding: '18px 20px', borderRadius: '12px' }}>
+                        <h4 style={{ margin: '0 0 12px 0', color: '#38bdf8', fontSize: '0.95rem', fontWeight: 'bold' }}>Profil Pembuat Campaign (Kontak Konfirmasi)</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.86rem' }}>
+                          <div>
+                            <span style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '0.75rem' }}>Nama / Instansi:</span>
+                            <strong style={{ color: 'white' }}>{cName} (@{verifyingEvent.creator})</strong>
+                          </div>
+                          <div>
+                            <span style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '0.75rem' }}>Lokasi Regional:</span>
+                            <strong style={{ color: 'white' }}>{cRegional}</strong>
+                          </div>
+                          <div>
+                            <span style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '0.75rem' }}>Email:</span>
+                            <strong style={{ color: 'white' }}>{cEmail}</strong>
+                          </div>
+                          <div>
+                            <span style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '0.75rem' }}>No. WhatsApp:</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                              <strong style={{ color: 'white' }}>{cPhone || '-'}</strong>
+                              {waNum && (
+                                <a
+                                  href={`https://wa.me/${waNum}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ fontSize: '0.72rem', background: '#10b981', color: 'white', padding: '2px 8px', borderRadius: '6px', textDecoration: 'none', fontWeight: '700' }}
+                                >
+                                  Hubungi WA
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Receipt Preview */}
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '20px', borderRadius: '12px', textAlign: 'center' }}>
@@ -4933,6 +5193,108 @@ export default function AdminPanel({
                       Setujui Pembayaran
                     </button>
                   </div>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+
+          {previewingEvent && createPortal(
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              zIndex: 11500,
+              overflowY: 'auto',
+              padding: '24px 16px 80px 16px',
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }} className="animate-fade-in">
+              <div style={{
+                width: '100%',
+                maxWidth: '640px',
+                background: '#ffffff',
+                borderRadius: '24px',
+                padding: '26px 24px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                color: '#0f172a',
+                boxSizing: 'border-box'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #f1f5f9', paddingBottom: '14px' }}>
+                  <div>
+                    <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Preview Detail Campaign</span>
+                    <h2 style={{ margin: '4px 0 0 0', color: '#0f172a', fontSize: '1.35rem', fontWeight: '800' }}>{previewingEvent.title}</h2>
+                  </div>
+                  <button
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {previewingEvent.posterUrl && (
+                  <div style={{ marginBottom: '18px', borderRadius: '14px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#0f172a', display: 'flex', justifyContent: 'center' }}>
+                    <img src={previewingEvent.posterUrl} alt={previewingEvent.title} style={{ width: '100%', maxHeight: '320px', objectFit: 'contain', display: 'block' }} />
+                  </div>
+                )}
+
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.86rem' }}>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Tipe Campaign</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.eventType === 'regular' ? 'Acara / Seminar' : 'Kompetisi'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>
+                      {previewingEvent.eventType === 'regular' ? 'Harga Tiket' : 'Total Budget'}
+                    </span>
+                    <strong style={{ color: '#0f172a' }}>
+                      {previewingEvent.eventType === 'regular'
+                        ? (previewingEvent.ticketPrice > 0 ? `Rp ${previewingEvent.ticketPrice.toLocaleString('id-ID')}` : 'Gratis')
+                        : `Rp ${(previewingEvent.campaignBudget || 0).toLocaleString('id-ID')}`}
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Target Area</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.areaMode === 'regional' ? `Regional (${previewingEvent.areaRegional})` : 'Nasional (Semua Area)'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Penyelenggara</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.organizerName || previewingEvent.creator || '-'}</strong>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Deskripsi &amp; Ketentuan</div>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#334155', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                    {previewingEvent.description || '-'}
+                  </p>
+                </div>
+
+                {previewingEvent.juknis && (
+                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                      {previewingEvent.juknis}
+                    </p>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '14px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ padding: '10px 24px', borderRadius: '10px', background: '#0f172a', color: '#ffffff', border: 'none', fontWeight: '700', fontSize: '0.88rem', cursor: 'pointer' }}
+                  >
+                    Tutup Preview
+                  </button>
                 </div>
               </div>
             </div>,
@@ -5074,6 +5436,108 @@ export default function AdminPanel({
                       Kirim Hadiah Pemenang
                     </button>
                   )}
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+
+          {previewingEvent && createPortal(
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              zIndex: 11500,
+              overflowY: 'auto',
+              padding: '24px 16px 80px 16px',
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }} className="animate-fade-in">
+              <div style={{
+                width: '100%',
+                maxWidth: '640px',
+                background: '#ffffff',
+                borderRadius: '24px',
+                padding: '26px 24px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                color: '#0f172a',
+                boxSizing: 'border-box'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #f1f5f9', paddingBottom: '14px' }}>
+                  <div>
+                    <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Preview Detail Campaign</span>
+                    <h2 style={{ margin: '4px 0 0 0', color: '#0f172a', fontSize: '1.35rem', fontWeight: '800' }}>{previewingEvent.title}</h2>
+                  </div>
+                  <button
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {previewingEvent.posterUrl && (
+                  <div style={{ marginBottom: '18px', borderRadius: '14px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#0f172a', display: 'flex', justifyContent: 'center' }}>
+                    <img src={previewingEvent.posterUrl} alt={previewingEvent.title} style={{ width: '100%', maxHeight: '320px', objectFit: 'contain', display: 'block' }} />
+                  </div>
+                )}
+
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.86rem' }}>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Tipe Campaign</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.eventType === 'regular' ? 'Acara / Seminar' : 'Kompetisi'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>
+                      {previewingEvent.eventType === 'regular' ? 'Harga Tiket' : 'Total Budget'}
+                    </span>
+                    <strong style={{ color: '#0f172a' }}>
+                      {previewingEvent.eventType === 'regular'
+                        ? (previewingEvent.ticketPrice > 0 ? `Rp ${previewingEvent.ticketPrice.toLocaleString('id-ID')}` : 'Gratis')
+                        : `Rp ${(previewingEvent.campaignBudget || 0).toLocaleString('id-ID')}`}
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Target Area</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.areaMode === 'regional' ? `Regional (${previewingEvent.areaRegional})` : 'Nasional (Semua Area)'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Penyelenggara</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.organizerName || previewingEvent.creator || '-'}</strong>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Deskripsi &amp; Ketentuan</div>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#334155', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                    {previewingEvent.description || '-'}
+                  </p>
+                </div>
+
+                {previewingEvent.juknis && (
+                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                      {previewingEvent.juknis}
+                    </p>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '14px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ padding: '10px 24px', borderRadius: '10px', background: '#0f172a', color: '#ffffff', border: 'none', fontWeight: '700', fontSize: '0.88rem', cursor: 'pointer' }}
+                  >
+                    Tutup Preview
+                  </button>
                 </div>
               </div>
             </div>,
@@ -5604,6 +6068,26 @@ export default function AdminPanel({
                                 </span>
                               )
                             ) : (
+                              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                              <button 
+                                onClick={() => setPreviewingEvent(evt)}
+                                style={{ 
+                                  padding: '9px 14px', 
+                                  fontSize: '0.8rem', 
+                                  display: 'inline-flex', 
+                                  alignItems: 'center', 
+                                  gap: '5px', 
+                                  background: '#f1f5f9', 
+                                  border: '1px solid #cbd5e1', 
+                                  color: '#0f172a', 
+                                  fontWeight: '700',
+                                  borderRadius: '10px',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <Eye size={14} color="#0f172a" />
+                                <span>Preview</span>
+                              </button>
                               <button 
                                 onClick={() => handleOpenPayment(evt)}
                                 style={{ 
@@ -5624,6 +6108,7 @@ export default function AdminPanel({
                                 <Wallet size={14} color="#ffffff" />
                                 <span>Selesaikan Pembayaran →</span>
                               </button>
+                              </div>
                             )
                           )}
                         </div>
@@ -6586,6 +7071,108 @@ export default function AdminPanel({
             document.body
           )}
 
+          {previewingEvent && createPortal(
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              zIndex: 11500,
+              overflowY: 'auto',
+              padding: '24px 16px 80px 16px',
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }} className="animate-fade-in">
+              <div style={{
+                width: '100%',
+                maxWidth: '640px',
+                background: '#ffffff',
+                borderRadius: '24px',
+                padding: '26px 24px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                color: '#0f172a',
+                boxSizing: 'border-box'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #f1f5f9', paddingBottom: '14px' }}>
+                  <div>
+                    <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Preview Detail Campaign</span>
+                    <h2 style={{ margin: '4px 0 0 0', color: '#0f172a', fontSize: '1.35rem', fontWeight: '800' }}>{previewingEvent.title}</h2>
+                  </div>
+                  <button
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {previewingEvent.posterUrl && (
+                  <div style={{ marginBottom: '18px', borderRadius: '14px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#0f172a', display: 'flex', justifyContent: 'center' }}>
+                    <img src={previewingEvent.posterUrl} alt={previewingEvent.title} style={{ width: '100%', maxHeight: '320px', objectFit: 'contain', display: 'block' }} />
+                  </div>
+                )}
+
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.86rem' }}>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Tipe Campaign</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.eventType === 'regular' ? 'Acara / Seminar' : 'Kompetisi'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>
+                      {previewingEvent.eventType === 'regular' ? 'Harga Tiket' : 'Total Budget'}
+                    </span>
+                    <strong style={{ color: '#0f172a' }}>
+                      {previewingEvent.eventType === 'regular'
+                        ? (previewingEvent.ticketPrice > 0 ? `Rp ${previewingEvent.ticketPrice.toLocaleString('id-ID')}` : 'Gratis')
+                        : `Rp ${(previewingEvent.campaignBudget || 0).toLocaleString('id-ID')}`}
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Target Area</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.areaMode === 'regional' ? `Regional (${previewingEvent.areaRegional})` : 'Nasional (Semua Area)'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Penyelenggara</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.organizerName || previewingEvent.creator || '-'}</strong>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Deskripsi &amp; Ketentuan</div>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#334155', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                    {previewingEvent.description || '-'}
+                  </p>
+                </div>
+
+                {previewingEvent.juknis && (
+                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                      {previewingEvent.juknis}
+                    </p>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '14px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ padding: '10px 24px', borderRadius: '10px', background: '#0f172a', color: '#ffffff', border: 'none', fontWeight: '700', fontSize: '0.88rem', cursor: 'pointer' }}
+                  >
+                    Tutup Preview
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+
           {/* Send Bulk Offer Modal */}
           {showBulkOfferModal && createPortal(
             <div style={{
@@ -6807,6 +7394,108 @@ export default function AdminPanel({
                       </div>
                     );
                   })()}
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+
+          {previewingEvent && createPortal(
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              zIndex: 11500,
+              overflowY: 'auto',
+              padding: '24px 16px 80px 16px',
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }} className="animate-fade-in">
+              <div style={{
+                width: '100%',
+                maxWidth: '640px',
+                background: '#ffffff',
+                borderRadius: '24px',
+                padding: '26px 24px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                color: '#0f172a',
+                boxSizing: 'border-box'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #f1f5f9', paddingBottom: '14px' }}>
+                  <div>
+                    <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Preview Detail Campaign</span>
+                    <h2 style={{ margin: '4px 0 0 0', color: '#0f172a', fontSize: '1.35rem', fontWeight: '800' }}>{previewingEvent.title}</h2>
+                  </div>
+                  <button
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {previewingEvent.posterUrl && (
+                  <div style={{ marginBottom: '18px', borderRadius: '14px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#0f172a', display: 'flex', justifyContent: 'center' }}>
+                    <img src={previewingEvent.posterUrl} alt={previewingEvent.title} style={{ width: '100%', maxHeight: '320px', objectFit: 'contain', display: 'block' }} />
+                  </div>
+                )}
+
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.86rem' }}>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Tipe Campaign</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.eventType === 'regular' ? 'Acara / Seminar' : 'Kompetisi'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>
+                      {previewingEvent.eventType === 'regular' ? 'Harga Tiket' : 'Total Budget'}
+                    </span>
+                    <strong style={{ color: '#0f172a' }}>
+                      {previewingEvent.eventType === 'regular'
+                        ? (previewingEvent.ticketPrice > 0 ? `Rp ${previewingEvent.ticketPrice.toLocaleString('id-ID')}` : 'Gratis')
+                        : `Rp ${(previewingEvent.campaignBudget || 0).toLocaleString('id-ID')}`}
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Target Area</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.areaMode === 'regional' ? `Regional (${previewingEvent.areaRegional})` : 'Nasional (Semua Area)'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Penyelenggara</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.organizerName || previewingEvent.creator || '-'}</strong>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Deskripsi &amp; Ketentuan</div>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#334155', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                    {previewingEvent.description || '-'}
+                  </p>
+                </div>
+
+                {previewingEvent.juknis && (
+                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                      {previewingEvent.juknis}
+                    </p>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '14px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ padding: '10px 24px', borderRadius: '10px', background: '#0f172a', color: '#ffffff', border: 'none', fontWeight: '700', fontSize: '0.88rem', cursor: 'pointer' }}
+                  >
+                    Tutup Preview
+                  </button>
                 </div>
               </div>
             </div>,
@@ -8445,6 +9134,108 @@ export default function AdminPanel({
                       </button>
                     </div>
                   </form>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+
+          {previewingEvent && createPortal(
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              zIndex: 11500,
+              overflowY: 'auto',
+              padding: '24px 16px 80px 16px',
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }} className="animate-fade-in">
+              <div style={{
+                width: '100%',
+                maxWidth: '640px',
+                background: '#ffffff',
+                borderRadius: '24px',
+                padding: '26px 24px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                color: '#0f172a',
+                boxSizing: 'border-box'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #f1f5f9', paddingBottom: '14px' }}>
+                  <div>
+                    <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Preview Detail Campaign</span>
+                    <h2 style={{ margin: '4px 0 0 0', color: '#0f172a', fontSize: '1.35rem', fontWeight: '800' }}>{previewingEvent.title}</h2>
+                  </div>
+                  <button
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {previewingEvent.posterUrl && (
+                  <div style={{ marginBottom: '18px', borderRadius: '14px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#0f172a', display: 'flex', justifyContent: 'center' }}>
+                    <img src={previewingEvent.posterUrl} alt={previewingEvent.title} style={{ width: '100%', maxHeight: '320px', objectFit: 'contain', display: 'block' }} />
+                  </div>
+                )}
+
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.86rem' }}>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Tipe Campaign</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.eventType === 'regular' ? 'Acara / Seminar' : 'Kompetisi'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>
+                      {previewingEvent.eventType === 'regular' ? 'Harga Tiket' : 'Total Budget'}
+                    </span>
+                    <strong style={{ color: '#0f172a' }}>
+                      {previewingEvent.eventType === 'regular'
+                        ? (previewingEvent.ticketPrice > 0 ? `Rp ${previewingEvent.ticketPrice.toLocaleString('id-ID')}` : 'Gratis')
+                        : `Rp ${(previewingEvent.campaignBudget || 0).toLocaleString('id-ID')}`}
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Target Area</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.areaMode === 'regional' ? `Regional (${previewingEvent.areaRegional})` : 'Nasional (Semua Area)'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.74rem', fontWeight: '700', textTransform: 'uppercase' }}>Penyelenggara</span>
+                    <strong style={{ color: '#0f172a' }}>{previewingEvent.organizerName || previewingEvent.creator || '-'}</strong>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Deskripsi &amp; Ketentuan</div>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#334155', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                    {previewingEvent.description || '-'}
+                  </p>
+                </div>
+
+                {previewingEvent.juknis && (
+                  <div style={{ marginBottom: '18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Panduan Juknis</div>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.55', whiteSpace: 'pre-line' }}>
+                      {previewingEvent.juknis}
+                    </p>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '14px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewingEvent(null)}
+                    style={{ padding: '10px 24px', borderRadius: '10px', background: '#0f172a', color: '#ffffff', border: 'none', fontWeight: '700', fontSize: '0.88rem', cursor: 'pointer' }}
+                  >
+                    Tutup Preview
+                  </button>
                 </div>
               </div>
             </div>,
