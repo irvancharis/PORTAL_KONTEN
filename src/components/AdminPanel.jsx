@@ -9850,9 +9850,9 @@ export default function AdminPanel({
                                         }
                                       }
                                     }}
-                                    style={{ background: '#22c55e', color: 'white', border: 'none', padding: '6px 12px', fontSize: '0.78rem', borderRadius: '4px', cursor: 'pointer' }}
+                                    style={{ background: '#10b981', color: '#ffffff', border: 'none', padding: '7px 14px', fontSize: '0.78rem', fontWeight: '700', borderRadius: '8px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(16, 185, 129, 0.25)' }}
                                   >
-                                    Setujui
+                                    ✓ Setujui
                                   </button>
                                   <button 
                                     className="btn btn-secondary btn-sm"
@@ -9879,7 +9879,7 @@ export default function AdminPanel({
                                         }
                                       }
                                     }}
-                                    style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', fontSize: '0.78rem', borderRadius: '4px', cursor: 'pointer' }}
+                                    style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', padding: '7px 14px', fontSize: '0.78rem', fontWeight: '700', borderRadius: '8px', cursor: 'pointer' }}
                                   >
                                     Tolak
                                   </button>
