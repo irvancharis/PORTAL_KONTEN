@@ -6043,34 +6043,25 @@ export default function AdminPanel({
                           {!isPaid && (
                             isPendingVerification ? (
                               currentUser?.role === 'superadmin' ? (
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                  <button
-                                    onClick={() => setPreviewingEvent(evt)}
-                                    style={{ padding: '7px 12px', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: '700', borderRadius: '10px', cursor: 'pointer' }}
-                                  >
-                                    <Eye size={13} color="#0f172a" />
-                                    <span>Preview</span>
-                                  </button>
-                                  <button 
-                                    className="btn btn-sm" 
-                                    onClick={() => setVerifyingEvent(evt)}
-                                    style={{ 
-                                      padding: '7px 14px', 
-                                      fontSize: '0.76rem', 
-                                      display: 'inline-flex', 
-                                      alignItems: 'center', 
-                                      gap: '5px', 
-                                      background: '#0f172a', 
-                                      border: 'none', 
-                                      color: '#ffffff', 
-                                      fontWeight: '700',
-                                      borderRadius: '10px',
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    Verifikasi Pembayaran
-                                  </button>
-                                </div>
+                                <button 
+                                  className="btn btn-sm" 
+                                  onClick={() => setVerifyingEvent(evt)}
+                                  style={{ 
+                                    padding: '7px 14px', 
+                                    fontSize: '0.76rem', 
+                                    display: 'inline-flex', 
+                                    alignItems: 'center', 
+                                    gap: '5px', 
+                                    background: '#0f172a', 
+                                    border: 'none', 
+                                    color: '#ffffff', 
+                                    fontWeight: '700',
+                                    borderRadius: '10px',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  Verifikasi Pembayaran
+                                </button>
                               ) : (
                                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                                   <button
