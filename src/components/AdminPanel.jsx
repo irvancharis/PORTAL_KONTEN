@@ -6063,9 +6063,18 @@ export default function AdminPanel({
                                   Verifikasi Pembayaran
                                 </button>
                               ) : (
-                                <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontStyle: 'italic', fontWeight: '500' }}>
-                                  Menunggu Verifikasi
-                                </span>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                  <button
+                                    onClick={() => setPreviewingEvent(evt)}
+                                    style={{ padding: '7px 12px', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: '700', borderRadius: '10px', cursor: 'pointer' }}
+                                  >
+                                    <Eye size={13} color="#0f172a" />
+                                    <span>Preview</span>
+                                  </button>
+                                  <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontStyle: 'italic', fontWeight: '500' }}>
+                                    Menunggu Verifikasi
+                                  </span>
+                                </div>
                               )
                             ) : (
                               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
