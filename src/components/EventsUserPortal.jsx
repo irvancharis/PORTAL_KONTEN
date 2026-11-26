@@ -1582,7 +1582,7 @@ export default function EventsUserPortal({
 
                     </div>
                   ) : (
-                    evt.juknis && (
+                    evt.juknis && evt.juknis.trim() !== '' && evt.juknis.trim() !== '-' && (
                       <div style={{ 
                         padding: '24px',
                         background: 'var(--bg-card)',
