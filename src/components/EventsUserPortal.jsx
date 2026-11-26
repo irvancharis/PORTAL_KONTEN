@@ -2306,7 +2306,7 @@ export default function EventsUserPortal({
                                   </div>
                                 )}
 
-                                {userReg.status === 'approved' && (!userSub || userSub.status === 'rejected') && (
+                                {userReg.status === 'approved' && evt.status !== 'closed' && evt.status !== 'completed' && (
                                   <div>
                                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', fontWeight: 'bold', background: 'var(--primary-glow)', color: 'var(--text-primary)', padding: '4px 10px', borderRadius: '12px', marginBottom: '12px', border: '1px solid var(--border-color)' }}>
                                       <Play size={12} />
@@ -2370,7 +2370,11 @@ export default function EventsUserPortal({
                                     >
                                       <Send size={14} />
                                       <span>
-                                        {userSub && userSub.status === 'rejected' ? 'PERBAIKI & KIRIM ULANG SEKARANG' : (evt.budgetMode === 'submit' ? 'KIRIM LAPORAN ULASAN SEKARANG' : 'KIRIM TAUTAN KARYA SEKARANG')}
+                                        {userSub && userSub.status === 'rejected'
+                                          ? 'PERBAIKI & KIRIM ULANG SEKARANG'
+                                          : userSub
+                                            ? (evt.budgetMode === 'submit' ? 'KIRIM LAPORAN ULASAN LAGI' : 'KIRIM TAUTAN KARYA LAGI')
+                                            : (evt.budgetMode === 'submit' ? 'KIRIM LAPORAN ULASAN SEKARANG' : 'KIRIM TAUTAN KARYA SEKARANG')}
                                       </span>
                                     </button>
                                   </div>
@@ -4816,14 +4820,25 @@ onMouseLeave={(e) => {
                         <div className="form-group">
                           <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Platform Publikasi</label>
                           {(() => {
+                            const matchedUser = users.find(u => u.username?.toLowerCase() === currentUser?.username?.toLowerCase());
+                            const activeUser = matchedUser ? { ...matchedUser, ...currentUser } : (currentUser || {});
+                            const connectedSet = new Set();
+                            if (activeUser.youtubeVerified && activeUser.youtubeHandle) connectedSet.add('YouTube');
+                            if (activeUser.tiktokVerified && activeUser.tiktokHandle) connectedSet.add('TikTok');
+                            if (activeUser.instagramVerified && activeUser.instagramHandle) connectedSet.add('Instagram');
+                            if (activeUser.facebookVerified && activeUser.facebookHandle) connectedSet.add('Facebook');
+
                             const allowedPlatforms = submittingEvent?.juknisPlatforms
                               ? Object.entries(submittingEvent.juknisPlatforms)
                                   .filter(([, isAllowed]) => Boolean(isAllowed))
                                   .map(([name]) => name === 'GoogleReview' ? 'Google Review' : name)
                               : [];
-                            const platformOptions = allowedPlatforms.length > 0
-                              ? allowedPlatforms
-                              : ['YouTube', 'TikTok', 'Instagram', 'Facebook', 'Twitter / X', 'Threads', 'Lainnya'];
+                            const userConnectedAllowed = allowedPlatforms.filter(p => connectedSet.has(p));
+                            const platformOptions = userConnectedAllowed.length > 0
+                              ? userConnectedAllowed
+                              : allowedPlatforms.length > 0
+                                ? allowedPlatforms
+                                : ['YouTube', 'TikTok', 'Instagram', 'Facebook', 'Twitter / X', 'Threads', 'Lainnya'];
                             const effectivePlatform = platformOptions.includes(workPlatform) ? workPlatform : platformOptions[0];
 
                             return (
