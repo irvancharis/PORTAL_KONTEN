@@ -3634,20 +3634,6 @@ export default function AdminPanel({
                         <option value="regular">Acara / Festival / Seminar (E-Tiket & Check-In)</option>
                       </select>
                     </div>
-                    <div className="form-group">
-                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: '600' }}>Kategori Campaign</label>
-                      <select value={eventCategory} onChange={(e) => setEventCategory(e.target.value)} style={{ width: '100%', padding: '12px 14px', background: '#111827', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontSize: '0.9rem', outline: 'none' }}>
-                        <option value="Short Film">Short Film</option>
-                        <option value="Documentary">Documentary</option>
-                        <option value="Animation">Animation</option>
-                        <option value="Music Video">Music Video</option>
-                        <option value="Vlog">Vlog</option>
-                        <option value="Creative UGC">Creative UGC</option>
-                        <option value="Review Product">Review Product</option>
-                        <option value="Google Review">Google Review</option>
-                        <option value="Lainnya">Lainnya</option>
-                      </select>
-                    </div>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px', marginTop: '4px' }}>
