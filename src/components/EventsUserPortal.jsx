@@ -4434,7 +4434,7 @@ onMouseLeave={(e) => {
                       {isPaidRegularPending ? 'Referensi Pendaftaran' : 'E-Tiket Resmi'}
                     </span>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.7rem', color: '#0f172a', fontWeight: '800', letterSpacing: '0.6px' }}>
-                      <Ticket size={13} />
+                      <CheckCircle2 size={13} />
                       NGONTEN.ID TICKET
                     </span>
                   </div>
