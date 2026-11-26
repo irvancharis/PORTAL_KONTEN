@@ -858,6 +858,8 @@ export default function useAppState() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [registerRegional, setRegisterRegional] = useState('');
+  const [registerFullName, setRegisterFullName] = useState('');
+  const [registerWhatsapp, setRegisterWhatsapp] = useState('');
 
   // Edit Profile Modal states
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
@@ -1252,8 +1254,8 @@ export default function useAppState() {
     const password = loginPassword.trim();
     const confirm = registerConfirmPassword.trim();
 
-    if (!emailOrUser || !password || !confirm || !registerRegional.trim()) {
-      setLoginError('Semua kolom wajib diisi, termasuk Lokasi Regional!');
+    if (!emailOrUser || !password || !confirm || !registerFullName.trim() || !registerWhatsapp.trim() || !registerRegional.trim()) {
+      setLoginError('Nama Lengkap, WhatsApp / HP, Email, Password, dan Lokasi Regional wajib diisi!');
       return;
     }
     if (password !== confirm) {
@@ -1278,6 +1280,10 @@ export default function useAppState() {
         const newUser = {
           id: userCredential.user.uid,
           username: email.split('@')[0],
+          fullName: registerFullName.trim(),
+          name: registerFullName.trim(),
+          phone: registerWhatsapp.trim(),
+          whatsapp: registerWhatsapp.trim(),
           email: email.toLowerCase(),
           password,
           role: registerRole, // 'user' (Kreator) or 'panitia' (Komunitas)
@@ -1320,6 +1326,8 @@ export default function useAppState() {
         setLoginPassword('');
         setRegisterConfirmPassword('');
         setRegisterRegional('');
+        setRegisterFullName('');
+        setRegisterWhatsapp('');
         setOrganizerName('');
         setOrganizerPhone('');
         setOrganizerDescription('');
@@ -1349,6 +1357,10 @@ export default function useAppState() {
       const newUser = {
         id: `usr_${Date.now()}`,
         username: emailOrUser,
+        fullName: registerFullName.trim(),
+        name: registerFullName.trim(),
+        phone: registerWhatsapp.trim(),
+        whatsapp: registerWhatsapp.trim(),
         password,
         role: registerRole, // 'user' or 'panitia'
         organizerName: isComm ? organizerName.trim() : '',
@@ -3271,6 +3283,10 @@ export default function useAppState() {
     setLoginError,
     registerRegional,
     setRegisterRegional,
+    registerFullName,
+    setRegisterFullName,
+    registerWhatsapp,
+    setRegisterWhatsapp,
     registerRole,
     setRegisterRole,
     isEditProfileModalOpen,

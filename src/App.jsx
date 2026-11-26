@@ -185,6 +185,10 @@ export default function App() {
     setRegisterRegional,
     registerRole,
     setRegisterRole,
+    registerFullName,
+    setRegisterFullName,
+    registerWhatsapp,
+    setRegisterWhatsapp,
     isEditProfileModalOpen,
     setIsEditProfileModalOpen,
     globalLoadingText,
@@ -1984,28 +1988,49 @@ export default function App() {
                       </div>
 
                       <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label htmlFor="registerRole" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Daftar Sebagai</label>
-                        <select
-                          id="registerRole"
-                          value={registerRole}
-                          onChange={(e) => setRegisterRole(e.target.value)}
-                          disabled={loginModalLockedRole !== null}
+                        <label htmlFor="registerFullName" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Nama Lengkap</label>
+                        <input
+                          id="registerFullName"
+                          type="text"
+                          placeholder="Masukkan nama lengkap..."
+                          value={registerFullName}
+                          onChange={(e) => setRegisterFullName(e.target.value)}
+                          required
                           style={{
                             width: '100%',
                             padding: '10px 12px',
-                            background: loginModalLockedRole !== null ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.04)',
+                            background: 'rgba(255, 255, 255, 0.04)',
                             border: '1px solid var(--border-color)',
                             borderRadius: 'var(--radius-sm)',
-                            color: loginModalLockedRole !== null ? 'var(--text-muted)' : 'var(--text-primary)',
+                            color: 'var(--text-primary)',
                             fontFamily: 'var(--font-sans)',
                             fontSize: '0.9rem',
-                            outline: 'none',
-                            cursor: loginModalLockedRole !== null ? 'not-allowed' : 'default'
+                            outline: 'none'
                           }}
-                        >
-                          <option value="user" style={{ background: '#020202' }}>User / Kreator</option>
-                          <option value="panitia" style={{ background: '#020202' }}>Komunitas / Instansi</option>
-                        </select>
+                        />
+                      </div>
+
+                      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label htmlFor="registerWhatsapp" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>WhatsApp / No. HP</label>
+                        <input
+                          id="registerWhatsapp"
+                          type="tel"
+                          placeholder="Contoh: 081234567890"
+                          value={registerWhatsapp}
+                          onChange={(e) => setRegisterWhatsapp(e.target.value)}
+                          required
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--text-primary)',
+                            fontFamily: 'var(--font-sans)',
+                            fontSize: '0.9rem',
+                            outline: 'none'
+                          }}
+                        />
                       </div>
 
                       <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -2271,28 +2296,49 @@ export default function App() {
                     </div>
 
                     <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <label htmlFor="registerRole" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Daftar Sebagai</label>
-                      <select
-                        id="registerRole"
-                        value={registerRole}
-                        onChange={(e) => setRegisterRole(e.target.value)}
-                        disabled={loginModalLockedRole !== null}
+                      <label htmlFor="registerFullName" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Nama Lengkap</label>
+                      <input
+                        id="registerFullName"
+                        type="text"
+                        placeholder="Masukkan nama lengkap..."
+                        value={registerFullName}
+                        onChange={(e) => setRegisterFullName(e.target.value)}
+                        required
                         style={{
                           width: '100%',
                           padding: '10px 12px',
-                          background: loginModalLockedRole !== null ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.04)',
+                          background: 'rgba(255, 255, 255, 0.04)',
                           border: '1px solid var(--border-color)',
                           borderRadius: 'var(--radius-sm)',
-                          color: loginModalLockedRole !== null ? 'var(--text-muted)' : 'var(--text-primary)',
+                          color: 'var(--text-primary)',
                           fontFamily: 'var(--font-sans)',
                           fontSize: '0.9rem',
-                          outline: 'none',
-                          cursor: loginModalLockedRole !== null ? 'not-allowed' : 'default'
+                          outline: 'none'
                         }}
-                      >
-                        <option value="user" style={{ background: '#020202' }}>User / Kreator</option>
-                        <option value="panitia" style={{ background: '#020202' }}>Komunitas / Instansi</option>
-                      </select>
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label htmlFor="registerWhatsapp" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>WhatsApp / No. HP</label>
+                      <input
+                        id="registerWhatsapp"
+                        type="tel"
+                        placeholder="Contoh: 081234567890"
+                        value={registerWhatsapp}
+                        onChange={(e) => setRegisterWhatsapp(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
+                          fontFamily: 'var(--font-sans)',
+                          fontSize: '0.9rem',
+                          outline: 'none'
+                        }}
+                      />
                     </div>
 
                     <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
