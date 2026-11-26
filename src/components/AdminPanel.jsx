@@ -11264,16 +11264,22 @@ export default function AdminPanel({
           .filter(j => j.type === 'out' && j.id.startsWith('journal_'))
           .reduce((acc, j) => acc + (j.amount || 0), 0);
 
+        // Ticket Admin Fee Income (5% from approved ticket sales)
+        const ticketFeePct = typeof eventTicketFeePercent === 'number' ? eventTicketFeePercent : 5;
+        const ticketFeesIncome = eventParticipants
+          .filter(p => p.status === 'approved' && p.ticketPrice > 0)
+          .reduce((acc, p) => acc + Math.round(p.ticketPrice * (ticketFeePct / 100)), 0);
+
         // Total Pemasukan
-        const totalIncome = premiumIncome + eventTotalIncome + manualIncome;
+        const totalIncome = premiumIncome + eventTotalIncome + manualIncome + ticketFeesIncome;
 
         // Escrow funds (event paid but winners not released yet)
         const escrowFund = events
           .filter(evt => evt.paymentStatus === 'paid' && !evt.winnersReleased)
           .reduce((acc, evt) => acc + (evt.campaignBudget || 0), 0);
 
-        // Net System Profit (Premium + Admin Fees + Manual Income - Manual Expense)
-        const netSystemProfit = premiumIncome + eventFeesPaid + manualIncome - manualExpense;
+        // Net System Profit (Premium + Admin Fees + Ticket Fees + Manual Income - Manual Expense)
+        const netSystemProfit = premiumIncome + eventFeesPaid + ticketFeesIncome + manualIncome - manualExpense;
 
         // Expenses (Withdrawals + Manual Expenses)
         const totalWithdrawals = filteredJournals
@@ -11387,7 +11393,7 @@ export default function AdminPanel({
                     Rp {netSystemProfit.toLocaleString('id-ID')}
                   </span>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    Premium: Rp {premiumIncome.toLocaleString('id-ID')} | Admin Fee Event: Rp {eventFeesPaid.toLocaleString('id-ID')}
+                    Premium: Rp {premiumIncome.toLocaleString('id-ID')} | Admin Fee Event: Rp {eventFeesPaid.toLocaleString('id-ID')} | Fee Tiket: Rp {ticketFeesIncome.toLocaleString('id-ID')}
                   </div>
                 </div>
                 <div className="stat-icon-wrapper" style={{ background: 'rgba(167, 139, 250, 0.2)', color: '#c084fc' }}>

@@ -172,27 +172,36 @@ export default function WalletUserPortal({
     status: 'approved'
   }));
 
-  // 6. Credits from ticket sales (penjualan tiket, dipotong biaya admin)
-  const creditTicketSales = eventParticipants.filter(part => {
+  // 6. Credits from ticket sales (penjualan tiket) & Debits for 5% admin fee
+  const approvedTicketSales = eventParticipants.filter(part => {
     const evt = events.find(e => e.id === part.eventId);
     return evt && evt.creator?.toLowerCase() === currentUser.username.toLowerCase() && part.ticketPrice > 0 && part.status === 'approved';
-  }).map(part => {
+  });
+
+  const creditTicketSales = approvedTicketSales.map(part => ({
+    id: `tkt_sale_${part.id}`,
+    date: part.registeredAt || new Date().toISOString(),
+    description: `Penjualan Tiket Event: ${part.eventTitle || 'Event'} (oleh @${part.username})`,
+    type: 'credit',
+    amount: part.ticketPrice,
+    status: 'approved'
+  }));
+
+  const debitTicketFees = approvedTicketSales.map(part => {
     const feePercent = typeof eventTicketFeePercent === 'number' ? eventTicketFeePercent : 5;
-    const gross = part.ticketPrice;
-    const fee = Math.round(gross * (feePercent / 100));
-    const net = gross - fee;
+    const fee = Math.round(part.ticketPrice * (feePercent / 100));
     return {
-      id: `tkt_sale_${part.id}`,
+      id: `tkt_fee_${part.id}`,
       date: part.registeredAt || new Date().toISOString(),
-      description: `Penjualan Tiket Event: ${part.eventTitle || 'Event'} (oleh @${part.username}) — Harga Rp ${gross.toLocaleString('id-ID')}, Potongan ${feePercent}% (-Rp ${fee.toLocaleString('id-ID')})`,
-      type: 'credit',
-      amount: net,
+      description: `Potongan Biaya Admin (${feePercent}%) Penjualan Tiket: ${part.eventTitle || 'Event'} (oleh @${part.username})`,
+      type: 'debit',
+      amount: fee,
       status: 'approved'
     };
   });
 
   // Combine & Sort Transactions
-  const allTransactions = [...creditSubs, ...creditPrizes, ...debitWithdrawals, ...debitEventPayments, ...debitTicketPurchases, ...creditTicketSales].sort((a, b) => 
+  const allTransactions = [...creditSubs, ...creditPrizes, ...debitWithdrawals, ...debitEventPayments, ...debitTicketPurchases, ...creditTicketSales, ...debitTicketFees].sort((a, b) => 
     new Date(b.date) - new Date(a.date)
   );
 
