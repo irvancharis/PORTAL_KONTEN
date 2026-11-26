@@ -5602,23 +5602,24 @@ export default function AdminPanel({
                               )
                             ) : (
                               <button 
-                                className="btn btn-sm" 
                                 onClick={() => handleOpenPayment(evt)}
                                 style={{ 
-                                  padding: '7px 14px', 
-                                  fontSize: '0.75rem', 
+                                  padding: '9px 18px', 
+                                  fontSize: '0.8rem', 
                                   display: 'inline-flex', 
                                   alignItems: 'center', 
-                                  gap: '5px', 
-                                  background: '#ffffff', 
-                                  border: '1px solid #ffffff', 
-                                  color: '#000000', 
+                                  gap: '6px', 
+                                  background: '#0f172a', 
+                                  border: 'none', 
+                                  color: '#ffffff', 
                                   fontWeight: '700',
                                   borderRadius: '10px',
-                                  boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+                                  cursor: 'pointer',
+                                  boxShadow: '0 4px 12px rgba(15, 23, 42, 0.2)'
                                 }}
                               >
-                                Selesaikan Pembayaran
+                                <Wallet size={14} color="#ffffff" />
+                                <span>Selesaikan Pembayaran →</span>
                               </button>
                             )
                           )}
