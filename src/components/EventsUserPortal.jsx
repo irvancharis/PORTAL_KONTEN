@@ -2127,8 +2127,8 @@ export default function EventsUserPortal({
                         ) : (
                           // Logged In & Registered
                           <div style={{ textAlign: 'left' }}>
-                            {/* Status Menunggu Verifikasi Pembayaran (Jika belum di-approve admin) */}
-                            {evt.ticketPrice > 0 && userReg.status !== 'approved' && (
+                            {/* Status Menunggu Verifikasi Pembayaran (Jika masih pending) */}
+                            {evt.ticketPrice > 0 && userReg.status === 'pending' && (
                               <div style={{
                                 background: '#fffbeb',
                                 border: '1px solid #fde68a',
@@ -2141,8 +2141,28 @@ export default function EventsUserPortal({
                                   <Clock size={16} />
                                   <span>Menunggu Verifikasi Pembayaran</span>
                                 </div>
-                                <p style={{ margin: '0 0 12px 0', fontSize: '0.8rem', color: '#78350f', lineHeight: '1.45' }}>
+                                <p style={{ margin: '0', fontSize: '0.8rem', color: '#78350f', lineHeight: '1.45' }}>
                                   Bukti transfer Anda (<strong>Rp {evt.ticketPrice.toLocaleString('id-ID')}</strong>) sedang diperiksa oleh admin (maks. 1x24 jam). E-Tiket digital akan aktif setelah disetujui.
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Status Pembayaran Ditolak */}
+                            {evt.ticketPrice > 0 && userReg.status === 'rejected' && (
+                              <div style={{
+                                background: '#fef2f2',
+                                border: '1px solid #fecaca',
+                                borderRadius: '16px',
+                                padding: '18px 20px',
+                                marginBottom: '20px',
+                                textAlign: 'left'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#dc2626', fontWeight: '800', fontSize: '0.92rem', marginBottom: '6px' }}>
+                                  <XCircle size={16} />
+                                  <span>Pembayaran Tiket Ditolak</span>
+                                </div>
+                                <p style={{ margin: 0, fontSize: '0.8rem', color: '#991b1b', lineHeight: '1.45' }}>
+                                  Mohon maaf, bukti pembayaran Anda sebesar <strong>Rp {evt.ticketPrice.toLocaleString('id-ID')}</strong> ditolak oleh admin. Silakan hubungi admin untuk informasi lebih lanjut.
                                 </p>
                               </div>
                             )}
