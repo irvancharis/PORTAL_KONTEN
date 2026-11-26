@@ -11128,9 +11128,9 @@ export default function AdminPanel({
                                     className="btn btn-secondary btn-sm"
                                     onClick={() => {
                                       if (conf.isTicketPayment) {
-                                        if (confirm(`Setujui pembayaran tiket dari "${conf.username}" untuk acara "${conf.eventTitle}"? E-Tiket digital akan langsung diaktifkan.`)) {
-                                          handleApproveParticipant(conf.targetId);
-                                          alert(`Pembayaran tiket "${conf.username}" disetujui! E-Tiket digital kini aktif dan notifikasi telah dikirim.`);
+                                        if (confirm(`Tolak pembayaran tiket dari "${conf.username}" untuk acara "${conf.eventTitle}"?`)) {
+                                          handleRejectParticipant(conf.targetId);
+                                          alert(`Pembayaran tiket "${conf.username}" ditolak.`);
                                         }
                                       } else if (conf.isEventPayment) {
                                         if (confirm(`Tolak bukti pembayaran dari panitia "${conf.username}" untuk event "${conf.eventTitle}"?`)) {
