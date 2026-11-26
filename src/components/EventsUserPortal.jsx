@@ -4449,20 +4449,30 @@ onMouseLeave={(e) => {
                   marginBottom: '22px',
                   textAlign: 'left'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px', marginBottom: '12px' }}>
+                    <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>
                       {isPaidRegularPending ? 'Referensi Pendaftaran' : 'E-Tiket Resmi'}
                     </span>
-                    <span style={{ fontSize: '0.7rem', color: '#0f172a', fontWeight: '800', letterSpacing: '0.8px' }}>NGONTEN.ID TICKET</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.7rem', color: '#0f172a', fontWeight: '800', letterSpacing: '0.6px' }}>
+                      <Ticket size={13} />
+                      NGONTEN.ID TICKET
+                    </span>
                   </div>
-                  <h4 style={{ margin: '0 0 8px 0', color: '#0f172a', fontSize: '1.05rem', fontWeight: '800' }}>{registeringEvent.title}</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.82rem', color: '#475569' }}>
-                    <span>Peserta: <strong style={{ color: '#0f172a' }}>{displayName}</strong></span>
-                    <span>Kode Tiket: <strong style={{ color: '#0f172a', fontFamily: 'monospace' }}>{generatedTicketCode}</strong></span>
+                  <h4 style={{ margin: '0 0 12px 0', color: '#0f172a', fontSize: '1.05rem', fontWeight: '800' }}>{registeringEvent.title}</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.82rem', color: '#475569' }}>
+                    <div>
+                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', marginBottom: '2px' }}>Peserta</div>
+                      <strong style={{ color: '#0f172a' }}>{displayName}</strong>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', marginBottom: '2px' }}>Kode Tiket</div>
+                      <strong style={{ color: '#0f172a', fontFamily: 'monospace', fontSize: '0.86rem' }}>{generatedTicketCode}</strong>
+                    </div>
                   </div>
                   {isPaidRegularPending && (
-                    <div style={{ fontSize: '0.78rem', color: '#d97706', marginTop: '10px', fontWeight: '700' }}>
-                      ⏳ Menunggu Verifikasi Pembayaran Admin (Rp {registeringEvent.ticketPrice.toLocaleString('id-ID')})
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem', color: '#b45309', background: '#fef3c7', border: '1px solid #fde68a', padding: '6px 12px', borderRadius: '8px', marginTop: '14px', fontWeight: '700' }}>
+                      <Clock size={14} style={{ flexShrink: 0 }} />
+                      <span>Menunggu Verifikasi Pembayaran Admin (Rp {registeringEvent.ticketPrice.toLocaleString('id-ID')})</span>
                     </div>
                   )}
                 </div>
