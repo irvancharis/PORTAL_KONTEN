@@ -3640,9 +3640,6 @@ onMouseLeave={(e) => {
                                     Rekening Resmi Platform
                                   </div>
                                 </div>
-                                <span style={{ fontSize: '0.68rem', background: '#e0f2fe', color: '#0284c7', padding: '3px 9px', borderRadius: '20px', fontWeight: '700' }}>
-                                  TRANSFER MANUAL
-                                </span>
                               </div>
 
                               <div style={{ padding: '14px 16px' }}>
