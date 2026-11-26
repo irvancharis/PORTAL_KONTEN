@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React, { Suspense, lazy } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import BottomNav from './components/BottomNav';
@@ -6,7 +6,7 @@ import MovieCard from './components/MovieCard';
 import VideoPlayer from './components/VideoPlayer';
 import PremiumModal from './components/PremiumModal';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
-import AdminPanel from './components/AdminPanel';
+const AdminPanel = lazy(() => import('./components/AdminPanel'));
 import EventsUserPortal from './components/EventsUserPortal';
 import WalletUserPortal from './components/WalletUserPortal';
 import DiscoverPage from './pages/DiscoverPage';
@@ -20,7 +20,7 @@ import PricingCatalogSection from './components/PricingCatalogSection';
 import SiteFooter from './components/SiteFooter';
 import AppTourModal from './components/AppTourModal';
 import PageLoadingSkeleton from './components/PageLoadingSkeleton';
-import StandaloneAdminPortal from './pages/StandaloneAdminPortal';
+const StandaloneAdminPortal = lazy(() => import('./pages/StandaloneAdminPortal'));
 import { OfflineBanner } from './components/SkeletonLoader';
 import useAppState from './hooks/useAppState';
 import { slugify, formatIndonesianDate, fetchJSONP } from './utils/helpers';
@@ -393,6 +393,7 @@ export default function App() {
     return (
       <>
         {isPageLoading && <div className="top-loading-bar" />}
+        <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Memuat Portal Admin...</div>}>
         <StandaloneAdminPortal
           regions={regions}
           movies={movies}
@@ -465,6 +466,7 @@ export default function App() {
           theme={theme}
           setTheme={setTheme}
         />
+        </Suspense>
         {/* Custom Toast Notification inside Admin */}
         {toast && (
           <div className={`custom-toast ${toast.type || 'success'}`}>
@@ -480,7 +482,7 @@ export default function App() {
               onClick={() => setToast(null)}
               className="custom-toast-close"
             >
-              ✕
+              âœ•
             </button>
           </div>
         )}
@@ -564,6 +566,7 @@ export default function App() {
           )}
 
           {!isPageLoading && (activeTab === 'admin' && currentUser && ['superadmin', 'staf', 'panitia', 'moderator', 'editor', 'user'].includes(currentUser.role) ? (
+            <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Memuat Panel...</div>}>
             <AdminPanel 
               regions={regions}
               movies={movies} 
@@ -633,6 +636,7 @@ export default function App() {
               setShowPremiumModal={setShowPremiumModal}
               handleOpenLoginModal={handleOpenLoginModal}
             />
+            </Suspense>
           ) : activeTab === 'wallet' ? (
             <WalletUserPortal 
               currentUser={currentUser}
@@ -707,7 +711,8 @@ export default function App() {
               communities={communities}
               handleAwardEventGift={handleAwardEventGift}
               renderEventManagement={(onSaveSuccess, autoOpenForm) => (
-                <AdminPanel 
+                <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Memuat Panel...</div>}>
+            <AdminPanel 
                   regions={regions}
                   movies={movies} 
                   setMovies={handleSetMovies} 
@@ -766,6 +771,7 @@ export default function App() {
                   handleAwardEventGift={handleAwardEventGift}
                   handleRedeemGiftCode={handleRedeemGiftCode}
                 />
+                </Suspense>
               )}
             />
           ) : (
@@ -2449,7 +2455,7 @@ export default function App() {
             onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
             onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
           >
-            <span>← Kembali ke Beranda</span>
+            <span>â† Kembali ke Beranda</span>
           </button>
           </div>
         </div>
@@ -2565,7 +2571,7 @@ export default function App() {
             onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
             onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
           >
-            ✕
+            âœ•
           </button>
           <img 
             className="lightbox-image"
@@ -2598,7 +2604,7 @@ export default function App() {
             onClick={() => setToast(null)}
             className="custom-toast-close"
           >
-            ✕
+            âœ•
           </button>
         </div>
       )}

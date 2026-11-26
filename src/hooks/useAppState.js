@@ -1588,7 +1588,7 @@ export default function useAppState() {
   const refreshFirestoreData = useCallback(async (force = false) => {
     if (!isFirebaseConfigured()) return;
     const now = Date.now();
-    if (!force && now - lastFirestoreFetchRef.current < 3000) return;
+    if (!force && now - lastFirestoreFetchRef.current < 30000) return;
     lastFirestoreFetchRef.current = now;
 
     try {
@@ -1618,7 +1618,7 @@ export default function useAppState() {
         currentUser ? getFirestoreUsers() : Promise.resolve([]),
         isUserAdmin ? getFirestoreFinancialJournals() : Promise.resolve([]),
         getFirestoreCommunities(),
-        getFirestoreRegions(),
+        (!force && regions.length > 0) ? Promise.resolve(null) : getFirestoreRegions(),
         getFirestoreGifts()
       ]);
 
