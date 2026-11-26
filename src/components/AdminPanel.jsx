@@ -159,6 +159,37 @@ const SearchableSelect = ({ value, onChange, placeholder, options }) => {
           </div>
         </div>
       )}
+      {disqualifyModalPart && (
+        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '460px', padding: '24px', borderRadius: '16px', background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.15rem', fontWeight: '700', color: 'var(--text-primary)' }}>Ajukan Diskualifikasi Peserta</h3>
+            <p style={{ margin: '0 0 16px 0', fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
+              Peserta: <strong>{disqualifyModalPart.name || disqualifyModalPart.username}</strong>. Pengajuan akan diverifikasi oleh Admin sebelum peserta masuk daftar Blacklist.
+            </p>
+            <form onSubmit={handleRequestDisqualification} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px' }}>Alasan Diskualifikasi *</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={disqualifyReason}
+                  onChange={(e) => setDisqualifyReason(e.target.value)}
+                  placeholder="Tuliskan alasan diskualifikasi secara jelas..."
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-primary)', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" onClick={() => setDisqualifyModalPart(null)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: '600' }}>
+                  Batal
+                </button>
+                <button type="submit" style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#ef4444', color: 'white', cursor: 'pointer', fontWeight: '700' }}>
+                  Kirim Pengajuan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1840,6 +1871,84 @@ export default function AdminPanel({
     setCheckInTicketCode('');
   };
 
+  const [disqualifyModalPart, setDisqualifyModalPart] = useState(null);
+  const [disqualifyReason, setDisqualifyReason] = useState('');
+
+  const handleRequestDisqualification = (e) => {
+    e.preventDefault();
+    if (!disqualifyModalPart || !disqualifyReason.trim()) return;
+    setEventParticipants(prev => prev.map(p => {
+      if (p.id === disqualifyModalPart.id) {
+        return {
+          ...p,
+          disqualificationStatus: 'pending',
+          disqualificationReason: disqualifyReason.trim(),
+          disqualificationRequestedBy: currentUser?.username || 'owner',
+          disqualificationRequestedAt: new Date().toISOString()
+        };
+      }
+      return p;
+    }));
+    setDisqualifyModalPart(null);
+    setDisqualifyReason('');
+    alert('Pengajuan diskualifikasi telah dikirim ke Admin untuk verifikasi.');
+  };
+
+  const handleApproveDisqualification = (part) => {
+    if (!window.confirm(`Setujui diskualifikasi ${part.name || part.username} dan masukkan ke daftar Blacklist?`)) return;
+    setEventParticipants(prev => prev.map(p => {
+      if (p.id === part.id) {
+        return {
+          ...p,
+          status: 'disqualified',
+          disqualificationStatus: 'approved',
+          disqualificationVerifiedAt: new Date().toISOString()
+        };
+      }
+      return p;
+    }));
+    if (setUsers) {
+      setUsers(prev => prev.map(u => {
+        if (u.username?.toLowerCase() === part.username?.toLowerCase() || (part.userId && u.id === part.userId)) {
+          return {
+            ...u,
+            isBlacklisted: true,
+            blacklistReason: part.disqualificationReason || 'Melanggar ketentuan campaign',
+            blacklistedAt: new Date().toISOString()
+          };
+        }
+        return u;
+      }));
+    }
+    alert('Peserta berhasil didiskualifikasi dan dimasukkan ke daftar Blacklist.');
+  };
+
+  const handleRejectDisqualification = (partId) => {
+    setEventParticipants(prev => prev.map(p => {
+      if (p.id === partId) {
+        return {
+          ...p,
+          disqualificationStatus: 'rejected'
+        };
+      }
+      return p;
+    }));
+    alert('Pengajuan diskualifikasi ditolak.');
+  };
+
+  const handleRemoveFromBlacklist = (userId) => {
+    if (!window.confirm('Pulihkan user ini dari daftar Blacklist?')) return;
+    if (setUsers) {
+      setUsers(prev => prev.map(u => {
+        if (u.id === userId) {
+          return { ...u, isBlacklisted: false, blacklistReason: '', blacklistedAt: null };
+        }
+        return u;
+      }));
+    }
+    alert('User berhasil dipulihkan dari daftar Blacklist.');
+  };
+
   const handleResetParticipantStatus = (id) => {
     setEventParticipants(prev => prev.map(p => {
       if (p.id === id) {
@@ -3096,6 +3205,31 @@ export default function AdminPanel({
                                         }}
                                       >
                                         Check-In
+                                      </button>
+                                    )}
+                                    {part.disqualificationStatus === 'pending' ? (
+                                      <span style={{ fontSize: '0.72rem', padding: '3px 8px', borderRadius: '8px', background: 'rgba(234, 179, 8, 0.15)', color: '#ca8a04', fontWeight: '700' }}>
+                                        Menunggu Verifikasi Diskualifikasi
+                                      </span>
+                                    ) : (part.disqualificationStatus === 'approved' || part.status === 'disqualified') ? (
+                                      <span style={{ fontSize: '0.72rem', padding: '3px 8px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', fontWeight: '700' }}>
+                                        Didiskualifikasi
+                                      </span>
+                                    ) : (
+                                      <button
+                                        onClick={() => { setDisqualifyModalPart(part); setDisqualifyReason(''); }}
+                                        style={{
+                                          background: 'rgba(239, 68, 68, 0.1)',
+                                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                                          color: '#ef4444',
+                                          fontSize: '0.75rem',
+                                          fontWeight: '600',
+                                          padding: '4px 10px',
+                                          borderRadius: '8px',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
+                                        Diskualifikasi
                                       </button>
                                     )}
                                     <button 
@@ -8763,6 +8897,92 @@ export default function AdminPanel({
             </form>
           </div>
         </div>
+      ) : adminSubTab === 'blacklist' && currentUser && ['admin', 'superadmin', 'staf', 'moderator'].includes(currentUser.role?.toLowerCase()) ? (
+        <div className="admin-section glass-panel animate-fade-in" style={{ padding: '24px' }}>
+          <div style={{ marginBottom: '24px' }}>
+            <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: '700', color: 'var(--text-primary)' }}>Peserta Blacklist & Verifikasi Diskualifikasi</h2>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Verifikasi pengajuan diskualifikasi dari pemilik campaign dan kelola daftar peserta yang diblacklist.
+            </p>
+          </div>
+
+          {/* Pending Disqualification Requests */}
+          <div style={{ marginBottom: '32px' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '12px' }}>
+              Pengajuan Diskualifikasi Menunggu Verifikasi ({eventParticipants.filter(p => p.disqualificationStatus === 'pending').length})
+            </h3>
+            {eventParticipants.filter(p => p.disqualificationStatus === 'pending').length === 0 ? (
+              <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
+                Tidak ada pengajuan diskualifikasi yang menunggu verifikasi.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {eventParticipants.filter(p => p.disqualificationStatus === 'pending').map(part => {
+                  const evt = events.find(e => e.id === part.eventId);
+                  return (
+                    <div key={part.id} style={{ padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                      <div style={{ flex: 1, minWidth: '240px' }}>
+                        <div style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '0.95rem' }}>{part.name || part.username}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                          Campaign: <strong>{evt?.title || part.eventId}</strong> • Diajukan oleh: {part.disqualificationRequestedBy || '-'}
+                        </div>
+                        <div style={{ marginTop: '8px', padding: '8px 12px', borderRadius: '8px', background: 'rgba(239,68,68,0.08)', color: '#ef4444', fontSize: '0.82rem' }}>
+                          <strong>Alasan:</strong> {part.disqualificationReason}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => handleRejectDisqualification(part.id)}
+                          style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', fontWeight: '600', fontSize: '0.82rem', cursor: 'pointer' }}
+                        >
+                          Tolak
+                        </button>
+                        <button
+                          onClick={() => handleApproveDisqualification(part)}
+                          style={{ padding: '8px 14px', borderRadius: '8px', border: 'none', background: '#ef4444', color: 'white', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer' }}
+                        >
+                          Setujui & Blacklist
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Blacklisted Users List */}
+          <div>
+            <h3 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '12px' }}>
+              Daftar Peserta Blacklist ({users.filter(u => u.isBlacklisted).length})
+            </h3>
+            {users.filter(u => u.isBlacklisted).length === 0 ? (
+              <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
+                Belum ada peserta dalam daftar blacklist.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {users.filter(u => u.isBlacklisted).map(u => (
+                  <div key={u.id} style={{ padding: '14px 16px', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.25)', background: 'rgba(239,68,68,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                    <div>
+                      <div style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '0.92rem' }}>{u.fullName || u.name || u.username}</div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{u.email || u.username}</div>
+                      {u.blacklistReason && (
+                        <div style={{ fontSize: '0.78rem', color: '#ef4444', marginTop: '4px' }}>Alasan: {u.blacklistReason}</div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleRemoveFromBlacklist(u.id)}
+                      style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontWeight: '600', fontSize: '0.8rem', cursor: 'pointer' }}
+                    >
+                      Pulihkan dari Blacklist
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       ) : adminSubTab === 'users' && currentUser && currentUser.role === 'superadmin' ? (
         <div className="users-manager-section animate-fade-in">
           {/* Main Subtabs: Akun Pengguna vs Role & Hak Akses */}
@@ -8877,6 +9097,7 @@ export default function AdminPanel({
                           { id: 'finance-report', label: 'Jurnal Kas Finansial' },
                           { id: 'creator-marketplace', label: 'Katalog Kreator' },
                           { id: 'users', label: 'Manajemen Pengguna' },
+                          { id: 'blacklist', label: 'Peserta Blacklist', count: eventParticipants.filter(p => p.disqualificationStatus === 'pending').length },
                           { id: 'membership', label: 'Konfigurasi Sistem' },
                         ].map(perm => (
                           <label key={perm.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', cursor: 'pointer', background: 'rgba(255,255,255,0.03)', padding: '6px 8px', borderRadius: '4px' }}>

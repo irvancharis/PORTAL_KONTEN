@@ -2340,6 +2340,10 @@ export default function EventsUserPortal({
                                           if (onEditProfileClick) onEditProfileClick();
                                           return;
                                         }
+                                        if (activeUser?.isBlacklisted) {
+                                          alert(`Akun Anda masuk dalam daftar Blacklist dan tidak dapat mengirim karya.${activeUser.blacklistReason ? `\nAlasan: ${activeUser.blacklistReason}` : ''}`);
+                                          return;
+                                        }
                                         setSubmittingEvent(evt);
                                       }}
                                       style={{
