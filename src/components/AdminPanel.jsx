@@ -4238,10 +4238,6 @@ export default function AdminPanel({
                                 <input type="checkbox" checked={eventJuknisPlatforms.Facebook} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, Facebook: e.target.checked })} style={{ width: '16px', height: '16px' }} />
                                 <span>Facebook</span>
                               </label>
-                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                                <input type="checkbox" checked={eventJuknisPlatforms.GoogleReview} onChange={(e) => setEventJuknisPlatforms({ ...eventJuknisPlatforms, GoogleReview: e.target.checked })} style={{ width: '16px', height: '16px' }} />
-                                <span style={{ color: '#60a5fa', fontWeight: 'bold' }}>Google Review</span>
-                              </label>
                             </div>
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
