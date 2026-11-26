@@ -3312,14 +3312,16 @@ onMouseLeave={(e) => {
                         </div>
                       )}
 
-                      <div style={{ minWidth: '110px', textAlign: 'left' }}>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
-                          {evt.eventType === 'regular' ? 'Harga Tiket' : 'Biaya Tiket'}
+                      {(evt.eventType === 'regular' || evt.ticketPrice > 0) && (
+                        <div style={{ minWidth: '110px', textAlign: 'left' }}>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
+                            {evt.eventType === 'regular' ? 'Harga Tiket' : 'Biaya Tiket'}
+                          </div>
+                          <strong style={{ color: evt.ticketPrice > 0 ? '#4ade80' : 'var(--text-primary)', fontSize: '0.95rem' }}>
+                            {evt.ticketPrice > 0 ? `Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}
+                          </strong>
                         </div>
-                        <strong style={{ color: evt.ticketPrice > 0 ? '#4ade80' : 'var(--text-primary)', fontSize: '0.95rem' }}>
-                          {evt.ticketPrice > 0 ? `Rp ${evt.ticketPrice.toLocaleString('id-ID')}` : 'Gratis'}
-                        </strong>
-                      </div>
+                      )}
 
                       <div style={{ minWidth: '180px', display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
