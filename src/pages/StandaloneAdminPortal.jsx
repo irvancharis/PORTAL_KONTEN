@@ -137,7 +137,7 @@ export default function StandaloneAdminPortal(props) {
     { id: 'finance-report', label: 'Jurnal Kas Finansial', icon: CreditCard },
     { id: 'creator-marketplace', label: 'Katalog Kreator', icon: Users },
     { id: 'users', label: 'Manajemen Pengguna', icon: Users },
-    { id: 'blacklist', label: 'Peserta Blacklist', icon: Users, badge: eventParticipants.filter(p => p.disqualificationStatus === 'pending').length },
+    { id: 'blacklist', label: 'Peserta Blacklist', icon: Users },
     { id: 'users', label: 'Manajemen Pengguna', icon: Users },
     { id: 'membership', label: 'Konfigurasi Sistem', icon: Settings },
   ];
