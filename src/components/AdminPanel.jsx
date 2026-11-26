@@ -11196,7 +11196,7 @@ export default function AdminPanel({
 
         const renderSortHeader = (label, field, alignRight = false) => {
           const isActive = financeSortField === field;
-          const arrow = isActive ? (financeSortDirection === 'asc' ? ' â†‘' : ' â†“') : ' â†•';
+          const arrow = isActive ? (financeSortDirection === 'asc' ? ' \u25B2' : ' \u25BC') : ' \u21C5';
           return (
             <th 
               onClick={() => handleSort(field)} 
@@ -11514,9 +11514,11 @@ export default function AdminPanel({
                         <td>
                           <span style={{ 
                             fontSize: '0.72rem', 
-                            padding: '3px 8px', 
+                            padding: '4px 10px', 
                             borderRadius: '12px', 
                             fontWeight: 'bold',
+                            whiteSpace: 'nowrap',
+                            display: 'inline-block',
                             color: tx.isIncome ? '#22c55e' : '#f87171',
                             background: tx.isIncome ? 'rgba(34, 197, 94, 0.1)' : 'rgba(248, 113, 113, 0.1)'
                           }}>
@@ -11525,7 +11527,7 @@ export default function AdminPanel({
                         </td>
                         <td><strong style={{ color: 'white' }}>{tx.username}</strong></td>
                         <td><span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{tx.desc}</span></td>
-                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: tx.isIncome ? '#22c55e' : '#f87171' }}>
+                        <td style={{ textAlign: 'right', fontWeight: 'bold', whiteSpace: 'nowrap', color: tx.isIncome ? '#22c55e' : '#f87171' }}>
                           {tx.isIncome ? '+' : '-'} Rp {tx.amount.toLocaleString('id-ID')}
                         </td>
                       </tr>
