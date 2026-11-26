@@ -463,7 +463,6 @@ export default function EventsUserPortal({
         const foundEvent = events.find(e => e.id === eventParam || eventParam.endsWith(e.id));
         if (foundEvent) {
           if (!currentUser) {
-            window.history.replaceState(null, '', '/events');
             setSelectedEvent(null);
             if (onLoginClick) onLoginClick('register');
           } else {
