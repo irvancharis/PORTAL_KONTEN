@@ -1798,7 +1798,7 @@ export default function App() {
               </button>
             </div>
 
-            <form onSubmit={loginModalMode === 'login' ? handleLoginSubmit : handleRegisterSubmit} className="modal-form" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form onSubmit={loginModalMode === 'login' ? handleLoginSubmit : handleRegisterSubmit} noValidate className="modal-form" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
               {loginModalMode === 'login' ? (
                 <>
