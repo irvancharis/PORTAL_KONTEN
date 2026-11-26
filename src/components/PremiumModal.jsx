@@ -587,11 +587,10 @@ export default function PremiumModal({
 
             {/* Kotak Rincian Keuntungan User Premium */}
             <div className="doku-plan-card" style={{ padding: '18px', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: '12px' }}>
                 <strong style={{ fontSize: '0.86rem', fontWeight: '800' }}>
                   Keuntungan User Premium ({currentPlan.duration}):
                 </strong>
-                <strong style={{ fontSize: '1rem', fontWeight: '900' }}>{currentPlan.price}</strong>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
