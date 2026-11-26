@@ -364,6 +364,22 @@ export default function Navbar({
         });
       });
 
+    // 1b. Campaign Owner Pending Payment Notifications
+    events
+      .filter(evt => evt.creator && evt.creator.toLowerCase() === userLower && evt.paymentStatus !== 'paid' && evt.paymentStatus !== 'pending_verification')
+      .forEach(evt => {
+        list.push({
+          id: `owner_unpaid_${evt.id}`,
+          type: 'event-payment',
+          title: 'Pembayaran Campaign Diperlukan',
+          message: `Campaign "${evt.title}" belum dibayar. Selesaikan pembayaran agar campaign Anda dapat tayang.`,
+          timestamp: evt.createdAt || new Date().toISOString(),
+          tab: 'user-events-manage',
+          eventId: evt.id,
+          eventTitle: evt.title
+        });
+      });
+
     // 2. Submission scoring updates
     eventSubmissions
       .filter(s => s.username.toLowerCase() === userLower && s.score !== null)
@@ -894,6 +910,10 @@ export default function Navbar({
                                     } else if (notif.tab === 'wallet') {
                                       setActiveTab('wallet');
                                       window.history.pushState(null, '', '/wallet');
+                                      window.dispatchEvent(new Event('popstate'));
+                                    } else if (notif.tab === 'user-events-manage') {
+                                      setActiveTab('events');
+                                      window.history.pushState(null, '', '/events/kelola');
                                       window.dispatchEvent(new Event('popstate'));
                                     } else if (notif.tab === 'user-events') {
                                       if (notif.eventId) {
