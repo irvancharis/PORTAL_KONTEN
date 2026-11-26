@@ -2144,26 +2144,6 @@ export default function EventsUserPortal({
                                 <p style={{ margin: '0 0 12px 0', fontSize: '0.8rem', color: '#78350f', lineHeight: '1.45' }}>
                                   Bukti transfer Anda (<strong>Rp {evt.ticketPrice.toLocaleString('id-ID')}</strong>) sedang diperiksa oleh admin (maks. 1x24 jam). E-Tiket digital akan aktif setelah disetujui.
                                 </p>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (window.confirm('Batalkan pendaftaran ini agar Anda dapat mengulangi pembelian tiket?')) {
-                                      setEventParticipants(prev => prev.filter(p => p.id !== userReg.id));
-                                    }
-                                  }}
-                                  style={{
-                                    padding: '7px 14px',
-                                    borderRadius: '8px',
-                                    background: '#ffffff',
-                                    border: '1px solid #fcd34d',
-                                    color: '#b45309',
-                                    fontSize: '0.78rem',
-                                    fontWeight: '700',
-                                    cursor: 'pointer'
-                                  }}
-                                >
-                                  Batalkan &amp; Ulangi Pembelian
-                                </button>
                               </div>
                             )}
 
