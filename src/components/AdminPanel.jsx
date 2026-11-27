@@ -6,6 +6,7 @@ import React, {
 } from 'react';
 import { isFirebaseConfigured, db } from '../firebase';
 import { createPortal } from 'react-dom';
+import { getPaymentMethodConfig, savePaymentMethodConfig, getActiveQrisForAmount } from '../utils/paymentMethodHelper';
 import { sendEmailNotification } from '../services/emailNotificationService';
 import { generateSecureTicketUrl } from '../utils/security';
 import { checkUserProfileComplete } from '../utils/helpers';
@@ -1842,6 +1843,10 @@ export default function AdminPanel({
 
   const [disqualifyModalPart, setDisqualifyModalPart] = useState(null);
   const [disqualifyReason, setDisqualifyReason] = useState('');
+  const [activePaymentMethod, setActivePaymentMethod] = useState(() => getPaymentMethodConfig().activeMethod);
+  const [qrisList, setQrisList] = useState(() => getPaymentMethodConfig().qrisList);
+  const [newQrisName, setNewQrisName] = useState('');
+  const [newQrisString, setNewQrisString] = useState('');
 
   const handleRequestDisqualification = (e) => {
     e.preventDefault();
@@ -8145,6 +8150,170 @@ export default function AdminPanel({
         </div>
       ) : adminSubTab === 'membership' && currentUser && currentUser.role === 'superadmin' ? (
         <div className="membership-manager-section animate-fade-in">
+          {/* Metode Pembayaran Aktif & Daftar QRIS Dinamis */}
+          <div style={{ 
+            background: '#ffffff',
+            borderRadius: '16px',
+            border: '1.5px solid #e2e8f0',
+            padding: '24px',
+            boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.06)',
+            marginBottom: '24px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', margin: '0 0 4px 0' }}>
+                  Metode Pembayaran Aktif & QRIS Dinamis
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0 }}>
+                  Default menggunakan Transfer Bank. Jika dialihkan ke <strong>QRIS</strong>, semua transaksi otomatis men-generate QR dinamis sesuai nominal dari QRIS utama yang aktif.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', background: '#f1f5f9', padding: '4px', borderRadius: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActivePaymentMethod('transfer');
+                    savePaymentMethodConfig('transfer', qrisList);
+                  }}
+                  style={{
+                    padding: '7px 14px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    fontSize: '0.8rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    background: activePaymentMethod === 'transfer' ? '#0f172a' : 'transparent',
+                    color: activePaymentMethod === 'transfer' ? '#ffffff' : '#475569'
+                  }}
+                >
+                  Transfer Bank (Default)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (qrisList.length === 0) {
+                      alert('Tambahkan minimal 1 QRIS terlebih dahulu sebelum mengaktifkan metode QRIS.');
+                      return;
+                    }
+                    setActivePaymentMethod('qris');
+                    savePaymentMethodConfig('qris', qrisList);
+                  }}
+                  style={{
+                    padding: '7px 14px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    fontSize: '0.8rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    background: activePaymentMethod === 'qris' ? '#0284c7' : 'transparent',
+                    color: activePaymentMethod === 'qris' ? '#ffffff' : '#475569'
+                  }}
+                >
+                  QRIS Dinamis {activePaymentMethod === 'qris' ? '(Aktif)' : ''}
+                </button>
+              </div>
+            </div>
+
+            {/* Form Tambah QRIS */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: '10px', marginBottom: '16px', alignItems: 'end' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', marginBottom: '4px' }}>Nama QRIS (misal: DANA Bisnis 1)</label>
+                <input
+                  type="text"
+                  value={newQrisName}
+                  onChange={(e) => setNewQrisName(e.target.value)}
+                  placeholder="DANA Bisnis Utama"
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', marginBottom: '4px' }}>String Payload QRIS (000201...)</label>
+                <input
+                  type="text"
+                  value={newQrisString}
+                  onChange={(e) => setNewQrisString(e.target.value)}
+                  placeholder="Paste string QRIS statis dari DANA Bisnis..."
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontFamily: 'monospace', boxSizing: 'border-box' }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!newQrisName.trim() || !newQrisString.trim()) {
+                    alert('Nama QRIS dan String Payload QRIS wajib diisi!');
+                    return;
+                  }
+                  const updated = [
+                    ...qrisList,
+                    {
+                      id: `qris_${Date.now()}`,
+                      name: newQrisName.trim(),
+                      qrisString: newQrisString.trim(),
+                      isActive: qrisList.length === 0
+                    }
+                  ];
+                  setQrisList(updated);
+                  savePaymentMethodConfig(activePaymentMethod, updated);
+                  setNewQrisName('');
+                  setNewQrisString('');
+                }}
+                style={{ padding: '9px 16px', borderRadius: '8px', border: 'none', background: '#0f172a', color: '#ffffff', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
+              >
+                + Tambah QRIS
+              </button>
+            </div>
+
+            {/* Daftar QRIS */}
+            {qrisList.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {qrisList.map(q => (
+                  <div key={q.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderRadius: '10px', border: q.isActive ? '1.5px solid #0284c7' : '1px solid #e2e8f0', background: q.isActive ? '#f0f9ff' : '#f8fafc', gap: '12px', flexWrap: 'wrap' }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontWeight: '700', fontSize: '0.9rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>{q.name}</span>
+                        {q.isActive && <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: '999px', background: '#0284c7', color: '#ffffff', fontWeight: '700' }}>UTAMA / AKTIF</span>}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>
+                        {q.qrisString}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {!q.isActive && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = qrisList.map(item => ({ ...item, isActive: item.id === q.id }));
+                            setQrisList(updated);
+                            savePaymentMethodConfig(activePaymentMethod, updated);
+                          }}
+                          style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #0284c7', background: '#ffffff', color: '#0284c7', fontWeight: '700', fontSize: '0.76rem', cursor: 'pointer' }}
+                        >
+                          Jadikan Utama
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = qrisList.filter(item => item.id !== q.id);
+                          if (updated.length > 0 && !updated.some(i => i.isActive)) {
+                            updated[0].isActive = true;
+                          }
+                          const nextMethod = updated.length === 0 ? 'transfer' : activePaymentMethod;
+                          setQrisList(updated);
+                          setActivePaymentMethod(nextMethod);
+                          savePaymentMethodConfig(nextMethod, updated);
+                        }}
+                        style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', fontWeight: '700', fontSize: '0.76rem', cursor: 'pointer' }}
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Pengaturan Rekening Utama Platform & Pembayaran Manual (Multi-Bank & E-Wallet) */}
           <div style={{ 
             background: '#ffffff',
