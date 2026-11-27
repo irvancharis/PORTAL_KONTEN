@@ -39,7 +39,7 @@ export async function savePaymentMethodConfig(activeMethod, qrisList) {
     window.dispatchEvent(new Event('payment-method-updated'));
     if (isFirebaseConfigured() && db) {
       await setDoc(
-        doc(db, 'settings', 'platform'),
+        doc(db, 'settings', 'general'),
         { activePaymentMethod: methodVal, qrisList: listVal },
         { merge: true }
       );
