@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getActiveQrisForAmount } from '../utils/paymentMethodHelper';
+import { getActiveQrisForAmount, generateQrisUniqueCode } from '../utils/paymentMethodHelper';
 import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw, Smartphone, ExternalLink, Sparkles, Upload, Send, MessageCircle } from 'lucide-react';
 import { DUITKU_CONFIG, DUITKU_PAYMENT_METHODS, requestDuitkuInquiry, fetchDuitkuPaymentMethods } from '../services/duitkuPaymentService';
 import { createMayarInvoicePayment, checkMayarPaymentStatus, fetchMayarPaymentChannels } from '../services/mayarPaymentService';
@@ -41,6 +41,7 @@ export default function PremiumModal({
   const [senderBank, setSenderBank] = useState('BCA');
   const [receiptFile, setReceiptFile] = useState('');
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
+  const [qrisUniqueCode] = useState(() => generateQrisUniqueCode());
 
   useEffect(() => {
     if (modalContainerRef.current) {
@@ -1110,7 +1111,8 @@ export default function PremiumModal({
             {/* Kartu Rekening Platform atau QRIS Dinamis */}
             {(() => {
               const numericAmount = parseInt(String(currentPlan.price || '0').replace(/\D/g, ''), 10) || 0;
-              const activeQris = getActiveQrisForAmount(numericAmount);
+              const qrisTotalAmount = numericAmount + qrisUniqueCode;
+              const activeQris = getActiveQrisForAmount(qrisTotalAmount);
               if (activeQris) {
                 return (
                   <div style={{ border: '1.5px solid #0284c7', borderRadius: '14px', padding: '18px', background: '#f0f9ff', textAlign: 'center' }}>
@@ -1120,8 +1122,12 @@ export default function PremiumModal({
                     <div style={{ display: 'inline-block', padding: '10px', background: '#ffffff', borderRadius: '12px', border: '1px solid #bae6fd', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.1)' }}>
                       <img src={activeQris.qrImageUrl} alt="QRIS Dinamis" style={{ width: '210px', height: '210px', display: 'block' }} />
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: '12px', lineHeight: '1.5' }}>
-                      Scan QR di atas menggunakan <strong>DANA, GoPay, OVO, ShopeePay, atau Mobile Banking</strong>. Nominal <strong>{currentPlan.price}</strong> sudah otomatis terisi.
+                    <div style={{ marginTop: '12px', padding: '8px 12px', background: '#ffffff', borderRadius: '10px', border: '1px solid #bae6fd', display: 'inline-block' }}>
+                      <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Total Bayar (Termasuk Kode Unik +{qrisUniqueCode})</div>
+                      <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0369a1' }}>Rp {qrisTotalAmount.toLocaleString('id-ID')}</div>
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: '#475569', marginTop: '10px', lineHeight: '1.5' }}>
+                      Scan QR di atas menggunakan <strong>DANA, GoPay, OVO, ShopeePay, atau Mobile Banking</strong>. Nominal <strong>Rp {qrisTotalAmount.toLocaleString('id-ID')}</strong> sudah otomatis terisi.
                     </div>
                   </div>
                 );

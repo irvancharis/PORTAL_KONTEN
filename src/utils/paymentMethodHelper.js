@@ -50,6 +50,10 @@ export async function savePaymentMethodConfig(activeMethod, qrisList) {
   }
 }
 
+export function generateQrisUniqueCode() {
+  return Math.floor(101 + Math.random() * 898);
+}
+
 export function getActiveQrisForAmount(amount) {
   const { activeMethod, qrisList } = getPaymentMethodConfig();
   if (activeMethod !== 'qris') return null;

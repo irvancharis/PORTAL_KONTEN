@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getActiveQrisForAmount } from '../utils/paymentMethodHelper';
+import { getActiveQrisForAmount, generateQrisUniqueCode } from '../utils/paymentMethodHelper';
 import { createPortal } from 'react-dom';
 import { Trophy, Calendar, Users, User, Award, FileVideo, CheckCircle2, Clock, XCircle, AlertTriangle, Send, Sparkles, Search, Wallet, ShieldCheck, Loader2, ArrowLeft, ChevronDown, X, Maximize2, ExternalLink, MapPin, ClipboardList, Play } from 'lucide-react';
 import { sendEmailNotification } from '../services/emailNotificationService';
@@ -3623,7 +3623,9 @@ onMouseLeave={(e) => {
                               branch: 'KCU Malang'
                             };
                         const cleanAcc = (primaryBank.accountNumber || '').replace(/\D/g, '');
-                        const activeQris = getActiveQrisForAmount(registeringEvent.ticketPrice);
+                        const qrisUniqueCode = (parseInt(String(registeringEvent?.id || '').replace(/\D/g, '').slice(-3), 10) % 898) + 101;
+                        const qrisTotalAmount = (registeringEvent.ticketPrice || 0) + qrisUniqueCode;
+                        const activeQris = getActiveQrisForAmount(qrisTotalAmount);
 
                         return (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
