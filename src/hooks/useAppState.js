@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { syncPaymentMethodFromSettings } from '../utils/paymentMethodHelper';
 import { checkUserProfileComplete } from '../utils/helpers';
 import { onSnapshot, collection } from 'firebase/firestore';
 import { 
@@ -1565,6 +1566,7 @@ export default function useAppState() {
             if (dbSettings.withdrawalFeePercentPremium !== undefined) {
               setWithdrawalFeePercentPremium(dbSettings.withdrawalFeePercentPremium);
             }
+            syncPaymentMethodFromSettings(dbSettings);
           }
 
           // Fetch all other collections once to populate state initially (heavy optimization)

@@ -1,4 +1,6 @@
 import { generateDynamicQris } from './qris';
+import { db, isFirebaseConfigured } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 const METHOD_KEY = 'portal-payment-method-active';
 const QRIS_LIST_KEY = 'portal-qris-list';
@@ -14,11 +16,34 @@ export function getPaymentMethodConfig() {
   }
 }
 
-export function savePaymentMethodConfig(activeMethod, qrisList) {
+export function syncPaymentMethodFromSettings(dbSettings) {
+  if (!dbSettings) return;
   try {
-    localStorage.setItem(METHOD_KEY, activeMethod || 'transfer');
-    localStorage.setItem(QRIS_LIST_KEY, JSON.stringify(qrisList || []));
+    if (dbSettings.activePaymentMethod) {
+      localStorage.setItem(METHOD_KEY, dbSettings.activePaymentMethod);
+    }
+    if (Array.isArray(dbSettings.qrisList)) {
+      localStorage.setItem(QRIS_LIST_KEY, JSON.stringify(dbSettings.qrisList));
+    }
+  } catch (e) {
+    console.error('Failed syncing payment method from settings:', e);
+  }
+}
+
+export async function savePaymentMethodConfig(activeMethod, qrisList) {
+  try {
+    const methodVal = activeMethod || 'transfer';
+    const listVal = qrisList || [];
+    localStorage.setItem(METHOD_KEY, methodVal);
+    localStorage.setItem(QRIS_LIST_KEY, JSON.stringify(listVal));
     window.dispatchEvent(new Event('payment-method-updated'));
+    if (isFirebaseConfigured() && db) {
+      await setDoc(
+        doc(db, 'settings', 'platform'),
+        { activePaymentMethod: methodVal, qrisList: listVal },
+        { merge: true }
+      );
+    }
   } catch (e) {
     console.error('Failed saving payment method config:', e);
   }
