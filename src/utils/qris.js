@@ -1,3 +1,37 @@
+import jsQR from 'jsqr';
+
+/**
+ * Decode QRIS payload string from an uploaded image File.
+ * @param {File} file
+ * @returns {Promise<string>}
+ */
+export function decodeQrisFromImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        if (code && code.data) {
+          resolve(code.data.trim());
+        } else {
+          reject(new Error('QR Code tidak terdeteksi pada gambar. Pastikan gambar QRIS jelas dan tidak terpotong.'));
+        }
+      };
+      img.onerror = () => reject(new Error('Gagal membaca file gambar.'));
+      img.src = reader.result;
+    };
+    reader.onerror = () => reject(new Error('Gagal membaca file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
 /**
  * Generate dynamic QRIS payload with embedded transaction amount (EMVCo CRC-16/CCITT-FALSE).
  * @param {string} staticQris - Base static QRIS string from DANA Bisnis / merchant

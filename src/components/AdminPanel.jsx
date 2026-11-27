@@ -7,6 +7,7 @@ import React, {
 import { isFirebaseConfigured, db } from '../firebase';
 import { createPortal } from 'react-dom';
 import { getPaymentMethodConfig, savePaymentMethodConfig, getActiveQrisForAmount } from '../utils/paymentMethodHelper';
+import { decodeQrisFromImageFile } from '../utils/qris';
 import { sendEmailNotification } from '../services/emailNotificationService';
 import { generateSecureTicketUrl } from '../utils/security';
 import { checkUserProfileComplete } from '../utils/helpers';
@@ -8215,7 +8216,7 @@ export default function AdminPanel({
             </div>
 
             {/* Form Tambah QRIS */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: '10px', marginBottom: '16px', alignItems: 'end' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr auto', gap: '10px', marginBottom: '16px', alignItems: 'end' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', marginBottom: '4px' }}>Nama QRIS (misal: DANA Bisnis 1)</label>
                 <input
@@ -8227,14 +8228,31 @@ export default function AdminPanel({
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', marginBottom: '4px' }}>String Payload QRIS (000201...)</label>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', marginBottom: '4px' }}>Upload Gambar QRIS (DANA Bisnis / Merchant)</label>
                 <input
-                  type="text"
-                  value={newQrisString}
-                  onChange={(e) => setNewQrisString(e.target.value)}
-                  placeholder="Paste string QRIS statis dari DANA Bisnis..."
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontFamily: 'monospace', boxSizing: 'border-box' }}
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      const decoded = await decodeQrisFromImageFile(file);
+                      setNewQrisString(decoded);
+                      if (!newQrisName.trim()) {
+                        setNewQrisName(file.name.replace(/\.[^.]+$/, ''));
+                      }
+                    } catch (err) {
+                      alert(err.message || 'Gagal membaca QRIS dari gambar.');
+                      e.target.value = '';
+                    }
+                  }}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#f8fafc', boxSizing: 'border-box' }}
                 />
+                {newQrisString && (
+                  <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '700', marginTop: '4px' }}>
+                    ✓ QRIS terbaca ({newQrisString.slice(0, 24)}...)
+                  </div>
+                )}
               </div>
               <button
                 type="button"
