@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { getActiveQrisForAmount } from '../utils/paymentMethodHelper';
 import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw, Smartphone, ExternalLink, Sparkles, Upload, Send, MessageCircle } from 'lucide-react';
 import { DUITKU_CONFIG, DUITKU_PAYMENT_METHODS, requestDuitkuInquiry, fetchDuitkuPaymentMethods } from '../services/duitkuPaymentService';
 import { createMayarInvoicePayment, checkMayarPaymentStatus, fetchMayarPaymentChannels } from '../services/mayarPaymentService';
@@ -1105,8 +1106,28 @@ export default function PremiumModal({
               </div>
             </div>
 
-            {/* Kartu Rekening Platform (Dinamis dari platformBankAccounts) */}
+            {/* Kartu Rekening Platform atau QRIS Dinamis */}
             {(() => {
+              const numericAmount = parseInt(String(currentPlan.price || '0').replace(/\D/g, ''), 10) || 0;
+              const activeQris = getActiveQrisForAmount(numericAmount);
+              if (activeQris) {
+                return (
+                  <div style={{ border: '1.5px solid #0284c7', borderRadius: '14px', padding: '18px', background: '#f0f9ff', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
+                      Pembayaran QRIS Dinamis
+                    </div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#0f172a', marginBottom: '12px' }}>
+                      {activeQris.name}
+                    </div>
+                    <div style={{ display: 'inline-block', padding: '10px', background: '#ffffff', borderRadius: '12px', border: '1px solid #bae6fd', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.1)' }}>
+                      <img src={activeQris.qrImageUrl} alt="QRIS Dinamis" style={{ width: '210px', height: '210px', display: 'block' }} />
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: '12px', lineHeight: '1.5' }}>
+                      Scan QR di atas menggunakan <strong>DANA, GoPay, OVO, ShopeePay, atau Mobile Banking</strong>. Nominal <strong>{currentPlan.price}</strong> sudah otomatis terisi.
+                    </div>
+                  </div>
+                );
+              }
               const activeBanks = (platformBankAccounts && platformBankAccounts.length > 0)
                 ? platformBankAccounts
                 : [
