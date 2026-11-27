@@ -214,7 +214,7 @@ exports.qrisNotificationWebhook = onRequest({ cors: true }, async (req, res) => 
     if (providedSecret && providedSecret !== expectedSecret) return res.status(401).json({ error: 'Invalid webhook secret' });
     let amount = Number(body.amount) || 0;
     if (!amount) {
-      const rawText = ${body.title || ''}  ;
+      const rawText = [body.title, body.text, body.message].filter(Boolean).join(' ');
       const match = rawText.match(/Rp\s?([\d.,]+)/i);
       if (match && match[1]) amount = parseInt(match[1].replace(/[.,]/g, ''), 10) || 0;
     }
