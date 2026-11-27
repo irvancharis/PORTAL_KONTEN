@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getActiveQrisForAmount } from '../utils/paymentMethodHelper';
 import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw, Smartphone, ExternalLink, Sparkles, Upload, Send, MessageCircle } from 'lucide-react';
 import { DUITKU_CONFIG, DUITKU_PAYMENT_METHODS, requestDuitkuInquiry, fetchDuitkuPaymentMethods } from '../services/duitkuPaymentService';
@@ -1114,11 +1114,8 @@ export default function PremiumModal({
               if (activeQris) {
                 return (
                   <div style={{ border: '1.5px solid #0284c7', borderRadius: '14px', padding: '18px', background: '#f0f9ff', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '12px' }}>
                       Pembayaran QRIS Dinamis
-                    </div>
-                    <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#0f172a', marginBottom: '12px' }}>
-                      {activeQris.name}
                     </div>
                     <div style={{ display: 'inline-block', padding: '10px', background: '#ffffff', borderRadius: '12px', border: '1px solid #bae6fd', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.1)' }}>
                       <img src={activeQris.qrImageUrl} alt="QRIS Dinamis" style={{ width: '210px', height: '210px', display: 'block' }} />

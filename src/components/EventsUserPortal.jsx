@@ -3646,11 +3646,8 @@ onMouseLeave={(e) => {
                             {/* Kartu Rekening Tujuan Platform atau QRIS Dinamis */}
                             {activeQris ? (
                               <div style={{ border: '1.5px solid #0284c7', borderRadius: '14px', padding: '18px', background: '#f0f9ff', textAlign: 'center' }}>
-                                <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
+                                <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '12px' }}>
                                   Pembayaran QRIS Dinamis
-                                </div>
-                                <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#0f172a', marginBottom: '12px' }}>
-                                  {activeQris.name}
                                 </div>
                                 <div style={{ display: 'inline-block', padding: '10px', background: '#ffffff', borderRadius: '12px', border: '1px solid #bae6fd', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.1)' }}>
                                   <img src={activeQris.qrImageUrl} alt="QRIS Dinamis" style={{ width: '210px', height: '210px', display: 'block' }} />
@@ -3729,7 +3726,8 @@ onMouseLeave={(e) => {
                             </div>
                             )}
 
-                            {/* Form Bukti Transfer */}
+                            {/* Form Bukti Transfer (Hanya untuk Transfer Manual) */}
+                            {!activeQris && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: '#f8fafc', padding: '14px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                               <div>
                                 <label style={{ display: 'block', marginBottom: '5px', color: '#0f172a', fontSize: '0.8rem', fontWeight: '700' }}>Nama Pengirim Rekening</label>
@@ -3780,6 +3778,7 @@ onMouseLeave={(e) => {
                                 )}
                               </div>
                             </div>
+                            )}
                           </div>
                         );
                       })()}
@@ -3791,7 +3790,8 @@ onMouseLeave={(e) => {
                           const userProfile = matchedUser ? { ...matchedUser, ...currentUser } : currentUser;
                           const pCheck = checkUserProfileComplete(userProfile);
                           const hasIncompleteProfile = !pCheck.isComplete;
-                          const needsProof = registeringEvent.ticketPrice > 0 && (!ticketSenderName.trim() || !ticketReceiptFile);
+                          const isQrisActive = Boolean(getActiveQrisForAmount(registeringEvent.ticketPrice));
+                          const needsProof = !isQrisActive && registeringEvent.ticketPrice > 0 && (!ticketSenderName.trim() || !ticketReceiptFile);
                           const isDisabled = hasIncompleteProfile || needsProof;
                           return (
                             <button 
