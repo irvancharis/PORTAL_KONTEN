@@ -205,6 +205,7 @@ exports.getTripayChannels = functions.https.onRequest((req, res) => {
 /**
  * Webhook endpoint for Android Notification Forwarder (DANA Bisnis QRIS)
  */
+const { onRequest } = require('firebase-functions/v2/https');
 exports.qrisNotificationWebhook = onRequest({ cors: true }, async (req, res) => {
   try {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
