@@ -46,6 +46,7 @@ export async function savePaymentMethodConfig(activeMethod, qrisList) {
     }
   } catch (e) {
     console.error('Failed saving payment method config:', e);
+    alert('Gagal menyimpan pengaturan QRIS ke server: ' + (e.message || e));
   }
 }
 
