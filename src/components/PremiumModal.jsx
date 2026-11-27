@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { getActiveQrisForAmount } from '../utils/paymentMethodHelper';
 import { Crown, Check, X, QrCode, Landmark, ShieldCheck, ArrowRight, ArrowLeft, Copy, CheckCircle2, RefreshCw, Smartphone, ExternalLink, Sparkles, Upload, Send, MessageCircle } from 'lucide-react';
 import { DUITKU_CONFIG, DUITKU_PAYMENT_METHODS, requestDuitkuInquiry, fetchDuitkuPaymentMethods } from '../services/duitkuPaymentService';
@@ -118,7 +118,7 @@ export default function PremiumModal({
 
     try {
       const res = await checkMayarPaymentStatus(orderRef, expectedAmount, qrCreatedAt);
-      console.log('🔍 [Hasil checkMayarPaymentStatus]:', res);
+      console.log('ðŸ” [Hasil checkMayarPaymentStatus]:', res);
 
       if (res && res.isPaid) {
         setIsVerifying(false);
@@ -192,12 +192,12 @@ export default function PremiumModal({
         }
       } else {
         setIsVerifying(false);
-        alert('⚠️ Pembayaran belum terdeteksi. Silakan selesaikan pembayaran melalui QRIS terlebih dahulu, lalu klik tombol ini lagi.');
+        alert('âš ï¸ Pembayaran belum terdeteksi. Silakan selesaikan pembayaran melalui QRIS terlebih dahulu, lalu klik tombol ini lagi.');
       }
     } catch (err) {
       console.error('Verifikasi Payment Error:', err);
       setIsVerifying(false);
-      alert('⚠️ Gagal memeriksa status pembayaran: ' + (err.message || 'Terjadi kesalahan sistem'));
+      alert('âš ï¸ Gagal memeriksa status pembayaran: ' + (err.message || 'Terjadi kesalahan sistem'));
     }
   };
 
@@ -524,7 +524,7 @@ export default function PremiumModal({
                       zIndex: 2
                     }}
                   >
-                    <span className="doku-white-text">✓ DIPILIH</span>
+                    <span className="doku-white-text">âœ“ DIPILIH</span>
                   </div>
                 )}
                 
@@ -559,7 +559,7 @@ export default function PremiumModal({
                       zIndex: 2
                     }}
                   >
-                    <span className="doku-white-text">✓ DIPILIH</span>
+                    <span className="doku-white-text">âœ“ DIPILIH</span>
                   </div>
                 )}
 
@@ -770,6 +770,7 @@ export default function PremiumModal({
                 </>
               )}
             </div>
+
 
             {/* Tombol Aksi */}
             <div style={{ display: 'flex', gap: '10px' }}>
@@ -982,7 +983,7 @@ export default function PremiumModal({
                   )}
 
                   <div style={{ fontSize: '0.72rem', color: '#4b5563', marginTop: '8px', lineHeight: '1.4' }}>
-                    📱 Scan QR di atas menggunakan <strong>Kamera HP</strong> atau klik tombol biru di atas untuk menyelesaikan pembayaran QRIS & E-Wallet.
+                    ðŸ“± Scan QR di atas menggunakan <strong>Kamera HP</strong> atau klik tombol biru di atas untuk menyelesaikan pembayaran QRIS & E-Wallet.
                   </div>
                 </div>
               </div>
@@ -1309,7 +1310,9 @@ export default function PremiumModal({
               );
             })()}
 
-            {/* Form Input Detail Pengirim */}
+            {/* Form Input Detail Pengirim (Hanya untuk Transfer Manual) */}
+            {!getActiveQrisForAmount(parseInt(String(currentPlan.price || '0').replace(/\D/g, ''), 10) || 0) && (
+            <>
             <div className="vip-sender-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.78rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px', display: 'block' }}>
@@ -1430,12 +1433,15 @@ export default function PremiumModal({
                     style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #6ee7b7' }} 
                   />
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '0.82rem', color: '#065f46', fontWeight: '700' }}>✓ Foto bukti struk terlampir</span>
+                    <span style={{ fontSize: '0.82rem', color: '#065f46', fontWeight: '700' }}>âœ“ Foto bukti struk terlampir</span>
                     <span style={{ fontSize: '0.72rem', color: '#047857' }}>Siap dikirim untuk verifikasi admin</span>
                   </div>
                 </div>
               )}
             </div>
+
+            </>
+            )}
 
             {/* Tombol Aksi */}
             <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
@@ -1518,8 +1524,8 @@ export default function PremiumModal({
 
             <h3 style={{ fontSize: '1.3rem', fontWeight: '800', margin: '0 0 8px 0' }}>
               {paymentGatewayMode === 'manual' 
-                ? 'Bukti Pembayaran Terkirim! 🎉' 
-                : `Selamat! User Premium Aktif (${currentPlan.duration}) 🎉`}
+                ? 'Bukti Pembayaran Terkirim! ðŸŽ‰' 
+                : `Selamat! User Premium Aktif (${currentPlan.duration}) ðŸŽ‰`}
             </h3>
             
             <p className="desc-text" style={{ fontSize: '0.85rem', lineHeight: '1.6', marginBottom: '22px', maxWidth: '380px', margin: '0 auto 22px auto' }}>

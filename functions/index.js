@@ -201,3 +201,46 @@ exports.getTripayChannels = functions.https.onRequest((req, res) => {
     }
   });
 });
+
+/**
+ * Webhook endpoint for Android Notification Forwarder (DANA Bisnis QRIS)
+ */
+exports.qrisNotificationWebhook = onRequest({ cors: true }, async (req, res) => {
+  try {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+    const body = req.body || {};
+    const expectedSecret = process.env.QRIS_WEBHOOK_SECRET || 'ngonten-qris-2026';
+    const providedSecret = req.headers['x-webhook-secret'] || body.secret || req.query.secret;
+    if (providedSecret && providedSecret !== expectedSecret) return res.status(401).json({ error: 'Invalid webhook secret' });
+    let amount = Number(body.amount) || 0;
+    if (!amount) {
+      const rawText = ${body.title || ''}  ;
+      const match = rawText.match(/Rp\s?([\d.,]+)/i);
+      if (match && match[1]) amount = parseInt(match[1].replace(/[.,]/g, ''), 10) || 0;
+    }
+    if (amount <= 0) return res.status(400).json({ error: 'Nominal pembayaran tidak ditemukan', received: body });
+    const db = admin.firestore();
+    const updated = [];
+    const confSnap = await db.collection('confirmations').where('status', '==', 'pending').get();
+    for (const docSnap of confSnap.docs) {
+      const conf = docSnap.data();
+      const confAmt = parseInt(String(conf.amount || '0').replace(/\D/g, ''), 10) || 0;
+      if (confAmt === amount) {
+        await docSnap.ref.update({ status: 'approved', verifiedBy: 'qris_webhook', verifiedAt: new Date().toISOString() });
+        if (conf.isTicketPayment && conf.targetId) {
+          await db.collection('eventParticipants').doc(conf.targetId).set({ status: 'approved', isPaid: true }, { merge: true });
+        } else if (conf.isEventPayment && conf.targetId) {
+          await db.collection('events').doc(conf.targetId).set({ paymentStatus: 'paid' }, { merge: true });
+        } else if (conf.userId) {
+          const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          await db.collection('users').doc(conf.userId).set({ role: conf.targetRole || 'vip', premiumExpiresAt: expiresAt }, { merge: true });
+        }
+        updated.push({ collection: 'confirmations', id: docSnap.id, amount });
+        break;
+      }
+    }
+    return res.status(200).json({ success: true, matchedAmount: amount, updated });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
