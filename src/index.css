@@ -6670,3 +6670,11 @@ select:focus {
   border-radius: 999px;
   transform: scale(1.04);
 }
+
+/* Hide footer on mobile view */
+@media (max-width: 768px) {
+  .app-footer,
+  footer {
+    display: none !important;
+  }
+}
