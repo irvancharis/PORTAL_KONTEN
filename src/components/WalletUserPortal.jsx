@@ -1190,6 +1190,9 @@ export default function WalletUserPortal({
                       onClick={() => {
                         setIsWdModalOpen(false);
                         onEditProfileClick();
+                        setTimeout(() => {
+                          document.getElementById('profile-bank-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 250);
                       }}
                       style={{
                         background: '#fbbf24',

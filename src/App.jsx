@@ -1,4 +1,4 @@
-﻿import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import BottomNav from './components/BottomNav';
@@ -614,7 +614,6 @@ export default function App() {
               setEventAdminFee={setEventAdminFee}
               eventFlatFee={eventFlatFee}
               setEventFlatFee={setEventFlatFee}
-              eventTicketFeePercent={eventTicketFeePercent}
               setEventTicketFeePercent={setEventTicketFeePercent}
               withdrawalFeePercent={withdrawalFeePercent}
               setWithdrawalFeePercent={setWithdrawalFeePercent}
@@ -1218,7 +1217,7 @@ export default function App() {
 
                 {/* Pengaturan Rekening / Akun Pencairan Saldo (Default) */}
                 {/* Bagian Pengisian Rekening Bank (Utama: Mandiri) */}
-                <div style={{
+                <div id="profile-bank-section" style={{
                   background: 'rgba(255, 255, 255, 0.02)',
                   border: '1px solid var(--border-color)',
                   borderRadius: '12px',
