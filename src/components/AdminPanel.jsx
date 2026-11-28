@@ -9508,9 +9508,11 @@ export default function AdminPanel({
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th style={{ width: '60px' }}>No</th>
+                      <th style={{ width: '50px' }}>No</th>
                       <th>Username</th>
                       <th>Kontak / Email</th>
+                      <th>Regional</th>
+                      <th>Saldo</th>
                       <th>Role / Jabatan</th>
                       <th>Masa Aktif</th>
                       {currentUser.role === 'superadmin' && (
@@ -9561,10 +9563,10 @@ export default function AdminPanel({
                               <span>{user.username}</span>
                               {isSelf && <span style={{ fontSize: '0.7rem', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '10px', color: 'var(--text-muted)' }}>Anda</span>}
                               {(['superadmin', 'staf', 'moderator', 'editor'].includes(user.role) || (customRoles.some(r => r.id === user.role) && user.role !== 'panitia')) && (
-                                <span style={{ fontSize: '0.65rem', background: 'rgba(124, 58, 237, 0.12)', border: '1px solid rgba(124, 58, 237, 0.25)', padding: '1px 5px', borderRadius: '4px', color: '#c084fc', fontWeight: 'bold' }}>Internal</span>
+                                <span style={{ fontSize: '0.65rem', background: '#0f172a', border: '1px solid #0f172a', padding: '1px 6px', borderRadius: '4px', color: '#ffffff', fontWeight: 'bold' }}>Internal</span>
                               )}
                               {user.role === 'panitia' && (
-                                <span style={{ fontSize: '0.65rem', background: 'rgba(139, 92, 246, 0.12)', border: '1px solid rgba(139, 92, 246, 0.25)', padding: '1px 5px', borderRadius: '4px', color: '#a78bfa', fontWeight: 'bold' }}>Panitia</span>
+                                <span style={{ fontSize: '0.65rem', background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '1px 6px', borderRadius: '4px', color: '#0f172a', fontWeight: 'bold' }}>Panitia</span>
                               )}
                             </div>
                           </td>
@@ -9577,6 +9579,16 @@ export default function AdminPanel({
                                 {user.phone || user.whatsapp}
                               </div>
                             )}
+                          </td>
+                          <td>
+                            <span style={{ fontSize: '0.82rem', color: 'var(--text-primary)', fontWeight: '500' }}>
+                              {user.userRegional || '-'}
+                            </span>
+                          </td>
+                          <td>
+                            <span style={{ fontSize: '0.82rem', color: '#0f172a', fontWeight: '700', whiteSpace: 'nowrap' }}>
+                              Rp {(user.walletBalance || 0).toLocaleString('id-ID')}
+                            </span>
                           </td>
                           <td>
                             <span 
