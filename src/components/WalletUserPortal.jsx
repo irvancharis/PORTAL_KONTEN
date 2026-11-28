@@ -747,7 +747,7 @@ export default function WalletUserPortal({
 
         <div className="admin-table-container">
           {filteredTxs.length > 0 ? (
-            <table className="admin-table" style={{ width: '100%' }}>
+            <table className="admin-table wallet-mutasi-table" style={{ width: '100%' }}>
               <thead>
                 <tr>
                   <th style={{ width: '150px' }}>Tanggal</th>
@@ -869,7 +869,7 @@ export default function WalletUserPortal({
           <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white', marginBottom: '20px' }}>Daftar Hadiah Tambahan (Gift & Voucher)</h3>
           <div className="admin-table-container">
             {myGifts.length > 0 ? (
-              <table className="admin-table" style={{ width: '100%' }}>
+              <table className="admin-table wallet-mutasi-table" style={{ width: '100%' }}>
                 <thead>
                   <tr>
                     <th style={{ width: '150px' }}>Tanggal</th>

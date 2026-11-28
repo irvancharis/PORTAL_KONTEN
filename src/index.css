@@ -6689,6 +6689,67 @@ select:focus {
     max-width: 100vw !important;
   }
 
+  .main-content {
+    padding: 12px 14px 86px !important;
+  }
+
+  h1, h2 {
+    font-size: 1.32rem !important;
+    line-height: 1.25 !important;
+  }
+
+  /* Compact Fintech 2-Row Card for Wallet Mutasi */
+  .wallet-mutasi-table tr {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    gap: 6px 12px !important;
+    padding: 12px 14px !important;
+    align-items: center !important;
+  }
+
+  .wallet-mutasi-table td {
+    display: block !important;
+    width: auto !important;
+    padding: 0 !important;
+  }
+
+  /* Col 2: Keterangan (Row 1 Left) */
+  .wallet-mutasi-table td:nth-child(2) {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 0.84rem !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Col 4: Nominal (Row 1 Right) */
+  .wallet-mutasi-table td:nth-child(4) {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right !important;
+    white-space: nowrap !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* Col 1: Tanggal (Row 2 Left) */
+  .wallet-mutasi-table td:nth-child(1) {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 0.72rem !important;
+    color: var(--text-muted) !important;
+  }
+
+  /* Col 3 & 5: Tipe + Status (Row 2 Right) */
+  .wallet-mutasi-table td:nth-child(3) {
+    display: none !important;
+  }
+
+  .wallet-mutasi-table td:nth-child(5) {
+    grid-column: 2;
+    grid-row: 2;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+
   /* Beranda split-card: stack vertically so text has full width */
   .split-card {
     flex-direction: column !important;

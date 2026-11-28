@@ -98,7 +98,7 @@ const SearchableSelect = ({ value, onChange, placeholder, options }) => {
         }}
       >
         <span>{value || placeholder}</span>
-        <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>â–¼</span>
+        <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>{'\u25BC'}</span>
       </div>
 
       {isOpen && (
