@@ -9469,9 +9469,9 @@ export default function AdminPanel({
                       onClick={() => setUserFilter(tab.id)}
                       style={{
                         padding: '8px 16px',
-                        background: userFilter === tab.id ? 'rgba(124, 58, 237, 0.15)' : 'rgba(255,255,255,0.03)',
-                        border: userFilter === tab.id ? '1px solid rgba(124, 58, 237, 0.3)' : '1px solid var(--border-color)',
-                        color: userFilter === tab.id ? 'white' : 'var(--text-secondary)',
+                        background: userFilter === tab.id ? '#0f172a' : '#ffffff',
+                        border: userFilter === tab.id ? '1px solid #0f172a' : '1px solid #e2e8f0',
+                        color: userFilter === tab.id ? '#ffffff' : '#475569',
                         borderRadius: '20px',
                         fontSize: '0.82rem',
                         fontWeight: '600',
