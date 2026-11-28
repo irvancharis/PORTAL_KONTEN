@@ -6656,6 +6656,7 @@ select:focus {
 
 .bottom-nav-item.active {
   background: transparent !important;
+  box-shadow: none !important;
   color: #0f172a !important;
   font-weight: 700;
 }

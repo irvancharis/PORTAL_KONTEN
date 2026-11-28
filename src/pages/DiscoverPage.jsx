@@ -911,10 +911,9 @@ export default function DiscoverPage({
                       </div>
                       <div className="creator-info">
                         <span className="creator-name">{creator.name}</span>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '6px', marginTop: '8px' }}>
-                          {creator.userCategory ? creator.userCategory.split(',').map((cat, idx) => (
-                            <span key={idx} className="creator-tag">{cat.trim()}</span>
-                          )) : <span className="creator-tag">Kreator Digital</span>}
+                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginTop: '6px', fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: '500' }}>
+                          <MapPin size={13} style={{ flexShrink: 0, opacity: 0.75 }} />
+                          <span>{creator.userRegional || 'Indonesia'}</span>
                         </div>
                       </div>
                     </div>
