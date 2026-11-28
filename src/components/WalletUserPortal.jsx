@@ -1181,7 +1181,7 @@ export default function WalletUserPortal({
                       Metode Pencairan Belum Diatur
                     </h4>
                     <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: '1.5', maxWidth: '420px' }}>
-                      Untuk keamanan dan kenyamanan penarikan saldo, silakan atur rekening Bank atau nomor E-Wallet (DANA/GoPay/OVO) terlebih dahulu pada profil Anda.
+                      Untuk keamanan dan kenyamanan penarikan saldo, silakan atur rekening Bank Anda terlebih dahulu pada profil Anda.
                     </p>
                   </div>
                   {onEditProfileClick && (
