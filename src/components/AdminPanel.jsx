@@ -9563,7 +9563,7 @@ export default function AdminPanel({
                               <span>{user.username}</span>
                               {isSelf && <span style={{ fontSize: '0.7rem', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '10px', color: 'var(--text-muted)' }}>Anda</span>}
                               {(['superadmin', 'staf', 'moderator', 'editor'].includes(user.role) || (customRoles.some(r => r.id === user.role) && user.role !== 'panitia')) && (
-                                <span style={{ fontSize: '0.65rem', background: '#0f172a', border: '1px solid #0f172a', padding: '1px 6px', borderRadius: '4px', color: '#ffffff', fontWeight: 'bold' }}>Internal</span>
+                                <span style={{ fontSize: '0.65rem', background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '1px 6px', borderRadius: '4px', color: '#0f172a', fontWeight: 'bold' }}>Internal</span>
                               )}
                               {user.role === 'panitia' && (
                                 <span style={{ fontSize: '0.65rem', background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '1px 6px', borderRadius: '4px', color: '#0f172a', fontWeight: 'bold' }}>Panitia</span>
