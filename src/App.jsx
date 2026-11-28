@@ -482,7 +482,7 @@ export default function App() {
               onClick={() => setToast(null)}
               className="custom-toast-close"
             >
-              âœ•
+              ✕
             </button>
           </div>
         )}
@@ -2570,7 +2570,7 @@ export default function App() {
             onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
             onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
           >
-            âœ•
+            ✕
           </button>
           <img 
             className="lightbox-image"
@@ -2603,7 +2603,7 @@ export default function App() {
             onClick={() => setToast(null)}
             className="custom-toast-close"
           >
-            âœ•
+            ✕
           </button>
         </div>
       )}

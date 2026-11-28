@@ -525,7 +525,7 @@ export default function PremiumModal({
                       zIndex: 2
                     }}
                   >
-                    <span className="doku-white-text">âœ“ DIPILIH</span>
+                    <span className="doku-white-text">✓ DIPILIH</span>
                   </div>
                 )}
                 
@@ -560,7 +560,7 @@ export default function PremiumModal({
                       zIndex: 2
                     }}
                   >
-                    <span className="doku-white-text">âœ“ DIPILIH</span>
+                    <span className="doku-white-text">✓ DIPILIH</span>
                   </div>
                 )}
 
@@ -984,7 +984,7 @@ export default function PremiumModal({
                   )}
 
                   <div style={{ fontSize: '0.72rem', color: '#4b5563', marginTop: '8px', lineHeight: '1.4' }}>
-                    ðŸ“± Scan QR di atas menggunakan <strong>Kamera HP</strong> atau klik tombol biru di atas untuk menyelesaikan pembayaran QRIS & E-Wallet.
+                    ± Scan QR di atas menggunakan <strong>Kamera HP</strong> atau klik tombol biru di atas untuk menyelesaikan pembayaran QRIS & E-Wallet.
                   </div>
                 </div>
               </div>
@@ -1436,7 +1436,7 @@ export default function PremiumModal({
                     style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #6ee7b7' }} 
                   />
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '0.82rem', color: '#065f46', fontWeight: '700' }}>âœ“ Foto bukti struk terlampir</span>
+                    <span style={{ fontSize: '0.82rem', color: '#065f46', fontWeight: '700' }}>✓ Foto bukti struk terlampir</span>
                     <span style={{ fontSize: '0.72rem', color: '#047857' }}>Siap dikirim untuk verifikasi admin</span>
                   </div>
                 </div>
@@ -1527,8 +1527,8 @@ export default function PremiumModal({
 
             <h3 style={{ fontSize: '1.3rem', fontWeight: '800', margin: '0 0 8px 0' }}>
               {paymentGatewayMode === 'manual' 
-                ? 'Bukti Pembayaran Terkirim! ðŸŽ‰' 
-                : `Selamat! User Premium Aktif (${currentPlan.duration}) ðŸŽ‰`}
+                ? 'Bukti Pembayaran Terkirim! ' 
+                : `Selamat! User Premium Aktif (${currentPlan.duration}) `}
             </h3>
             
             <p className="desc-text" style={{ fontSize: '0.85rem', lineHeight: '1.6', marginBottom: '22px', maxWidth: '380px', margin: '0 auto 22px auto' }}>
