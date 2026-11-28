@@ -2495,14 +2495,11 @@ export default function App() {
             width: '90%',
             animation: 'modalPopupSpring 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
           }}>
-            <div style={{
-              width: '46px',
-              height: '46px',
-              border: '3.5px solid rgba(255, 255, 255, 0.15)',
-              borderTop: '3.5px solid #ffffff',
-              borderRadius: '50%',
-              animation: 'spin 0.85s linear infinite'
-            }} />
+            <div className="motion-loader-orbit">
+              <div className="motion-loader-ring-outer" />
+              <div className="motion-loader-ring-inner" />
+              <div className="motion-loader-core" />
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', textAlign: 'center' }}>
               <span style={{ 
                 color: '#ffffff', 
