@@ -871,6 +871,11 @@ export default function useAppState() {
   useEffect(() => {
     if (loginError) {
       setToast({ type: 'error', message: loginError });
+      const timer = setTimeout(() => {
+        setToast(null);
+        setLoginError('');
+      }, 4000);
+      return () => clearTimeout(timer);
     }
   }, [loginError]);
   const [activeTicketParam, setActiveTicketParam] = useState(() => {

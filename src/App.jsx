@@ -2600,7 +2600,7 @@ export default function App() {
             </p>
           </div>
           <button 
-            onClick={() => setToast(null)}
+            onClick={() => { setToast(null); setLoginError(''); }}
             className="custom-toast-close"
           >
             ✕
