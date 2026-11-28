@@ -6808,3 +6808,10 @@ select:focus {
     word-break: break-word !important;
   }
 }
+
+@media (max-width: 768px) {
+  .admin-table tr {
+    gap: 4px !important;
+    padding: 12px 14px !important;
+  }
+}
