@@ -6815,3 +6815,27 @@ select:focus {
     padding: 12px 14px !important;
   }
 }
+
+/* === Mobile Card Redesign: Creator 2-Row & Campaign Banner + 2-Col Footer === */
+@media (max-width: 768px) {
+  .admin-table:not(.wallet-mutasi-table) tr {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px 10px !important;
+    padding: 12px 14px !important;
+  }
+
+  .admin-table:not(.wallet-mutasi-table) td {
+    display: inline-flex !important;
+    width: auto !important;
+    padding: 0 !important;
+  }
+
+  /* First 2 cells (checkbox + avatar/name) take full top row */
+  .admin-table:not(.wallet-mutasi-table) td:nth-child(2) {
+    flex: 1 1 75% !important;
+  }
+}
