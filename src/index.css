@@ -6639,7 +6639,8 @@ select:focus {
 /* === Mobile BottomNav Spring Animation === */
 .bottom-nav-item {
   position: relative;
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease, background-color 0.2s ease;
+  border-radius: 14px;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease, background-color 0.25s ease;
 }
 
 .bottom-nav-item:active {
@@ -6650,19 +6651,12 @@ select:focus {
   transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.bottom-nav-item.active svg {
-  transform: translateY(-3px) scale(1.14);
+.bottom-nav-item.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-radius: 14px;
 }
 
-.bottom-nav-item.active::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 22px;
-  height: 3px;
-  border-radius: 999px;
-  background: currentColor;
-  animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+.bottom-nav-item.active svg {
+  transform: scale(1.1);
 }
