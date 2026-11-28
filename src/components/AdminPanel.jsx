@@ -1844,6 +1844,7 @@ export default function AdminPanel({
 
   const [disqualifyModalPart, setDisqualifyModalPart] = useState(null);
   const [disqualifyReason, setDisqualifyReason] = useState('');
+  const [detailUserModal, setDetailUserModal] = useState(null);
   const [activePaymentMethod, setActivePaymentMethod] = useState(() => getPaymentMethodConfig().activeMethod);
   const [qrisList, setQrisList] = useState(() => getPaymentMethodConfig().qrisList);
   const [newQrisName, setNewQrisName] = useState('');
@@ -9507,13 +9508,13 @@ export default function AdminPanel({
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th style={{ width: '80px' }}>No</th>
+                      <th style={{ width: '60px' }}>No</th>
                       <th>Username</th>
-                      <th>Password</th>
+                      <th>Kontak / Email</th>
                       <th>Role / Jabatan</th>
                       <th>Masa Aktif</th>
                       {currentUser.role === 'superadmin' && (
-                        <th style={{ textAlign: 'center', width: '120px' }}>Aksi</th>
+                        <th style={{ textAlign: 'center', width: '140px' }}>Aksi</th>
                       )}
                     </tr>
                   </thead>
@@ -9568,7 +9569,14 @@ export default function AdminPanel({
                             </div>
                           </td>
                           <td>
-                            <code className="code-badge">{user.password}</code>
+                            <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)', fontWeight: '600' }}>
+                              {user.email || '-'}
+                            </div>
+                            {(user.phone || user.whatsapp) && (
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                {user.phone || user.whatsapp}
+                              </div>
+                            )}
                           </td>
                           <td>
                             <span 
@@ -9592,11 +9600,21 @@ export default function AdminPanel({
                           {currentUser.role === 'superadmin' && (
                             <td>
                               <div className="table-actions">
+                                <button
+                                  type="button"
+                                  className="action-btn"
+                                  onClick={() => setDetailUserModal(user)}
+                                  title="Lihat Detail Pengguna"
+                                  style={{ color: '#0284c7', borderColor: '#bae6fd', background: '#f0f9ff' }}
+                                >
+                                  <Eye size={16} />
+                                </button>
                                 <button 
+                                  type="button"
                                   className="action-btn edit" 
                                   onClick={() => setEditingUser(user)}
                                   disabled={currentUser.role === 'staf' && user.role === 'superadmin'}
-                                  style={{ color: 'var(--primary-color)', cursor: (currentUser.role === 'staf' && user.role === 'superadmin') ? 'not-allowed' : 'pointer', opacity: (currentUser.role === 'staf' && user.role === 'superadmin') ? 0.3 : 1 }}
+                                  style={{ color: '#0f172a', cursor: (currentUser.role === 'staf' && user.role === 'superadmin') ? 'not-allowed' : 'pointer', opacity: (currentUser.role === 'staf' && user.role === 'superadmin') ? 0.3 : 1 }}
                                   title={currentUser.role === 'staf' && user.role === 'superadmin' ? 'Staf tidak dapat mengedit Superadmin' : 'Edit User'}
                                 >
                                   <Edit size={16} />
@@ -9634,6 +9652,63 @@ export default function AdminPanel({
                 </div>
               );
             })()}
+            {detailUserModal && createPortal(
+              <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(4px)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+                <div style={{ width: '100%', maxWidth: '520px', padding: '24px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 20px 50px rgba(15, 23, 42, 0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #e2e8f0' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: '800', color: '#0f172a' }}>Detail Pengguna</h3>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: '#64748b' }}>@{detailUserModal.username}</p>
+                    </div>
+                    <button type="button" onClick={() => setDetailUserModal(null)} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer' }}>
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.84rem', marginBottom: '16px' }}>
+                    <div style={{ padding: '10px 12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>Nama Lengkap</div>
+                      <div style={{ fontWeight: '700', color: '#0f172a', marginTop: '2px' }}>{detailUserModal.fullName || detailUserModal.name || detailUserModal.organizerName || detailUserModal.username}</div>
+                    </div>
+                    <div style={{ padding: '10px 12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>Role / Jabatan</div>
+                      <div style={{ fontWeight: '700', color: '#0f172a', marginTop: '2px', textTransform: 'uppercase' }}>{detailUserModal.role || 'user'}</div>
+                    </div>
+                    <div style={{ padding: '10px 12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>Email</div>
+                      <div style={{ fontWeight: '600', color: '#0f172a', marginTop: '2px', wordBreak: 'break-all' }}>{detailUserModal.email || '-'}</div>
+                    </div>
+                    <div style={{ padding: '10px 12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>WhatsApp / HP</div>
+                      <div style={{ fontWeight: '600', color: '#0f172a', marginTop: '2px' }}>{detailUserModal.phone || detailUserModal.whatsapp || '-'}</div>
+                    </div>
+                    <div style={{ padding: '10px 12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>Regional</div>
+                      <div style={{ fontWeight: '600', color: '#0f172a', marginTop: '2px' }}>{detailUserModal.userRegional || '-'}</div>
+                    </div>
+                    <div style={{ padding: '10px 12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>Saldo Dompet</div>
+                      <div style={{ fontWeight: '800', color: '#059669', marginTop: '2px' }}>Rp {(detailUserModal.walletBalance || 0).toLocaleString('id-ID')}</div>
+                    </div>
+                  </div>
+
+                  {(detailUserModal.bankName || detailUserModal.bankAccountNumber) && (
+                    <div style={{ padding: '12px 14px', background: '#f0f9ff', borderRadius: '10px', border: '1px solid #bae6fd', marginBottom: '16px', fontSize: '0.82rem' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#0369a1', fontWeight: '800', textTransform: 'uppercase', marginBottom: '4px' }}>Rekening Bank Pencairan</div>
+                      <div style={{ fontWeight: '700', color: '#0f172a' }}>{detailUserModal.bankName || '-'} • {detailUserModal.bankAccountNumber || '-'}</div>
+                      <div style={{ color: '#475569', fontSize: '0.78rem' }}>a.n. {detailUserModal.bankAccountHolder || '-'}</div>
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button type="button" onClick={() => setDetailUserModal(null)} style={{ padding: '9px 20px', borderRadius: '10px', border: 'none', background: '#0f172a', color: '#ffffff', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer' }}>
+                      Tutup
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body
+            )}
             {hasMoreUsers && (
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', padding: '20px 0', borderTop: '1px solid var(--border-color)' }}>
                 <button 
