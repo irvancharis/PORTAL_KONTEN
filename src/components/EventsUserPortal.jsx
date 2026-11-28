@@ -3210,7 +3210,7 @@ onMouseLeave={(e) => {
                   >
                     {/* Thumbnail Poster if available */}
                     {evt.posterUrl && (
-                      <div style={{
+                      <div className="campaign-list-poster" style={{
                         width: '110px',
                         height: '80px',
                         borderRadius: '10px',
@@ -3315,7 +3315,7 @@ onMouseLeave={(e) => {
                     </div>
 
                     {/* Middle Section: Budget & Ticket & Deadline */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap', marginRight: '8px' }}>
+                    <div className="campaign-list-meta" style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap', marginRight: '8px' }}>
                       {evt.campaignBudget > 0 && (
                         <div style={{ minWidth: '130px', textAlign: 'left' }}>
                           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '3px' }}>

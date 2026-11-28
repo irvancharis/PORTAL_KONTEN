@@ -6818,13 +6818,33 @@ select:focus {
 
 /* === Mobile Card Redesign: Creator 2-Row & Campaign Banner + 2-Col Footer === */
 @media (max-width: 768px) {
+  .campaign-list-poster {
+    width: 100% !important;
+    height: 140px !important;
+    border-radius: 12px !important;
+  }
+
+  .campaign-list-meta {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px 12px !important;
+    width: 100% !important;
+    margin-right: 0 !important;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .campaign-list-meta > div {
+    min-width: 0 !important;
+  }
+
   .admin-table:not(.wallet-mutasi-table) tr {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: wrap !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 8px 10px !important;
+    gap: 8px 8px !important;
     padding: 12px 14px !important;
   }
 
@@ -6832,10 +6852,13 @@ select:focus {
     display: inline-flex !important;
     width: auto !important;
     padding: 0 !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
   }
 
   /* First 2 cells (checkbox + avatar/name) take full top row */
   .admin-table:not(.wallet-mutasi-table) td:nth-child(2) {
     flex: 1 1 75% !important;
+    white-space: normal !important;
   }
 }
